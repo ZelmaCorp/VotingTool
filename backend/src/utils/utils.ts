@@ -98,33 +98,75 @@ export async function fetchKusToUsdRate(): Promise<number> {
 }
 
 /** Calculate requested amount (in $) */ 
-export function calculateReward(content: any, rate: number,  network: Chain): number {
+export function calculateReward(content: any, rate: number, network: Chain): number {
+    let totalUsdValue = 0;
+    let hasUnknownFormat = false;
 
+    // Check for beneficiaries with stablecoin or native token requests
     if (content.beneficiaries && content.beneficiaries.length > 0) {
-        const beneficiary = content.beneficiaries[0];
-        if (content.assetId === '1984' || content.assetId === '1337') {
-            const usdtAmount = Number((BigInt(beneficiary.amount) / BigInt(1e6)).toString());
-
-            console.log(`${usdtAmount} ${assetIdToTicker(content.assetId)}`);
-            return usdtAmount;
+        for (const beneficiary of content.beneficiaries) {
+            // Check both possible locations for asset ID
+            const assetId = content.assetId || beneficiary.genralIndex;
+            
+            if (assetId === '1984' || assetId === '1337') {
+                // USDT/USDC amount (6 decimals)
+                const usdtAmount = Number((BigInt(beneficiary.amount) / BigInt(1e6)).toString());
+                console.log(`${usdtAmount} ${assetIdToTicker(assetId)}`);
+                totalUsdValue += usdtAmount;
+            } else if (!assetId) {
+                // Native token amount (DOT/KSM)
+                try {
+                    let nativeAmount = BigInt(0);
+                    if (network === Chain.Polkadot) {
+                        nativeAmount = BigInt(beneficiary.amount) / BigInt(1e10);
+                    } else if (network === Chain.Kusama) {
+                        nativeAmount = BigInt(beneficiary.amount) / BigInt(1e12);
+                    }
+                    
+                    const nativeValue = Number(nativeAmount);
+                    const usdValue = nativeValue * rate;
+                    console.log(`${nativeValue} ${network} ($${usdValue} USD)`);
+                    totalUsdValue += usdValue;
+                } catch (error) {
+                    console.log('Malformed native token amount:', error);
+                    hasUnknownFormat = true;
+                }
+            } else {
+                // Unknown asset ID format
+                console.log(`Unknown asset ID: ${assetId}`);
+                hasUnknownFormat = true;
+            }
         }
-    }
-    
-    if (content.proposer && content.requested) {
-        let nativeAmount = BigInt(0);
-        if (network === Chain.Polkadot) nativeAmount = BigInt(content.requested) / BigInt(1e10);
-        if (network === Chain.Kusama) nativeAmount = BigInt(content.requested) / BigInt(1e12);
+    } else if (content.proposer && content.requested && typeof content.requested === 'string') {
+        // Legacy format for native token requests
+        try {
+            let nativeAmount = BigInt(0);
+            if (network === Chain.Polkadot) {
+                nativeAmount = BigInt(content.requested) / BigInt(1e10);
+            } else if (network === Chain.Kusama) {
+                nativeAmount = BigInt(content.requested) / BigInt(1e12);
+            }
 
-        // Convert to number first to preserve decimals
-        const nativeValue = Number(nativeAmount);
-        const usdValue = nativeValue * rate;
-
-        console.log(`$${usdValue} USD`);
-        return usdValue;
+            const nativeValue = Number(nativeAmount);
+            const usdValue = nativeValue * rate;
+            console.log(`${nativeValue} ${network} ($${usdValue} USD)`);
+            totalUsdValue = usdValue;
+        } catch (error) {
+            console.log('Malformed native token request:', error);
+            hasUnknownFormat = true;
+        }
+    } else if (content.beneficiaries?.length > 0 || content.requested) {
+        // Has reward-related fields but in unknown format
+        console.log('Unknown reward format');
+        hasUnknownFormat = true;
+    } else {
+        // No reward information at all
+        console.log('No reward information available');
+        return 0;
     }
-    
-    console.log('No reward information available');
-    return 0;
+
+    // Return 0 if we encountered any unknown formats, otherwise return the total USD value
+    return hasUnknownFormat ? 0 : totalUsdValue;
 }
 
 function assetIdToTicker(assetId: string): string {
