@@ -115,9 +115,9 @@ export function calculateReward(content: any, rate: number,  network: Chain): nu
         if (network === Chain.Polkadot) nativeAmount = BigInt(content.requested) / BigInt(1e10);
         if (network === Chain.Kusama) nativeAmount = BigInt(content.requested) / BigInt(1e12);
 
-        const scaledRate = Math.round(rate * 100);
-        const usdAmount = (nativeAmount * BigInt(scaledRate)) / BigInt(100);
-        const usdValue = Number(usdAmount)//.toFixed(2);
+        // Convert to number first to preserve decimals
+        const nativeValue = Number(nativeAmount);
+        const usdValue = nativeValue * rate;
 
         console.log(`$${usdValue} USD`);
         return usdValue;
