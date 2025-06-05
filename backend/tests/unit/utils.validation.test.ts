@@ -70,6 +70,18 @@ describe('Utils - Validation Functions', () => {
     it('should return 0 for invalid content', () => {
       expect(calculateReward({}, 1, Chain.Polkadot)).toBe(0);
     });
+
+    it('should handle basic multiple beneficiaries case', () => {
+      // Keep one simple test to verify the function can handle multiple beneficiaries
+      // but the real integration tests are in the integration test file
+      const content = {
+        beneficiaries: [
+          { amount: '1000000', genralIndex: '1984' }, // 1 USDT
+          { amount: '1000000', genralIndex: '1984' }  // 1 USDT
+        ]
+      };
+      expect(calculateReward(content, 0, Chain.Polkadot)).toBe(2);
+    });
   });
 
   describe('sleep', () => {
