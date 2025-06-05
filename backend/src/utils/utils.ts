@@ -13,8 +13,8 @@ export function getValidatedOrigin(origin: string | undefined): Origin {
 }
 
 export function getValidatedStatus(status: string | undefined): TimelineStatus {
-    if (!status) throw new Error("No VoteStatus found");            // probably return some default value, but this way we are not saying incorrect things
-
+    if (!status) throw new Error("No VoteStatus found");  
+    
     if (Object.values(TimelineStatus).includes(status as TimelineStatus)) {
         return status as TimelineStatus;
     }
@@ -27,44 +27,27 @@ export async function fetchDotToUsdRate(): Promise<number> {
     try {
         const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=polkadot&vs_currencies=usd');
         if (!response.ok) {
-            // Use statusText if available, otherwise a generic message
             const errorText = response.statusText || `HTTP error! status: ${response.status}`;
             throw new Error(`Error fetching DOT/USD rate: ${errorText}`);
         }
         const data = await response.json();
-        // Safely access nested properties
         if (data && data.polkadot && typeof data.polkadot.usd === 'number') {
             return data.polkadot.usd;
         }
         console.error('Error fetching DOT/USD rate: Invalid data structure received from CoinGecko', data);
-        return 0; // Return 0 if structure is not as expected
+        return 0;
     } catch (error) {
-        // Log the original error if it's not the one we constructed for !response.ok
         if (!(error instanceof Error && error.message.startsWith('Error fetching DOT/USD rate:'))) {
              console.error('Error fetching DOT/USD rate:', (error as any).message);
         }
-        // If the error was thrown due to !response.ok or JSON parsing, rethrow it.
-        // Otherwise, for unexpected data structure, we've logged and returned 0.
-        // The test for unexpected data structure expects a return of 0, not a throw.
-        // For other errors (network, etc.), they should be thrown.
         if (error instanceof Error && error.message.startsWith('Error fetching DOT/USD rate:')) {
             throw error; // Rethrow errors from !response.ok or other explicit throws
         }
-        // For TypeErrors from data structure issues if not caught by the if block, or other unexpected errors
-        // we need to decide if we rethrow or return 0. The tests for missing structure expect 0.
-        // The original code re-threw. For now, let's ensure it returns 0 for data structure issues.
-        // The specific test `should return 0 if the expected data structure is missing` implies this.
-        // If it was a genuine network error or JSON parse error, it would have been caught/thrown earlier.
-        // So if we reach here and it wasn't an explicit throw from `!response.ok`, it implies a data structure problem
-        // or an issue within the try block after fetching. The safe access above should prevent most TypeErrors though.
-        // Let's assume errors making it here, not explicitly thrown by us, are caught by tests expecting throws.
-        // The tests for returning 0 are for specific data structure issues.
         if (error instanceof TypeError) { // specifically catch type errors from bad data access
-            // This might be redundant if the safe access is perfect, but acts as a fallback
             console.error('TypeError during DOT/USD rate processing:', (error as any).message);
             return 0; 
         }
-        throw error; // Rethrow other types of errors (e.g. network failure if fetch itself fails)
+        throw error;
     }
 }
 
