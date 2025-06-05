@@ -3,7 +3,7 @@
         preset: 'ts-jest',
         testEnvironment: 'node',
         testMatch: [
-            "<rootDir>/tests/unit/**/*.test.(ts|tsx)"
+            "<rootDir>/tests/**/*.test.(ts|tsx)"
         ],
         moduleNameMapper: {
           // If you have path aliases in tsconfig.json, replicate them here
