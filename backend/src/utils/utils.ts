@@ -31,6 +31,7 @@ export async function fetchDotToUsdRate(): Promise<number> {
             throw new Error(`Error fetching DOT/USD rate: ${errorText}`);
         }
         const data = await response.json();
+      
         if (data && data.polkadot && typeof data.polkadot.usd === 'number') {
             return data.polkadot.usd;
         }
@@ -147,6 +148,7 @@ export function calculateReward(content: any, rate: number, network: Chain): num
         console.log('No reward information available');
         return 0;
     }
+
 
     // Return 0 if we encountered any unknown formats, otherwise return the total USD value
     return hasUnknownFormat ? 0 : totalUsdValue;
