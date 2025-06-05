@@ -5,6 +5,7 @@ export enum Chain {
 
 export enum TimelineStatus {
     LeadIn = "Lead-in",
+    DecisionDepositPlaced = "DecisionDepositPlaced",
     Submitted = "Submitted",
     Deciding = "Deciding",
     Confirmation = "Confirmation",
