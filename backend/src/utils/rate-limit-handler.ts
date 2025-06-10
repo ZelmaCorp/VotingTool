@@ -14,6 +14,14 @@ export interface RetryContext {
   operationType: string;
 }
 
+export interface DeadLetterOperation {
+  id: string;
+  operationType: string;
+  error: string;
+  context: RetryContext;
+  failedAt: Date;
+}
+
 export class RateLimitError extends Error {
   constructor(
     message: string,
@@ -28,6 +36,7 @@ export class RateLimitError extends Error {
 export class RateLimitHandler {
   private static instance: RateLimitHandler;
   private requestQueue: Map<string, Promise<any>> = new Map();
+  private deadLetterQueue: Map<string, DeadLetterOperation> = new Map();
 
   static getInstance(): RateLimitHandler {
     if (!RateLimitHandler.instance) {
@@ -63,12 +72,19 @@ export class RateLimitHandler {
         
         if (!isRateLimit || attempt > config.maxRetries) {
           // Not a rate limit error or max retries exceeded
-          throw this.createDetailedError(error, {
+          const context = {
             attempt,
             lastError,
             totalElapsed: Date.now() - startTime,
             operationType: config.operationType
-          });
+          };
+          
+          // Add to dead letter queue if rate limit exhaustion
+          if (isRateLimit && attempt > config.maxRetries && operationId) {
+            this.addToDeadLetter(operationId, error as Error, context);
+          }
+          
+          throw this.createDetailedError(error, context);
         }
 
         // Calculate delay for next attempt
@@ -168,5 +184,66 @@ export class RateLimitHandler {
       active: this.requestQueue.size,
       operations: Array.from(this.requestQueue.keys())
     };
+  }
+
+  /**
+   * Add operation to dead letter queue when all retries are exhausted
+   */
+  private addToDeadLetter(operationId: string, error: Error, context: RetryContext): void {
+    const deadLetterOp: DeadLetterOperation = {
+      id: operationId,
+      operationType: context.operationType,
+      error: error.message,
+      context,
+      failedAt: new Date()
+    };
+    
+    this.deadLetterQueue.set(operationId, deadLetterOp);
+    console.error(`💀 Operation ${operationId} moved to dead letter queue after ${context.attempt} attempts`);
+  }
+
+  /**
+   * Get all dead letter operations
+   */
+  getDeadLetters(): DeadLetterOperation[] {
+    return Array.from(this.deadLetterQueue.values());
+  }
+
+  /**
+   * Get dead letter statistics
+   */
+  getDeadLetterStats(): { count: number; oldest?: Date; newest?: Date } {
+    const deadLetters = this.getDeadLetters();
+    if (deadLetters.length === 0) {
+      return { count: 0 };
+    }
+
+    const dates = deadLetters.map(op => op.failedAt);
+    return {
+      count: deadLetters.length,
+      oldest: new Date(Math.min(...dates.map(d => d.getTime()))),
+      newest: new Date(Math.max(...dates.map(d => d.getTime())))
+    };
+  }
+
+  /**
+   * Clear dead letter queue
+   */
+  clearDeadLetters(): number {
+    const count = this.deadLetterQueue.size;
+    this.deadLetterQueue.clear();
+    console.log(`🧹 Cleared ${count} dead letter operations`);
+    return count;
+  }
+
+  /**
+   * Remove specific dead letter operation
+   */
+  removeDeadLetter(operationId: string): boolean {
+    const removed = this.deadLetterQueue.delete(operationId);
+    if (removed) {
+      console.log(`🗑️ Removed dead letter operation: ${operationId}`);
+    }
+    return removed;
   }
 } 
