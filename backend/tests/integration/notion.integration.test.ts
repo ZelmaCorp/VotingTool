@@ -38,7 +38,6 @@ describe('Notion Integration Tests', () => {
   });
 
   afterAll(async () => {
-
     // Cleanup: Delete all created test pages
     for (const pageId of createdPageIds) {
       try {
@@ -53,6 +52,8 @@ describe('Notion Integration Tests', () => {
         console.warn(`Failed to cleanup test page ${pageId}:`, (error as any).message);
       }
     }
+
+
   });
 
   // Helper function to create mock referenda
