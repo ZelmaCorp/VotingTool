@@ -21,7 +21,7 @@ import {
   saveReadyProposalsToFile,
 } from "../utils/readyFileHandlers";
 import { sleep } from "../utils/utils";
-import { RateLimitHandler } from "../utils/rate-limit-handler";
+import { RateLimitHandler } from "../utils/rateLimitHandler";
 import { RATE_LIMIT_CONFIGS } from "../config/rate-limit-config";
 
 const notionApiToken = process.env.NOTION_API_TOKEN;

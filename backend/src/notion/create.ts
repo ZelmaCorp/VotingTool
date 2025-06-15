@@ -5,7 +5,7 @@ import { calculateReward, getValidatedOrigin, getValidatedStatus } from '../util
 import { PolkassemblyReferenda } from '../types/polkassemly';
 import { updateContent } from './updateContent';
 import { fetchReferendumContent } from '../polkAssembly/fetchReferendas';
-import { RateLimitHandler } from '../utils/rate-limit-handler';
+import { RateLimitHandler } from '../utils/rateLimitHandler';
 import { RATE_LIMIT_CONFIGS } from '../config/rate-limit-config';
 
 const notionApiToken = process.env.NOTION_API_TOKEN;

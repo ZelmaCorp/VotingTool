@@ -1,4 +1,5 @@
 import { Chain, Origin, TimelineStatus } from "../types/properties";
+import { priceCache } from './priceCache';
 
 
 export function getValidatedOrigin(origin: string | undefined): Origin {
@@ -33,22 +34,17 @@ export async function fetchDotToUsdRate(): Promise<number> {
         const data = await response.json();
       
         if (data && data.polkadot && typeof data.polkadot.usd === 'number') {
-            return data.polkadot.usd;
+            const rate = data.polkadot.usd;
+            priceCache.setPrice(Chain.Polkadot, rate);
+            return rate;
         }
         console.error('Error fetching DOT/USD rate: Invalid data structure received from CoinGecko', data);
-        return 0;
+        return priceCache.getPrice(Chain.Polkadot);
     } catch (error) {
         if (!(error instanceof Error && error.message.startsWith('Error fetching DOT/USD rate:'))) {
              console.error('Error fetching DOT/USD rate:', (error as any).message);
         }
-        if (error instanceof Error && error.message.startsWith('Error fetching DOT/USD rate:')) {
-            throw error; // Rethrow errors from !response.ok or other explicit throws
-        }
-        if (error instanceof TypeError) { // specifically catch type errors from bad data access
-            console.error('TypeError during DOT/USD rate processing:', (error as any).message);
-            return 0; 
-        }
-        throw error;
+        return priceCache.getPrice(Chain.Polkadot);
     }
 }
 
@@ -62,22 +58,17 @@ export async function fetchKusToUsdRate(): Promise<number> {
         }
         const data = await response.json();
         if (data && data.kusama && typeof data.kusama.usd === 'number') {
-            return data.kusama.usd;
+            const rate = data.kusama.usd;
+            priceCache.setPrice(Chain.Kusama, rate);
+            return rate;
         }
         console.error('Error fetching KSM/USD rate: Invalid data structure received from CoinGecko', data);
-        return 0;
+        return priceCache.getPrice(Chain.Kusama);
     } catch (error) {
         if (!(error instanceof Error && error.message.startsWith('Error fetching KSM/USD rate:'))) {
             console.error('Error fetching KSM/USD rate:', (error as any).message);
         }
-        if (error instanceof Error && error.message.startsWith('Error fetching KSM/USD rate:')) {
-            throw error;
-        }
-        if (error instanceof TypeError) {
-             console.error('TypeError during KSM/USD rate processing:', (error as any).message);
-            return 0;
-        }
-        throw error;
+        return priceCache.getPrice(Chain.Kusama);
     }
 }
 

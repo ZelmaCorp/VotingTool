@@ -1,4 +1,4 @@
-import { RateLimitHandler, RateLimitError } from '../../src/utils/rate-limit-handler';
+import { RateLimitHandler, RateLimitError } from '../../src/utils/rateLimitHandler';
 import { RATE_LIMIT_CONFIGS } from '../../src/config/rate-limit-config';
 
 describe('RateLimitHandler', () => {

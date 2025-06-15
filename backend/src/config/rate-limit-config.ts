@@ -1,4 +1,4 @@
-import { RateLimitConfig } from '../utils/rate-limit-handler';
+import { RateLimitConfig } from '../utils/rateLimitHandler';
 
 /**
  * Rate limiting configurations for different operation types

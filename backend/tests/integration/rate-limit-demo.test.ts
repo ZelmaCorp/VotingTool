@@ -1,4 +1,4 @@
-import { RateLimitHandler } from '../../src/utils/rate-limit-handler';
+import { RateLimitHandler } from '../../src/utils/rateLimitHandler';
 import { RATE_LIMIT_CONFIGS } from '../../src/config/rate-limit-config';
 
 describe('Rate Limiting Demo', () => {
