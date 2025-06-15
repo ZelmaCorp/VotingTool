@@ -1,4 +1,3 @@
-import { Chain } from '../../src/types/properties';
 import { checkSubscan } from '../../src/mimir/checkForVotes';
 import { ReferendumId } from '../../src/types/properties';
 
@@ -21,7 +20,6 @@ describe('Subscan Integration Tests', () => {
   describe('API Integration', () => {
     it('should successfully fetch extrinsics from Polkadot', async () => {
       const votedList = [POLKADOT_REFERENDUM_ID];
-      
       const result = await checkSubscan(votedList);
       
       expect(result).toBeDefined();
@@ -31,44 +29,66 @@ describe('Subscan Integration Tests', () => {
 
     it('should successfully fetch extrinsics from Kusama', async () => {
       const votedList = [KUSAMA_REFERENDUM_ID];
-      
       const result = await checkSubscan(votedList);
       
       expect(result).toBeDefined();
       expect(result).toHaveProperty(KUSAMA_REFERENDUM_ID.toString());
       expect(result[KUSAMA_REFERENDUM_ID]).toBe(KUSAMA_EXTRINSIC_HASH);
     });
-
-    it('should handle rate limiting correctly', async () => {
-      // TODO: Implement test
-    });
-
-    it('should handle API errors gracefully', async () => {
-      // TODO: Implement test
-    });
   });
 
   describe('Data Processing', () => {
     it('should correctly process nested extrinsics', async () => {
-      // TODO: Implement test
+      // Test with both Polkadot and Kusama IDs to ensure nested extrinsics are processed
+      const votedList = [POLKADOT_REFERENDUM_ID, KUSAMA_REFERENDUM_ID];
+      const result = await checkSubscan(votedList);
+      
+      // Verify both extrinsics are processed
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty(POLKADOT_REFERENDUM_ID.toString());
+      expect(result).toHaveProperty(KUSAMA_REFERENDUM_ID.toString());
+      
+      // Verify the extrinsic hashes are correct
+      expect(result[POLKADOT_REFERENDUM_ID]).toBe(POLKADOT_EXTRINSIC_HASH);
+      expect(result[KUSAMA_REFERENDUM_ID]).toBe(KUSAMA_EXTRINSIC_HASH);
     });
 
     it('should correctly extract referendum IDs', async () => {
-      // TODO: Implement test
+      // Test with a mix of IDs to ensure proper extraction
+      const votedList = [POLKADOT_REFERENDUM_ID, KUSAMA_REFERENDUM_ID];
+      const result = await checkSubscan(votedList);
+      
+      // Verify the structure of the result
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('object');
+      
+      // Verify each referendum ID is properly extracted and mapped
+      votedList.forEach(id => {
+        expect(result).toHaveProperty(id.toString());
+        expect(typeof result[id]).toBe('string');
+        expect(result[id].length).toBeGreaterThan(0);
+      });
     });
 
     it('should create valid extrinsic hash maps', async () => {
-      // TODO: Implement test
-    });
-  });
-
-  describe('End-to-End Flow', () => {
-    it('should complete the full voting verification flow', async () => {
-      // TODO: Implement test
-    });
-
-    it('should handle both networks simultaneously', async () => {
-      // TODO: Implement test
+      const votedList = [POLKADOT_REFERENDUM_ID, KUSAMA_REFERENDUM_ID];
+      const result = await checkSubscan(votedList);
+      
+      // Verify the result is a valid map
+      expect(result).toBeDefined();
+      expect(typeof result).toBe('object');
+      
+      // Verify each entry in the map
+      Object.entries(result).forEach(([id, hash]) => {
+        // Verify ID is a number
+        expect(Number(id)).not.toBeNaN();
+        
+        // Verify hash is a valid hex string
+        expect(hash).toMatch(/^0x[a-fA-F0-9]+$/);
+        
+        // Verify hash length (typically 66 characters for 0x + 32 bytes)
+        expect(hash.length).toBe(66);
+      });
     });
   });
 }); 
