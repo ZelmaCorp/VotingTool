@@ -1,5 +1,7 @@
 import axios from "axios";
 import { NotionPage } from "../types/notion";
+import { RateLimitHandler } from "../utils/rate-limit-handler";
+import { RATE_LIMIT_CONFIGS } from "../config/rate-limit-config";
 
 const notionApiToken = process.env.NOTION_API_TOKEN;
 const notionDatabaseId = process.env.NOTION_DATABASE_ID;
@@ -30,15 +32,23 @@ export async function findNotionPageByPostId(pageList: any[], postId: number): P
 
 export async function getNotionPages(): Promise<any> {
     try {
-        const response = await axios.post(
-            `https://api.notion.com/v1/databases/${notionDatabaseId}/query`,
-            {},
-            {
-              headers: {
-                Authorization: `Bearer ${notionApiToken}`,
-                "Notion-Version": "2022-06-28",
-              },
-            }
+        const rateLimitHandler = RateLimitHandler.getInstance();
+        
+        const response = await rateLimitHandler.executeWithRateLimit(
+            async () => {
+                return await axios.post(
+                    `https://api.notion.com/v1/databases/${notionDatabaseId}/query`,
+                    {},
+                    {
+                      headers: {
+                        Authorization: `Bearer ${notionApiToken}`,
+                        "Notion-Version": "2022-06-28",
+                      },
+                    }
+                );
+            },
+            RATE_LIMIT_CONFIGS.interactive,
+            `get-notion-pages-${Date.now()}`
         );
 
         return response.data.results;

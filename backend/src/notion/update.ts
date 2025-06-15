@@ -5,6 +5,8 @@ import { PolkassemblyReferenda } from "../types/polkassemly";
 import { Chain } from "../types/properties";
 import { calculateReward, getValidatedStatus, sleep } from "../utils/utils";
 import { updateContent } from "./updateContent";
+import { RateLimitHandler } from "../utils/rate-limit-handler";
+import { RATE_LIMIT_CONFIGS } from "../config/rate-limit-config";
 
 const notionApiToken = process.env.NOTION_API_TOKEN;
 
@@ -17,8 +19,6 @@ export async function updateReferenda(
     network: Chain
 ): Promise<NotionPageId> {
     const notionApiUrl = `https://api.notion.com/v1/pages/${pageId}`;
-    const maxRetries = 3;
-    let attempt = 0;
 
     // Fetch content (description) and reward information
     const contentResp = await fetchReferendumContent(referenda.post_id, referenda.network);
@@ -36,38 +36,26 @@ export async function updateReferenda(
     const data = prepareNotionData(properties);
 
     try {
-        await axios.patch(notionApiUrl, data, {
-            headers: {
-              'Authorization': `Bearer ${notionApiToken}`,
-              'Content-Type': 'application/json',
-              'Notion-Version': process.env.NOTION_VERSION,
+        const rateLimitHandler = RateLimitHandler.getInstance();
+        
+        await rateLimitHandler.executeWithRateLimit(
+            async () => {
+                return await axios.patch(notionApiUrl, data, {
+                    headers: {
+                      'Authorization': `Bearer ${notionApiToken}`,
+                      'Content-Type': 'application/json',
+                      'Notion-Version': process.env.NOTION_VERSION,
+                    },
+                });
             },
-        });
+            RATE_LIMIT_CONFIGS.bulk,
+            `update-referenda-${pageId}`
+        );
 
         await sleep(100);
         
-        attempt = 0;
-        let contentUpdateSuccess = false;
-        
-        // Retry loop for content update
-        while (attempt < maxRetries && !contentUpdateSuccess) {
-            try {
-                await updateContent(pageId, contentResp.content);
-                contentUpdateSuccess = true;
-            } catch (contentError) {
-                attempt++;
-                console.log(`Content update attempt ${attempt} failed: ${(contentError as any).message}`);
-                
-                if (attempt < maxRetries) {
-                    const delayMs = 200 * Math.pow(2, attempt - 1);
-                    console.log(`Retrying after ${delayMs}ms...`);
-                    await sleep(delayMs);
-                } else {
-                    console.error('Max retries reached for content update, giving up.');
-                    throw contentError;
-                }
-            }
-        }
+        // Update content with rate limiting handled in updateContent function
+        await updateContent(pageId, contentResp.content);
 
         return pageId;
         

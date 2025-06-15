@@ -21,6 +21,8 @@ import {
   saveReadyProposalsToFile,
 } from "../utils/readyFileHandlers";
 import { sleep } from "../utils/utils";
+import { RateLimitHandler } from "../utils/rate-limit-handler";
+import { RATE_LIMIT_CONFIGS } from "../config/rate-limit-config";
 
 const notionApiToken = process.env.NOTION_API_TOKEN;
 let isCheckingVotes = false;
@@ -161,39 +163,32 @@ export async function updateNotionToVoted(
 
   const data = { properties };
 
-  const maxRetries = 5;
-  const retryDelay = 60000; // 1 minute in milliseconds
-  let retryCount = 0;
+  try {
+    const rateLimitHandler = RateLimitHandler.getInstance();
+    
+    await rateLimitHandler.executeWithRateLimit(
+      async () => {
+        return await axios.patch(notionApiUrl, data, {
+          headers: {
+            Authorization: `Bearer ${notionApiToken}`,
+            "Content-Type": "application/json",
+            "Notion-Version": process.env.NOTION_VERSION,
+          },
+        });
+      },
+      RATE_LIMIT_CONFIGS.critical,
+      `update-voted-${pageId}`
+    );
 
-  while (retryCount < maxRetries) {
-    try {
-      await axios.patch(notionApiUrl, data, {
-        headers: {
-          Authorization: `Bearer ${notionApiToken}`,
-          "Content-Type": "application/json",
-          "Notion-Version": process.env.NOTION_VERSION,
-        },
-      });
-
-      return pageId;
-    } catch (error) {
-      retryCount++;
-      const errorMessage = (error as any).response
-        ? (error as any).response.data
-        : (error as any).message;
-      
-      console.error(`Error updating page (attempt ${retryCount}/${maxRetries}):`, errorMessage);
-      
-      if (retryCount === maxRetries) {
-        throw new Error(`Failed to update Notion page after ${maxRetries} attempts: ${errorMessage}`);
-      }
-      
-      console.log(`Waiting ${retryDelay/1000} seconds before retry...`);
-      await sleep(retryDelay);
-    }
+    return pageId;
+  } catch (error) {
+    const errorMessage = (error as any).response
+      ? (error as any).response.data
+      : (error as any).message;
+    
+    console.error('Error updating voting status:', errorMessage);
+    throw new Error(`Failed to update Notion page voting status: ${errorMessage}`);
   }
-
-  return pageId;
 }
 
 export async function checkSubscan(votedList: ReferendumId[]): Promise<ExtrinsicHashMap> {

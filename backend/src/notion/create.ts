@@ -5,6 +5,8 @@ import { calculateReward, getValidatedOrigin, getValidatedStatus } from '../util
 import { PolkassemblyReferenda } from '../types/polkassemly';
 import { updateContent } from './updateContent';
 import { fetchReferendumContent } from '../polkAssembly/fetchReferendas';
+import { RateLimitHandler } from '../utils/rate-limit-handler';
+import { RATE_LIMIT_CONFIGS } from '../config/rate-limit-config';
 
 const notionApiToken = process.env.NOTION_API_TOKEN;
 
@@ -37,15 +39,23 @@ export async function createReferenda(
   // Prepare the data for Notion
   const data = prepareNotionData(databaseId, properties);
 
-  // Send request to Notion
+  // Send request to Notion with rate limiting
   try {
-    const response = await axios.post(notionApiUrl, data, {
-      headers: {
-        'Authorization': `Bearer ${notionApiToken}`,
-        'Content-Type': 'application/json',
-        'Notion-Version': process.env.NOTION_VERSION,
+    const rateLimitHandler = RateLimitHandler.getInstance();
+    
+    const response = await rateLimitHandler.executeWithRateLimit(
+      async () => {
+        return await axios.post(notionApiUrl, data, {
+          headers: {
+            'Authorization': `Bearer ${notionApiToken}`,
+            'Content-Type': 'application/json',
+            'Notion-Version': process.env.NOTION_VERSION,
+          },
+        });
       },
-    });
+      RATE_LIMIT_CONFIGS.critical,
+      `create-referenda-${referenda.post_id}`
+    );
     
     // Add content to the newly created page
     await updateContent(response.data.id, contentResp.content);
