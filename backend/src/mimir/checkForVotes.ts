@@ -20,7 +20,6 @@ import {
   loadReadyProposalsFromFile,
   saveReadyProposalsToFile,
 } from "../utils/readyFileHandlers";
-import { sleep } from "../utils/utils";
 import { RateLimitHandler } from "../utils/rateLimitHandler";
 import { RATE_LIMIT_CONFIGS } from "../config/rate-limit-config";
 
