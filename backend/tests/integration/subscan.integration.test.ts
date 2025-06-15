@@ -20,11 +20,23 @@ describe('Subscan Integration Tests', () => {
 
   describe('API Integration', () => {
     it('should successfully fetch extrinsics from Polkadot', async () => {
-      // TODO: Implement test
+      const votedList = [POLKADOT_REFERENDUM_ID];
+      
+      const result = await checkSubscan(votedList);
+      
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty(POLKADOT_REFERENDUM_ID.toString());
+      expect(result[POLKADOT_REFERENDUM_ID]).toBe(POLKADOT_EXTRINSIC_HASH);
     });
 
     it('should successfully fetch extrinsics from Kusama', async () => {
-      // TODO: Implement test
+      const votedList = [KUSAMA_REFERENDUM_ID];
+      
+      const result = await checkSubscan(votedList);
+      
+      expect(result).toBeDefined();
+      expect(result).toHaveProperty(KUSAMA_REFERENDUM_ID.toString());
+      expect(result[KUSAMA_REFERENDUM_ID]).toBe(KUSAMA_EXTRINSIC_HASH);
     });
 
     it('should handle rate limiting correctly', async () => {
