@@ -7,8 +7,11 @@ import { calculateReward, getValidatedStatus, sleep } from "../utils/utils";
 import { updateContent } from "./updateContent";
 import { RateLimitHandler } from "../utils/rateLimitHandler";
 import { RATE_LIMIT_CONFIGS } from "../config/rate-limit-config";
+import { createSubsystemLogger } from "../config/logger";
+import { Subsystem } from "../types/logging";
 
 const notionApiToken = process.env.NOTION_API_TOKEN;
+const logger = createSubsystemLogger(Subsystem.NOTION);
 
 
 /** Update a Referenda in the Notion database */
@@ -24,6 +27,15 @@ export async function updateReferenda(
     const contentResp = await fetchReferendumContent(referenda.post_id, referenda.network);
     const rewardString = calculateReward(contentResp, exchangeRate, network);
 
+    // DEBUG: Log the detail API response to see if it has updated title
+    logger.info({
+        pageId,
+        postId: referenda.post_id,
+        listApiTitle: referenda.title,
+        detailApiResponse: Object.keys(contentResp),
+        detailApiTitle: contentResp.title || 'NO_TITLE_FIELD'
+    }, 'Comparing title sources');
+
     // Fill the properties, that are coming from Polkassembly
     const properties: UpdateReferendumInput = {
         title: referenda.title,
@@ -32,10 +44,29 @@ export async function updateReferenda(
         referendumTimeline: getValidatedStatus(referenda.status)
     }
 
+    logger.info({
+        pageId,
+        postId: referenda.post_id,
+        newTitle: referenda.title,
+        newStatus: getValidatedStatus(referenda.status),
+        newRequestedAmount: rewardString,
+        network: network
+    }, 'Starting referenda update');
+
     // Prepare the data for Notion
     const data = prepareNotionData(properties);
 
     try {
+        logger.info({
+            pageId,
+            postId: referenda.post_id,
+            propertiesPayload: {
+                title: `#${properties.number}-${properties.title}`,
+                requestedAmount: properties.requestedAmount,
+                referendumTimeline: properties.referendumTimeline
+            }
+        }, 'Updating properties');
+
         const rateLimitHandler = RateLimitHandler.getInstance();
         
         await rateLimitHandler.executeWithRateLimit(
@@ -52,15 +83,36 @@ export async function updateReferenda(
             `update-referenda-${pageId}`
         );
 
+        logger.info({
+            pageId,
+            postId: referenda.post_id
+        }, 'Properties update completed successfully');
+
         await sleep(100);
+        
+        logger.info({
+            pageId,
+            postId: referenda.post_id,
+            contentLength: contentResp.content?.length || 0
+        }, 'Starting content update');
         
         // Update content with rate limiting handled in updateContent function
         await updateContent(pageId, contentResp.content);
 
+        logger.info({
+            pageId,
+            postId: referenda.post_id
+        }, 'Referenda update completed successfully');
+
         return pageId;
         
     } catch (error) {
-        console.error('Error updating page:', (error as any).response ? (error as any).response.data : (error as any).message);
+        logger.error({
+            pageId,
+            postId: referenda.post_id,
+            newTitle: referenda.title,
+            error: (error as any).response?.data || (error as any).message
+        }, 'Referenda update failed');
         throw error;
     }
 }
