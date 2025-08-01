@@ -27,6 +27,15 @@ export async function updateReferenda(
     const contentResp = await fetchReferendumContent(referenda.post_id, referenda.network);
     const rewardString = calculateReward(contentResp, exchangeRate, network);
 
+    // DEBUG: Log the detail API response to see if it has updated title
+    logger.info({
+        pageId,
+        postId: referenda.post_id,
+        listApiTitle: referenda.title,
+        detailApiResponse: Object.keys(contentResp),
+        detailApiTitle: contentResp.title || 'NO_TITLE_FIELD'
+    }, 'Comparing title sources');
+
     // Fill the properties, that are coming from Polkassembly
     const properties: UpdateReferendumInput = {
         title: referenda.title,
