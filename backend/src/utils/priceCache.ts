@@ -2,8 +2,9 @@ import { Chain } from '../types/properties';
 
 class PriceCache {
     private static instance: PriceCache;
-    private dotPrice: number = 0;
-    private ksmPrice: number = 0;
+    // Start with reasonable defaults instead of 0
+    private dotPrice: number = 6.0;   // Reasonable DOT price
+    private ksmPrice: number = 25.0;  // Reasonable KSM price
 
     private constructor() {}
 

@@ -52,7 +52,7 @@ export async function fetchDotToUsdRate(): Promise<number> {
     }
 }
 
-/** Fetch KUS/USD exchange rate */
+/** Fetch KSM/USD exchange rate */
 export async function fetchKusToUsdRate(): Promise<number> {
     try {
         const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=kusama&vs_currencies=usd');
