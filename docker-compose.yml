@@ -18,7 +18,6 @@ services:
       - POLKADOT_MULTISIG=${POLKADOT_MULTISIG}
       - KUSAMA_MULTISIG=${KUSAMA_MULTISIG}
       - PROPOSER_MNEMONIC=${PROPOSER_MNEMONIC}
-      - THRESHOLD=${THRESHOLD:-2}
       
       # Required API Keys
       - SUBSCAN_API_KEY=${SUBSCAN_API_KEY}
@@ -30,6 +29,8 @@ services:
       - READY_CHECK_INTERVAL=${READY_CHECK_INTERVAL:-60}
       - NODE_ENV=${NODE_ENV:-production}
       - LOG_LEVEL=${LOG_LEVEL:-info}
+      - START_MINUTE=${START_MINUTE:-0}
+      - SKIP_WAIT=${SKIP_WAIT:-true}
       
     env_file:
       - .env
