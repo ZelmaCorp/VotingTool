@@ -30,7 +30,7 @@ app.get("/send-to-mimir", async (req: Request, res: Response) => {
   }
 });
 
-app.get('/api/refresh-referendas', async (req: Request, res: Response) => {
+app.get('/refresh-referendas', async (req: Request, res: Response) => {
   try {
     const limit = parseInt(req.query.limit as string) || 30; // Default to 30, allow user override
     
@@ -40,27 +40,6 @@ app.get('/api/refresh-referendas', async (req: Request, res: Response) => {
       timestamp: new Date().toISOString(),
       limit: limit
     });
-  } catch (error) {
-    res.status(500).json({ error: "Error refreshing referendas: " + (error as any).message });
-  }
-});
-
-app.post('/api/refresh-referendas', async (req: Request, res: Response) => {
-  try {
-    const { limit } = req.body;
-    
-    if (limit) {
-      // Manual override with specific limit
-      await refreshReferendas(limit);
-      res.json({ message: `Referendas refreshed successfully with limit ${limit}` });
-    } else {
-      // Use smart refresh logic
-      await smartRefreshReferendas();
-      const isDeepSync = shouldRunDeepSync();
-      res.json({ 
-        message: `Referendas refreshed successfully (${isDeepSync ? 'deep sync' : 'regular sync'})` 
-      });
-    }
   } catch (error) {
     res.status(500).json({ error: "Error refreshing referendas: " + (error as any).message });
   }
