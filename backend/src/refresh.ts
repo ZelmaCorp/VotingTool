@@ -46,7 +46,7 @@ export async function refreshReferendas(limit: number = 30) {
         // Go through the fetched referendas
         for (const referenda of referendas) {
             // If Referenda exist in Notion, update it, otherwise, create new page
-            const found = await findNotionPageByPostId(pages, referenda.post_id);
+            const found = await findNotionPageByPostId(pages, referenda.post_id, referenda.network);
             const exchangeRate = referenda.network === Chain.Polkadot ? dotUsdRate : kusUsdRate;
 
             if (found) {
