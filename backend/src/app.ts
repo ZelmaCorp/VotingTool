@@ -32,12 +32,13 @@ app.get("/send-to-mimir", async (req: Request, res: Response) => {
 
 app.get('/api/refresh-referendas', async (req: Request, res: Response) => {
   try {
-    await smartRefreshReferendas();
-    const isDeepSync = shouldRunDeepSync();
+    const limit = parseInt(req.query.limit as string) || 30; // Default to 30, allow user override
+    
+    await refreshReferendas(limit);
     res.json({ 
-      message: `Referendas refreshed successfully (${isDeepSync ? 'deep sync' : 'regular sync'})`,
+      message: `Referendas refreshed successfully with limit ${limit}`,
       timestamp: new Date().toISOString(),
-      mode: isDeepSync ? 'DEEP_SYNC' : 'REGULAR_SYNC'
+      limit: limit
     });
   } catch (error) {
     res.status(500).json({ error: "Error refreshing referendas: " + (error as any).message });
