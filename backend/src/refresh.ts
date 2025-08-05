@@ -11,10 +11,20 @@ const logger = createSubsystemLogger(Subsystem.REFRESH);
 
 const notionDatabaseId = process.env.NOTION_DATABASE_ID;
 
+// Add concurrency protection flag
+let isRefreshing = false;
+
 export async function refreshReferendas(limit: number = 30) {
+    // Prevent concurrent refresh operations
+    if (isRefreshing) {
+        logger.debug('Previous refreshReferendas operation still running, skipping...');
+        return;
+    }
+
     try {
+        isRefreshing = true;
         if (!notionDatabaseId) throw "Please specify REFRESH_INTERVAL in .env!";
-        logger.info("Refreshing Referendas...")
+        logger.info({ limit }, "Refreshing Referendas...")
 
         // Fetch latest proposals from both networks, get list of Notion pages and fetch exchange rates
         const [polkadotPosts, kusamaPosts, pages, dotUsdRate, kusUsdRate] = await Promise.all([
@@ -27,6 +37,11 @@ export async function refreshReferendas(limit: number = 30) {
 
         // Combine them into one array
         const referendas = [...polkadotPosts.referendas, ...kusamaPosts.referendas];
+        logger.info({ 
+            polkadotCount: polkadotPosts.referendas.length,
+            kusamaCount: kusamaPosts.referendas.length,
+            totalCount: referendas.length
+        }, "Fetched referendas from both networks");
 
         // Go through the fetched referendas
         for (const referenda of referendas) {
@@ -35,14 +50,14 @@ export async function refreshReferendas(limit: number = 30) {
             const exchangeRate = referenda.network === Chain.Polkadot ? dotUsdRate : kusUsdRate;
 
             if (found) {
-                logger.info({ postId: referenda.post_id }, `Proposal found in Notion`);
+                logger.info({ postId: referenda.post_id, network: referenda.network }, `Proposal found in Notion`);
                 try {
                     await updateReferenda(found.id, referenda, exchangeRate, referenda.network);
                 } catch (error) {
                     logger.error({ postId: referenda.post_id, error: (error as any).message }, "Error updating referenda");
                 }
             } else {
-                logger.info({ postId: referenda.post_id }, `Proposal not in Notion, creating new page`);
+                logger.info({ postId: referenda.post_id, network: referenda.network }, `Proposal not in Notion, creating new page`);
                 try {
                     await createReferenda(notionDatabaseId, referenda, exchangeRate, referenda.network);
                 } catch (error) {
@@ -52,5 +67,7 @@ export async function refreshReferendas(limit: number = 30) {
         }
     } catch (error) {
         logger.error({ error: (error as any).message }, "Error while refreshing Referendas");
+    } finally {
+        isRefreshing = false;
     }
 }
