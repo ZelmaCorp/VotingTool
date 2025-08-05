@@ -69,25 +69,44 @@ export async function findNotionPageByPostId(pageList: any[], postId: number, ne
 export async function getNotionPages(): Promise<any> {
     try {
         const rateLimitHandler = RateLimitHandler.getInstance();
+        let allPages: any[] = [];
+        let nextCursor: string | null = null;
+        let pageCount = 0;
         
-        const response = await rateLimitHandler.executeWithRateLimit(
-            async () => {
-                return await axios.post(
-                    `https://api.notion.com/v1/databases/${notionDatabaseId}/query`,
-                    {},
-                    {
-                      headers: {
-                        Authorization: `Bearer ${notionApiToken}`,
-                        "Notion-Version": "2022-06-28",
-                      },
-                    }
-                );
-            },
-            RATE_LIMIT_CONFIGS.interactive,
-            `get-notion-pages-${Date.now()}`
-        );
+        do {
+            const requestBody: any = {};
+            if (nextCursor) {
+                requestBody.start_cursor = nextCursor;
+            }
+            
+            const response = await rateLimitHandler.executeWithRateLimit(
+                async () => {
+                    return await axios.post(
+                        `https://api.notion.com/v1/databases/${notionDatabaseId}/query`,
+                        requestBody,
+                        {
+                          headers: {
+                            Authorization: `Bearer ${notionApiToken}`,
+                            "Notion-Version": "2022-06-28",
+                          },
+                        }
+                    );
+                },
+                RATE_LIMIT_CONFIGS.interactive,
+                `get-notion-pages-${Date.now()}-${pageCount}`
+            );
 
-        return response.data.results;
+            const currentPages = response.data.results || [];
+            allPages = allPages.concat(currentPages);
+            nextCursor = response.data.next_cursor;
+            pageCount++;
+            
+            console.log(`Fetched ${currentPages.length} pages (batch ${pageCount}), total: ${allPages.length}, hasMore: ${!!nextCursor}`);
+            
+        } while (nextCursor);
+
+        console.log(`Fetched ALL ${allPages.length} pages from Notion database`);
+        return allPages;
 
     } catch (error) {
         console.error("Error querying Notion database:", (error as any).message);
