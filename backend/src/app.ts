@@ -34,14 +34,20 @@ app.get('/refresh-referendas', async (req: Request, res: Response) => {
   try {
     const limit = parseInt(req.query.limit as string) || 30; // Default to 30, allow user override
     
-    await refreshReferendas(limit);
+    // Start refresh in background (don't await)
+    refreshReferendas(limit).catch(error => {
+      logger.error({ error: error.message, limit }, 'Background refresh failed');
+    });
+    
+    // Return immediately
     res.json({ 
-      message: `Referendas refreshed successfully with limit ${limit}`,
+      message: `Referenda refresh started in background with limit ${limit}`,
       timestamp: new Date().toISOString(),
-      limit: limit
+      limit: limit,
+      status: "started"
     });
   } catch (error) {
-    res.status(500).json({ error: "Error refreshing referendas: " + (error as any).message });
+    res.status(500).json({ error: "Error starting refresh: " + (error as any).message });
   }
 });
 
