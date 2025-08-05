@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  polkadot-voting-tool:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      # Required Notion Configuration
+      - NOTION_API_TOKEN=${NOTION_API_TOKEN}
+      - NOTION_DATABASE_ID=${NOTION_DATABASE_ID}
+      - NOTION_VERSION=${NOTION_VERSION:-2022-06-28}
+      
+      # Required Application Configuration
+      - REFRESH_INTERVAL=${REFRESH_INTERVAL:-300}
+      
+      # Required Polkadot/Kusama Configuration
+      - POLKADOT_MULTISIG=${POLKADOT_MULTISIG}
+      - KUSAMA_MULTISIG=${KUSAMA_MULTISIG}
+      - PROPOSER_MNEMONIC=${PROPOSER_MNEMONIC}
+      - THRESHOLD=${THRESHOLD:-2}
+      
+      # Required API Keys
+      - SUBSCAN_API_KEY=${SUBSCAN_API_KEY}
+      
+      # Optional Configuration
+      - PORT=${PORT:-3000}
+      - DEEP_SYNC_LIMIT=${DEEP_SYNC_LIMIT:-100}
+      - DEEP_SYNC_HOUR=${DEEP_SYNC_HOUR:-3}
+      - READY_CHECK_INTERVAL=${READY_CHECK_INTERVAL:-60}
+      - NODE_ENV=${NODE_ENV:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      
+    env_file:
+      - .env
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      # Optional: Mount logs directory if you want to persist logs
+      - ./logs:/app/logs
+    networks:
+      - polkadot-voting-network
+
+networks:
+  polkadot-voting-network:
+    driver: bridge 
