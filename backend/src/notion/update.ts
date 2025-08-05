@@ -27,15 +27,6 @@ export async function updateReferenda(
     const contentResp = await fetchReferendumContent(referenda.post_id, referenda.network);
     const rewardString = calculateReward(contentResp, exchangeRate, network);
 
-    // DEBUG: Log the detail API response to see if it has updated title
-    logger.info({
-        pageId,
-        postId: referenda.post_id,
-        listApiTitle: referenda.title,
-        detailApiResponse: Object.keys(contentResp),
-        detailApiTitle: contentResp.title || 'NO_TITLE_FIELD'
-    }, 'Comparing title sources');
-
     // Fill the properties, that are coming from Polkassembly
     const properties: UpdateReferendumInput = {
         title: contentResp.title || referenda.title, // Use detail API title (updated) over list API title (cached)
@@ -61,7 +52,7 @@ export async function updateReferenda(
             pageId,
             postId: referenda.post_id,
             propertiesPayload: {
-                title: `#${properties.number}-${properties.title}`,
+                title: properties.title, // Now just the clean title
                 requestedAmount: properties.requestedAmount,
                 referendumTimeline: properties.referendumTimeline
             }
@@ -123,7 +114,7 @@ function prepareNotionData(input: UpdateReferendumInput): NotionUpdatePageReques
     if (input.title && input.number) {
         properties['Title'] = {
             type: 'rich_text',
-            rich_text: [{ text: { content: `#${input.number}-${input.title}` } }]
+            rich_text: [{ text: { content: input.title } }] // Just the title, no #number- prefix
         };
     }
 

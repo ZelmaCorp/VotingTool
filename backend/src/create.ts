@@ -68,7 +68,7 @@ function prepareNotionData(
     if (input.title) {
       properties['Title'] = {
         type: 'rich_text',
-        rich_text: [{ text: { content: `#${input.number}-${input.title}` } }]
+        rich_text: [{ text: { content: input.title } }] // Just the title, no #number- prefix
       };
     }
 
