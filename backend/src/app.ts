@@ -19,6 +19,15 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Health check endpoint for Docker
+app.get("/health", (req: Request, res: Response) => {
+  res.status(200).json({ 
+    status: "healthy", 
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 app.get("/send-to-mimir", async (req: Request, res: Response) => {
   try {
     await sendReadyProposalsToMimir();
