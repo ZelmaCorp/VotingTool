@@ -15,7 +15,7 @@ import {
 } from "../types/properties";
 import { NotionPageId, NotionProperties } from "../types/notion";
 import axios from "axios";
-import { findNotionPageByPostId, getNotionPages } from "../findNotionPage";
+import { findNotionPageByPostId, getNotionPages } from "../notion/findNotionPage";
 import {
   loadReadyProposalsFromFile,
   saveReadyProposalsToFile,

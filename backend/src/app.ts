@@ -83,9 +83,6 @@ async function main() {
 
     await waitUntilStartMinute();
 
-    logger.info("Running initial referenda refresh...");
-    await smartRefreshReferendas(); // Initial refresh with smart logic
-
     logger.info("Starting periodic referenda refresh...");
     setInterval(smartRefreshReferendas, Number(process.env.REFRESH_INTERVAL) * 1000);
 

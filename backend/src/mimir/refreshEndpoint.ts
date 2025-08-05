@@ -1,4 +1,4 @@
-import { getNotionPages } from "../findNotionPage";
+import { getNotionPages } from "../notion/findNotionPage";
 import { READY_FILE } from "../utils/constants";
 import { loadReadyProposalsFromFile, saveReadyProposalsToFile } from "../utils/readyFileHandlers";
 import { handleReferendaVote } from "./handleReferenda";
