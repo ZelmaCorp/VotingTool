@@ -38,7 +38,7 @@ export async function updateReferenda(
 
     // Fill the properties, that are coming from Polkassembly
     const properties: UpdateReferendumInput = {
-        title: referenda.title,
+        title: contentResp.title || referenda.title, // Use detail API title (updated) over list API title (cached)
         number: referenda.post_id,
         requestedAmount: rewardString,
         referendumTimeline: getValidatedStatus(referenda.status)
