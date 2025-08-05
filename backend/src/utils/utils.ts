@@ -27,6 +27,13 @@ export function getValidatedStatus(status: string | undefined): TimelineStatus {
     throw new Error(`Invalid vote status: ${status}`);
 }
 
+/** Helper function to validate exchange rate */
+function isValidRate(rate: number): boolean {
+    // Rate should be positive and within reasonable bounds
+    // DOT typically ranges from $1-50, KSM from $10-500
+    return rate > 0.1 && rate < 100000;
+}
+
 /** Fetch DOT/USD exchange rate */
 export async function fetchDotToUsdRate(): Promise<number> {
     try {
@@ -37,18 +44,37 @@ export async function fetchDotToUsdRate(): Promise<number> {
         }
         const data = await response.json();
       
-        if (data && data.polkadot && typeof data.polkadot.usd === 'number') {
+        if (data && data.polkadot && typeof data.polkadot.usd === 'number' && isValidRate(data.polkadot.usd)) {
             const rate = data.polkadot.usd;
             priceCache.setPrice(Chain.Polkadot, rate);
+            logger.info({ rate }, 'Successfully fetched and cached DOT/USD rate');
             return rate;
         }
-        logger.error({ data }, 'Error fetching DOT/USD rate: Invalid data structure received from CoinGecko');
-        return priceCache.getPrice(Chain.Polkadot);
+        
+        // Invalid rate received, fallback to cache
+        logger.error({ 
+            data,
+            rate: data?.polkadot?.usd 
+        }, 'Invalid DOT/USD rate received from CoinGecko, using cached value');
+        
+        const cachedRate = priceCache.getPrice(Chain.Polkadot);
+        if (cachedRate && isValidRate(cachedRate)) {
+            return cachedRate;
+        }
+        
+        throw new Error('No valid DOT/USD rate available (API returned invalid data and no cached value)');
+        
     } catch (error) {
         if (!(error instanceof Error && error.message.startsWith('Error fetching DOT/USD rate:'))) {
              logger.error({ error: (error as any).message }, 'Error fetching DOT/USD rate');
         }
-        return priceCache.getPrice(Chain.Polkadot);
+        
+        const cachedRate = priceCache.getPrice(Chain.Polkadot);
+        if (cachedRate && isValidRate(cachedRate)) {
+            return cachedRate;
+        }
+        
+        throw new Error('No valid DOT/USD rate available (API error and no cached value)');
     }
 }
 
@@ -61,18 +87,38 @@ export async function fetchKusToUsdRate(): Promise<number> {
             throw new Error(`Error fetching KSM/USD rate: ${errorText}`);
         }
         const data = await response.json();
-        if (data && data.kusama && typeof data.kusama.usd === 'number') {
+        
+        if (data && data.kusama && typeof data.kusama.usd === 'number' && isValidRate(data.kusama.usd)) {
             const rate = data.kusama.usd;
             priceCache.setPrice(Chain.Kusama, rate);
+            logger.info({ rate }, 'Successfully fetched and cached KSM/USD rate');
             return rate;
         }
-        logger.error({ data }, 'Error fetching KSM/USD rate: Invalid data structure received from CoinGecko');
-        return priceCache.getPrice(Chain.Kusama);
+        
+        // Invalid rate received, fallback to cache
+        logger.error({ 
+            data,
+            rate: data?.kusama?.usd 
+        }, 'Invalid KSM/USD rate received from CoinGecko, using cached value');
+        
+        const cachedRate = priceCache.getPrice(Chain.Kusama);
+        if (cachedRate && isValidRate(cachedRate)) {
+            return cachedRate;
+        }
+        
+        throw new Error('No valid KSM/USD rate available (API returned invalid data and no cached value)');
+        
     } catch (error) {
         if (!(error instanceof Error && error.message.startsWith('Error fetching KSM/USD rate:'))) {
             logger.error({ error: (error as any).message }, 'Error fetching KSM/USD rate');
         }
-        return priceCache.getPrice(Chain.Kusama);
+        
+        const cachedRate = priceCache.getPrice(Chain.Kusama);
+        if (cachedRate && isValidRate(cachedRate)) {
+            return cachedRate;
+        }
+        
+        throw new Error('No valid KSM/USD rate available (API error and no cached value)');
     }
 }
 
