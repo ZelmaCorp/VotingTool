@@ -50,7 +50,7 @@ export async function refreshReferendas(limit: number = 30) {
             const exchangeRate = referenda.network === Chain.Polkadot ? dotUsdRate : kusUsdRate;
 
             if (found) {
-                logger.info({ postId: referenda.post_id, network: referenda.network }, `Proposal found in Notion`);
+                logger.info({ postId: referenda.post_id, network: referenda.network }, `Proposal found in Notion, updating`);
                 try {
                     await updateReferenda(found.id, referenda, exchangeRate, referenda.network);
                 } catch (error) {

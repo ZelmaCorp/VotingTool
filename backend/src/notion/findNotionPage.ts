@@ -19,7 +19,7 @@ export async function findNotionPageByPostId(pageList: any[], postId: number, ne
           const numberProperty = page.properties?.Number?.title?.[0]?.text?.content;
           const chainProperty = page.properties?.Chain?.select?.name;
           
-          if (numberProperty && numberProperty === postIdString) {
+          if (numberProperty && numberProperty.trim() === postIdString) {
             // If network is specified, make sure it matches
             if (network && chainProperty && chainProperty !== network) {
               continue; // Skip this page, network doesn't match
