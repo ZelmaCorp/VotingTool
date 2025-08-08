@@ -1,3 +1,27 @@
+// Mock the logger before any imports
+jest.mock('../../src/config/logger', () => ({
+  createSubsystemLogger: jest.fn(),
+  logError: jest.fn(),
+  logger: {
+    warn: jest.fn(),
+    error: jest.fn(),
+    info: jest.fn(),
+    debug: jest.fn()
+  }
+}));
+
+// Create mock logger
+const mockLogger = {
+  error: jest.fn(),
+  info: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn()
+};
+
+// Set up the mock before importing modules that use it
+import { logger } from '../../src/config/logger';
+(logger.warn as jest.Mock) = mockLogger.warn;
+
 import { 
   RATE_LIMIT_CONFIGS, 
   getRateLimitConfig, 
@@ -70,16 +94,16 @@ describe('Rate Limit Configuration', () => {
     });
 
     it('should return interactive config and warn for unknown operation types', () => {
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      // Clear any previous calls to the mock
+      mockLogger.warn.mockClear();
       
       const config = getRateLimitConfig('unknown' as any);
       
       expect(config).toBe(RATE_LIMIT_CONFIGS.interactive);
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Unknown operation type: unknown, using interactive config'
+      expect(mockLogger.warn).toHaveBeenCalledWith(
+        { operationType: 'unknown' },
+        'Unknown operation type, using interactive config'
       );
-      
-      consoleSpy.mockRestore();
     });
   });
 
