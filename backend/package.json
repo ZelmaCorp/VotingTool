@@ -1,7 +1,7 @@
 {
-  "name": "polkassembly_rss",
+  "name": "OpenGov Voting Tool",
   "version": "1.2.0",
-  "description": "A serverless RSS feed generator for Polkassembly referendums",
+  "description": "A helper tool for small DAOs to vote on proposals",
   "main": "api/rss.js",
   "scripts": {
     "build": "tsc",
