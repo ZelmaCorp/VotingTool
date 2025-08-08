@@ -1,3 +1,22 @@
+// Mock the logger before any imports
+jest.mock('../../src/config/logger', () => ({
+  createSubsystemLogger: jest.fn(),
+  logError: jest.fn()
+}));
+
+// Create mock logger
+const mockLogger = {
+  error: jest.fn(),
+  info: jest.fn(),
+  warn: jest.fn(),
+  debug: jest.fn()
+};
+
+// Set up the mock before importing modules that use it
+import { createSubsystemLogger } from '../../src/config/logger';
+(createSubsystemLogger as jest.Mock).mockReturnValue(mockLogger);
+
+// Now import the modules under test
 import { fetchDotToUsdRate, fetchKusToUsdRate } from '../../src/utils/utils';
 import { priceCache } from '../../src/utils/priceCache';
 import { Chain } from '../../src/types/properties';
@@ -6,18 +25,15 @@ import { Chain } from '../../src/types/properties';
 global.fetch = jest.fn();
 
 describe('CoinGecko Unit Tests - Price Fetching', () => {
-  let consoleErrorSpy: jest.SpyInstance;
-
   beforeEach(() => {
     (fetch as jest.Mock).mockReset();
-    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    mockLogger.error.mockReset();
+    mockLogger.info.mockReset();
+    mockLogger.warn.mockReset();
+    mockLogger.debug.mockReset();
     // Reset price cache
     (priceCache as any).dotPrice = 0;
     (priceCache as any).ksmPrice = 0;
-  });
-
-  afterEach(() => {
-    consoleErrorSpy.mockRestore();
   });
 
   describe('fetchDotToUsdRate', () => {
@@ -49,7 +65,7 @@ describe('CoinGecko Unit Tests - Price Fetching', () => {
       
       const rate = await fetchDotToUsdRate();
       expect(rate).toBe(cachedRate);
-      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(mockLogger.error).toHaveBeenCalled();
     });
 
     it('should return cached price for invalid API response', async () => {
@@ -70,7 +86,7 @@ describe('CoinGecko Unit Tests - Price Fetching', () => {
       
       const rate = await fetchDotToUsdRate();
       expect(rate).toBe(cachedRate);
-      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(mockLogger.error).toHaveBeenCalled();
     });
   });
 
@@ -103,7 +119,7 @@ describe('CoinGecko Unit Tests - Price Fetching', () => {
       
       const rate = await fetchKusToUsdRate();
       expect(rate).toBe(cachedRate);
-      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(mockLogger.error).toHaveBeenCalled();
     });
 
     it('should return cached price for invalid API response', async () => {
@@ -124,7 +140,7 @@ describe('CoinGecko Unit Tests - Price Fetching', () => {
       
       const rate = await fetchKusToUsdRate();
       expect(rate).toBe(cachedRate);
-      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(mockLogger.error).toHaveBeenCalled();
     });
   });
 }); 
