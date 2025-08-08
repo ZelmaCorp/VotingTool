@@ -13,6 +13,7 @@ export enum TimelineStatus {
     TimedOut = "TimedOut",
     Executed = "Executed",
     ConfirmStarted = "ConfirmStarted",
+    Confirmed = "Confirmed",
     Rejected = "Rejected"
 }
 
