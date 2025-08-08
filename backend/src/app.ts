@@ -12,6 +12,16 @@ import { checkForVotes } from "./mimir/checkForVotes";
 import { createSubsystemLogger } from "./config/logger";
 import { Subsystem } from "./types/logging";
 
+// Read version from package.json with fallback
+let APP_VERSION = "1.1.0";
+try {
+  const packageJson = require("../package.json");
+  APP_VERSION = packageJson.version;
+} catch (error) {
+  // Fallback version if package.json can't be read
+  console.warn("Could not read package.json, using fallback version");
+}
+
 const logger = createSubsystemLogger(Subsystem.APP);
 
 const app = express();
@@ -73,10 +83,11 @@ async function smartRefreshReferendas(): Promise<void> {
 async function main() {
   try {
     logger.info({ 
+      version: APP_VERSION,
       deepSyncLimit: DEEP_SYNC_LIMIT,
       deepSyncHour: DEEP_SYNC_HOUR,
       refreshInterval: process.env.REFRESH_INTERVAL
-    }, "Starting OpenGov Voting Tool");
+    }, `Starting OpenGov Voting Tool v${APP_VERSION}`);
 
     logger.info("Waiting until the start minute...");
     checkForVotes(); // check for votes immediately
@@ -90,7 +101,7 @@ async function main() {
 
     const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
-      logger.info(`OpenGov Voting tool is running, port: ${PORT}`);
+      logger.info({ version: APP_VERSION, port: PORT }, `OpenGov Voting tool v${APP_VERSION} is running on port ${PORT}`);
     });
   } catch (error) {
     logger.error({ error }, "Fatal error in main()");

@@ -3,7 +3,10 @@ import { JSDOM } from "jsdom";
 // Notion has a 2000 character limit per text block
 const MAX_TEXT_LENGTH = 2000;
 
-/** Helper function to safely chunk text content */
+/** 
+ * Helper function to safely chunk text content 
+ * Added in v1.1.0 to fix Notion content length validation errors
+ */
 function chunkText(text: string): string[] {
   if (text.length <= MAX_TEXT_LENGTH) {
     return [text];

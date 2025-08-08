@@ -1,11 +1,13 @@
 {
   "name": "polkassembly_rss",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A serverless RSS feed generator for Polkassembly referendums",
   "main": "api/rss.js",
   "scripts": {
     "build": "tsc",
+    "build:versioned": "APP_VERSION=$(node -p \"require('./package.json').version\") tsc",
     "start": "node dist/app.js",
+    "start:versioned": "APP_VERSION=$(node -p \"require('./package.json').version\") node dist/app.js",
     "test": "jest",
     "test:unit": "jest tests/unit",
     "test:integration": "jest tests/integration",

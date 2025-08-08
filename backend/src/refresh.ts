@@ -7,6 +7,16 @@ import { updateReferenda } from "./notion/update";
 import { createSubsystemLogger } from "./config/logger";
 import { Subsystem } from "./types/logging";
 
+// Read version from package.json with fallback
+let APP_VERSION = "1.1.0";
+try {
+  const packageJson = require("../package.json");
+  APP_VERSION = packageJson.version;
+} catch (error) {
+  // Fallback version if package.json can't be read
+  console.warn("Could not read package.json, using fallback version");
+}
+
 const logger = createSubsystemLogger(Subsystem.REFRESH);
 
 const notionDatabaseId = process.env.NOTION_DATABASE_ID;
@@ -24,7 +34,7 @@ export async function refreshReferendas(limit: number = 30) {
     try {
         isRefreshing = true;
         if (!notionDatabaseId) throw "Please specify REFRESH_INTERVAL in .env!";
-        logger.info({ limit }, "Refreshing Referendas...")
+        logger.info({ limit, version: APP_VERSION }, `Refreshing Referendas v${APP_VERSION}...`)
 
         // Fetch latest proposals from both networks, get list of Notion pages and fetch exchange rates
         const [polkadotPosts, kusamaPosts, pages, dotUsdRate, kusUsdRate] = await Promise.all([
