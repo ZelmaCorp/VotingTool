@@ -1,5 +1,21 @@
 import { JSDOM } from "jsdom";
 
+// Notion has a 2000 character limit per text block
+const MAX_TEXT_LENGTH = 2000;
+
+/** Helper function to safely chunk text content */
+function chunkText(text: string): string[] {
+  if (text.length <= MAX_TEXT_LENGTH) {
+    return [text];
+  }
+  
+  const chunks = [];
+  for (let i = 0; i < text.length; i += MAX_TEXT_LENGTH) {
+    chunks.push(text.substring(i, i + MAX_TEXT_LENGTH));
+  }
+  return chunks;
+}
+
 /** Converts HTML to Notion-compatible block elements */
 export function convertHtmlToNotionBlocks(html: string) {
   const dom = new JSDOM(html);
@@ -63,13 +79,11 @@ export function convertHtmlToNotionBlocks(html: string) {
           blocks[1].callout?.children.push(paragraphBlocks);
         }
       } else if (element.nodeName === "H1") {
-        blocks[1].callout?.children.push(
-          createHeadingBlock(element.textContent || "", 1)
-        );
+        const headingBlocks = createHeadingBlock(element.textContent || "", 1);
+        blocks[1].callout?.children.push(...headingBlocks);
       } else if (element.nodeName === "H2") {
-        blocks[1].callout?.children.push(
-          createHeadingBlock(element.textContent || "", 2)
-        );
+        const headingBlocks = createHeadingBlock(element.textContent || "", 2);
+        blocks[1].callout?.children.push(...headingBlocks);
       } else if (element.nodeName === "UL") {
         blocks[1].callout?.children.push(
           ...createListBlocks(element as Element, "bulleted")
@@ -97,10 +111,9 @@ export function convertHtmlToNotionBlocks(html: string) {
 
 /** Creates a paragraph block */
 function createParagraphBlock(text: string, link?: string) {
-  // Notion has a 2000 character limit per text block
-  const MAX_LENGTH = 2000;
+  const chunks = chunkText(text);
   
-  if (text.length <= MAX_LENGTH) {
+  if (chunks.length === 1) {
     return {
       object: "block",
       type: "paragraph",
@@ -109,7 +122,7 @@ function createParagraphBlock(text: string, link?: string) {
           {
             type: "text",
             text: {
-              content: text,
+              content: chunks[0],
               link: link ? { url: link } : undefined,
             },
           },
@@ -118,12 +131,7 @@ function createParagraphBlock(text: string, link?: string) {
     };
   }
   
-  // Split long text into chunks and return multiple paragraph blocks
-  const chunks = [];
-  for (let i = 0; i < text.length; i += MAX_LENGTH) {
-    chunks.push(text.substring(i, i + MAX_LENGTH));
-  }
-  
+  // Multiple chunks - return array of paragraph blocks
   return chunks.map(chunk => ({
     object: "block",
     type: "paragraph",
@@ -143,18 +151,20 @@ function createParagraphBlock(text: string, link?: string) {
 
 /** Creates a heading block */
 function createHeadingBlock(text: string, level: 1 | 2 | 3) {
-  return {
+  const chunks = chunkText(text);
+  
+  return chunks.map(chunk => ({
     object: "block",
     type: `heading_${level}`,
     [`heading_${level}`]: {
       rich_text: [
         {
           type: "text",
-          text: { content: text },
+          text: { content: chunk },
         },
       ],
     },
-  };
+  }));
 }
 
 /** Creates bulleted or numbered list blocks */
@@ -162,17 +172,23 @@ function createListBlocks(node: Element, listType: "bulleted" | "numbered") {
   const items: any[] = [];
   node.childNodes.forEach((child) => {
     if (child.nodeName === "LI") {
-      items.push({
-        object: "block",
-        type: `${listType}_list_item`,
-        [`${listType}_list_item`]: {
-          rich_text: [
-            {
-              type: "text",
-              text: { content: child.textContent?.trim() || "" },
-            },
-          ],
-        },
+      const text = child.textContent?.trim() || "";
+      const chunks = chunkText(text);
+      
+      // Create a list item for each chunk
+      chunks.forEach(chunk => {
+        items.push({
+          object: "block",
+          type: `${listType}_list_item`,
+          [`${listType}_list_item`]: {
+            rich_text: [
+              {
+                type: "text",
+                text: { content: chunk },
+              },
+            ],
+          },
+        });
       });
     }
   });
