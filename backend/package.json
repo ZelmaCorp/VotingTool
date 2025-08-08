@@ -1,6 +1,6 @@
 {
   "name": "polkassembly_rss",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "A serverless RSS feed generator for Polkassembly referendums",
   "main": "api/rss.js",
   "scripts": {

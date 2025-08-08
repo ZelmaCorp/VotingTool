@@ -8,7 +8,7 @@ import { createSubsystemLogger } from "./config/logger";
 import { Subsystem } from "./types/logging";
 
 // Read version from package.json with fallback
-let APP_VERSION = "1.1.0";
+let APP_VERSION = "1.2.0-fallback";
 try {
   const packageJson = require("../package.json");
   APP_VERSION = packageJson.version;

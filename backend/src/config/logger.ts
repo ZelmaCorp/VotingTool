@@ -2,6 +2,15 @@ import pino from 'pino';
 import { hostname } from 'os';
 import { Subsystem, ErrorType } from '../types/logging';
 
+// Read version from package.json with fallback
+let APP_VERSION = "1.2.0-fallback";
+try {
+  const packageJson = require("../../package.json");
+  APP_VERSION = packageJson.version;
+} catch (error) {
+  console.warn("Could not read package.json in logger, using fallback version");
+}
+
 // Detect if running under PM2 or in an environment that needs JSON logs
 const isProduction = process.env.NODE_ENV === 'production';
 const isPM2 = process.env.PM2_HOME !== undefined || process.env.pm_id !== undefined;
@@ -27,6 +36,7 @@ const loggerConfig = {
     pid: process.pid,
     hostname: hostname(),
     service: 'VotingTool',
+    version: APP_VERSION,
   },
   // Timestamp format
   timestamp: pino.stdTimeFunctions.isoTime,
