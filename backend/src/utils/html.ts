@@ -46,16 +46,22 @@ export function convertHtmlToNotionBlocks(html: string) {
   document.body.childNodes.forEach((node) => {
     if (node.nodeType === 3 && node.textContent?.trim()) {
       // Text Node
-      blocks[1].callout?.children.push(
-        createParagraphBlock(node.textContent.trim())
-      );
+      const paragraphBlocks = createParagraphBlock(node.textContent.trim());
+      if (Array.isArray(paragraphBlocks)) {
+        blocks[1].callout?.children.push(...paragraphBlocks);
+      } else {
+        blocks[1].callout?.children.push(paragraphBlocks);
+      }
     } else if (node.nodeType === 1) {
       // Element Node
       const element = node as HTMLElement;
       if (element.nodeName === "P") {
-        blocks[1].callout?.children.push(
-          createParagraphBlock(element.textContent?.trim() || "")
-        );
+        const paragraphBlocks = createParagraphBlock(element.textContent?.trim() || "");
+        if (Array.isArray(paragraphBlocks)) {
+          blocks[1].callout?.children.push(...paragraphBlocks);
+        } else {
+          blocks[1].callout?.children.push(paragraphBlocks);
+        }
       } else if (element.nodeName === "H1") {
         blocks[1].callout?.children.push(
           createHeadingBlock(element.textContent || "", 1)
@@ -73,12 +79,15 @@ export function convertHtmlToNotionBlocks(html: string) {
           ...createListBlocks(element as Element, "numbered")
         );
       } else if (element.nodeName === "A") {
-        blocks[1].callout?.children.push(
-          createParagraphBlock(
-            element.textContent || "",
-            element.getAttribute("href") || undefined
-          )
+        const paragraphBlocks = createParagraphBlock(
+          element.textContent || "",
+          element.getAttribute("href") || undefined
         );
+        if (Array.isArray(paragraphBlocks)) {
+          blocks[1].callout?.children.push(...paragraphBlocks);
+        } else {
+          blocks[1].callout?.children.push(paragraphBlocks);
+        }
       }
     }
   });
@@ -88,7 +97,34 @@ export function convertHtmlToNotionBlocks(html: string) {
 
 /** Creates a paragraph block */
 function createParagraphBlock(text: string, link?: string) {
-  return {
+  // Notion has a 2000 character limit per text block
+  const MAX_LENGTH = 2000;
+  
+  if (text.length <= MAX_LENGTH) {
+    return {
+      object: "block",
+      type: "paragraph",
+      paragraph: {
+        rich_text: [
+          {
+            type: "text",
+            text: {
+              content: text,
+              link: link ? { url: link } : undefined,
+            },
+          },
+        ],
+      },
+    };
+  }
+  
+  // Split long text into chunks and return multiple paragraph blocks
+  const chunks = [];
+  for (let i = 0; i < text.length; i += MAX_LENGTH) {
+    chunks.push(text.substring(i, i + MAX_LENGTH));
+  }
+  
+  return chunks.map(chunk => ({
     object: "block",
     type: "paragraph",
     paragraph: {
@@ -96,13 +132,13 @@ function createParagraphBlock(text: string, link?: string) {
         {
           type: "text",
           text: {
-            content: text,
+            content: chunk,
             link: link ? { url: link } : undefined,
           },
         },
       ],
     },
-  };
+  }));
 }
 
 /** Creates a heading block */
