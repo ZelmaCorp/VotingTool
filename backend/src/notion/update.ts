@@ -14,7 +14,17 @@ const notionApiToken = process.env.NOTION_API_TOKEN;
 const logger = createSubsystemLogger(Subsystem.NOTION);
 
 
-/** Update a Referenda in the Notion database */
+/**
+ * Updates an existing referendum page in the Notion database with latest data.
+ * Fetches fresh content from Polkassembly, calculates current reward value,
+ * and updates both properties and page content.
+ * 
+ * @param pageId - The Notion page ID to update
+ * @param referenda - The referendum data from Polkassembly
+ * @param exchangeRate - Current exchange rate for reward calculation
+ * @param network - The blockchain network (Polkadot or Kusama)
+ * @returns The updated page ID
+ */
 export async function updateReferenda(
     pageId: NotionPageId,
     referenda: PolkassemblyReferenda,
@@ -108,6 +118,12 @@ export async function updateReferenda(
     }
 }
 
+/**
+ * Prepares the data for the Notion update request.
+ * 
+ * @param input - The input data to prepare
+ * @returns The prepared data (ready to be sent to Notion)
+ */
 function prepareNotionData(input: UpdateReferendumInput): NotionUpdatePageRequest {
     const properties: NotionProperties = {};
 
