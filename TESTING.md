@@ -79,7 +79,7 @@ Generates a detailed coverage report showing which lines are tested.
 
 ### Required Environment Variables
 
-For integration tests to work properly, you need to set up test-specific environment variables.
+For integration tests to work properly, you need to set up test-specific environment variables. These are already included in the main `backend/.env.example` file.
 
 #### Test Notion Configuration
 ```bash
@@ -104,10 +104,12 @@ SANDBOX_POLKADOT_MULTISIG=test_polkadot_multisig_here
 
 1. **Copy environment variables:**
    ```bash
-   cp env.example .env.test
+   cd backend
+   cp .env.example .env
    ```
 
 2. **Configure test variables:**
+   - Uncomment and set up the test-specific variables in your `.env` file
    - Set up a separate Notion integration for testing
    - Create a test database in Notion
    - Configure sandbox accounts for multisig testing
@@ -119,4 +121,4 @@ SANDBOX_POLKADOT_MULTISIG=test_polkadot_multisig_here
    
    # Test all integrations
    npm run test:integration
-   ```
+   ``` 
