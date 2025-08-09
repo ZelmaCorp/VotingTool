@@ -34,7 +34,9 @@ function isValidRate(rate: number): boolean {
     return rate > 0.1 && rate < 100000;
 }
 
-/** Fetch DOT/USD exchange rate */
+/** Fetch DOT/USD exchange rate. Will also save it to the priceCache.
+ *  If API call fails, will fallback to cached value.
+ */
 export async function fetchDotToUsdRate(): Promise<number> {
     try {
         const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=polkadot&vs_currencies=usd');
@@ -78,7 +80,9 @@ export async function fetchDotToUsdRate(): Promise<number> {
     }
 }
 
-/** Fetch KSM/USD exchange rate */
+/** Fetch KSM/USD exchange rate. Will also save it to the priceCache.
+ *  If API call fails, will fallback to cached value.
+ */
 export async function fetchKusToUsdRate(): Promise<number> {
     try {
         const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=kusama&vs_currencies=usd');
