@@ -31,7 +31,7 @@ const notionApiToken = process.env.NOTION_API_TOKEN;
 let isCheckingVotes = false;
 
 /**
- * Reads the ready proposals file and checks for votes on the given accounts using Subscan.
+ * Reads the ready proposals file and checks for votes on multisig accounts.
  * Updates the Notion database with the vote status.
  * 
  * Removes the proposals that have been voted on from the ready proposals file.
@@ -95,7 +95,7 @@ export async function checkForVotes(): Promise<void> {
 }
 
 /**
- * Fetches active votes for a given account on a given network using Subscan.
+ * Fetches active votes for a given account on a given network using @polkadot/api.
  * 
  * @param account - The account to fetch votes for
  * @param network - The network to fetch votes from
@@ -134,7 +134,8 @@ async function fetchActiveVotes(
 }
 
 /** Update a Referenda in the Notion database
- *  Referenda will be updated to VotedAye, VotedNay, VotedAbstain */
+ *  Referenda will be updated to VotedAye, VotedNay, VotedAbstain
+ *  Will also update the Voted link to the Subscan page of the extrinsic */
 export async function updateNotionToVoted(
   pageId: NotionPageId,
   vote: SuggestedVote,
@@ -206,6 +207,12 @@ export async function updateNotionToVoted(
   }
 }
 
+/**
+ * Fetches extrinsic hashes for voted referendums using Subscan API.
+ * 
+ * @param votedList - The list of referendum IDs to get transaction hashes for
+ * @returns A map of referendum IDs to their corresponding extrinsic hashes
+ */
 export async function checkSubscan(votedList: ReferendumId[]): Promise<ExtrinsicHashMap> {
   try {
     let extrinsicHashMap: ExtrinsicHashMap = {};
