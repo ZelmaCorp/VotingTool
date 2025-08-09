@@ -1,4 +1,4 @@
-# OpenGov Voting Tool - Backend
+# OpenGov Voting Tool
 
 ## Overview
 
@@ -56,4 +56,4 @@
 
 ## Contributing
 
-## License
+## License 
