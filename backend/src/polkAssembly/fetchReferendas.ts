@@ -8,7 +8,11 @@ const logger = createSubsystemLogger(Subsystem.POLKASSEMBLY);
 
 const TIMEOUT_MS = 10000; // 10 second timeout
 
-/** Function to fetch data from Polkassembly API */
+/** Function to fetch data from Polkassembly API 
+ *  network: the network to fetch data from (Polkadot or Kusama)
+ *  limit: the number of posts to fetch
+ *  returns: an object with the referendas and discussions
+ */
 export async function fetchDataFromAPI(limit: number = 200, network: Chain): Promise<FetchReferendaReturnType> {
   try {
     let referendas = [];
