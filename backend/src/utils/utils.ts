@@ -122,7 +122,14 @@ export async function fetchKusToUsdRate(): Promise<number> {
     }
 }
 
-/** Calculate requested amount (in $) */ 
+/**
+ * Calculates the USD value of a reward based on the content, exchange rate, and network.
+ * 
+ * @param content - The content of the referendum
+ * @param rate - The exchange rate for the network
+ * @param network - The blockchain network (Polkadot or Kusama)
+ * @returns The USD value of the reward
+ */
 export function calculateReward(content: any, rate: number, network: Chain): number {
     let totalUsdValue = 0;
     let hasUnknownFormat = false;
