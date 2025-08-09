@@ -24,6 +24,13 @@ const notionDatabaseId = process.env.NOTION_DATABASE_ID;
 // Add concurrency protection flag
 let isRefreshing = false;
 
+/**
+ * Refreshes referendum data from Polkassembly API and syncs with Notion database.
+ * Fetches referendas from both Polkadot and Kusama networks, gets exchange rates,
+ * and creates/updates corresponding Notion pages.
+ * 
+ * @param limit - Maximum number of posts to fetch from each network (default: 30)
+ */
 export async function refreshReferendas(limit: number = 30) {
     // Prevent concurrent refresh operations
     if (isRefreshing) {
