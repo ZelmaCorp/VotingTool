@@ -4,6 +4,8 @@
 
 This guide covers how to run tests for the OpenGov Voting Tool. The project uses Jest as the testing framework.
 
+**Important**: All tests must be run from the `backend/` directory.
+
 ## Running Tests
 
 ### Quick Start
