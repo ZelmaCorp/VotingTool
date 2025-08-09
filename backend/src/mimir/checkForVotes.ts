@@ -30,6 +30,12 @@ const logger = createSubsystemLogger(Subsystem.MIMIR);
 const notionApiToken = process.env.NOTION_API_TOKEN;
 let isCheckingVotes = false;
 
+/**
+ * Reads the ready proposals file and checks for votes on the given accounts using Subscan.
+ * Updates the Notion database with the vote status.
+ * 
+ * Removes the proposals that have been voted on from the ready proposals file.
+ */
 export async function checkForVotes(): Promise<void> {
   if (isCheckingVotes) {
     logger.debug('Previous checkForVotes operation still running, skipping...');
