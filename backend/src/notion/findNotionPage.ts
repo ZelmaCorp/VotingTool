@@ -8,7 +8,17 @@ const notionApiToken = process.env.NOTION_API_TOKEN;
 const notionDatabaseId = process.env.NOTION_DATABASE_ID;
 
 
-/** Function to query Notion database for a matching post_id AND network */ 
+/**
+ * Searches through an in-memory list of Notion pages to find a matching referendum.
+ * Uses a 3-tier search strategy: direct property matching, URL pattern extraction,
+ * and fallback URL string matching.
+ * 
+ * @param pageList - Pre-fetched array of Notion pages to search through
+ * @param postId - The referendum post ID to find
+ * @param network - Optional network filter (Polkadot or Kusama)
+ * @returns The matching NotionPage or null if not found
+ */
+// TODO: remove async
 export async function findNotionPageByPostId(pageList: any[], postId: number, network?: Chain): Promise<NotionPage | null> {
     try {
       const postIdString = postId.toString();
