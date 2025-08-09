@@ -8,7 +8,15 @@ import { fetchReferendumContent } from './polkAssembly/fetchReferendas';
 
 const notionApiToken = process.env.NOTION_API_TOKEN;
 
-/** Create a Referenda in the Notion database */
+/**
+ * Creates a new referendum page in the Notion database.
+ * 
+ * @param databaseId - The ID of the Notion database to create the page in
+ * @param referenda - The referendum data from Polkassembly
+ * @param exchangeRate - Current exchange rate for reward calculation
+ * @param network - The blockchain network (Polkadot or Kusama)
+ * @returns The ID of the newly created page
+ */
 export async function createReferenda(
   databaseId: NotionDatabaseId, 
   referenda: PolkassemblyReferenda,
@@ -59,6 +67,13 @@ export async function createReferenda(
   }
 }
 
+/**
+ * Prepares the data for the Notion create request.
+ * 
+ * @param databaseId - The ID of the Notion database to create the page in
+ * @param input - The input data to prepare
+ * @returns The prepared data (ready to be sent to Notion)
+ */
 function prepareNotionData(
     databaseId: string, 
     input: CreateReferendumInput
