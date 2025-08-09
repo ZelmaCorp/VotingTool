@@ -76,6 +76,11 @@ export async function findNotionPageByPostId(pageList: any[], postId: number, ne
     }
 }
 
+/**
+ * Fetches all pages from the Notion database.
+ * 
+ * @returns An array of all Notion pages
+ */
 export async function getNotionPages(): Promise<any> {
     try {
         const rateLimitHandler = RateLimitHandler.getInstance();
