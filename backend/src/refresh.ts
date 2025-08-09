@@ -32,6 +32,7 @@ let isRefreshing = false;
  * @param limit - Maximum number of posts to fetch from each network (default: 30)
  */
 export async function refreshReferendas(limit: number = 30) {
+    
     // Prevent concurrent refresh operations
     if (isRefreshing) {
         logger.debug('Previous refreshReferendas operation still running, skipping...');
