@@ -94,6 +94,13 @@ export async function checkForVotes(): Promise<void> {
   }
 }
 
+/**
+ * Fetches active votes for a given account on a given network using Subscan.
+ * 
+ * @param account - The account to fetch votes for
+ * @param network - The network to fetch votes from
+ * @returns An array of referendum IDs that the account has voted on
+ */
 async function fetchActiveVotes(
   account: string,
   network: Chain
