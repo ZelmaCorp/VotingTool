@@ -11,8 +11,6 @@ The tool provides:
 - Rate limiting and error handling for external API calls
 - Comprehensive logging and monitoring
 
-## Architecture
-
 ## Prerequisites
 
 - Node.js (v18 or higher)
@@ -24,8 +22,6 @@ The tool provides:
 - Mimir integration setup
 
 ## Quick Start
-
-### Environment Setup
 
 ### Installation
 
@@ -102,10 +98,6 @@ The application will start on port 3000 by default (configurable via `PORT` envi
 - `START_MINUTE` - Minute of the hour to start operations (default: 0)
 
 For a complete list of environment variables, see [env.example](env.example).
-
-### Rate Limiting
-
-### Logging
 
 ## API Endpoints
 
@@ -256,14 +248,6 @@ curl http://localhost:3000/health
 ```
 
 For detailed Docker setup instructions, see [DOCKER_SETUP.md](DOCKER_SETUP.md).
-
-## Troubleshooting
-
-### Common Issues
-
-### Logs
-
-### Debug Mode
 
 ## Contributing
 
