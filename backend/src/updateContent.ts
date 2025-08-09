@@ -5,6 +5,14 @@ import { NotionPageId } from "./types/notion";
 const notionApiToken = process.env.NOTION_API_TOKEN;
 
 
+/**
+ * Updates the content blocks of a Notion page with new HTML content.
+ * Deletes existing blocks and replaces them with converted HTML blocks.
+ * Includes retry logic and rate limiting for reliability.
+ * 
+ * @param pageId - The Notion page ID to update content for
+ * @param content - HTML content to convert and add to the page
+ */
 export async function updateContent(pageId: NotionPageId, content: string) {
     const notionApiUrl = `https://api.notion.com/v1/blocks/${pageId}/children`;
 
