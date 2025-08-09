@@ -31,7 +31,7 @@ export async function findNotionPageByPostId(pageList: any[], postId: number, ne
           
           if (numberProperty && numberProperty.trim() === postIdString) {
             // If network is specified, make sure it matches
-            if (network && chainProperty && chainProperty !== network) {
+            if (network && chainProperty !== network) {
               continue; // Skip this page, network doesn't match
             }
             return page;
