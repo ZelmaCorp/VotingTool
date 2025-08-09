@@ -6,6 +6,7 @@ import { Subsystem, ErrorType } from '../types/logging';
 const logger = createSubsystemLogger(Subsystem.UTILS);
 
 
+/** Origin has to be on the enum, otherwise throw an error. */
 export function getValidatedOrigin(origin: string | undefined): Origin {
     if (!origin) return  Origin.NoOriginInformationAvailable;
 
@@ -17,6 +18,7 @@ export function getValidatedOrigin(origin: string | undefined): Origin {
     throw new Error(`Invalid origin: ${origin}`);
 }
 
+/** Status has to be on the enum, otherwise throw an error. */
 export function getValidatedStatus(status: string | undefined): TimelineStatus {
     if (!status) throw new Error("No VoteStatus found");  
     
