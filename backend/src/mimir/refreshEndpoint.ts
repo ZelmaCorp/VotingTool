@@ -3,6 +3,11 @@ import { READY_FILE } from "../utils/constants";
 import { loadReadyProposalsFromFile, saveReadyProposalsToFile } from "../utils/readyFileHandlers";
 import { handleReferendaVote } from "./handleReferenda";
 
+/**
+ * Sends ready proposals to Mimir for batch voting.
+ * Reads all Notion pages, identifies proposals marked as "Ready to vote",
+ * and creates voting transactions in Mimir for batch execution.
+ */
 export async function sendReadyProposalsToMimir(): Promise<void> {
   try {
     console.info("Sending ReadyToVote proposals to Mimir ...");
