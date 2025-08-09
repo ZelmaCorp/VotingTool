@@ -1,3 +1,16 @@
+/**
+ * @fileoverview Rate limiting handler for external API calls.
+ * 
+ * Provides sophisticated rate limiting with exponential backoff, retry logic,
+ * and dead letter queue management for failed operations. Used primarily
+ * for Notion API calls to prevent rate limit violations.
+ * 
+ * Key features:
+ * - Configurable retry strategies by operation type
+ * - Exponential backoff with jitter
+ * - Dead letter queue for failed operations
+ * - Singleton pattern for global rate limit coordination
+ */
 import { createSubsystemLogger, logError } from '../config/logger';
 import { Subsystem, ErrorType } from '../types/logging';
 
@@ -38,11 +51,22 @@ export class RateLimitError extends Error {
   }
 }
 
+/**
+ * Singleton class for managing rate limiting and retry logic for external API calls.
+ * 
+ * @class RateLimitHandler
+ * @description Handles rate limiting and retry logic for external API calls.
+ */
 export class RateLimitHandler {
   private static instance: RateLimitHandler;
   private requestQueue: Map<string, Promise<any>> = new Map();
   private deadLetterQueue: Map<string, DeadLetterOperation> = new Map();
 
+  /**
+   * Returns the singleton instance of the RateLimitHandler.
+   * 
+   * @returns The singleton instance of the RateLimitHandler
+   */
   static getInstance(): RateLimitHandler {
     if (!RateLimitHandler.instance) {
       RateLimitHandler.instance = new RateLimitHandler();
@@ -51,7 +75,12 @@ export class RateLimitHandler {
   }
 
   /**
-   * Execute a function with rate limiting protection
+   * Executes a function with rate limiting protection.
+   * 
+   * @param operation - The function to execute
+   * @param config - The rate limit configuration
+   * @param operationId - Optional operation ID for deduplication
+   * @returns The result of the operation
    */
   async executeWithRateLimit<T>(
     operation: () => Promise<T>,
