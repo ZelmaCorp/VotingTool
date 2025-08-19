@@ -69,7 +69,7 @@ export class DatabaseConnection {
      * Create the database schema by reading the schema file
      */
     private async createSchema(): Promise<void> {
-        const schemaPath = path.join(__dirname, '../database/schema.sql');
+        const schemaPath = path.join(__dirname, '../../database/schema.sql');
         
         if (!fs.existsSync(schemaPath)) {
             throw new Error(`Schema file not found at ${schemaPath}`);
@@ -81,14 +81,16 @@ export class DatabaseConnection {
         const statements = schema
             .split(';')
             .map(stmt => stmt.trim())
-            .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
+            .filter(stmt => stmt.length > 0 && !stmt.startsWith('--') && !stmt.startsWith('PRAGMA'));
 
         for (const statement of statements) {
-            try {
-                await this.run(statement);
-            } catch (error) {
-                console.error('Error executing schema statement:', statement.substring(0, 100) + '...');
-                throw error;
+            if (statement.length > 0) {
+                try {
+                    await this.run(statement + ';');
+                } catch (error) {
+                    console.error('Error executing schema statement:', statement.substring(0, 100) + '...');
+                    throw error;
+                }
             }
         }
 
