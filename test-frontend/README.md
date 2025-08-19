@@ -23,6 +23,7 @@ This lightweight Vue.js frontend serves as a temporary testing interface for the
 - ✅ A **migration validation interface**
 - ✅ A **development aid** for understanding the data structure
 - ✅ A **proof of concept** that the backend APIs work
+- ✅ A **referendum discussion and workflow management tool**
 
 ## Setup and Usage
 
@@ -59,9 +60,15 @@ npm run preview
 ### Current Features
 
 - 🏥 **Health Check**: Verify backend connectivity
-- 🔄 **Refresh Referendas**: Trigger backend data refresh
-- 📋 **Referendum Display**: View referendum data (when API is available)
+- 🔄 **Refresh Referendas**: Trigger backend data refresh from Polkassembly
+- 📋 **Referendum Display**: View referendum data in Notion-style table
+- ✏️ **Full Editing**: Complete referendum editing with all fields
+- 📊 **Scoring System**: 10-criteria scoring (Necessity, Funding, Competition, etc.)
+- 🗳️ **Voting Workflow**: Track voting decisions and reasoning
+- 💬 **Comments & AI**: Public comments and AI summaries
 - 🎨 **Modern UI**: Clean, responsive design
+
+**⚠️ IMPORTANT**: Creating new referendas is **disabled**. Referendas are created by OpenGov (Polkadot governance), not by this tool. This tool is for managing discussion and voting workflow of existing referendas.
 
 ### Planned Features (if needed)
 

@@ -1,4 +1,23 @@
 <template>
+  <!-- 
+    OPENGOV VOTING TOOL - TEST FRONTEND
+    
+    This is a temporary testing frontend created to replace Notion during 
+    the SQLite migration phase. 
+    
+    PURPOSE: Test the migration from Notion to SQLite database and provide
+    a UI for managing discussion and voting workflow of existing referendas.
+    
+    IMPORTANT: This tool does NOT create referendas. Referendas are created
+    by OpenGov (Polkadot governance). This tool is for:
+    - Viewing and filtering referendas
+    - Managing internal workflow status
+    - Scoring referendas (10-criteria evaluation)
+    - Recording voting decisions and reasoning
+    - Adding comments and team assignments
+    
+    TODO: This will be replaced by the Polkassembly overlay
+  -->
   <div id="app">
     <!-- Header -->
     <header class="header">
@@ -33,72 +52,26 @@
           <p><strong>Last Check:</strong> {{ new Date(backendStatus.timestamp).toLocaleString() }}</p>
         </div>
 
-        <!-- Referendas List -->
+        <!-- Referendas Table -->
         <div class="referendas-section">
-          <h2>📋 Referendas ({{ referendas.length }})</h2>
-          
           <div v-if="loading" class="loading">
             Loading referendas...
           </div>
           
-          <div v-else-if="referendas.length === 0" class="empty-state">
-            <p>No referendas found. Try refreshing the data from the backend.</p>
-          </div>
-          
-          <div v-else class="referendas-grid">
-            <div 
-              v-for="referendum in referendas" 
-              :key="`${referendum.chain}-${referendum.post_id}`"
-              class="referendum-card"
-            >
-              <div class="referendum-header">
-                <span class="chain-badge" :class="referendum.chain.toLowerCase()">
-                  {{ referendum.chain }}
-                </span>
-                <span class="post-id">#{{ referendum.post_id }}</span>
-              </div>
-              
-              <h3 class="referendum-title">{{ referendum.title }}</h3>
-              
-              <div class="referendum-meta">
-                <div class="status-row">
-                  <span class="label">Status:</span>
-                  <span class="status-badge" :class="getStatusClass(referendum.internal_status)">
-                    {{ referendum.internal_status || 'Not started' }}
-                  </span>
-                </div>
-                
-                <div v-if="referendum.requested_amount_usd" class="amount-row">
-                  <span class="label">Amount:</span>
-                  <span class="amount">${{ formatAmount(referendum.requested_amount_usd) }}</span>
-                </div>
-                
-                <div v-if="referendum.ref_score" class="score-row">
-                  <span class="label">Score:</span>
-                  <span class="score">{{ referendum.ref_score }}/5</span>
-                </div>
-                
-                <div v-if="referendum.voting_end_date" class="date-row">
-                  <span class="label">Voting Ends:</span>
-                  <span class="date">{{ formatDate(referendum.voting_end_date) }}</span>
-                </div>
-              </div>
-              
-              <div v-if="referendum.link" class="referendum-actions">
-                <a :href="referendum.link" target="_blank" class="btn btn-link">
-                  🔗 View on Polkassembly
-                </a>
-              </div>
-            </div>
-          </div>
+          <ReferendumTable 
+            v-else
+            :referendums="referendas"
+            @saved="onReferendumSaved"
+            @delete="onReferendumDeleted"
+          />
         </div>
 
         <!-- Footer Info -->
         <div class="footer-info">
           <p>
-            <strong>🎯 Purpose:</strong> This frontend tests the migration from Notion to SQLite database.
+            This frontend tests the migration from Notion to SQLite database.
             <br>
-            <strong>🔄 Next Step:</strong> Replace with Polkassembly overlay once migration is validated.
+            Replace with Polkassembly overlay once migration is validated.
           </p>
         </div>
       </div>
@@ -108,9 +81,13 @@
 
 <script>
 import axios from 'axios'
+import ReferendumTable from './components/ReferendumTable.vue'
 
 export default {
   name: 'App',
+  components: {
+    ReferendumTable
+  },
   data() {
     return {
       referendas: [],
@@ -164,23 +141,21 @@ export default {
       }
     },
     
-    formatAmount(amount) {
-      return new Intl.NumberFormat().format(amount)
+
+    
+    onReferendumSaved(referendum) {
+      // Refresh the data to show updated referendum
+      this.loadReferendas()
     },
     
-    formatDate(dateString) {
-      return new Date(dateString).toLocaleDateString()
+    onReferendumDeleted(referendum) {
+      // Remove from local array and potentially call delete API
+      this.referendas = this.referendas.filter(r => 
+        !(r.post_id === referendum.post_id && r.chain === referendum.chain)
+      )
     },
     
-    getStatusClass(status) {
-      const statusMap = {
-        'Not started': 'status-not-started',
-        'Considering': 'status-considering',
-        'Ready to vote': 'status-ready',
-        'Voted': 'status-voted'
-      }
-      return statusMap[status] || 'status-default'
-    }
+
   }
 }
 </script>
@@ -298,138 +273,13 @@ export default {
   color: #666;
 }
 
-.referendas-section h2 {
-  color: white;
-  margin-bottom: 20px;
-  font-size: 1.8rem;
-}
-
-.loading, .empty-state {
+.loading {
   background: rgba(255, 255, 255, 0.9);
   padding: 40px;
   text-align: center;
   border-radius: 12px;
   color: #666;
   font-size: 1.1rem;
-}
-
-.referendas-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 20px;
-}
-
-.referendum-card {
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.referendum-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-}
-
-.referendum-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.chain-badge {
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.chain-badge.polkadot {
-  background: #e6007a;
-  color: white;
-}
-
-.chain-badge.kusama {
-  background: #000000;
-  color: white;
-}
-
-.post-id {
-  color: #666;
-  font-weight: 600;
-}
-
-.referendum-title {
-  margin: 0 0 15px 0;
-  font-size: 1.2rem;
-  color: #333;
-  line-height: 1.4;
-}
-
-.referendum-meta {
-  margin-bottom: 15px;
-}
-
-.referendum-meta > div {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-}
-
-.label {
-  font-weight: 600;
-  color: #666;
-}
-
-.status-badge {
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
-}
-
-.status-not-started {
-  background: #f8f9fa;
-  color: #6c757d;
-}
-
-.status-considering {
-  background: #fff3cd;
-  color: #856404;
-}
-
-.status-ready {
-  background: #d1ecf1;
-  color: #0c5460;
-}
-
-.status-voted {
-  background: #d4edda;
-  color: #155724;
-}
-
-.amount {
-  font-weight: 600;
-  color: #28a745;
-}
-
-.score {
-  font-weight: 600;
-  color: #007bff;
-}
-
-.date {
-  color: #666;
-}
-
-.referendum-actions {
-  margin-top: 15px;
-  padding-top: 15px;
-  border-top: 1px solid #eee;
 }
 
 .footer-info {
