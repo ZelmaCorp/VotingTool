@@ -225,7 +225,7 @@
       </div>
     </div>
 
-    <!-- Create Modal -->
+    <!-- Create Modal  -->
     <div v-if="showCreateModal" class="modal-overlay" @click="closeCreateModal">
       <div class="modal-content" @click.stop>
         <ReferendumEditor 
