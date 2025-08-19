@@ -2,7 +2,7 @@ import { db } from '../connection';
 import { Chain, InternalStatus } from '../../types/properties';
 import { ReferendumRecord, ReferendumWithDetails } from '../types';
 
-export class ReferendumModel {
+export class Referendum {
     
     /**
      * Create a new referendum (replaces Notion createReferenda function)

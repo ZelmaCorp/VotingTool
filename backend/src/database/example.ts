@@ -1,5 +1,5 @@
 import { db } from './connection';
-import { ReferendumModel } from './models/referendum';
+import { Referendum } from './models/referendum';
 import { ReferendumRecord } from './types';
 import { Chain, InternalStatus } from '../types/properties';
 
@@ -30,16 +30,16 @@ async function exampleUsage() {
         };
 
         // Check if it already exists
-        const exists = await ReferendumModel.exists(referendumData.post_id, referendumData.chain);
+        const exists = await Referendum.exists(referendumData.post_id, referendumData.chain);
         if (!exists) {
-            const referendumId = await ReferendumModel.create(referendumData);
+            const referendumId = await Referendum.create(referendumData);
             console.log('✅ Created referendum with ID:', referendumId);
         } else {
             console.log('ℹ️ Referendum already exists, skipping creation');
         }
 
         // Step 3: Find the referendum
-        const foundReferendum = await ReferendumModel.findByPostIdAndChain(9999, Chain.Polkadot);
+        const foundReferendum = await Referendum.findByPostIdAndChain(9999, Chain.Polkadot);
         if (foundReferendum) {
             console.log('✅ Found referendum:', {
                 id: foundReferendum.id,
@@ -50,22 +50,22 @@ async function exampleUsage() {
         }
 
         // Step 4: Update the referendum
-        await ReferendumModel.update(9999, Chain.Polkadot, {
+        await Referendum.update(9999, Chain.Polkadot, {
             internal_status: InternalStatus.Considering,
             last_edited_by: 'TypeScript Example'
         });
         console.log('✅ Updated referendum status to "Considering"');
 
         // Step 5: Get all referendums
-        const allReferendums = await ReferendumModel.getAll();
+        const allReferendums = await Referendum.getAll();
         console.log(`✅ Found ${allReferendums.length} total referendums in database`);
 
         // Step 6: Get referendums by status
-        const consideringReferendums = await ReferendumModel.getByStatus(InternalStatus.Considering);
+        const consideringReferendums = await Referendum.getByStatus(InternalStatus.Considering);
         console.log(`✅ Found ${consideringReferendums.length} referendums with "Considering" status`);
 
         // Step 7: Demonstrate voting workflow
-        const readyToVote = await ReferendumModel.getReadyToVote();
+        const readyToVote = await Referendum.getReadyToVote();
         console.log(`✅ Found ${readyToVote.length} referendums ready to vote`);
 
         console.log('🎉 Database example completed successfully!');
