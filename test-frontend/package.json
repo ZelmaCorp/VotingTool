@@ -1,0 +1,23 @@
+{
+  "name": "opengov-voting-test-frontend",
+  "version": "0.1.0",
+  "description": "Test frontend for OpenGov Voting Tool - SQLite migration testing",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "serve": "vite preview --host 0.0.0.0 --port 8080"
+  },
+  "dependencies": {
+    "vue": "^3.4.0",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.5.0",
+    "vite": "^5.0.0"
+  },
+  "keywords": ["polkadot", "governance", "voting", "test", "frontend"],
+  "author": "OpenGov Voting Tool Team",
+  "license": "ISC"
+} 
