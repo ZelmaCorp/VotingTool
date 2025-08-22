@@ -68,6 +68,11 @@ export async function refreshReferendas(limit: number = 30) {
             const found = await findNotionPageByPostId(pages, referenda.post_id, referenda.network);
             const exchangeRate = referenda.network === Chain.Polkadot ? dotUsdRate : kusUsdRate;
 
+            /** Polkadot referenda gets inserted to Kusama debug */
+            if (referenda.post_id > 1000 && referenda.network === Chain.Kusama) {
+                logger.error({ referenda, postId: referenda.post_id, network: referenda.network }, "Post ID is greater than 1000 and network is Kusama, this is an anomaly...");
+            }
+
             if (found) {
                 logger.info({ postId: referenda.post_id, network: referenda.network }, `Proposal found in Notion, updating`);
                 try {
