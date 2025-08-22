@@ -76,7 +76,7 @@ export async function refreshReferendas(limit: number = 30) {
             if (found) {
                 logger.info({ postId: referenda.post_id, network: referenda.network }, `Proposal found in Notion, updating`);
                 try {
-                    logger.debug({ message: "Network info at update", network: referenda.network, postId: referenda.post_id, title: referenda.title });
+                    logger.debug(`Updating referenda ${referenda.post_id} on ${referenda.network}`);
                     await updateReferenda(found.id, referenda, exchangeRate, referenda.network);
                 } catch (error) {
                     logger.error({ postId: referenda.post_id, error: (error as any).message }, "Error updating referenda");
@@ -84,7 +84,7 @@ export async function refreshReferendas(limit: number = 30) {
             } else {
                 logger.info({ postId: referenda.post_id, network: referenda.network }, `Proposal not in Notion, creating new page`);
                 try {
-                    logger.debug({ message: "Network info at create", network: referenda.network, postId: referenda.post_id, title: referenda.title });
+                    logger.debug(`Creating new referenda ${referenda.post_id} on ${referenda.network}`);
                     await createReferenda(notionDatabaseId, referenda, exchangeRate, referenda.network);
                 } catch (error) {
                     logger.error({ postId: referenda.post_id, error: (error as any).message }, "Error creating referenda");
