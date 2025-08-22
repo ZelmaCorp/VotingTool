@@ -6,6 +6,7 @@ import { fetchDotToUsdRate, fetchKusToUsdRate } from "./utils/utils";
 import { updateReferenda } from "./notion/update";
 import { createSubsystemLogger } from "./config/logger";
 import { Subsystem } from "./types/logging";
+import { title } from "process";
 
 // Read version from package.json with fallback
 let APP_VERSION = "1.2.0-fallback";
@@ -70,6 +71,7 @@ export async function refreshReferendas(limit: number = 30) {
             if (found) {
                 logger.info({ postId: referenda.post_id, network: referenda.network }, `Proposal found in Notion, updating`);
                 try {
+                    logger.debug({ message: "Network info at update", network: referenda.network, postId: referenda.post_id, title: referenda.title });
                     await updateReferenda(found.id, referenda, exchangeRate, referenda.network);
                 } catch (error) {
                     logger.error({ postId: referenda.post_id, error: (error as any).message }, "Error updating referenda");
@@ -77,6 +79,7 @@ export async function refreshReferendas(limit: number = 30) {
             } else {
                 logger.info({ postId: referenda.post_id, network: referenda.network }, `Proposal not in Notion, creating new page`);
                 try {
+                    logger.debug({ message: "Network info at create", network: referenda.network, postId: referenda.post_id, title: referenda.title });
                     await createReferenda(notionDatabaseId, referenda, exchangeRate, referenda.network);
                 } catch (error) {
                     logger.error({ postId: referenda.post_id, error: (error as any).message }, "Error creating referenda");
