@@ -15,8 +15,12 @@
       // If you have path aliases in tsconfig.json, replicate them here
       // e.g., '^@/(.*)$': '<rootDir>/src/$1'
     },
-    maxWorkers: '50%',
-    testTimeout: 30000, // Increased timeout for integration tests with Notion API
+    maxWorkers: 1,
+    testTimeout: 180000, // Increased timeout for integration tests with Notion API and long-running Mimir tests
     verbose: false,
-    silent: true
+    silent: true,
+    // Additional settings to handle Node.js v24.6.0 circular JSON issues
+    workerIdleMemoryLimit: '512MB',
+    detectOpenHandles: true,
+    forceExit: true
 };
