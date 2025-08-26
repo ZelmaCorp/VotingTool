@@ -62,7 +62,10 @@ export async function checkForVotes(): Promise<void> {
       process.env.KUSAMA_MULTISIG as string,
       Chain.Kusama
     );
-    const votedList = [...votedPolkadot, ...votedKusama];
+    // Ensure both vote arrays are valid before spreading
+    const safeVotedPolkadot = Array.isArray(votedPolkadot) ? votedPolkadot : [];
+    const safeVotedKusama = Array.isArray(votedKusama) ? votedKusama : [];
+    const votedList = [...safeVotedPolkadot, ...safeVotedKusama];
 
     const pages = await getNotionPages();
     const extrinsicMap = await checkSubscan(votedList);
@@ -214,6 +217,9 @@ export async function updateNotionToVoted(
  * @returns A map of referendum IDs to their corresponding extrinsic hashes
  */
 export async function checkSubscan(votedList: ReferendumId[]): Promise<ExtrinsicHashMap> {
+  let polkadotExtrinsics: any[] = [];
+  let kusamaExtrinsics: any[] = [];
+  
   try {
     let extrinsicHashMap: ExtrinsicHashMap = {};
 
@@ -238,9 +244,6 @@ export async function checkSubscan(votedList: ReferendumId[]): Promise<Extrinsic
     if (!apiKey) {
       throw new Error('SUBSCAN_API_KEY is not set in environment variables');
     }
-
-    let polkadotExtrinsics: any[] = [];
-    let kusamaExtrinsics: any[] = [];
 
     // Fetch Polkadot extrinsics with error handling
     try {
@@ -339,7 +342,15 @@ export async function checkSubscan(votedList: ReferendumId[]): Promise<Extrinsic
     return extrinsicHashMap;
 
   } catch (error: any) {
-    logger.error({ error: error.message, votedListLength: votedList.length }, "Error in checkSubscan function");
+    logger.error({ 
+      error: error.message, 
+      stack: error.stack,
+      votedListLength: votedList.length,
+      polkadotExtrinsicsType: typeof polkadotExtrinsics,
+      kusamaExtrinsicsType: typeof kusamaExtrinsics,
+      polkadotExtrinsicsIsArray: Array.isArray(polkadotExtrinsics),
+      kusamaExtrinsicsIsArray: Array.isArray(kusamaExtrinsics)
+    }, "Error in checkSubscan function");
     throw new Error(`Error checking Subscan: ${error.message}`);
   }
 }
