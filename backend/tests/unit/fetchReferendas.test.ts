@@ -99,7 +99,7 @@ describe('Polkassembly Unit Tests - fetchDataFromAPI', () => {
     expect(discussion1.username).toBe('userX');
   });
 
-  it('should handle API errors gracefully and return empty arrays', async () => {
+  it('should handle API errors gracefully and throw the error', async () => {
     // Arrange
     const mockNetwork = Chain.Kusama;
     const mockLimit = 3;
@@ -110,13 +110,9 @@ describe('Polkassembly Unit Tests - fetchDataFromAPI', () => {
     (axiosError as any).code = 'ECONNABORTED';
     (axios.get as jest.Mock).mockRejectedValueOnce(axiosError);
 
-    // Act
-    const result = await fetchDataFromAPI(mockLimit, mockNetwork);
-
-    // Assert
+    // Act & Assert
+    await expect(fetchDataFromAPI(mockLimit, mockNetwork)).rejects.toThrow(errorMessage);
     expect(axios.get).toHaveBeenCalledTimes(1);
-    expect(result.referendas).toEqual([]);
-    expect(result.discussions).toEqual([]);
   });
 
   it('should handle an empty list of posts from the API and return empty arrays', async () => {
@@ -140,7 +136,7 @@ describe('Polkassembly Unit Tests - fetchDataFromAPI', () => {
     expect(result.discussions).toEqual([]);
   });
 
-  it('should handle a null list of posts from the API and return empty arrays', async () => {
+  it('should handle a null list of posts from the API and throw an error', async () => {
     // Arrange
     const mockNetwork = Chain.Polkadot;
     const mockLimit = 5;
@@ -152,16 +148,14 @@ describe('Polkassembly Unit Tests - fetchDataFromAPI', () => {
 
     (axios.get as jest.Mock).mockResolvedValueOnce(mockNullPostsResponse);
 
-    // Act
-    const result = await fetchDataFromAPI(mockLimit, mockNetwork);
-
-    // Assert
+    // Act & Assert
+    await expect(fetchDataFromAPI(mockLimit, mockNetwork)).rejects.toThrow(
+      `Invalid response structure from Polkassembly API for network ${mockNetwork}`
+    );
     expect(axios.get).toHaveBeenCalledTimes(1);
-    expect(result.referendas).toEqual([]);
-    expect(result.discussions).toEqual([]);
   });
 
-  it('should handle a response where the posts field is undefined and return empty arrays', async () => {
+  it('should handle a response where the posts field is undefined and throw an error', async () => {
     // Arrange
     const mockNetwork = Chain.Polkadot;
     const mockLimit = 5;
@@ -171,12 +165,10 @@ describe('Polkassembly Unit Tests - fetchDataFromAPI', () => {
 
     (axios.get as jest.Mock).mockResolvedValueOnce(mockUndefinedPostsResponse);
 
-    // Act
-    const result = await fetchDataFromAPI(mockLimit, mockNetwork);
-
-    // Assert
+    // Act & Assert
+    await expect(fetchDataFromAPI(mockLimit, mockNetwork)).rejects.toThrow(
+      `Invalid response structure from Polkassembly API for network ${mockNetwork}`
+    );
     expect(axios.get).toHaveBeenCalledTimes(1);
-    expect(result.referendas).toEqual([]);
-    expect(result.discussions).toEqual([]);
   });
 }); 
