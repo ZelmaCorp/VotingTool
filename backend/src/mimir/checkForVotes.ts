@@ -62,7 +62,10 @@ export async function checkForVotes(): Promise<void> {
       process.env.KUSAMA_MULTISIG as string,
       Chain.Kusama
     );
-    const votedList = [...votedPolkadot, ...votedKusama];
+    // Ensure both vote arrays are valid before spreading
+    const safeVotedPolkadot = Array.isArray(votedPolkadot) ? votedPolkadot : [];
+    const safeVotedKusama = Array.isArray(votedKusama) ? votedKusama : [];
+    const votedList = [...safeVotedPolkadot, ...safeVotedKusama];
 
     const pages = await getNotionPages();
     const extrinsicMap = await checkSubscan(votedList);
@@ -214,6 +217,9 @@ export async function updateNotionToVoted(
  * @returns A map of referendum IDs to their corresponding extrinsic hashes
  */
 export async function checkSubscan(votedList: ReferendumId[]): Promise<ExtrinsicHashMap> {
+  let polkadotExtrinsics: any[] = [];
+  let kusamaExtrinsics: any[] = [];
+  
   try {
     let extrinsicHashMap: ExtrinsicHashMap = {};
 
@@ -239,42 +245,83 @@ export async function checkSubscan(votedList: ReferendumId[]): Promise<Extrinsic
       throw new Error('SUBSCAN_API_KEY is not set in environment variables');
     }
 
-    const polkadotResp = await axios.post(polkadotSubscanUrl, polkadotData, {
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey
+    // Fetch Polkadot extrinsics with error handling
+    try {
+      const polkadotResp = await axios.post(polkadotSubscanUrl, polkadotData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey
+        }
+      });
+
+      if (polkadotResp.data && polkadotResp.data.data && Array.isArray(polkadotResp.data.data.extrinsics)) {
+        polkadotExtrinsics = polkadotResp.data.data.extrinsics;
+      } else {
+        logger.warn({ responseData: polkadotResp.data }, "Invalid Polkadot Subscan response structure");
       }
-    });
-
-    const kusamaResp = await axios.post(kusamaSubscanUrl, kusamaData, {
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey
+    } catch (polkadotError: any) {
+      if (polkadotError.response?.status === 429) {
+        logger.warn("Polkadot Subscan API rate limit exceeded, continuing with empty results");
+      } else {
+        logger.error({ error: polkadotError.message }, "Error fetching Polkadot extrinsics from Subscan");
       }
-    });
+    }
 
-    const polkadotExtrinsics = polkadotResp.data.data.extrinsics;
-    const kusamaExtrinsics = kusamaResp.data.data.extrinsics;
+    // Fetch Kusama extrinsics with error handling
+    try {
+      const kusamaResp = await axios.post(kusamaSubscanUrl, kusamaData, {
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey
+        }
+      });
 
-    const extrinsics = [...polkadotExtrinsics, ...kusamaExtrinsics];
+      if (kusamaResp.data && kusamaResp.data.data && Array.isArray(kusamaResp.data.data.extrinsics)) {
+        kusamaExtrinsics = kusamaResp.data.data.extrinsics;
+      } else {
+        logger.warn({ responseData: kusamaResp.data }, "Invalid Kusama Subscan response structure");
+      }
+    } catch (kusamaError: any) {
+      if (kusamaError.response?.status === 429) {
+        logger.warn("Kusama Subscan API rate limit exceeded, continuing with empty results");
+      } else {
+        logger.error({ error: kusamaError.message }, "Error fetching Kusama extrinsics from Subscan");
+      }
+    }
+
+    // Ensure both arrays are valid before spreading to prevent "not iterable" errors
+    const safePolkadotExtrinsics = Array.isArray(polkadotExtrinsics) ? polkadotExtrinsics : [];
+    const safeKusamaExtrinsics = Array.isArray(kusamaExtrinsics) ? kusamaExtrinsics : [];
+    const extrinsics = [...safePolkadotExtrinsics, ...safeKusamaExtrinsics];
     
     // Add nested extrinsics to the list
     for (const extrinsic of extrinsics) {
-      if (extrinsic.params[0].name === 'calls') {
+      if (extrinsic && extrinsic.params && extrinsic.params[0] && extrinsic.params[0].name === 'calls') {
         logger.debug({ extrinsicHash: extrinsic.extrinsic_hash }, "Adding nested extrinsics to list");
         logger.debug({ nestedCalls: extrinsic.params[0].value }, "Nested extrinsic calls");
 
-        const nestedExtrinsics = extrinsic.params[0].value.map((nestedCall: any) => ({
-          ...nestedCall,
-          extrinsic_hash: extrinsic.extrinsic_hash  // Preserve the parent extrinsic hash
-        }));
+        if (Array.isArray(extrinsic.params[0].value)) {
+          try {
+            const nestedExtrinsics = extrinsic.params[0].value.map((nestedCall: any) => ({
+              ...nestedCall,
+              extrinsic_hash: extrinsic.extrinsic_hash  // Preserve the parent extrinsic hash
+            }));
 
-        extrinsics.push(...nestedExtrinsics);
+            // Ensure nestedExtrinsics is a valid array before spreading
+            if (Array.isArray(nestedExtrinsics) && nestedExtrinsics.length > 0) {
+              extrinsics.push(...nestedExtrinsics);
+            }
+          } catch (nestedError: any) {
+            logger.warn({ error: nestedError.message, extrinsicHash: extrinsic.extrinsic_hash }, "Error processing nested extrinsics");
+          }
+        }
       }
     }
 
     // Create the extrinsic hash map
     for (const extrinsic of extrinsics) {      
+      if (!extrinsic) continue;
+      
       let rawReferendumId = extrinsic?.params?.[0]?.value;
       let referendumId = null;
       
@@ -295,6 +342,15 @@ export async function checkSubscan(votedList: ReferendumId[]): Promise<Extrinsic
     return extrinsicHashMap;
 
   } catch (error: any) {
+    logger.error({ 
+      error: error.message, 
+      stack: error.stack,
+      votedListLength: votedList.length,
+      polkadotExtrinsicsType: typeof polkadotExtrinsics,
+      kusamaExtrinsicsType: typeof kusamaExtrinsics,
+      polkadotExtrinsicsIsArray: Array.isArray(polkadotExtrinsics),
+      kusamaExtrinsicsIsArray: Array.isArray(kusamaExtrinsics)
+    }, "Error in checkSubscan function");
     throw new Error(`Error checking Subscan: ${error.message}`);
   }
 }
