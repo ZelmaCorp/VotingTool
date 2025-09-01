@@ -62,8 +62,8 @@ describe('Mimir Integration Tests', () => {
       );
 
       expect(result).toBeDefined();
-      expect(result.id).toBe(testReferendumId);
-      expect(result.voted).toBe(SuggestedVote.Aye);
+      expect(result.ready.id).toBe(testReferendumId);
+      expect(result.ready.voted).toBe(SuggestedVote.Aye);
     });
 
     it('should handle batch transactions in sandbox', async () => {
@@ -88,8 +88,8 @@ describe('Mimir Integration Tests', () => {
 
       expect(results).toHaveLength(votes.length);
       results.forEach((result, index) => {
-        expect(result.id).toBe(votes[index].id);
-        expect(result.voted).toBe(votes[index].vote);
+        expect(result.ready.id).toBe(votes[index].id);
+        expect(result.ready.voted).toBe(votes[index].vote);
       });
     });
 
@@ -125,9 +125,9 @@ describe('Mimir Integration Tests', () => {
       // Verify each result matches its input
       results.forEach((result, index) => {
         const expectedVote = votes[index];
-        expect(result.id).toBe(expectedVote.id);
-        expect(result.voted).toBe(expectedVote.vote);
-        console.log(`Transaction ${result.id} (${result.voted}) processed successfully`);
+        expect(result.ready.id).toBe(expectedVote.id);
+        expect(result.ready.voted).toBe(expectedVote.vote);
+        console.log(`Transaction ${result.ready.id} (${result.ready.voted}) processed successfully`);
       });
     }, 120000); // Increased timeout to 2 minutes for 20 transactions
   });
@@ -163,7 +163,7 @@ describe('Mimir Integration Tests', () => {
       );
       
       expect(voteResult).toBeDefined();
-      expect(voteResult.id).toBe(testReferendumId);
+      expect(voteResult.ready.id).toBe(testReferendumId);
       
       // 2. Verify vote was recorded
       // This part will be implemented once we have the sandbox environment
@@ -184,8 +184,8 @@ describe('Mimir Integration Tests', () => {
       );
 
       expect(result).toBeDefined();
-      expect(result.id).toBe(testReferendumId);
-      expect(result.voted).toBe(SuggestedVote.Aye);
+      expect(result.ready.id).toBe(testReferendumId);
+      expect(result.ready.voted).toBe(SuggestedVote.Aye);
     });
 
     it('should handle batch transactions in sandbox', async () => {
@@ -210,8 +210,8 @@ describe('Mimir Integration Tests', () => {
 
       expect(results).toHaveLength(votes.length);
       results.forEach((result, index) => {
-        expect(result.id).toBe(votes[index].id);
-        expect(result.voted).toBe(votes[index].vote);
+        expect(result.ready.id).toBe(votes[index].id);
+        expect(result.ready.voted).toBe(votes[index].vote);
       });
     });
 
@@ -247,9 +247,9 @@ describe('Mimir Integration Tests', () => {
       // Verify each result matches its input
       results.forEach((result, index) => {
         const expectedVote = votes[index];
-        expect(result.id).toBe(expectedVote.id);
-        expect(result.voted).toBe(expectedVote.vote);
-        console.log(`Transaction ${result.id} (${result.voted}) processed successfully`);
+        expect(result.ready.id).toBe(expectedVote.id);
+        expect(result.ready.voted).toBe(expectedVote.vote);
+        console.log(`Transaction ${result.ready.id} (${result.ready.voted}) processed successfully`);
       });
     }, 120000); // Increased timeout to 2 minutes for 20 transactions
   });
@@ -284,7 +284,7 @@ describe('Mimir Integration Tests', () => {
       );
       
       expect(voteResult).toBeDefined();
-      expect(voteResult.id).toBe(testReferendumId);
+      expect(voteResult.ready.id).toBe(testReferendumId);
       
       // 2. Verify vote was recorded
       // This part will be implemented once we have the sandbox environment

@@ -38,9 +38,9 @@ describe('Subscan Integration Tests', () => {
         testIds.forEach(id => {
           if (result[id]) {
             expect(result).toHaveProperty(id.toString());
-            expect(typeof result[id]).toBe('string');
-            expect(result[id]).toMatch(/^0x[a-fA-F0-9]+$/);
-            expect(result[id].length).toBe(66); // 0x + 64 hex chars
+            expect(typeof result[id]).toBe('object');
+            expect(result[id].extrinsicHash).toMatch(/^0x[a-fA-F0-9]+$/);
+            expect(result[id].extrinsicHash.length).toBe(66); // 0x + 64 hex chars
           }
         });
              } else {
@@ -59,15 +59,19 @@ describe('Subscan Integration Tests', () => {
       expect(typeof result).toBe('object');
       
       // Verify each entry in the map has the correct format
-      Object.entries(result).forEach(([id, hash]) => {
+      Object.entries(result).forEach(([id, voteData]) => {
         // Verify ID is a number
         expect(Number(id)).not.toBeNaN();
         
+        // Verify vote data structure
+        expect(typeof voteData).toBe('object');
+        expect(voteData).toHaveProperty('extrinsicHash');
+        
         // Verify hash is a valid hex string
-        expect(hash).toMatch(/^0x[a-fA-F0-9]+$/);
+        expect(voteData.extrinsicHash).toMatch(/^0x[a-fA-F0-9]+$/);
         
         // Verify hash length (typically 66 characters for 0x + 32 bytes)
-        expect(hash.length).toBe(66);
+        expect(voteData.extrinsicHash.length).toBe(66);
       });
     }, 30000);
 
