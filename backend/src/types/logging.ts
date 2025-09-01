@@ -5,7 +5,6 @@ export enum Subsystem {
   
   // External integrations  
   POLKASSEMBLY = 'polkassembly',
-  NOTION = 'notion',
   MIMIR = 'mimir',
   COINGECKO = 'coingecko',
   SUBSCAN = 'subscan',
