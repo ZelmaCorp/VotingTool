@@ -1,5 +1,5 @@
 import { ReadyProposal } from "../types/mimir";
-import { NotionPage } from "../types/notion";
+import { ReferendumWithDetails } from "../database/types";
 import {
   Chain,
   InternalStatus,
@@ -14,7 +14,7 @@ const logger = createSubsystemLogger(Subsystem.MIMIR);
 
 /** Decides whether to send transaction to Mimir with true or false value, abstain will not send transaction. */
 export async function handleReferendaVote(
-  page: NotionPage,
+  referendum: ReferendumWithDetails,
   network: Chain,
   postId: ReferendumId
 ): Promise<ReadyProposal | undefined> {
@@ -26,14 +26,10 @@ export async function handleReferendaVote(
     multisig = process.env.KUSAMA_MULTISIG || "";
   }
 
-  //console.log("Internal status: ", page.properties?.['Internal status'].status?.name);
-  if (
-    page.properties?.["Internal status"].status?.name ===
-    InternalStatus.ReadyToVote
-  ) {
-    logger.info({ postId, network, pageId: page.id }, "Proposal is in ReadyToVote status");
+  if (referendum.internal_status === InternalStatus.ReadyToVote) {
+    logger.info({ postId, network, referendumId: referendum.id }, "Proposal is in ReadyToVote status");
     let ready: ReadyProposal | undefined = undefined;
-    switch (page.properties?.["Suggested vote"].select?.name) {
+    switch (referendum.suggested_vote) {
       case SuggestedVote.Aye:
         logger.info({ postId, network, vote: SuggestedVote.Aye }, "Sending transaction to Mimir (Aye)");
         ready = await proposeVoteTransaction(
@@ -65,7 +61,7 @@ export async function handleReferendaVote(
         logError(logger, { 
           postId, 
           network, 
-          suggestedVote: page.properties?.["Suggested vote"].select?.name 
+          suggestedVote: referendum.suggested_vote 
         }, "No suggested vote found", ErrorType.MISSING_VOTE);
     }
 

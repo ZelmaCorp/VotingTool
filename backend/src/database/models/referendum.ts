@@ -149,7 +149,7 @@ export class Referendum {
             FROM referendums r
             LEFT JOIN voting_decisions vd ON r.id = vd.referendum_id
             WHERE r.internal_status = 'Ready to vote'
-              AND r.voting_end_date > datetime('now')
+              AND (r.voting_end_date IS NULL OR r.voting_end_date > datetime('now'))
               AND (vd.vote_executed IS NULL OR vd.vote_executed = FALSE)
             ORDER BY r.voting_end_date
         `;
