@@ -1,0 +1,37 @@
+{
+  "manifest_version": 3,
+  "name": "OpenGov VotingTool Browser Extension",
+  "version": "1.0.0",
+  "description": "A browser extension that overlays on Polkassembly and Subsquare to help you vote on OpenGov proposals",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://polkadot.polkassembly.io/*",
+    "https://kusama.polkassembly.io/*",
+    "https://polkadot.subsquare.io/*",
+    "https://kusama.subsquare.io/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://polkadot.polkassembly.io/*",
+        "https://kusama.polkassembly.io/*",
+        "https://polkadot.subsquare.io/*",
+        "https://kusama.subsquare.io/*"
+      ],
+      "js": ["content.js"],
+      "css": ["overlay.css"]
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "OpenGov VotingTool"
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+} 

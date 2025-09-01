@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OpenGov VotingTool</title>
+  <style>
+    body {
+      width: 300px;
+      padding: 1rem;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    
+    .header h1 {
+      color: #1f2937;
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+    
+    .status {
+      background: #f3f4f6;
+      padding: 0.75rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+    }
+    
+    .status-text {
+      color: #374151;
+      font-size: 0.875rem;
+      margin: 0;
+    }
+    
+    .button {
+      background: #3b82f6;
+      color: white;
+      border: none;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.2s ease;
+    }
+    
+    .button:hover {
+      background: #2563eb;
+    }
+    
+    .footer {
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>OpenGov VotingTool</h1>
+  </div>
+  
+  <div class="status">
+    <p class="status-text" id="status">Extension is active</p>
+  </div>
+  
+  <button class="button" id="show-overlay">Show Overlay</button>
+  
+  <div class="footer">
+    <p>Version 1.0.0</p>
+  </div>
+  
+  <script src="popup.js"></script>
+</body>
+</html> 
