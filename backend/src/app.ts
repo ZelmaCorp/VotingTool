@@ -13,6 +13,7 @@ import { createSubsystemLogger } from "./config/logger";
 import { Subsystem } from "./types/logging";
 import { db } from "./database/connection";
 import { Referendum } from "./database/models/referendum";
+import { VotingDecision } from "./database/models/votingDecision";
 import { Chain } from "./types/properties";
 
 // Read version from package.json with fallback
@@ -48,7 +49,7 @@ app.get("/referendums", async (req: Request, res: Response) => {
     res.json(referendums);
   } catch (error) {
     logger.error({ error: (error as any).message }, "Error fetching referendums from database");
-    res.status(500).json({ error: "Error fetching referendums: " + (error as any).message })
+    res.status(500).json({ error: "Error fetching referendums: " + (error as any).message });
   }
 });
 
@@ -68,9 +69,47 @@ app.put("/referendums/:postId/:chain", async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Invalid chain. Must be 'Polkadot' or 'Kusama'" });
     }
 
-    await Referendum.update(postId, chain, updates);
-    
-    // Return the updated referendum
+    // First, get the referendum to get its database ID
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
+    if (!referendum) {
+      return res.status(404).json({ error: "Referendum not found" });
+    }
+
+    // Separate referendum fields from voting decision fields
+    const referendumFields: any = {};
+    const votingFields: any = {};
+
+    // Fields that go to the referendums table
+    const referendumColumns = [
+      'title', 'description', 'requested_amount_usd', 'origin', 'referendum_timeline',
+      'internal_status', 'link', 'voting_start_date', 'voting_end_date',
+      'last_edited_by', 'public_comment', 'public_comment_made', 'ai_summary',
+      'reason_for_vote', 'reason_for_no_way', 'voted_link'
+    ];
+
+    // Fields that go to the voting_decisions table
+    const votingColumns = ['suggested_vote', 'final_vote', 'vote_executed', 'vote_executed_date'];
+
+    // Separate the fields
+    Object.keys(updates).forEach(key => {
+      if (referendumColumns.includes(key)) {
+        referendumFields[key] = updates[key];
+      } else if (votingColumns.includes(key)) {
+        votingFields[key] = updates[key];
+      }
+    });
+
+    // Update referendum fields if any
+    if (Object.keys(referendumFields).length > 0) {
+      await Referendum.update(postId, chain, referendumFields);
+    }
+
+    // Update voting decision fields if any
+    if (Object.keys(votingFields).length > 0) {
+      await VotingDecision.upsert(referendum.id!, votingFields);
+    }
+
+    // Return the updated referendum with all related data
     const updatedReferendum = await Referendum.findByPostIdAndChain(postId, chain);
     res.json(updatedReferendum);
   } catch (error) {
