@@ -112,4 +112,35 @@ export class MimirTransaction {
         
         return await db.get(sql, [postId, chain]);
     }
+
+    /**
+     * Clean up stale pending transactions (e.g., deleted from Mimir)
+     * Marks transactions as 'failed' if they're older than the specified days
+     */
+    public static async cleanupStaleTransactions(olderThanDays: number = 7): Promise<number> {
+        const sql = `
+            UPDATE mimir_transactions 
+            SET status = 'failed'
+            WHERE status = 'pending' 
+              AND created_at < datetime('now', '-${olderThanDays} days')
+        `;
+        
+        const result = await db.run(sql);
+        return result.changes || 0;
+    }
+
+    /**
+     * Get count of pending transactions older than specified days
+     */
+    public static async getStaleTransactionCount(olderThanDays: number = 7): Promise<number> {
+        const sql = `
+            SELECT COUNT(*) as count
+            FROM mimir_transactions 
+            WHERE status = 'pending' 
+              AND created_at < datetime('now', '-${olderThanDays} days')
+        `;
+        
+        const result = await db.get(sql);
+        return result.count || 0;
+    }
 } 

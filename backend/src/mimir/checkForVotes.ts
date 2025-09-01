@@ -4,6 +4,7 @@ import {
   POLKADOT_PROVIDER,
   SUBSCAN_ROW_COUNT,
   TRACKS,
+  MIMIR_TRANSACTION_CLEANUP_DAYS,
 } from "../utils/constants";
 import {
   Chain,
@@ -43,6 +44,18 @@ export async function checkForVotes(): Promise<void> {
 
   try {
     isCheckingVotes = true;
+    
+    // Clean up stale transactions first (configurable timeout, default 7 days)
+    const staleCount = await MimirTransaction.getStaleTransactionCount(MIMIR_TRANSACTION_CLEANUP_DAYS);
+    if (staleCount > 0) {
+      const cleanedUp = await MimirTransaction.cleanupStaleTransactions(MIMIR_TRANSACTION_CLEANUP_DAYS);
+      logger.info({ 
+        cleanedUp, 
+        staleCount, 
+        cleanupDays: MIMIR_TRANSACTION_CLEANUP_DAYS 
+      }, "Cleaned up stale Mimir transactions (likely deleted from Mimir)");
+    }
+    
     const pendingTransactions = await MimirTransaction.getPendingTransactions();
 
     if (pendingTransactions.length === 0) {

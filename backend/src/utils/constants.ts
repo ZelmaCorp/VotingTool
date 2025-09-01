@@ -12,6 +12,9 @@ export const BALANCE = 1000000000;
 // Default ReadyToVote -> Completed check interval is 1 minute
 export const READY_CHECK_INTERVAL = process.env.READY_CHECK_INTERVAL || 60;
 
+// Cleanup timeout for stale Mimir transactions (in days)
+export const MIMIR_TRANSACTION_CLEANUP_DAYS = Number(process.env.MIMIR_TRANSACTION_CLEANUP_DAYS) || 7;
+
 export const SUBSCAN_ROW_COUNT = 20;
 
 export const MIMIR_URL = "https://mimir-client.mimir.global";
