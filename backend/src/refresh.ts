@@ -6,6 +6,7 @@ import { fetchDotToUsdRate, fetchKusToUsdRate } from "./utils/utils";
 import { updateReferenda } from "./notion/update";
 import { createSubsystemLogger } from "./config/logger";
 import { Subsystem } from "./types/logging";
+import { title } from "process";
 
 // Read version from package.json with fallback
 let APP_VERSION = "1.2.0-fallback";
@@ -67,9 +68,15 @@ export async function refreshReferendas(limit: number = 30) {
             const found = await findNotionPageByPostId(pages, referenda.post_id, referenda.network);
             const exchangeRate = referenda.network === Chain.Polkadot ? dotUsdRate : kusUsdRate;
 
+            /** Polkadot referenda gets inserted to Kusama debug */
+            if (referenda.post_id > 1000 && referenda.network === Chain.Kusama) {
+                logger.error({ referenda, postId: referenda.post_id, network: referenda.network }, "Post ID is greater than 1000 and network is Kusama, this is an anomaly...");
+            }
+
             if (found) {
                 logger.info({ postId: referenda.post_id, network: referenda.network }, `Proposal found in Notion, updating`);
                 try {
+                    logger.debug(`Updating referenda ${referenda.post_id} on ${referenda.network}`);
                     await updateReferenda(found.id, referenda, exchangeRate, referenda.network);
                 } catch (error) {
                     logger.error({ postId: referenda.post_id, error: (error as any).message }, "Error updating referenda");
@@ -77,6 +84,7 @@ export async function refreshReferendas(limit: number = 30) {
             } else {
                 logger.info({ postId: referenda.post_id, network: referenda.network }, `Proposal not in Notion, creating new page`);
                 try {
+                    logger.debug(`Creating new referenda ${referenda.post_id} on ${referenda.network}`);
                     await createReferenda(notionDatabaseId, referenda, exchangeRate, referenda.network);
                 } catch (error) {
                     logger.error({ postId: referenda.post_id, error: (error as any).message }, "Error creating referenda");
