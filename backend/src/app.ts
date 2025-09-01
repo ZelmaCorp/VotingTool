@@ -11,6 +11,9 @@ import { waitUntilStartMinute } from "./utils/utils";
 import { checkForVotes } from "./mimir/checkForVotes";
 import { createSubsystemLogger } from "./config/logger";
 import { Subsystem } from "./types/logging";
+import { db } from "./database/connection";
+import { Referendum } from "./database/models/referendum";
+import { Chain } from "./types/properties";
 
 // Read version from package.json with fallback
 let APP_VERSION = "1.2.0-fallback";
@@ -38,14 +41,51 @@ app.get("/health", (req: Request, res: Response) => {
   });
 });
 
+// Get all referendums from the database
+app.get("/referendums", async (req: Request, res: Response) => {
+  try {
+    const referendums = await Referendum.getAll();
+    res.json(referendums);
+  } catch (error) {
+    logger.error({ error: (error as any).message }, "Error fetching referendums from database");
+    res.status(500).json({ error: "Error fetching referendums: " + (error as any).message })
+  }
+});
+
+// Update a specific referendum by post_id and chain
+app.put("/referendums/:postId/:chain", async (req: Request, res: Response) => {
+  try {
+    const postId = parseInt(req.params.postId);
+    const chain = req.params.chain as Chain;
+    const updates = req.body;
+
+    if (isNaN(postId)) {
+      return res.status(400).json({ error: "Invalid post ID" });
+    }
+
+    // Validate chain
+    if (!Object.values(Chain).includes(chain)) {
+      return res.status(400).json({ error: "Invalid chain. Must be 'Polkadot' or 'Kusama'" });
+    }
+
+    await Referendum.update(postId, chain, updates);
+    
+    // Return the updated referendum
+    const updatedReferendum = await Referendum.findByPostIdAndChain(postId, chain);
+    res.json(updatedReferendum);
+  } catch (error) {
+    logger.error({ error: (error as any).message }, "Error updating referendum");
+    res.status(500).json({ error: "Error updating referendum: " + (error as any).message });
+  }
+});
+
 app.get("/send-to-mimir", async (req: Request, res: Response) => {
   try {
     await sendReadyProposalsToMimir();
-    res.send(SUCCESS_PAGE);
+    res.json({ message: "Successfully sent referendas to Mimir", timestamp: new Date().toISOString() });
   } catch (error) {
-    res
-      .status(500)
-      .send("Error sending referendas to Mimir: " + (error as any).message);
+    logger.error({ error: (error as any).message }, "Error sending referendas to Mimir");
+    res.status(500).json({ error: "Error sending referendas to Mimir: " + (error as any).message });
   }
 });
 
@@ -98,8 +138,14 @@ async function main() {
       refreshInterval: process.env.REFRESH_INTERVAL
     }, `Starting OpenGov Voting Tool v${APP_VERSION}`);
 
+    // Initialize the database first
+    logger.info("Initializing database...");
+    await db.initialize();
+    logger.info("Database initialized successfully");
+
     logger.info("Waiting until the start minute...");
     checkForVotes(); // check for votes immediately
+    refreshReferendas(30);
 
     await waitUntilStartMinute();
 
@@ -112,8 +158,37 @@ async function main() {
     app.listen(PORT, () => {
       logger.info({ version: APP_VERSION, port: PORT }, `OpenGov Voting tool v${APP_VERSION} is running on port ${PORT}`);
     });
+
+    // Set up graceful shutdown handlers
+    process.on('SIGINT', async () => {
+      logger.info('Received SIGINT, shutting down gracefully...');
+      await gracefulShutdown();
+    });
+
+    process.on('SIGTERM', async () => {
+      logger.info('Received SIGTERM, shutting down gracefully...');
+      await gracefulShutdown();
+    });
+
   } catch (error) {
     logger.error({ error }, "Fatal error in main()");
+    await gracefulShutdown();
+    process.exit(1);
+  }
+}
+
+/**
+ * Gracefully shutdown the application
+ */
+async function gracefulShutdown(): Promise<void> {
+  try {
+    logger.info('Closing database connection...');
+    await db.close();
+    logger.info('Database connection closed');
+    logger.info('Shutdown complete');
+    process.exit(0);
+  } catch (error) {
+    logger.error({ error }, 'Error during graceful shutdown');
     process.exit(1);
   }
 }
