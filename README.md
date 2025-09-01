@@ -2,11 +2,11 @@
 
 ## Overview
 
-A helper tool for small DAOs to vote on proposals. This tool automates the process of fetching referendum data from Polkassembly, managing voting workflows in Notion, and executing batch votes through Mimir.
+A helper tool for small DAOs to vote on proposals. This tool automates the process of fetching referendum data from Polkassembly, managing voting workflows in a SQLite database, and executing batch votes through Mimir.
 
 The tool provides:
 - Automated referendum data synchronization from Polkassembly API
-- Notion database integration for proposal management and voting workflows
+- SQLite database for proposal management and voting workflows
 - Batch voting execution through Mimir multisig integration
 - Rate limiting and error handling for external API calls
 - Comprehensive logging and monitoring
@@ -16,7 +16,6 @@ The tool provides:
 - Node.js (v18 or higher)
 - npm or yarn
 - Docker (optional, for containerized deployment)
-- Notion API access and database
 - Polkadot/Kusama multisig wallets
 - Subscan API key
 - Mimir integration setup
@@ -78,9 +77,6 @@ The application will start on port 3000 by default (configurable via `PORT` envi
 
 #### Required Variables
 
-- `NOTION_API_TOKEN` - Your Notion integration token
-- `NOTION_DATABASE_ID` - ID of your Notion database for referendums
-- `NOTION_VERSION` - Notion API version (default: 2022-06-28). Don't change this!
 - `REFRESH_INTERVAL` - How often to check for new referendums (in seconds, default: 900)
 - `POLKADOT_MULTISIG` - Your Polkadot multisig address
 - `KUSAMA_MULTISIG` - Your Kusama multisig address
@@ -191,9 +187,6 @@ npm run test:unit:rate-limit
 
 # Utils tests
 npm run test:unit:utils
-
-# Notion integration tests
-npm run test:integration:notion
 
 # Polkassembly integration tests
 npm run test:integration:polkassembly

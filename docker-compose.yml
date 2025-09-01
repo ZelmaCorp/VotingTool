@@ -6,11 +6,6 @@ services:
     ports:
       - "3000:3000"
     environment:
-      # Required Notion Configuration
-      - NOTION_API_TOKEN=${NOTION_API_TOKEN}
-      - NOTION_DATABASE_ID=${NOTION_DATABASE_ID}
-      - NOTION_VERSION=${NOTION_VERSION:-2022-06-28}
-      
       # Required Application Configuration
       - REFRESH_INTERVAL=${REFRESH_INTERVAL:-300}
       

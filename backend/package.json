@@ -15,7 +15,6 @@
     "test:unit:rate-limit": "jest tests/unit/rate-limit",
     "test:unit:utils": "jest tests/unit/utils",
     "test:unit:fetch": "jest tests/unit/fetchReferendas.test.ts",
-    "test:integration:notion": "jest tests/integration/notion",
     "test:integration:rate-limit": "jest tests/integration/rate-limit-demo.test.ts",
     "test:integration:polkassembly": "jest tests/integration/polkassembly.content.test.ts",
     "test:integration:coingecko": "jest tests/integration/coingecko.integration.test.ts",

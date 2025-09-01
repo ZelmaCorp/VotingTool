@@ -6,7 +6,6 @@ This guide explains how to build and run the Polkadot Voting Tool using Docker.
 
 - Docker (20.10.0 or higher)
 - Docker Compose (1.29.0 or higher)
-- A Notion workspace with API access
 - Polkadot/Kusama multisig wallets
 - Subscan API key
 
@@ -38,7 +37,8 @@ This guide explains how to build and run the Polkadot Voting Tool using Docker.
    ```
 
 ### API Load Balancing (Multiple Instances)
-If you're running multiple instances that share the same Notion database, use `START_MINUTE` to stagger API calls and prevent overload:
+If you're running multiple instances, use `START_MINUTE` to stagger API calls and prevent overload:
+// TODO completely remove this
 - **Instance 1**: `START_MINUTE=0` (starts at minute 0 of each hour)
 - **Instance 2**: `START_MINUTE=15` (starts at minute 15 of each hour)  
 - **Instance 3**: `START_MINUTE=30` (starts at minute 30 of each hour)
@@ -54,8 +54,6 @@ You must set these variables in your `.env` file:
 
 | Variable | Description | Example |
 |----------|-------------|---------|
-| `NOTION_API_TOKEN` | Your Notion integration token | `secret_abc123...` |
-| `NOTION_DATABASE_ID` | Database ID where referendas are stored | `d1234567-89ab-cdef-1234-567890abcdef` |
 | `REFRESH_INTERVAL` | How often to check for new referendas (seconds) | `300` |
 | `POLKADOT_MULTISIG` | Your Polkadot multisig address | `15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5` |
 | `KUSAMA_MULTISIG` | Your Kusama multisig address | `HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F` |
@@ -63,26 +61,6 @@ You must set these variables in your `.env` file:
 | `SUBSCAN_API_KEY` | API key from Subscan | `your_api_key_here` |
 | `START_MINUTE` | Stagger API calls to prevent overload (0-59) | `0` |
 | `SKIP_WAIT` | Skip staggered timing (development) | `true` |
-
-### Setting up Notion
-
-1. **Create a Notion Integration:**
-   - Go to https://www.notion.so/my-integrations
-   - Click "New integration"
-   - Give it a name (e.g., "Polkadot Voting Tool")
-   - Copy the "Internal Integration Token"
-
-2. **Create a Database:**
-   - Create a new page in Notion
-   - Add a database to store referendas
-   - Share the database with your integration
-   - Copy the database ID from the URL
-
-3. **Database Schema:**
-   The application expects specific properties in your Notion database. Run the schema export to see the required structure:
-   ```bash
-   docker-compose exec polkadot-voting-tool node dist/exportSchema.js
-   ```
 
 ## Building the Docker Image
 
@@ -178,14 +156,9 @@ Set `LOG_LEVEL` in your `.env` file:
 2. **Environment variable errors:**
    - Ensure all required variables are set in `.env`
    - Check for typos in variable names
-   - Verify Notion API token and database ID
+   - Verify multisig addresses and API keys
 
-3. **Notion connection issues:**
-   - Verify API token is correct
-   - Ensure database is shared with your integration
-   - Check database ID format
-
-4. **Permission errors:**
+3. **Permission errors:**
    - Ensure the Docker daemon is running
    - Check user permissions for Docker
 
@@ -193,7 +166,7 @@ Set `LOG_LEVEL` in your `.env` file:
 
 1. **Run a quick test:**
    ```bash
-   # Test Notion connection
+   # Test referendum refresh
    curl "http://localhost:3000/refresh-referendas?limit=1"
    
    # Check health
@@ -255,7 +228,7 @@ If you encounter issues:
 
 1. Check the logs for error messages
 2. Verify all environment variables are correctly set
-3. Ensure all external services (Notion, Subscan) are accessible
+3. Ensure all external services (Subscan) are accessible
 4. Test endpoints manually to isolate issues
 
 For additional help, refer to the project documentation or create an issue in the repository. 
