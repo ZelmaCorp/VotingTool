@@ -42,6 +42,9 @@
           <button @click="checkHealth" class="btn btn-secondary">
             🏥 Check Backend Health
           </button>
+          <button @click="sendToMimir" :disabled="sendingToMimir" class="btn btn-success">
+            {{ sendingToMimir ? 'Sending...' : '🚀 Send to Mimir' }}
+          </button>
         </div>
 
         <!-- Status Info -->
@@ -93,7 +96,8 @@ export default {
       referendas: [],
       backendStatus: null,
       loading: false,
-      error: null
+      error: null,
+      sendingToMimir: false
     }
   },
   mounted() {
@@ -138,6 +142,27 @@ export default {
         this.referendas = []
       } finally {
         this.loading = false
+      }
+    },
+
+    async sendToMimir() {
+      try {
+        this.sendingToMimir = true
+        this.error = null
+        const response = await axios.get('/api/send-to-mimir')
+        
+        // Show success message
+        alert(`✅ Success: ${response.data.message}`)
+        
+        // Optionally refresh the data to show any status updates
+        await this.loadReferendas()
+      } catch (error) {
+        console.error('Failed to send to Mimir:', error)
+        const errorMessage = error.response?.data?.error || 'Failed to send proposals to Mimir'
+        this.error = errorMessage
+        alert(`❌ Error: ${errorMessage}`)
+      } finally {
+        this.sendingToMimir = false
       }
     },
     
@@ -242,6 +267,16 @@ export default {
 .btn-secondary:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(108, 117, 125, 0.4);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #28a745, #34ce57);
+  color: white;
+}
+
+.btn-success:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
 }
 
 .btn-link {

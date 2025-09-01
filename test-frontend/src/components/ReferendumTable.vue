@@ -3,15 +3,6 @@
     <!-- Table Header -->
     <div class="table-header">
       <div class="table-controls">
-        <!-- CREATE BUTTON DISABLED: Referendas are created by OpenGov, not by this tool -->
-        <!-- This tool is for managing discussion and voting workflow of existing referendas -->
-        <button 
-          @click="showDisabledCreateMessage" 
-          class="btn btn-disabled"
-          title="Referendas are created by OpenGov (Polkadot governance), not by this tool"
-        >
-          ➕ New Referendum (Disabled)
-        </button>
         
         <div class="view-controls">
           <button 
@@ -225,15 +216,7 @@
       </div>
     </div>
 
-    <!-- Create Modal  -->
-    <div v-if="showCreateModal" class="modal-overlay" @click="closeCreateModal">
-      <div class="modal-content" @click.stop>
-        <ReferendumEditor 
-          @close="closeCreateModal"
-          @saved="onReferendumSaved"
-        />
-      </div>
-    </div>
+
   </div>
 </template>
 
@@ -257,7 +240,6 @@ export default {
       chainFilter: '',
       statusFilter: '',
       showEditModal: false,
-      showCreateModal: false,
       editingReferendum: null,
       views: [
         { key: 'full', name: 'Full list', icon: '📋' },
@@ -305,7 +287,20 @@ export default {
       return filtered.sort((a, b) => b.post_id - a.post_id) // Sort by post_id descending
     }
   },
+  mounted() {
+    // Add ESC key listener for closing modals
+    document.addEventListener('keydown', this.handleEscKey)
+  },
+  beforeUnmount() {
+    // Remove ESC key listener to prevent memory leaks
+    document.removeEventListener('keydown', this.handleEscKey)
+  },
   methods: {
+    handleEscKey(event) {
+      if (event.key === 'Escape' && this.showEditModal) {
+        this.closeEditModal()
+      }
+    },
     editReferendum(referendum) {
       this.editingReferendum = referendum
       this.showEditModal = true
@@ -352,13 +347,7 @@ export default {
       this.editingReferendum = null
     },
     
-    closeCreateModal() {
-      this.showCreateModal = false
-    },
-    
-    showDisabledCreateMessage() {
-      alert('Creating referendas is disabled.\n\nReferendas are created by OpenGov (Polkadot governance), not by this tool.\n\nThis tool is for managing discussion and voting workflow of existing referendas.\n\nUse the "Refresh Referendas" button to fetch new referendas from Polkassembly API.')
-    },
+
     
     onReferendumSaved(referendum) {
       this.$emit('saved', referendum)
