@@ -1,64 +1,132 @@
-// Popup script for Polkassembly Overlay Extension
+// OpenGov VotingTool Popup Script
+// Handles popup interactions and communicates with content scripts
+
 document.addEventListener('DOMContentLoaded', function() {
-  const showOverlayButton = document.getElementById('show-overlay');
-  const statusText = document.getElementById('status');
+  const openOverlayBtn = document.getElementById('open-overlay');
+  const viewProposalsBtn = document.getElementById('view-proposals');
+  const syncDataBtn = document.getElementById('sync-data');
+  const currentStatusEl = document.getElementById('current-status');
+  const totalProposalsEl = document.getElementById('total-proposals');
+  const pendingVotesEl = document.getElementById('pending-votes');
   
-  // Check if we're on a supported site
-  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-    const currentTab = tabs[0];
-    const url = currentTab.url;
+  // Initialize popup
+  initializePopup();
+  
+  // Event listeners
+  openOverlayBtn.addEventListener('click', openVotingTool);
+  viewProposalsBtn.addEventListener('click', viewAllProposals);
+  syncDataBtn.addEventListener('click', syncData);
+  
+  // Initialize popup state
+  function initializePopup() {
+    checkCurrentTab();
+    updateStatistics();
+  }
+  
+  // Check if current tab is supported
+  function checkCurrentTab() {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      const currentTab = tabs[0];
+      const url = currentTab.url;
+      
+      if (url && isSupportedSite(url)) {
+        currentStatusEl.textContent = 'Extension is active on this page';
+        currentStatusEl.style.color = 'var(--success)';
+        openOverlayBtn.disabled = false;
+        openOverlayBtn.textContent = '📋 Open VotingTool';
+      } else {
+        currentStatusEl.textContent = 'Navigate to Polkassembly or Subsquare to use this extension';
+        currentStatusEl.style.color = 'var(--gray-500)';
+        openOverlayBtn.disabled = true;
+        openOverlayBtn.textContent = '📍 Navigate to Supported Site';
+      }
+    });
+  }
+  
+  // Check if URL is supported
+  function isSupportedSite(url) {
+    const supportedDomains = [
+      'polkadot.polkassembly.io',
+      'kusama.polkassembly.io',
+      'polkadot.subsquare.io',
+      'kusama.subsquare.io'
+    ];
     
-    if (url && (url.includes('polkassembly.io') || url.includes('subsquare.io'))) {
-      statusText.textContent = 'Extension is active on this page';
-      showOverlayButton.disabled = false;
-    } else {
-      statusText.textContent = 'Navigate to Polkassembly or Subsquare to use this extension';
-      showOverlayButton.disabled = true;
-    }
-  });
+    return supportedDomains.some(domain => url.includes(domain));
+  }
   
-  // Handle show overlay button click
-  showOverlayButton.addEventListener('click', function() {
+  // Update statistics from storage
+  function updateStatistics() {
+    chrome.storage.local.get(['voting-tool-proposals'], function(result) {
+      const proposals = result['voting-tool-proposals'] || [];
+      const totalProposals = proposals.length;
+      const pendingVotes = proposals.filter(p => !p.vote).length;
+      
+      totalProposalsEl.textContent = totalProposals;
+      pendingVotesEl.textContent = pendingVotes;
+      
+      // Update button states
+      viewProposalsBtn.disabled = totalProposals === 0;
+      syncDataBtn.disabled = totalProposals === 0;
+    });
+  }
+  
+  // Open VotingTool overlay
+  function openVotingTool() {
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
       chrome.scripting.executeScript({
         target: {tabId: tabs[0].id},
-        function: showOverlay
+        function: openVotingToolOverlay
       });
     });
-  });
-});
-
-// Function to show overlay (will be injected into the page)
-function showOverlay() {
-  // Remove existing overlay if present
-  const existingOverlay = document.getElementById('polkassembly-overlay');
-  if (existingOverlay) {
-    existingOverlay.remove();
   }
   
-  // Create new overlay
-  const overlay = document.createElement('div');
-  overlay.id = 'polkassembly-overlay';
-  overlay.className = 'polkassembly-overlay';
+  // View all proposals
+  function viewAllProposals() {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      chrome.scripting.executeScript({
+        target: {tabId: tabs[0].id},
+        function: showProposalsList
+      });
+    });
+  }
   
-  const overlayContent = document.createElement('div');
-  overlayContent.className = 'overlay-content';
-  overlayContent.innerHTML = `
-    <h2>Hello World!</h2>
-    <p>Polkassembly Overlay Extension is working!</p>
-    <button id="close-overlay">Close</button>
-  `;
-  
-  overlay.appendChild(overlayContent);
-  
-  // Add close functionality
-  const closeButton = overlay.querySelector('#close-overlay');
-  closeButton.addEventListener('click', () => {
-    overlay.remove();
-  });
-  
-  // Add to page
-  document.body.appendChild(overlay);
-  
-  console.log('Overlay created from popup!');
+  // Sync data
+  function syncData() {
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      chrome.scripting.executeScript({
+        target: {tabId: tabs[0].id},
+        function: syncProposalData
+      });
+    });
+    
+    // Update statistics after sync
+    setTimeout(updateStatistics, 1000);
+  }
+});
+
+// Functions to be injected into the page
+
+function openVotingToolOverlay() {
+  if (window.votingTool) {
+    window.votingTool.openOverlay();
+  } else {
+    console.log('VotingTool not found on this page');
+  }
+}
+
+function showProposalsList() {
+  if (window.votingTool) {
+    window.votingTool.showProposalsList();
+  } else {
+    console.log('VotingTool not found on this page');
+  }
+}
+
+function syncProposalData() {
+  if (window.votingTool) {
+    window.votingTool.syncData();
+  } else {
+    console.log('VotingTool not found on this page');
+  }
 } 

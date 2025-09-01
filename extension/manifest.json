@@ -5,7 +5,8 @@
   "description": "A browser extension that overlays on Polkassembly and Subsquare to help you vote on OpenGov proposals",
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting",
+    "storage"
   ],
   "host_permissions": [
     "https://polkadot.polkassembly.io/*",
@@ -22,7 +23,7 @@
         "https://kusama.subsquare.io/*"
       ],
       "js": ["content.js"],
-      "css": ["overlay.css"]
+      "css": ["design-system.css", "overlay.css"]
     }
   ],
   "action": {

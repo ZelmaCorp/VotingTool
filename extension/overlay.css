@@ -1,58 +1,230 @@
-/* Polkassembly Overlay Extension Styles */
-.polkassembly-overlay {
+/* OpenGov VotingTool Overlay Styles */
+/* Using the design system for consistent Polkassembly-like appearance */
+
+@import url('design-system.css');
+
+.voting-tool-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 999999;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: var(--z-overlay);
   display: flex;
   justify-content: center;
   align-items: center;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-family);
+  padding: var(--spacing-4);
 }
 
-.overlay-content {
-  background: white;
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  text-align: center;
-  max-width: 400px;
-  width: 90%;
+.overlay-container {
+  background: var(--white);
+  border-radius: var(--radius-3xl);
+  box-shadow: var(--shadow-xl);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
-.overlay-content h2 {
-  color: #1f2937;
-  margin: 0 0 1rem 0;
-  font-size: 1.875rem;
+.overlay-header {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: var(--white);
+  padding: var(--spacing-6);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.overlay-header h2 {
+  margin: 0;
+  font-size: var(--font-size-2xl);
   font-weight: 700;
 }
 
-.overlay-content p {
-  color: #6b7280;
-  margin: 0 0 1.5rem 0;
-  font-size: 1.125rem;
-  line-height: 1.5;
-}
-
-#close-overlay {
-  background: #3b82f6;
-  color: white;
+.overlay-close {
+  background: rgba(255, 255, 255, 0.2);
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  color: var(--white);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: background-color 0.2s ease;
 }
 
-#close-overlay:hover {
-  background: #2563eb;
+.overlay-close:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
-#close-overlay:active {
-  background: #1d4ed8;
+.overlay-content {
+  padding: var(--spacing-6);
+  overflow-y: auto;
+  flex: 1;
+}
+
+.overlay-footer {
+  padding: var(--spacing-6);
+  border-top: 1px solid var(--gray-200);
+  background: var(--gray-50);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
+}
+
+/* Proposal Card Styles */
+.proposal-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-xl);
+  margin-bottom: var(--spacing-4);
+  overflow: hidden;
+  transition: box-shadow 0.2s ease;
+}
+
+.proposal-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.proposal-header {
+  padding: var(--spacing-4);
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.proposal-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--gray-800);
+  margin: 0 0 var(--spacing-2) 0;
+}
+
+.proposal-meta {
+  display: flex;
+  gap: var(--spacing-3);
+  flex-wrap: wrap;
+}
+
+.proposal-body {
+  padding: var(--spacing-4);
+}
+
+.proposal-description {
+  color: var(--gray-600);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-4);
+}
+
+.proposal-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.stat-item {
+  text-align: center;
+  padding: var(--spacing-3);
+  background: var(--gray-50);
+  border-radius: var(--radius-lg);
+}
+
+.stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--gray-500);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--spacing-1);
+}
+
+.stat-value {
+  font-size: var(--font-size-lg);
+  font-weight: 700;
+  color: var(--gray-800);
+}
+
+/* Voting Interface */
+.voting-section {
+  background: var(--gray-50);
+  padding: var(--spacing-4);
+  border-radius: var(--radius-lg);
+  margin-top: var(--spacing-4);
+}
+
+.voting-options {
+  display: flex;
+  gap: var(--spacing-3);
+  margin-bottom: var(--spacing-4);
+}
+
+.vote-btn {
+  flex: 1;
+  padding: var(--spacing-4);
+  border: 2px solid transparent;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.vote-btn-aye {
+  background: var(--success);
+  color: var(--white);
+}
+
+.vote-btn-aye:hover {
+  background: #218838;
+  transform: translateY(-1px);
+}
+
+.vote-btn-nay {
+  background: var(--danger);
+  color: var(--white);
+}
+
+.vote-btn-nay:hover {
+  background: #c82333;
+  transform: translateY(-1px);
+}
+
+.vote-btn-abstain {
+  background: var(--gray-500);
+  color: var(--white);
+}
+
+.vote-btn-abstain:hover {
+  background: var(--gray-600);
+  transform: translateY(-1px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .overlay-container {
+    max-width: 95vw;
+    max-height: 95vh;
+  }
+  
+  .overlay-header,
+  .overlay-content,
+  .overlay-footer {
+    padding: var(--spacing-4);
+  }
+  
+  .proposal-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .voting-options {
+    flex-direction: column;
+  }
+  
+  .vote-btn {
+    width: 100%;
+  }
 } 

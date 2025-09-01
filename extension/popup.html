@@ -4,77 +4,135 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>OpenGov VotingTool</title>
+  <link rel="stylesheet" href="design-system.css">
   <style>
     body {
-      width: 300px;
-      padding: 1rem;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      width: 350px;
       margin: 0;
+      font-family: var(--font-family);
     }
     
-    .header {
+    .popup-header {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: var(--white);
+      padding: var(--spacing-6);
       text-align: center;
-      margin-bottom: 1rem;
     }
     
-    .header h1 {
-      color: #1f2937;
+    .popup-header h1 {
       margin: 0;
-      font-size: 1.25rem;
+      font-size: var(--font-size-xl);
       font-weight: 700;
     }
     
-    .status {
-      background: #f3f4f6;
-      padding: 0.75rem;
-      border-radius: 8px;
-      margin-bottom: 1rem;
+    .popup-header p {
+      margin: var(--spacing-2) 0 0 0;
+      opacity: 0.9;
+      font-size: var(--font-size-sm);
+    }
+    
+    .popup-content {
+      padding: var(--spacing-6);
+    }
+    
+    .status-card {
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-4);
+      margin-bottom: var(--spacing-4);
+    }
+    
+    .status-title {
+      font-weight: 600;
+      color: var(--gray-700);
+      margin-bottom: var(--spacing-2);
     }
     
     .status-text {
-      color: #374151;
-      font-size: 0.875rem;
-      margin: 0;
+      color: var(--gray-600);
+      font-size: var(--font-size-sm);
     }
     
-    .button {
-      background: #3b82f6;
-      color: white;
-      border: none;
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      font-size: 0.875rem;
-      font-weight: 600;
-      cursor: pointer;
-      width: 100%;
-      transition: background-color 0.2s ease;
+    .action-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-3);
     }
     
-    .button:hover {
-      background: #2563eb;
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--spacing-3);
+      margin-bottom: var(--spacing-4);
     }
     
-    .footer {
-      margin-top: 1rem;
+    .stat-item {
       text-align: center;
-      font-size: 0.75rem;
-      color: #6b7280;
+      padding: var(--spacing-3);
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+    }
+    
+    .stat-value {
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .stat-label {
+      font-size: var(--font-size-xs);
+      color: var(--gray-500);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>OpenGov VotingTool</h1>
+  <div class="popup-header">
+    <h1>🗳️ OpenGov VotingTool</h1>
+    <p>Manage your OpenGov proposal workflow</p>
   </div>
   
-  <div class="status">
-    <p class="status-text" id="status">Extension is active</p>
-  </div>
-  
-  <button class="button" id="show-overlay">Show Overlay</button>
-  
-  <div class="footer">
-    <p>Version 1.0.0</p>
+  <div class="popup-content">
+    <!-- Status Info -->
+    <div class="status-card">
+      <div class="status-title">Current Status</div>
+      <div class="status-text" id="current-status">Checking...</div>
+    </div>
+    
+    <!-- Statistics -->
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-value" id="total-proposals">-</div>
+        <div class="stat-label">Proposals</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value" id="pending-votes">-</div>
+        <div class="stat-label">Pending</div>
+      </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <button class="btn btn-primary" id="open-overlay">
+        📋 Open VotingTool
+      </button>
+      <button class="btn btn-outline" id="view-proposals">
+        📊 View All Proposals
+      </button>
+      <button class="btn btn-accent" id="sync-data">
+        🔄 Sync Data
+      </button>
+    </div>
+    
+    <!-- Footer -->
+    <div style="text-align: center; margin-top: var(--spacing-6); padding-top: var(--spacing-4); border-top: 1px solid var(--gray-200);">
+      <div style="font-size: var(--font-size-xs); color: var(--gray-500);">
+        Version 1.0.0
+      </div>
+    </div>
   </div>
   
   <script src="popup.js"></script>
