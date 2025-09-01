@@ -2,7 +2,7 @@ import { Chain, InternalStatus, TimelineStatus, Origin } from '../types/properti
 
 /**
  * Database-specific types that exactly match the SQLite schema
- * These are separate from Notion API types to avoid confusion
+ * Database record types for SQLite storage
  */
 
 // Base referendum record as stored in database

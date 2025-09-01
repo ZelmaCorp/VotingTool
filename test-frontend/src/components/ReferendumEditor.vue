@@ -2,7 +2,7 @@
   <!-- 
     REFERENDUM EDITOR - FOR TEST FRONTEND ONLY
     
-    This component was created for the dummy/test frontend that replaces Notion
+    This component was created for the test frontend with SQLite database
     during the SQLite migration testing phase.
     
     IMPORTANT: The "Create" mode is DISABLED for production use.

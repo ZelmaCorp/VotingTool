@@ -219,24 +219,3 @@ export async function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function waitUntilStartMinute(): Promise<void> {
-    if (process.env.SKIP_WAIT) {
-        logger.info("Skipping wait until start minute...");
-        return;
-    }
-
-    logger.info("Waiting until start minute...");
-    const startMinute = process.env.START_MINUTE ? parseInt(process.env.START_MINUTE, 10) : 0;
-    const now = new Date();
-    const currentMinute = now.getMinutes();
-    
-    let waitTime = 0;
-    
-    if (currentMinute !== startMinute) {
-        waitTime = ((startMinute - currentMinute + 60) % 60) * 60 * 1000; // Convert to milliseconds
-        logger.info({ waitTimeSeconds: waitTime / 1000, startMinute }, `Waiting until START_MINUTE`);
-        await new Promise(resolve => setTimeout(resolve, waitTime));
-    }
-
-    logger.info({ startMinute }, `Reached START_MINUTE, proceeding...`);
-}

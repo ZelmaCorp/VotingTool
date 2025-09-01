@@ -36,15 +36,7 @@ This guide explains how to build and run the Polkadot Voting Tool using Docker.
    curl http://localhost:3000/health
    ```
 
-### API Load Balancing (Multiple Instances)
-If you're running multiple instances, use `START_MINUTE` to stagger API calls and prevent overload:
-// TODO completely remove this
-- **Instance 1**: `START_MINUTE=0` (starts at minute 0 of each hour)
-- **Instance 2**: `START_MINUTE=15` (starts at minute 15 of each hour)  
-- **Instance 3**: `START_MINUTE=30` (starts at minute 30 of each hour)
-- **Instance 4**: `START_MINUTE=45` (starts at minute 45 of each hour)
 
-Use `SKIP_WAIT=true` during development/testing to bypass this staggered timing.
 
 ## Configuration
 
@@ -59,8 +51,6 @@ You must set these variables in your `.env` file:
 | `KUSAMA_MULTISIG` | Your Kusama multisig address | `HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F` |
 | `PROPOSER_MNEMONIC` | 12-word mnemonic for proposer account | `word1 word2 word3 ...` |
 | `SUBSCAN_API_KEY` | API key from Subscan | `your_api_key_here` |
-| `START_MINUTE` | Stagger API calls to prevent overload (0-59) | `0` |
-| `SKIP_WAIT` | Skip staggered timing (development) | `true` |
 
 ## Building the Docker Image
 

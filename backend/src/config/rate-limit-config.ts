@@ -58,5 +58,3 @@ export function createCustomConfig(overrides: Partial<RateLimitConfig>): RateLim
     ...overrides
   };
 }
-
-// Notion-specific operation types will be added later during integration phase 

@@ -312,21 +312,6 @@ export default {
       this.editReferendum(referendum)
     },
     
-    duplicateReferendum(referendum) {
-      // DUPLICATE DISABLED: We don't create referendas, OpenGov does
-      // This was kept from the Notion replacement but should be disabled in production
-      alert('Duplicate is disabled. Referendas are created by OpenGov (Polkadot governance), not by this tool. This tool is for managing discussion and voting workflow of existing referendas.')
-      
-      // LEGACY CODE - kept for potential future testing needs
-      // const copy = { ...referendum }
-      // delete copy.id
-      // copy.post_id = Math.max(...this.referendums.map(r => r.post_id)) + 1
-      // copy.title = `Copy of ${copy.title}`
-      // 
-      // this.editingReferendum = copy
-      // this.showEditModal = true
-    },
-    
     async deleteReferendum(referendum) {
       if (!confirm(`Are you sure you want to delete referendum #${referendum.post_id}?`)) {
         return

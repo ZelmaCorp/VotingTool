@@ -142,8 +142,6 @@ describe('Rate Limit Configuration', () => {
     });
   });
 
-  // Notion-specific operation type tests will be added during integration phase
-
   describe('configuration consistency', () => {
     it('should have consistent property types across all configs', () => {
       const configs = [

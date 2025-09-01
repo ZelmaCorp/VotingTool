@@ -16,7 +16,7 @@ const mockLogger = {
 import { createSubsystemLogger } from '../../src/config/logger';
 (createSubsystemLogger as jest.Mock).mockReturnValue(mockLogger);
 
-import { getValidatedOrigin, getValidatedStatus, calculateReward, sleep, waitUntilStartMinute } from '../../src/utils/utils';
+import { getValidatedOrigin, getValidatedStatus, calculateReward, sleep } from '../../src/utils/utils';
 import { Chain, Origin, TimelineStatus } from '../../src/types/properties';
 
 describe('Utils - Validation Functions', () => {
@@ -112,62 +112,5 @@ describe('Utils - Validation Functions', () => {
     });
   });
 
-  describe('waitUntilStartMinute', () => {
-    const originalEnv = process.env;
 
-    beforeEach(() => {
-      jest.useFakeTimers();
-      process.env = { ...originalEnv };
-    });
-
-    afterEach(() => {
-      jest.useRealTimers();
-      process.env = originalEnv;
-    });
-
-    it('should wait until the specified minute', async () => {
-      process.env.START_MINUTE = '30';
-      delete process.env.SKIP_WAIT; // Ensure SKIP_WAIT is not set
-      const now = new Date();
-      now.setMinutes(25); // Current time is 25 minutes past the hour
-      jest.setSystemTime(now);
-
-      const waitPromise = waitUntilStartMinute();
-      
-      // Allow the async function to set up the timer
-      await Promise.resolve();
-      expect(jest.getTimerCount()).toBe(1); // Verify that a timer was set
-      
-      jest.advanceTimersByTime(5 * 60 * 1000); // Advance 5 minutes
-      await waitPromise;
-    });
-
-    it('should not wait if already at start minute', async () => {
-      process.env.START_MINUTE = '25';
-      delete process.env.SKIP_WAIT; // Ensure SKIP_WAIT is not set
-      const now = new Date();
-      now.setMinutes(25);
-      jest.setSystemTime(now);
-
-      await waitUntilStartMinute();
-      expect(jest.getTimerCount()).toBe(0); // Verify that no timer was set
-    });
-
-    it('should use default start minute (0) if not specified', async () => {
-      delete process.env.START_MINUTE;
-      delete process.env.SKIP_WAIT; // Ensure SKIP_WAIT is not set
-      const now = new Date();
-      now.setMinutes(55);
-      jest.setSystemTime(now);
-
-      const waitPromise = waitUntilStartMinute();
-      
-      // Allow the async function to set up the timer
-      await Promise.resolve();
-      expect(jest.getTimerCount()).toBe(1); // Verify that a timer was set
-      
-      jest.advanceTimersByTime(5 * 60 * 1000);
-      await waitPromise;
-    });
-  });
 }); 

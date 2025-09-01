@@ -100,8 +100,6 @@ SANDBOX_POLKADOT_MULTISIG=test_polkadot_multisig_here
 
 2. **Configure test variables:**
    - Uncomment and set up the test-specific variables in your `.env` file
-   - Set up a separate Notion integration for testing
-   - Create a test database in Notion
    - Configure sandbox accounts for multisig testing
 
 3. **Verify setup:**

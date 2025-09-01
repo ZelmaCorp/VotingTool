@@ -16,7 +16,7 @@
       // e.g., '^@/(.*)$': '<rootDir>/src/$1'
     },
     maxWorkers: 1,
-    testTimeout: 180000, // Increased timeout for integration tests with Notion API and long-running Mimir tests
+    testTimeout: 180000, // Increased timeout for integration tests with external APIs and long-running Mimir tests
     verbose: false,
     silent: true,
     // Additional settings to handle Node.js v24.6.0 circular JSON issues

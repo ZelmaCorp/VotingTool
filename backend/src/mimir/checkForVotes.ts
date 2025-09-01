@@ -9,17 +9,13 @@ import {
 import {
   Chain,
   ExtrinsicHashMap,
-  InternalStatus,
   ReferendumId,
-  SuggestedVote,
 } from "../types/properties";
 import axios from "axios";
 import {
   loadReadyProposalsFromFile,
   saveReadyProposalsToFile,
 } from "../utils/readyFileHandlers";
-import { RateLimitHandler } from "../utils/rateLimitHandler";
-import { RATE_LIMIT_CONFIGS } from "../config/rate-limit-config";
 import { createSubsystemLogger, logError } from "../config/logger";
 import { Subsystem, ErrorType } from "../types/logging";
 import { Referendum } from "../database/models/referendum";
@@ -90,11 +86,15 @@ export async function checkForVotes(): Promise<void> {
 
         logger.debug({ extrinsicMap, refIdExtrinsic: extrinsicMap[refId] }, "Extrinsic mapping data");
 
-        // Update the referendum status to indicate it has been voted on
-        const votedStatus = getVotedStatus(proposal.voted);
+        // Update the referendum to mark it as voted on
+        // TODO: Parse actual vote direction from Subscan data instead of using suggested vote
         const subscanLink = extrinsicMap[refId] ? buildSubscanLink(extrinsicMap[refId], chain) : undefined;
         
-        await Referendum.updateVotingStatus(refId, chain, votedStatus, subscanLink);
+        // For now, we don't update the internal status automatically - it should be manually reviewed
+        // since the actual vote might differ from the suggested vote
+        if (subscanLink) {
+          await Referendum.update(refId, chain, { voted_link: subscanLink });
+        }
         
         // Update the voting decision to mark as executed
         await VotingDecision.upsert(referendum.id, {
@@ -118,21 +118,7 @@ export async function checkForVotes(): Promise<void> {
   }
 }
 
-/**
- * Convert SuggestedVote to appropriate InternalStatus for voted referendums
- */
-function getVotedStatus(vote: SuggestedVote): InternalStatus {
-  switch (vote) {
-    case SuggestedVote.Aye:
-      return InternalStatus.VotedAye;
-    case SuggestedVote.Nay:
-      return InternalStatus.VotedNay;
-    case SuggestedVote.Abstain:
-      return InternalStatus.VotedAbstain;
-    default:
-      return InternalStatus.NotVoted;
-  }
-}
+
 
 /**
  * Build Subscan link for the given extrinsic hash and chain

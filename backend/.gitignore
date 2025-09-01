@@ -2,4 +2,6 @@
 node_modules/
 .env
 
+voting_tool.db
+
 dist

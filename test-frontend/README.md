@@ -4,9 +4,9 @@
 
 ## Purpose
 
-This lightweight Vue.js frontend serves as a temporary testing interface for the OpenGov Voting Tool while transitioning from Notion to SQLite database. It allows developers to:
+This lightweight Vue.js frontend serves as a temporary testing interface for the OpenGov Voting Tool with SQLite database. It allows developers to:
 
-1. **Test the SQLite Migration**: Verify that the migration from Notion to SQLite database worked correctly
+1. **Test the SQLite Integration**: Verify that the SQLite database integration works correctly
 2. **Validate Backend APIs**: Ensure the backend is properly serving data from the new SQLite database
 3. **Visual Data Inspection**: Provide a simple UI to browse and inspect referendum data
 4. **Development Aid**: Help new developers understand the data structure and workflow
@@ -61,7 +61,7 @@ npm run preview
 
 - 🏥 **Health Check**: Verify backend connectivity
 - 🔄 **Refresh Referendas**: Trigger backend data refresh from Polkassembly
-- 📋 **Referendum Display**: View referendum data in Notion-style table
+- 📋 **Referendum Display**: View referendum data in database-driven table
 - ✏️ **Full Editing**: Complete referendum editing with all fields
 - 📊 **Scoring System**: 10-criteria scoring (Necessity, Funding, Competition, etc.)
 - 🗳️ **Voting Workflow**: Track voting decisions and reasoning

@@ -3,7 +3,7 @@
  * 
  * Provides sophisticated rate limiting with exponential backoff, retry logic,
  * and dead letter queue management for failed operations. Used primarily
- * for Notion API calls to prevent rate limit violations.
+ * for external API calls to prevent rate limit violations.
  * 
  * Key features:
  * - Configurable retry strategies by operation type
@@ -171,7 +171,7 @@ export class RateLimitHandler {
   private isRateLimitError(error: any): boolean {
     if (!error) return false;
     
-    // Check for Notion API rate limit (429)
+    // Check for API rate limit (429)
     if (error.status === 429 || error.code === 429) return true;
     
     // Check for rate limit in error message

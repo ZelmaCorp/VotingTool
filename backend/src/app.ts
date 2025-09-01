@@ -6,7 +6,7 @@ if (!process.env.REFRESH_INTERVAL)
   throw "Please specify REFRESH_INTERVAL in .env!";
 import { refreshReferendas } from "./refresh";
 import { READY_CHECK_INTERVAL, SUCCESS_PAGE } from "./utils/constants";
-import { waitUntilStartMinute } from "./utils/utils";
+
 import { checkForVotes } from "./mimir/checkForVotes";
 import { createSubsystemLogger } from "./config/logger";
 import { Subsystem } from "./types/logging";
@@ -68,11 +68,9 @@ async function main() {
     await db.initialize();
     logger.info("Database initialized successfully");
 
-    logger.info("Waiting until the start minute...");
+    logger.info("Starting initial operations...");
     checkForVotes(); // check for votes immediately
     refreshReferendas(30);
-
-    await waitUntilStartMinute();
 
     logger.info("Starting periodic referenda refresh...");
     setInterval(smartRefreshReferendas, Number(process.env.REFRESH_INTERVAL) * 1000);

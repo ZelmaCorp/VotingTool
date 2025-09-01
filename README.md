@@ -91,7 +91,6 @@ The application will start on port 3000 by default (configurable via `PORT` envi
 - `DEEP_SYNC_LIMIT` - Number of posts to fetch during deep sync (default: 100)
 - `DEEP_SYNC_HOUR` - Hour for daily deep sync (UTC, default: 3)
 - `READY_CHECK_INTERVAL` - How often to check for ready votes (default: 60)
-- `START_MINUTE` - Minute of the hour to start operations (default: 0)
 
 For a complete list of environment variables, see [env.example](env.example).
 

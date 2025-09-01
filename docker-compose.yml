@@ -24,8 +24,6 @@ services:
       - READY_CHECK_INTERVAL=${READY_CHECK_INTERVAL:-60}
       - NODE_ENV=${NODE_ENV:-production}
       - LOG_LEVEL=${LOG_LEVEL:-info}
-      - START_MINUTE=${START_MINUTE:-0}
-      - SKIP_WAIT=${SKIP_WAIT:-true}
       
     env_file:
       - .env

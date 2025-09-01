@@ -2,10 +2,10 @@
   <!-- 
     OPENGOV VOTING TOOL - TEST FRONTEND
     
-    This is a temporary testing frontend created to replace Notion during 
+    This is a temporary testing frontend created during 
     the SQLite migration phase. 
     
-    PURPOSE: Test the migration from Notion to SQLite database and provide
+    PURPOSE: Test the SQLite database functionality and provide
     a UI for managing discussion and voting workflow of existing referendas.
     
     IMPORTANT: This tool does NOT create referendas. Referendas are created
@@ -72,7 +72,7 @@
         <!-- Footer Info -->
         <div class="footer-info">
           <p>
-            This frontend tests the migration from Notion to SQLite database.
+            This frontend tests the SQLite database functionality.
             <br>
             Replace with Polkassembly overlay once migration is validated.
           </p>
