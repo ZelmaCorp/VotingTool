@@ -120,10 +120,11 @@ export interface DiscussionRecord {
 export interface MimirTransactionRecord {
     id?: number;
     referendum_id: number;
-    transaction_hash?: string;
+    calldata: string;                   // Transaction calldata
+    timestamp: number;                  // Unix timestamp
     status: string;                     // 'pending', 'executed', 'failed'
+    extrinsic_hash?: string;            // On-chain transaction hash
     created_at?: string;
-    executed_at?: string;
 }
 
 // App configuration record

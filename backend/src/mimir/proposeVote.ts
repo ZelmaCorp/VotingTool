@@ -29,7 +29,7 @@ export async function proposeVoteTransaction(
   id: ReferendumId,
   vote: SuggestedVote,
   conviction: number = 1
-): Promise<ReadyProposal> {
+): Promise<{ ready: ReadyProposal; payload: VotingPayload }> {
   try {
     if (!MNEMONIC) throw "Please specify MNEMONIC in .env!";
     if (!multisig)
@@ -93,9 +93,12 @@ export async function proposeVoteTransaction(
     console.log("response.status: ", response.status)
 
     return {
-      id,
-      voted: vote,
-      timestamp: payload.timestamp,
+      ready: {
+        id,
+        voted: vote,
+        timestamp: payload.timestamp,
+      },
+      payload
     };
   } catch (error) {
     console.error("Failed to upload transaction: ", error);

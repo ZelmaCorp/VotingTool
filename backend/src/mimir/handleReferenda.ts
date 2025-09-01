@@ -9,6 +9,7 @@ import {
 import { proposeVoteTransaction } from "./proposeVote";
 import { createSubsystemLogger, logError } from "../config/logger";
 import { Subsystem, ErrorType } from "../types/logging";
+import { MimirTransaction } from "../database/models/mimirTransaction";
 
 const logger = createSubsystemLogger(Subsystem.MIMIR);
 
@@ -32,30 +33,48 @@ export async function handleReferendaVote(
     switch (referendum.suggested_vote) {
       case SuggestedVote.Aye:
         logger.info({ postId, network, vote: SuggestedVote.Aye }, "Sending transaction to Mimir (Aye)");
-        ready = await proposeVoteTransaction(
+        const ayeResult = await proposeVoteTransaction(
           multisig,
           network,
           postId,
           SuggestedVote.Aye
         );
+        ready = ayeResult.ready;
+        // Save to database
+        if (referendum.id) {
+          await MimirTransaction.create(referendum.id, ayeResult.payload.calldata, ayeResult.payload.timestamp);
+          logger.info({ referendumId: referendum.id, postId }, "Saved Mimir transaction to database");
+        }
         break;
       case SuggestedVote.Nay:
         logger.info({ postId, network, vote: SuggestedVote.Nay }, "Sending transaction to Mimir (Nay)");
-        ready = await proposeVoteTransaction(
+        const nayResult = await proposeVoteTransaction(
           multisig,
           network,
           postId,
           SuggestedVote.Nay
         );
+        ready = nayResult.ready;
+        // Save to database
+        if (referendum.id) {
+          await MimirTransaction.create(referendum.id, nayResult.payload.calldata, nayResult.payload.timestamp);
+          logger.info({ referendumId: referendum.id, postId }, "Saved Mimir transaction to database");
+        }
         break;
       case SuggestedVote.Abstain:
         logger.info({ postId, network, vote: SuggestedVote.Abstain }, "Sending transaction to Mimir (Abstain)");
-        ready = await proposeVoteTransaction(
+        const abstainResult = await proposeVoteTransaction(
           multisig,
           network,
           postId,
           SuggestedVote.Abstain
         );
+        ready = abstainResult.ready;
+        // Save to database
+        if (referendum.id) {
+          await MimirTransaction.create(referendum.id, abstainResult.payload.calldata, abstainResult.payload.timestamp);
+          logger.info({ referendumId: referendum.id, postId }, "Saved Mimir transaction to database");
+        }
         break;
       default:
         logError(logger, { 

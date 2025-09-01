@@ -1,7 +1,6 @@
-import { READY_FILE } from "../utils/constants";
-import { loadReadyProposalsFromFile, saveReadyProposalsToFile } from "../utils/readyFileHandlers";
 import { handleReferendaVote } from "./handleReferenda";
 import { Referendum } from "../database/models/referendum";
+import { MimirTransaction } from "../database/models/mimirTransaction";
 import { createSubsystemLogger } from "../config/logger";
 import { Subsystem } from "../types/logging";
 
@@ -15,7 +14,6 @@ const logger = createSubsystemLogger(Subsystem.MIMIR);
 export async function sendReadyProposalsToMimir(): Promise<void> {
   try {
     logger.info("Sending ReadyToVote proposals to Mimir...");
-    const readyProposals = await loadReadyProposalsFromFile(READY_FILE as string);
     const readyReferendums = await Referendum.getReadyToVote();
     const mimirPromises = [];
 
@@ -25,6 +23,12 @@ export async function sendReadyProposalsToMimir(): Promise<void> {
       const network = referendum.chain;
       const postId = referendum.post_id;
 
+      // Skip if already has pending Mimir transaction
+      if (referendum.id && await MimirTransaction.hasPendingTransaction(referendum.id)) {
+        logger.info({ postId, network, referendumId: referendum.id }, "Referendum already has pending Mimir transaction, skipping");
+        continue;
+      }
+
       logger.info({ postId, network, suggestedVote: referendum.suggested_vote }, "Processing referendum for Mimir");
       
       const promise = handleReferendaVote(referendum, network, postId);
@@ -33,23 +37,23 @@ export async function sendReadyProposalsToMimir(): Promise<void> {
 
     const results = await Promise.allSettled(mimirPromises);
 
-    // Log failed operations or write READY_FILE
+    // Log results
+    let successCount = 0;
     results.forEach((result, index) => {
       if (result.status === "rejected") {
         logger.error({ index, error: result.reason }, "Promise failed (rejected)");
       } else {
         const ready = result.value;
         if (ready) {
-          readyProposals.push(ready);
-          logger.info({ referendumId: ready.id }, "Added ready proposal");
+          successCount++;
+          logger.info({ referendumId: ready.id }, "Successfully processed referendum for Mimir");
         } else {
           logger.warn({ index }, "Promise resolved but returned undefined");
         }
       }
     });
 
-    await saveReadyProposalsToFile(readyProposals, READY_FILE as string);
-    logger.info({ totalReady: readyProposals.length }, "Successfully processed ready proposals");
+    logger.info({ successCount, totalProcessed: results.length }, "Successfully processed ready proposals");
   } catch (error) {
     logger.error({ error: (error as any).message }, "Error while sending ReadyToVote proposals to Mimir");
     throw error;

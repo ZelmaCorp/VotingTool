@@ -3,5 +3,6 @@ node_modules/
 .env
 
 voting_tool.db
+readyToVote.json
 
 dist
