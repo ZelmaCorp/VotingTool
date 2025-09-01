@@ -22,5 +22,11 @@ export default defineConfig({
   define: {
     // Define global variables for browser APIs
     global: 'globalThis'
+  },
+  // Ensure proper module resolution for browser extensions
+  resolve: {
+    alias: {
+      '@': '/src'
+    }
   }
 }) 
