@@ -10,10 +10,8 @@
     "build:popup": "vite build --config vite.popup.config.ts",
     "build:background": "vite build --config vite.background.config.ts",
     "build:assets": "node build.js",
-    "build:simple": "node build.js",
     "preview": "vite preview",
-    "type-check": "tsc --noEmit",
-    "install:dev": "npm install && npm run build:simple"
+    "type-check": "tsc --noEmit"
   },
   "dependencies": {
     "vue": "^3.4.0"
