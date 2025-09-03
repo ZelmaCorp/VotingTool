@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { createSubsystemLogger } from '../config/logger';
 import { Subsystem } from '../types/logging';
+import { decodeAddress, encodeAddress } from '@polkadot/keyring';
 
 const logger = createSubsystemLogger(Subsystem.MULTISIG);
 
@@ -17,6 +18,24 @@ export class MultisigService {
   private cache: Map<string, MultisigMember[]> = new Map();
   private cacheExpiry: Map<string, number> = new Map();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+  /**
+   * Convert a generic address to network-specific format
+   * Generic addresses start with 5, network-specific start with 1 (Polkadot) or J (Kusama)
+   */
+  private convertToNetworkAddress(address: string, network: "Polkadot" | "Kusama"): string {
+    try {
+      // Decode the generic address to get the public key
+      const publicKey = decodeAddress(address);
+      
+      // Encode to the specific network format
+      const networkPrefix = network === "Polkadot" ? 0 : 2; // 0 for Polkadot, 2 for Kusama
+      return encodeAddress(publicKey, networkPrefix);
+    } catch (error) {
+      logger.warn({ address, network, error }, 'Failed to convert address format, using original');
+      return address;
+    }
+  }
 
     constructor() {
         this.subscanApiKey = process.env.SUBSCAN_API_KEY || '';
@@ -253,7 +272,66 @@ export class MultisigService {
    */
   async isTeamMember(walletAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): Promise<boolean> {
     const members = await this.getCachedTeamMembers(network);
-    return members.some(member => member.wallet_address === walletAddress);
+    
+    // Debug logging to see exact format comparison
+    logger.info({ 
+      walletAddress, 
+      walletAddressLength: walletAddress.length,
+      walletAddressType: typeof walletAddress,
+      membersCount: members.length,
+      memberAddresses: members.map(m => ({ 
+        address: m.wallet_address, 
+        length: m.wallet_address.length,
+        type: typeof m.wallet_address,
+        matches: m.wallet_address === walletAddress
+      }))
+    }, 'Checking if wallet address is team member');
+    
+    // Try exact match first
+    let isMember = members.some(member => member.wallet_address === walletAddress);
+    
+    // If no exact match, try the converted network-specific address
+    if (!isMember) {
+      const networkAddress = this.convertToNetworkAddress(walletAddress, network);
+      logger.info({ 
+        walletAddress, 
+        networkAddress, 
+        network,
+        originalMatch: false
+      }, 'Trying converted network address');
+      
+      isMember = members.some(member => member.wallet_address === networkAddress);
+      
+      if (isMember) {
+        logger.info({ 
+          walletAddress, 
+          networkAddress,
+          originalMatch: false,
+          networkMatch: true 
+        }, 'Found match with converted network address');
+      }
+    }
+    
+    // If still no match, try case-insensitive and trimmed comparison
+    if (!isMember) {
+      const normalizedWalletAddress = walletAddress.trim().toLowerCase();
+      isMember = members.some(member => 
+        member.wallet_address.trim().toLowerCase() === normalizedWalletAddress
+      );
+      
+      if (isMember) {
+        logger.info({ 
+          walletAddress, 
+          normalizedWalletAddress,
+          originalMatch: false,
+          normalizedMatch: true 
+        }, 'Found match after normalization');
+      }
+    }
+    
+    logger.info({ walletAddress, isMember, network }, 'Team member check result');
+    
+    return isMember;
   }
 
   /**

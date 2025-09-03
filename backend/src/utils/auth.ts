@@ -63,11 +63,24 @@ export async function verifyWeb3Signature(authRequest: Web3AuthRequest): Promise
  */
 export async function findTeamMemberByAddress(walletAddress: string): Promise<AuthenticatedUser | null> {
   try {
-    // Check if the wallet address is a multisig member using blockchain data
-    const isMember = await multisigService.isTeamMember(walletAddress);
+    // Try both networks since we don't know which one the user is using
+    logger.info({ walletAddress }, "Checking wallet address in both networks");
+    
+    // Check Polkadot first
+    let isMember = await multisigService.isTeamMember(walletAddress, "Polkadot");
+    let network = "Polkadot" as "Polkadot" | "Kusama";
+    
+    // If not found in Polkadot, try Kusama
+    if (!isMember) {
+      logger.info({ walletAddress }, "Not found in Polkadot, checking Kusama");
+      isMember = await multisigService.isTeamMember(walletAddress, "Kusama");
+      if (isMember) {
+        network = "Kusama";
+      }
+    }
     
     if (!isMember) {
-      logger.debug({ walletAddress }, "Wallet address not found in multisig members");
+      logger.debug({ walletAddress }, "Wallet address not found in multisig members on either network");
       
       // Get the configured multisig addresses for better error context
       const polkadotMultisig = process.env.POLKADOT_MULTISIG;
@@ -83,7 +96,7 @@ export async function findTeamMemberByAddress(walletAddress: string): Promise<Au
     }
 
     // Get additional multisig member info
-    const memberInfo = await multisigService.getTeamMemberByAddress(walletAddress);
+    const memberInfo = await multisigService.getTeamMemberByAddress(walletAddress, network);
     
     if (memberInfo) {
       return {
@@ -97,7 +110,7 @@ export async function findTeamMemberByAddress(walletAddress: string): Promise<Au
     return {
       address: walletAddress,  // Use address field
       name: "Multisig Member",
-      network: "Unknown"
+      network: network
     };
   } catch (error) {
     logger.error({ error, walletAddress }, "Error finding multisig member by address");

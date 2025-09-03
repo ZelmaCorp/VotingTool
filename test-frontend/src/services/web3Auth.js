@@ -99,10 +99,21 @@ class Web3AuthService {
             console.log('Account object:', account);
             console.log('Account methods:', Object.getOwnPropertyNames(account));
             console.log('Account prototype methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(account)));
+            console.log('Account address:', account.address);
+            console.log('Account type:', account.type);
+            console.log('Account meta:', account.meta);
             
             // Create a message to sign
             const timestamp = Date.now();
             const message = `Authenticate with OpenGov Voting Tool\nTimestamp: ${timestamp}\nAddress: ${account.address}`;
+            
+            // Verify account is accessible
+            if (!account.address) {
+                throw new Error('Account address is missing. Please select a valid account in your wallet extension.');
+            }
+            
+            console.log('Message to sign:', message);
+            console.log('Message length:', message.length);
             
             // Request signature from the wallet
             let signature;
@@ -118,37 +129,114 @@ class Web3AuthService {
                     console.log('Extension signer:', extension.signer);
                     console.log('Extension provider:', extension.provider);
                     
-                    // Check if the extension has a signer with signing methods
-                    if (extension.signer && extension.signer.signRaw && typeof extension.signer.signRaw === 'function') {
-                        console.log('Using extension signer interface:', extension.name);
-                        signature = await extension.signer.signRaw({
-                            address: account.address,
-                            data: stringToHex(message),
-                            type: 'bytes'
-                        });
-                        break;
+                    // Prioritize Talisman since we know it's working
+                    if (extension.name === 'talisman') {
+                        console.log('Prioritizing Talisman extension...');
+                        
+                        // Check if the extension has a signer with signing methods
+                        if (extension.signer && extension.signer.signRaw && typeof extension.signer.signRaw === 'function') {
+                            console.log('Using Talisman signer interface');
+                            try {
+                                signature = await extension.signer.signRaw({
+                                    address: account.address,
+                                    data: stringToHex(message),
+                                    type: 'bytes'
+                                });
+                                if (signature) break;
+                            } catch (signError) {
+                                console.log(`Talisman signer interface failed:`, signError.message);
+                                continue;
+                            }
+                        }
+                        
+                        // Check if the extension itself has signing methods
+                        if (extension.signRaw && typeof extension.signRaw === 'function') {
+                            console.log('Using Talisman direct signing interface');
+                            try {
+                                signature = await extension.signRaw({
+                                    address: account.address,
+                                    data: stringToHex(message),
+                                    type: 'bytes'
+                                });
+                                if (signature) break;
+                            } catch (signError) {
+                                console.log(`Talisman direct interface failed:`, signError.message);
+                                continue;
+                            }
+                        }
+                        
+                        // Check if the provider has signing methods
+                        if (extension.provider && extension.provider.signRaw && typeof extension.provider.signRaw === 'function') {
+                            console.log('Using Talisman provider interface');
+                            try {
+                                signature = await extension.provider.signRaw({
+                                    address: account.address,
+                                    data: stringToHex(message),
+                                    type: 'bytes'
+                                });
+                                if (signature) break;
+                            } catch (signError) {
+                                console.log(`Talisman provider interface failed:`, signError.message);
+                                continue;
+                            }
+                        }
                     }
-                    
-                    // Check if the extension itself has signing methods
-                    if (extension.signRaw && typeof extension.signRaw === 'function') {
-                        console.log('Using extension direct signing interface:', extension.name);
-                        signature = await extension.signRaw({
-                            address: account.address,
-                            data: stringToHex(message),
-                            type: 'bytes'
-                        });
-                        break;
-                    }
-                    
-                    // Check if the provider has signing methods
-                    if (extension.provider && extension.provider.signRaw && typeof extension.provider.signRaw === 'function') {
-                        console.log('Using extension provider interface:', extension.name);
-                        signature = await extension.provider.signRaw({
-                            address: account.address,
-                            data: stringToHex(message),
-                            type: 'bytes'
-                        });
-                        break;
+                }
+                
+                // If Talisman didn't work, try other extensions
+                if (!signature) {
+                    for (const extension of enabledExtensions) {
+                        if (extension.name === 'talisman') continue; // Skip Talisman, already tried
+                        
+                        console.log('Trying extension:', extension.name);
+                        
+                        // Check if the extension has a signer with signing methods
+                        if (extension.signer && extension.signer.signRaw && typeof extension.signer.signRaw === 'function') {
+                            console.log('Using extension signer interface:', extension.name);
+                            try {
+                                signature = await extension.signer.signRaw({
+                                    address: account.address,
+                                    data: stringToHex(message),
+                                    type: 'bytes'
+                                });
+                                if (signature) break;
+                            } catch (signError) {
+                                console.log(`Extension signer interface failed:`, signError.message);
+                                continue;
+                            }
+                        }
+                        
+                        // Check if the extension itself has signing methods
+                        if (extension.signRaw && typeof extension.signRaw === 'function') {
+                            console.log('Using extension direct signing interface:', extension.name);
+                            try {
+                                signature = await extension.signRaw({
+                                    address: account.address,
+                                    data: stringToHex(message),
+                                    type: 'bytes'
+                                });
+                                if (signature) break;
+                            } catch (signError) {
+                                console.log(`Extension direct interface failed:`, signError.message);
+                                continue;
+                            }
+                        }
+                        
+                        // Check if the provider has signing methods
+                        if (extension.provider && extension.provider.signRaw && typeof extension.provider.signRaw === 'function') {
+                            console.log('Using extension provider interface:', extension.name);
+                            try {
+                                signature = await extension.provider.signRaw({
+                                    address: account.address,
+                                    data: stringToHex(message),
+                                    type: 'bytes'
+                                });
+                                if (signature) break;
+                            } catch (signError) {
+                                console.log(`Extension provider interface failed:`, signError.message);
+                                continue;
+                            }
+                        }
                     }
                 }
                 
@@ -158,7 +246,17 @@ class Web3AuthService {
                 
             } catch (signError) {
                 console.error('Signing error:', signError);
-                throw new Error(`Failed to sign message: ${signError.message}`);
+                
+                // Provide more specific error messages
+                if (signError.message.includes('Unable to retrieve keypair')) {
+                    throw new Error(`Account not accessible: ${signError.message}. Please ensure the account is unlocked and accessible in your wallet extension.`);
+                } else if (signError.message.includes('User rejected')) {
+                    throw new Error('Signing was rejected by the user. Please approve the signing request in your wallet extension.');
+                } else if (signError.message.includes('No signing method found')) {
+                    throw new Error(`No signing method found. Available extensions: ${enabledExtensions?.map(e => e.name).join(', ') || 'none'}`);
+                } else {
+                    throw new Error(`Failed to sign message: ${signError.message}`);
+                }
             }
 
             // Extract signature from response
