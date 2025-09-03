@@ -13,18 +13,29 @@
         </div>
         
         <div class="wallet-options">
-          <button 
-            @click="connectPolkadotExtension" 
-            class="wallet-option"
-            :disabled="isConnecting"
-          >
-            <div class="wallet-icon">🔗</div>
-            <div class="wallet-info">
-              <div class="wallet-name">Polkadot Extension</div>
-              <div class="wallet-description">Browser extension wallet</div>
+          <div v-if="availableWallets.length > 0" class="wallet-list">
+            <div 
+              v-for="wallet in availableWallets" 
+              :key="wallet.key"
+              @click="connectToWallet(wallet.key)"
+              class="wallet-option"
+              :disabled="isConnecting"
+            >
+              <div class="wallet-icon">
+                {{ wallet.key === 'polkadot-js' ? '🔗' : '🦅' }}
+              </div>
+              <div class="wallet-info">
+                <div class="wallet-name">{{ wallet.name }}</div>
+                <div class="wallet-description">Click to connect</div>
+              </div>
+              <div v-if="isConnecting" class="loading-spinner"></div>
             </div>
-            <div v-if="isConnecting" class="loading-spinner"></div>
-          </button>
+          </div>
+          
+          <div v-else class="no-wallets">
+            <div class="no-wallets-icon">⚠️</div>
+            <div class="no-wallets-text">No wallet extensions found</div>
+          </div>
         </div>
 
         <!-- Extension Status -->
@@ -125,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { authStore } from '../stores/authStore'
 
 // Extend Window interface for Polkadot extension
@@ -154,6 +165,10 @@ declare global {
         error?: string;
         message?: string;
       };
+      availableWallets?: Array<{
+        name: string;
+        key: string;
+      }>;
     };
   }
 }
@@ -181,6 +196,10 @@ const isSigning = ref(false)
 const error = ref('')
 const messageToSign = ref('')
 const extensionStatus = ref<'checking' | 'not-found' | 'found'>('checking')
+
+const availableWallets = computed(() => {
+  return window.opengovVotingToolResult?.availableWallets || []
+})
 
 let checkInterval: number | null = null
 
@@ -270,21 +289,17 @@ const refreshDetection = () => {
   checkForExtension()
 }
 
-const connectPolkadotExtension = async () => {
+const connectToWallet = async (walletKey: string) => {
   try {
     isConnecting.value = true
     error.value = ''
     
-    // Check if we have the extension detected via page context
-    if (!window.opengovVotingToolResult?.hasPolkadotExtension) {
-      throw new Error('Polkadot Extension not available. Please install it first.')
-    }
-
-    console.log('🔗 Connecting wallet via page context...')
+    console.log('🔗 Connecting to wallet:', walletKey)
     
     // Send connect request to page context
     window.postMessage({
-      type: 'CONNECT_WALLET'
+      type: 'CONNECT_WALLET',
+      walletKey: walletKey
     }, '*')
     
     // Wait for the connection result
@@ -459,6 +474,12 @@ const clearError = () => {
   flex-direction: column;
   gap: 12px;
   margin-bottom: 20px;
+}
+
+.wallet-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .wallet-option {
@@ -706,5 +727,20 @@ const clearError = () => {
   color: #c53030;
   margin-bottom: 16px;
   font-weight: 500;
+}
+
+.no-wallets {
+  text-align: center;
+  padding: 24px;
+  color: #666;
+}
+
+.no-wallets-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.no-wallets-text {
+  font-size: 14px;
 }
 </style> 

@@ -14,7 +14,16 @@ declare global {
       accounts?: any[];
       lastSignature?: string;
       connectionResult?: any;
-      signatureResult?: any;
+      signatureResult?: {
+        success: boolean;
+        signature?: string;
+        error?: string;
+        message?: string;
+      };
+      availableWallets?: Array<{
+        name: string;
+        key: string;
+      }>;
     };
   }
 }
@@ -43,55 +52,82 @@ script.textContent = `
     // Check if wallet extensions are available
     checkWalletExtension: function() {
       console.log('🔍 Page context: checking for wallet extensions...');
-      const hasPolkadot = !!(window.injectedWeb3 && window.injectedWeb3['polkadot-js']);
-      console.log('🔍 Page context: hasPolkadotExtension =', hasPolkadot);
+      
+      const availableWallets = [];
+      
+      // Check Polkadot Extension
+      if (window.injectedWeb3?.['polkadot-js']) {
+        availableWallets.push({
+          name: 'Polkadot Extension',
+          key: 'polkadot-js'
+          // Don't include the extension object (has functions)
+        });
+      }
+      
+      // Check Talisman
+      if (window.injectedWeb3?.talisman) {
+        availableWallets.push({
+          name: 'Talisman',
+          key: 'talisman'
+          // Don't include the extension object (has functions)
+        });
+      }
+      
+      console.log('🔍 Page context: available wallets =', availableWallets);
       
       return {
-        hasPolkadotExtension: hasPolkadot,
+        hasPolkadotExtension: availableWallets.length > 0,
+        availableWallets: availableWallets,
         timestamp: Date.now()
       };
     },
     
-    // Complete wallet connection flow
-    connectWallet: async function() {
+    // Get accounts from a specific wallet
+    getWalletAccounts: async function(walletKey) {
       try {
-        console.log('🔗 Page context: starting wallet connection...');
+        console.log('📋 Page context: getting accounts from wallet:', walletKey);
         
-        if (!window.injectedWeb3?.['polkadot-js']) {
-          throw new Error('Polkadot Extension not available');
+        if (!window.injectedWeb3?.[walletKey]) {
+          throw new Error(\`Wallet \${walletKey} not available\`);
         }
         
-        // Step 1: Enable the extension
-        console.log('🔗 Page context: enabling Polkadot Extension...');
-        enabledExtension = await window.injectedWeb3['polkadot-js'].enable();
-        console.log('✅ Page context: Polkadot Extension enabled');
+        // Enable the wallet
+        console.log('🔗 Page context: enabling wallet:', walletKey);
+        const enabledWallet = await window.injectedWeb3[walletKey].enable();
+        console.log('✅ Page context: wallet enabled:', enabledWallet);
         
-        // Step 2: Get accounts
+        // Get accounts
         console.log('📋 Page context: getting accounts...');
-        const walletAccounts = await enabledExtension.accounts.get();
+        const walletAccounts = await enabledWallet.accounts.get();
+        console.log('📋 Page context: raw wallet accounts =', walletAccounts);
         console.log('📋 Page context: got', walletAccounts.length, 'accounts');
         
         if (walletAccounts.length === 0) {
-          throw new Error('No accounts found in Polkadot Extension');
+          throw new Error(\`No accounts found in \${walletKey}\`);
         }
         
-        // Transform accounts to simple objects (no functions)
+        // Transform accounts to simple objects
         const accounts = walletAccounts.map(acc => ({
           address: acc.address,
-          name: acc.name || 'Unnamed Account'
+          name: acc.name || 'Unnamed Account',
+          wallet: walletKey
         }));
+        
+        console.log('📋 Page context: transformed accounts =', accounts);
         
         return {
           success: true,
           accounts: accounts,
-          message: 'Wallet connected successfully'
+          wallet: walletKey,
+          message: \`Connected to \${walletKey} successfully\`
         };
         
       } catch (error) {
-        console.error('❌ Page context: Wallet connection failed:', error);
+        console.error(\`❌ Page context: Failed to get accounts from \${walletKey}:\`, error);
         return {
           success: false,
-          error: error.message
+          error: error.message,
+          wallet: walletKey
         };
       }
     },
@@ -101,22 +137,51 @@ script.textContent = `
       try {
         console.log('✍️ Page context: signing message for address:', address);
         
-        if (!enabledExtension) {
-          throw new Error('Extension not enabled. Connect wallet first.');
+        // We need to re-enable the wallet for signing since we don't store the enabled state
+        // Let's try both wallets to see which one has this address
+        const wallets = ['polkadot-js', 'talisman'];
+        
+        for (const walletKey of wallets) {
+          try {
+            console.log('🔗 Page context: trying to enable wallet for signing:', walletKey);
+            
+            if (!window.injectedWeb3?.[walletKey]) {
+              continue; // Try next wallet
+            }
+            
+            // Enable the wallet
+            const enabledWallet = await window.injectedWeb3[walletKey].enable();
+            console.log('✅ Page context: wallet enabled for signing:', walletKey);
+            
+            // Get accounts to check if this address belongs to this wallet
+            const accounts = await enabledWallet.accounts.get();
+            const hasAddress = accounts.some(acc => acc.address === address);
+            
+            if (hasAddress) {
+              console.log('✅ Page context: found address in wallet:', walletKey);
+              
+              // Sign the message
+              const { signature } = await enabledWallet.signer.signRaw({
+                address: address,
+                data: message,
+                type: 'bytes'
+              });
+              
+              console.log('✅ Page context: message signed successfully');
+              return {
+                success: true,
+                signature: signature,
+                message: 'Message signed successfully',
+                wallet: walletKey
+              };
+            }
+          } catch (walletError) {
+            console.log('⚠️ Page context: failed to use wallet:', walletKey, walletError);
+            continue; // Try next wallet
+          }
         }
         
-        const { signature } = await enabledExtension.signer.signRaw({
-          address: address,
-          data: message,
-          type: 'bytes'
-        });
-        
-        console.log('✅ Page context: message signed successfully');
-        return {
-          success: true,
-          signature: signature,
-          message: 'Message signed successfully'
-        };
+        throw new Error('Could not find or enable wallet for this address');
         
       } catch (error) {
         console.error('❌ Page context: Failed to sign message:', error);
@@ -143,7 +208,8 @@ script.textContent = `
     }
     
     if (event.data.type === 'CONNECT_WALLET') {
-      window.opengovVotingTool.connectWallet().then(result => {
+      const { walletKey } = event.data;
+      window.opengovVotingTool.getWalletAccounts(walletKey).then(result => {
         window.postMessage({
           type: 'WALLET_CONNECTION_RESULT',
           data: result
