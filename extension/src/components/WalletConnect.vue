@@ -37,6 +37,14 @@
             <div class="status-help">
               Please install the <a href="https://polkadot.js.org/extension/" target="_blank" rel="noopener">Polkadot Extension</a> first
             </div>
+            <div class="status-actions">
+              <button @click="refreshDetection" class="btn-secondary">
+                🔄 Refresh Detection
+              </button>
+              <button @click="manualCheck" class="btn-secondary">
+                🔍 Manual Check
+              </button>
+            </div>
           </div>
           <div v-else-if="extensionStatus === 'found'" class="status-found">
             ✅ Polkadot Extension detected
@@ -133,6 +141,20 @@ declare global {
         }
       }
     }
+    opengovVotingToolResult?: {
+      hasPolkadotExtension?: boolean;
+      injectedWeb3?: any;
+      enabledExtension?: any;
+      accounts?: any[];
+      lastSignature?: string;
+      connectionResult?: any;
+      signatureResult?: {
+        success: boolean;
+        signature?: string;
+        error?: string;
+        message?: string;
+      };
+    };
   }
 }
 
@@ -166,8 +188,18 @@ onMounted(() => {
   // Start checking for the extension
   checkForExtension()
   
-  // Set up periodic checking
-  checkInterval = setInterval(checkForExtension, 2000)
+  // Set up periodic checking - check more frequently at first
+  checkInterval = setInterval(checkForExtension, 1000) // Check every second
+  
+  // Also check after a short delay to catch late injections
+  setTimeout(() => {
+    checkForExtension()
+  }, 500)
+  
+  // Check again after 2 seconds
+  setTimeout(() => {
+    checkForExtension()
+  }, 2000)
 })
 
 onUnmounted(() => {
@@ -177,15 +209,65 @@ onUnmounted(() => {
 })
 
 const checkForExtension = () => {
+  console.log('🔍 Checking for Polkadot Extension...')
+  console.log('🔍 Current opengovVotingToolResult:', window.opengovVotingToolResult)
+  
+  // Check if we have results from the page context
+  if (window.opengovVotingToolResult) {
+    console.log('📡 Page context result:', window.opengovVotingToolResult)
+    
+    if (window.opengovVotingToolResult.hasPolkadotExtension === true) {
+      console.log('✅ Polkadot Extension found via page context!')
+      extensionStatus.value = 'found'
+      if (checkInterval) {
+        clearInterval(checkInterval)
+        checkInterval = null
+      }
+      return
+    }
+  }
+  
+  // Fallback: check directly (might not work due to context isolation)
+  console.log('🔍 Checking directly in extension context...')
+  console.log('window.injectedWeb3:', window.injectedWeb3)
+  console.log('window.injectedWeb3?.["polkadot-js"]:', window.injectedWeb3?.['polkadot-js'])
+  
   if (window.injectedWeb3 && window.injectedWeb3['polkadot-js']) {
+    console.log('✅ Polkadot Extension found directly!')
     extensionStatus.value = 'found'
     if (checkInterval) {
       clearInterval(checkInterval)
       checkInterval = null
     }
   } else {
+    console.log('❌ Polkadot Extension not found')
     extensionStatus.value = 'not-found'
   }
+}
+
+// Add a manual check function
+const manualCheck = () => {
+  console.log('🔄 Manual check triggered...')
+  console.log('🔍 Current opengovVotingToolResult:', window.opengovVotingToolResult)
+  
+  // Trigger a page context check
+  window.postMessage({
+    type: 'CHECK_WALLET_EXTENSION'
+  }, '*')
+  
+  // Wait a moment and check again
+  setTimeout(() => {
+    console.log('🔍 After manual check, opengovVotingToolResult:', window.opengovVotingToolResult)
+    if (window.opengovVotingToolResult?.hasPolkadotExtension) {
+      console.log('✅ Manual check found extension!')
+      extensionStatus.value = 'found'
+    }
+  }, 1000)
+}
+
+const refreshDetection = () => {
+  extensionStatus.value = 'checking'
+  checkForExtension()
 }
 
 const connectPolkadotExtension = async () => {
@@ -193,26 +275,43 @@ const connectPolkadotExtension = async () => {
     isConnecting.value = true
     error.value = ''
     
-    // Check if extension is available
-    if (!window.injectedWeb3 || !window.injectedWeb3['polkadot-js']) {
+    // Check if we have the extension detected via page context
+    if (!window.opengovVotingToolResult?.hasPolkadotExtension) {
       throw new Error('Polkadot Extension not available. Please install it first.')
     }
 
-    // Connect to extension
-    const extension = window.injectedWeb3['polkadot-js']
-    const walletAccounts = await extension.accounts.get()
+    console.log('🔗 Connecting wallet via page context...')
     
-    if (walletAccounts.length === 0) {
-      throw new Error('No accounts found in Polkadot Extension. Please create or import an account.')
+    // Send connect request to page context
+    window.postMessage({
+      type: 'CONNECT_WALLET'
+    }, '*')
+    
+    // Wait for the connection result
+    let attempts = 0
+    const maxAttempts = 20 // Wait up to 10 seconds
+    
+    while (attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 500))
+      attempts++
+      
+      if (window.opengovVotingToolResult?.connectionResult) {
+        const result = window.opengovVotingToolResult.connectionResult
+        
+        if (result.success) {
+          console.log('✅ Wallet connected successfully:', result.accounts)
+          accounts.value = result.accounts
+          step.value = 'accounts'
+          return
+        } else {
+          throw new Error(result.error || 'Failed to connect wallet')
+        }
+      }
     }
-
-    // Transform accounts to our format
-    accounts.value = walletAccounts.map((acc: WalletAccount) => ({
-      address: acc.address,
-      name: acc.name
-    }))
-
-    step.value = 'accounts'
+    
+    // If we get here, we didn't receive a result
+    throw new Error('Timeout waiting for wallet connection')
+    
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to connect to wallet'
     console.error('Wallet connection error:', err)
@@ -241,31 +340,51 @@ const handleSignMessage = async () => {
     isSigning.value = true
     error.value = ''
     
-    // Get the extension
-    const extension = window.injectedWeb3?.['polkadot-js']
-    if (!extension) {
-      throw new Error('Polkadot Extension not available')
-    }
+    console.log('✍️ Sending sign message request to page context...')
     
-    // Sign the message
-    const { signature } = await extension.signer.signRaw({
+    // Send sign request to page context
+    window.postMessage({
+      type: 'SIGN_MESSAGE',
       address: selectedAccount.value.address,
-      data: messageToSign.value,
-      type: 'bytes'
-    })
+      message: messageToSign.value
+    }, '*')
     
-    // Attempt login with the signature
-    const success = await authStore.login(
-      selectedAccount.value.address,
-      signature,
-      messageToSign.value
-    )
+    // Wait for the signature result
+    let attempts = 0
+    const maxAttempts = 20 // Wait up to 10 seconds
     
-    if (success) {
-      emit('close')
-    } else {
-      error.value = 'Authentication failed. Please try again.'
+    while (attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 500))
+      attempts++
+      
+      if (window.opengovVotingToolResult?.signatureResult) {
+        const result = window.opengovVotingToolResult.signatureResult
+        
+        if (result.success && result.signature) {
+          console.log('✅ Received signature from page context:', result.signature)
+          
+          // Attempt login with the signature
+          const success = await authStore.login(
+            selectedAccount.value.address,
+            result.signature,
+            messageToSign.value
+          )
+          
+          if (success) {
+            emit('close')
+          } else {
+            error.value = 'Authentication failed. Please try again.'
+          }
+          return
+        } else {
+          throw new Error(result.error || 'Failed to sign message')
+        }
+      }
     }
+    
+    // If we get here, we didn't receive a signature
+    throw new Error('Timeout waiting for signature from Polkadot Extension')
+    
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to sign message'
     console.error('Signature error:', err)
@@ -435,6 +554,12 @@ const clearError = () => {
 
 .status-help a:hover {
   text-decoration: underline;
+}
+
+.status-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
 }
 
 .account-list {
