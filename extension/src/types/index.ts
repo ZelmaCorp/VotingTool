@@ -39,6 +39,7 @@ export interface AuthResponse {
     token?: string;
     user?: AuthenticatedUser;
     error?: string;
+    valid?: boolean; // For token verification endpoint
 }
 
 export interface AuthState {

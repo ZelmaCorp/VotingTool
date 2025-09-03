@@ -14,57 +14,19 @@
 
     <!-- Dropdown Menu -->
     <div v-if="isMenuOpen" class="dropdown-menu">
-      <div class="menu-content">
-        <div class="menu-item" @click="handleAction('proposals')">
-          <span class="icon">📋</span>
-          <span>View Proposals</span>
-        </div>
-        
-        <div class="menu-item" @click="handleAction('voting')">
-          <span class="icon">✅</span>
-          <span>Voting History</span>
-        </div>
-        
-        <div class="menu-item" @click="handleAction('settings')">
-          <span class="icon">⚙️</span>
-          <span>Settings</span>
-        </div>
-        
-        <div class="menu-item" @click="handleAction('help')">
-          <span class="icon">❓</span>
-          <span>Help</span>
-        </div>
-      </div>
+      <Menu />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import Menu from './components/Menu.vue'
 
 const isMenuOpen = ref(false)
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value
-}
-
-const handleAction = (action: string) => {
-  console.log(`Action clicked: ${action}`)
-  // Handle different actions here
-  switch (action) {
-    case 'proposals':
-      // Handle proposals view
-      break
-    case 'voting':
-      // Handle voting history
-      break
-    case 'settings':
-      // Handle settings
-      break
-    case 'help':
-      // Handle help
-      break
-  }
 }
 </script>
 
@@ -75,7 +37,7 @@ const handleAction = (action: string) => {
   right: 20px;
   z-index: 999999;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  /* Remove any background that might be covering the page */
+  pointer-events: none; /* Allow clicks to pass through the container */
 }
 
 /* Floating Button */
@@ -91,6 +53,7 @@ const handleAction = (action: string) => {
   box-shadow: 0 4px 20px rgba(230, 0, 122, 0.4);
   transition: all 0.3s ease;
   border: 3px solid white;
+  pointer-events: auto; /* Make the button clickable */
 }
 
 .floating-button:hover {
@@ -137,6 +100,7 @@ const handleAction = (action: string) => {
   overflow: hidden;
   animation: smoothExpand 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   transform-origin: bottom right;
+  pointer-events: auto; /* Make the menu clickable */
 }
 
 @keyframes smoothExpand {
