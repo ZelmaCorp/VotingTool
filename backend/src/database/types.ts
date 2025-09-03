@@ -87,23 +87,13 @@ export interface VotingRecord {
     updated_at?: string;
 }
 
-// Team member record
-export interface TeamMemberRecord {
-    id?: number;
-    name: string;
-    role: string;                       // 'Lead', 'Reviewer', 'Observer'
-    email?: string;
-    active?: boolean;
-    created_at?: string;
-}
-
-// Team role assignment
+// Multisig member role assignment
 export interface TeamRoleRecord {
-    id?: number;
-    referendum_id: number;
-    team_member_id: number;
-    role_type: string;                  // 'Lead', 'Reviewer', 'Observer'
-    assigned_at?: string;
+  id?: number;
+  referendum_id: number;
+  team_member_id: number;                        // Team member ID from team_members table
+  role_type: string;                             // "responsible_person", "agree", "no_way", "recuse", "to_be_discussed"
+  created_at?: string;
 }
 
 // Discussion topic record

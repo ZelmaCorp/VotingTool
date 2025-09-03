@@ -28,6 +28,11 @@
         <p class="subtitle">
           ⚠️ This is a testing frontend for SQLite migration validation
         </p>
+        
+        <!-- Web3 Authentication -->
+        <div class="auth-section">
+          <Web3Auth @auth-changed="onAuthChanged" />
+        </div>
       </div>
     </header>
 
@@ -52,7 +57,12 @@
           <h3>Backend Status</h3>
           <p><strong>Status:</strong> {{ backendStatus.status }}</p>
           <p><strong>Uptime:</strong> {{ Math.floor(backendStatus.uptime / 60) }} minutes</p>
-          <p><strong>Last Check:</strong> {{ new Date(backendStatus.timestamp).toLocaleString() }}</p>
+          <p><strong>Last Check:</strong> {{ new Date(backendStatus.uptime).toLocaleString() }}</p>
+        </div>
+
+        <!-- Team Assignment Section (only for authenticated users) -->
+        <div v-if="isAuthenticated" class="team-section">
+          <TeamAssignment :referendums="referendas" />
         </div>
 
         <!-- Referendas Table -->
@@ -85,11 +95,15 @@
 <script>
 import axios from 'axios'
 import ReferendumTable from './components/ReferendumTable.vue'
+import Web3Auth from './components/Web3Auth.vue'
+import TeamAssignment from './components/TeamAssignment.vue'
 
 export default {
   name: 'App',
   components: {
-    ReferendumTable
+    ReferendumTable,
+    Web3Auth,
+    TeamAssignment
   },
   data() {
     return {
@@ -97,7 +111,8 @@ export default {
       backendStatus: null,
       loading: false,
       error: null,
-      sendingToMimir: false
+      sendingToMimir: false,
+      isAuthenticated: false
     }
   },
   mounted() {
@@ -105,6 +120,11 @@ export default {
     this.loadReferendas()
   },
   methods: {
+    onAuthChanged(authData) {
+      this.isAuthenticated = authData.authenticated;
+      console.log('Authentication changed:', authData);
+    },
+    
     async checkHealth() {
       try {
         const response = await axios.get('/api/health')
@@ -166,8 +186,6 @@ export default {
       }
     },
     
-
-    
     onReferendumSaved(referendum) {
       // Refresh the data to show updated referendum
       this.loadReferendas()
@@ -196,28 +214,52 @@ export default {
   padding: 0 20px;
 }
 
+/* Header */
 .header {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 20px 0;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
+  padding: 2rem 0;
+  margin-bottom: 2rem;
+}
+
+.header .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
 
 .title {
-  margin: 0 0 10px 0;
+  margin: 0 0 0.5rem 0;
   font-size: 2.5rem;
   font-weight: 700;
 }
 
 .subtitle {
   margin: 0;
-  font-size: 1.1rem;
   opacity: 0.9;
-  background: rgba(255, 193, 7, 0.2);
-  padding: 10px 15px;
+  font-size: 1.1rem;
+}
+
+.auth-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Team Section */
+.team-section {
+  background: #f8f9fa;
+  border: 1px solid #dee2e6;
   border-radius: 8px;
-  border-left: 4px solid #ffc107;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.team-section h3 {
+  margin-top: 0;
+  color: #333;
+  border-bottom: 2px solid #007bff;
+  padding-bottom: 0.5rem;
 }
 
 .main {

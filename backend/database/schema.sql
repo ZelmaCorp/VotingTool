@@ -89,18 +89,10 @@ CREATE TABLE scoring_criteria (
 );
 
 -- ============================================================================
--- TEAM COLLABORATION TABLES
+-- DAO GOVERNANCE TABLES
 -- ============================================================================
 
--- Team members table
-CREATE TABLE team_members (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
-    email TEXT,
-    created_at TEXT NOT NULL DEFAULT (datetime('now'))
-);
-
--- Team member roles for each referendum
+-- Governance actions for referendums during discussion period (using on-chain multisig addresses)
 CREATE TABLE referendum_team_roles (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     referendum_id INTEGER NOT NULL,
@@ -109,7 +101,6 @@ CREATE TABLE referendum_team_roles (
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     
     FOREIGN KEY (referendum_id) REFERENCES referendums(id) ON DELETE CASCADE,
-    FOREIGN KEY (team_member_id) REFERENCES team_members(id) ON DELETE CASCADE,
     UNIQUE(referendum_id, team_member_id, role_type)
 );
 

@@ -11,6 +11,7 @@ import { checkForVotes } from "./mimir/checkForVotes";
 import { createSubsystemLogger } from "./config/logger";
 import { Subsystem } from "./types/logging";
 import { db } from "./database/connection";
+import { authenticateToken } from "./middleware/auth";
 
 // Route configuration
 import { configureRoutes } from "./routes";
@@ -31,6 +32,9 @@ const app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Add authentication middleware to all routes
+app.use(authenticateToken);
 
 // Configure all routes
 configureRoutes(app);

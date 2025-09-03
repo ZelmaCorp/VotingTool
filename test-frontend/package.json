@@ -11,7 +11,11 @@
   },
   "dependencies": {
     "vue": "^3.4.0",
-    "axios": "^1.6.0"
+    "axios": "^1.6.0",
+    "@polkadot/extension-dapp": "^0.58.5",
+    "@polkadot/util": "^13.5.6",
+    "@polkadot/util-crypto": "^13.5.1",
+    "@polkadot/api": "^15.8.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.5.0",
