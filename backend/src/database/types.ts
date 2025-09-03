@@ -89,8 +89,8 @@ export interface VotingRecord {
 
 // Multisig member role assignment
 export interface TeamRoleRecord {
-  id?: number;
-  referendum_id: number;
+    id?: number;
+    referendum_id: number;
   team_member_id: number;                        // Team member ID from team_members table
   role_type: string;                             // "responsible_person", "agree", "no_way", "recuse", "to_be_discussed"
   created_at?: string;

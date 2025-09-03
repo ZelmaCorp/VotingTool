@@ -1,225 +1,269 @@
-import axios from "axios";
-import { createSubsystemLogger } from "../config/logger";
-import { Subsystem } from "../types/logging";
+import axios from 'axios';
+import { createSubsystemLogger } from '../config/logger';
+import { Subsystem } from '../types/logging';
 
-const logger = createSubsystemLogger(Subsystem.APP);
+const logger = createSubsystemLogger(Subsystem.MULTISIG);
 
-interface MultisigMember {
-  address: string;
-  name?: string;
-  network: "Polkadot" | "Kusama";
+export interface MultisigMember {
+  wallet_address: string;
+  team_member_name: string;
+  network: "Polkadot" | "Kusama" | "Unknown";
 }
 
-interface SubscanMultisigResponse {
-  code: number;
-  message: string;
-  data?: {
-    members?: Array<{
-      address: string;
-      name?: string;
-    }>;
-  };
-}
-
-/**
- * Multisig service for fetching multisig member data
- * Uses Subscan API to get multisig member addresses from on-chain multisig
- */
 export class MultisigService {
-  private subscanApiKey: string;
-  private polkadotMultisig: string;
-  private kusamaMultisig: string;
+    private subscanApiKey: string;
+    private polkadotMultisig: string;
+    private kusamaMultisig: string;
+  private cache: Map<string, MultisigMember[]> = new Map();
+  private cacheExpiry: Map<string, number> = new Map();
+  private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-  constructor() {
-    this.subscanApiKey = process.env.SUBSCAN_API_KEY || "";
-    this.polkadotMultisig = process.env.POLKADOT_MULTISIG || "";
-    this.kusamaMultisig = process.env.KUSAMA_MULTISIG || "";
+    constructor() {
+        this.subscanApiKey = process.env.SUBSCAN_API_KEY || '';
+        this.polkadotMultisig = process.env.POLKADOT_MULTISIG || '';
+        this.kusamaMultisig = process.env.KUSAMA_MULTISIG || '';
 
-    if (!this.subscanApiKey) {
-      logger.warn("SUBSCAN_API_KEY not set - blockchain data fetching will be limited");
+        if (!this.subscanApiKey) {
+      logger.warn('SUBSCAN_API_KEY not configured - multisig member fetching will be limited');
+        }
     }
-    if (!this.polkadotMultisig) {
-      logger.warn("POLKADOT_MULTISIG not set - Polkadot multisig members cannot be fetched");
+
+    /**
+   * Get cached team members for a network, refreshing if expired
+   */
+  async getCachedTeamMembers(network: "Polkadot" | "Kusama" = "Polkadot"): Promise<MultisigMember[]> {
+    const cacheKey = `members_${network}`;
+    const now = Date.now();
+    const expiry = this.cacheExpiry.get(cacheKey) || 0;
+
+    logger.info({ 
+      network, 
+      cacheKey, 
+      now, 
+      expiry, 
+      hasCache: this.cache.has(cacheKey),
+      cacheExpired: now >= expiry
+    }, 'getCachedTeamMembers called');
+
+    if (this.cache.has(cacheKey) && now < expiry) {                                             
+      const cachedMembers = this.cache.get(cacheKey) || [];
+      logger.debug({ network, cacheHit: true, memberCount: cachedMembers.length }, 'Returning cached multisig members');
+      return cachedMembers;
     }
-    if (!this.kusamaMultisig) {
-      logger.warn("KUSAMA_MULTISIG not set - Kusama multisig members cannot be fetched");
-    }
+
+    logger.info({ network }, 'Cache expired or missing, fetching fresh multisig members');
+    const members = await this.fetchMultisigMembers(network);
+    
+    logger.info({ network, memberCount: members.length }, 'Fresh members fetched, updating cache');
+    this.cache.set(cacheKey, members);
+    this.cacheExpiry.set(cacheKey, now + this.CACHE_DURATION);
+    
+    return members;
   }
 
   /**
-   * Fetch multisig member addresses from Polkadot multisig
+   * Check if the configured multisig address is a proxy/delegate and extract parent address
    */
-  async getPolkadotTeamMembers(): Promise<MultisigMember[]> {
-    if (!this.polkadotMultisig || !this.subscanApiKey) {
-      logger.warn("Cannot fetch Polkadot multisig members - missing configuration");
-      return [];
+  async getParentAddress(network: "Polkadot" | "Kusama" = "Polkadot"): Promise<{ isProxy: boolean; parentAddress?: string; currentAddress: string; network: string }> {
+    const multisigAddress = network === "Polkadot" ? this.polkadotMultisig : this.kusamaMultisig;
+    
+    if (!multisigAddress || !this.subscanApiKey) {
+      return {
+        isProxy: false,
+        currentAddress: multisigAddress,
+        network
+      };
     }
 
     try {
-      const response = await axios.get<SubscanMultisigResponse>(
-        `https://polkadot.api.subscan.io/api/open/account/multisig`,
+      logger.info({ network, multisigAddress }, 'Checking if address is a proxy/delegate');
+      
+      const response = await axios.post(
+        `https://${network.toLowerCase()}.api.subscan.io/api/v2/scan/search`,
+        { key: multisigAddress },
         {
-          params: {
-            address: this.polkadotMultisig
-          },
           headers: {
-            "X-API-Key": this.subscanApiKey
+            'X-API-Key': this.subscanApiKey,
+            'Content-Type': 'application/json'
           }
         }
       );
 
-      if (response.data.code === 0 && response.data.data?.members) {
-        const members: MultisigMember[] = response.data.data.members.map(member => ({
-          address: member.address,
-          name: member.name,
-          network: "Polkadot"
-        }));
-
-        logger.info({ count: members.length, network: "Polkadot" }, "Fetched Polkadot multisig members");
-        return members;
-      } else {
-        logger.warn({ response: response.data }, "Unexpected Subscan response for Polkadot multisig");
-        return [];
+      if (response.data.code === 0 && response.data.data?.account) {
+        const accountData = response.data.data.account;
+        
+        // Check if this is a delegate/proxy account
+        if (accountData.delegate && typeof accountData.delegate === 'object' && accountData.delegate.conviction_delegated && Array.isArray(accountData.delegate.conviction_delegated)) {
+          // Look for the parent address in any of the conviction_delegated entries
+          for (const entry of accountData.delegate.conviction_delegated) {
+            if (entry.delegate_account?.people?.parent?.address) {
+              const parentAddress = entry.delegate_account.people.parent.address;
+              
+              logger.info({ 
+                network, 
+                currentAddress: multisigAddress,
+                parentAddress,
+                isProxy: true
+              }, 'Found proxy account with parent address');
+              
+              return {
+                isProxy: true,
+                parentAddress,
+                currentAddress: multisigAddress,
+                network
+              };
+            }
+          }
+        }
+        
+        logger.info({ 
+          network, 
+          currentAddress: multisigAddress,
+          isProxy: false
+        }, 'Address is not a proxy');
+        
+        return {
+          isProxy: false,
+          currentAddress: multisigAddress,
+          network
+        };
       }
+      
+      return {
+        isProxy: false,
+        currentAddress: multisigAddress,
+        network
+      };
+      
     } catch (error) {
-      logger.error({ error, network: "Polkadot" }, "Error fetching Polkadot multisig members");
-      return [];
+      logger.error({ error, network, multisigAddress }, 'Error checking if address is proxy');
+      return {
+        isProxy: false,
+        currentAddress: multisigAddress,
+        network
+      };
     }
   }
 
   /**
-   * Fetch multisig member addresses from Kusama multisig
+   * Fetch multisig members from Subscan v2 search API
+   * Handles both delegate accounts and simple multisig accounts
    */
-  async getKusamaTeamMembers(): Promise<MultisigMember[]> {
-    if (!this.kusamaMultisig || !this.subscanApiKey) {
-      logger.warn("Cannot fetch Kusama multisig members - missing configuration");
+  private async fetchMultisigMembers(network: "Polkadot" | "Kusama"): Promise<MultisigMember[]> {
+    const multisigAddress = network === "Polkadot" ? this.polkadotMultisig : this.kusamaMultisig;
+    
+    if (!multisigAddress || !this.subscanApiKey) {
+      logger.warn({ network, hasAddress: !!multisigAddress, hasApiKey: !!this.subscanApiKey }, 
+        'Cannot fetch multisig members - missing configuration');
       return [];
     }
 
     try {
-      const response = await axios.get<SubscanMultisigResponse>(
-        `https://kusama.api.subscan.io/api/open/account/multisig`,
+      // First, check if this is a proxy/delegate account
+      const parentInfo = await this.getParentAddress(network);
+      
+      // Determine which address to use for fetching members
+      let targetAddress = multisigAddress;
+      if (parentInfo.isProxy && parentInfo.parentAddress) {
+        logger.info({ 
+          network, 
+          originalAddress: multisigAddress, 
+          parentAddress: parentInfo.parentAddress 
+        }, 'Using parent address for member fetch (proxy detected)');
+        targetAddress = parentInfo.parentAddress;
+      }
+
+      logger.info({ network, targetAddress }, 'Querying Subscan for multisig info');
+      
+      const response = await axios.post(
+        `https://${network.toLowerCase()}.api.subscan.io/api/v2/scan/search`,
+        { key: targetAddress },
         {
-          params: {
-            address: this.kusamaMultisig
-          },
           headers: {
-            "X-API-Key": this.subscanApiKey
+            'X-API-Key': this.subscanApiKey,
+            'Content-Type': 'application/json'
           }
         }
       );
 
-      if (response.data.code === 0 && response.data.data?.members) {
-        const members: MultisigMember[] = response.data.data.members.map(member => ({
-          address: member.address,
-          name: member.name,
-          network: "Kusama"
-        }));
+      if (response.data.code === 0 && response.data.data?.account) {
+        const accountData = response.data.data.account;
+        const members: MultisigMember[] = [];
 
-        logger.info({ count: members.length, network: "Kusama" }, "Fetched Kusama multisig members");
-        return members;
+        // Check if this is a delegate/proxy account
+        if (accountData.delegate && typeof accountData.delegate === 'object' && accountData.delegate.conviction_delegated && Array.isArray(accountData.delegate.conviction_delegated)) {
+          logger.info({ network, targetAddress, delegateCount: accountData.delegate.conviction_delegated.length }, 'Found delegate account, extracting members');
+          
+          // Extract members from the conviction_delegated array
+          for (const entry of accountData.delegate.conviction_delegated) {
+            if (entry.account?.address) {
+              const memberAddress = entry.account.address;
+              const memberName = entry.account.people?.display || 'Unknown';
+              
+              members.push({
+                wallet_address: memberAddress,
+                team_member_name: memberName,
+                network: network
+              });
+            }
+          }
+          
+          logger.info({ network, targetAddress, membersCount: members.length }, 'Successfully extracted members from delegate account');
+          return members;
+        }
+
+        // Check if this is a direct multisig account
+        if (accountData.multisig && accountData.multisig.multi_account_member && Array.isArray(accountData.multisig.multi_account_member)) {
+          logger.info({ network, targetAddress, multisigCount: accountData.multisig.multi_account_member.length }, 'Found direct multisig account, extracting members');
+          
+          // Extract members from the multi_account_member array
+          for (const entry of accountData.multisig.multi_account_member) {
+            if (entry.address) {
+              const memberAddress = entry.address;
+              const memberName = entry.people?.display || 'Unknown';
+              
+              members.push({
+                wallet_address: memberAddress,
+                team_member_name: memberName,
+                network: network
+              });
+            }
+          }
+          
+          logger.info({ network, targetAddress, membersCount: members.length }, 'Successfully extracted members from direct multisig account');
+          return members;
+        }
+
+        logger.warn({ network, targetAddress }, 'No multisig or delegate data found in account');
+        return [];
+
       } else {
-        logger.warn({ response: response.data }, "Unexpected Subscan response for Kusama multisig");
+        logger.warn({ network, targetAddress, responseCode: response.data.code }, 'Subscan API returned error or no data');
         return [];
       }
+
     } catch (error) {
-      logger.error({ error, network: "Kusama" }, "Error fetching Kusama multisig members");
+      logger.error({ error, network, multisigAddress }, 'Error fetching multisig members');
       return [];
     }
-  }
-
-  /**
-   * Get all multisig members from both networks
-   */
-  async getAllTeamMembers(): Promise<MultisigMember[]> {
-    const [polkadotMembers, kusamaMembers] = await Promise.all([
-      this.getPolkadotTeamMembers(),
-      this.getKusamaTeamMembers()
-    ]);
-
-    return [...polkadotMembers, ...kusamaMembers];
   }
 
   /**
    * Check if a wallet address is a multisig member
    */
-  async isTeamMember(walletAddress: string): Promise<boolean> {
-    try {
-      const allMembers = await this.getAllTeamMembers();
-      const isMember = allMembers.some(member => member.address === walletAddress);
-      
-      logger.debug({ walletAddress, isMember }, "Multisig membership check");
-      return isMember;
-    } catch (error) {
-      logger.error({ error, walletAddress }, "Error checking multisig membership");
-      return false;
-    }
+  async isTeamMember(walletAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): Promise<boolean> {
+    const members = await this.getCachedTeamMembers(network);
+    return members.some(member => member.wallet_address === walletAddress);
   }
 
   /**
-   * Get multisig member info by address
+   * Get multisig member info by wallet address
    */
-  async getTeamMemberByAddress(walletAddress: string): Promise<MultisigMember | null> {
-    try {
-      const allMembers = await this.getAllTeamMembers();
-      const member = allMembers.find(member => member.address === walletAddress);
-      
-      return member || null;
-    } catch (error) {
-      logger.error({ error, walletAddress }, "Error getting multisig member by address");
-      return null;
-    }
-  }
-
-  /**
-   * Cache multisig members for a short period to avoid excessive API calls
-   * This is a simple in-memory cache - in production, consider Redis
-   */
-  private teamMembersCache: {
-    data: MultisigMember[];
-    timestamp: number;
-    ttl: number;
-  } = {
-    data: [],
-    timestamp: 0,
-    ttl: 5 * 60 * 1000 // 5 minutes
-  };
-
-  /**
-   * Get cached multisig members or fetch fresh data
-   */
-  async getCachedTeamMembers(): Promise<MultisigMember[]> {
-    const now = Date.now();
-    
-    if (now - this.teamMembersCache.timestamp < this.teamMembersCache.ttl) {
-      logger.debug("Returning cached multisig members");
-      return this.teamMembersCache.data;
-    }
-
-    logger.debug("Cache expired, fetching fresh multisig members");
-    const members = await this.getAllTeamMembers();
-    
-    this.teamMembersCache = {
-      data: members,
-      timestamp: now,
-      ttl: this.teamMembersCache.ttl
-    };
-
-    return members;
-  }
-
-  /**
-   * Clear the multisig members cache
-   */
-  clearCache(): void {
-    this.teamMembersCache = {
-      data: [],
-      timestamp: 0,
-      ttl: 5 * 60 * 1000
-    };
-    logger.debug("Multisig members cache cleared");
+  async getTeamMemberByAddress(walletAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): Promise<MultisigMember | null> {
+    const members = await this.getCachedTeamMembers(network);
+    return members.find(member => member.wallet_address === walletAddress) || null;
   }
 }
 
-// Export singleton instance
+// Export a singleton instance
 export const multisigService = new MultisigService(); 

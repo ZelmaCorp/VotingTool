@@ -20,14 +20,36 @@ router.get("/members", authenticateToken, async (req: Request, res: Response) =>
     res.json({
       success: true,
       members: members.map(member => ({
-        address: member.address,
-        name: member.name || `Multisig Member (${member.network})`,
+        address: member.wallet_address,
+        name: member.team_member_name || `Multisig Member (${member.network})`,
         network: member.network
       }))
     });
     
   } catch (error) {
     logger.error({ error }, "Error fetching multisig members");
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
+});
+
+/**
+ * GET /dao/parent
+ * Get the parent address if this is a proxy/delegate account
+ */
+router.get("/parent", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const parentInfo = await multisigService.getParentAddress();
+    
+    res.json({
+      success: true,
+      parent: parentInfo
+    });
+    
+  } catch (error) {
+    logger.error({ error }, "Error fetching parent address");
     res.status(500).json({
       success: false,
       error: "Internal server error"
@@ -58,11 +80,11 @@ router.get("/referendum/:referendumId/actions", async (req: Request, res: Respon
     const enrichedActions = actions.map(action => {
       // For now, we'll use team_member_id as a placeholder
       // In the future, this could be enhanced to show actual member names
-      const member = teamMembers.find(m => m.address === action.team_member_id);
+      const member = teamMembers.find(m => m.wallet_address === action.team_member_id);
       return {
         ...action,
-        team_member_name: member?.name || `Multisig Member ${action.team_member_id}`,
-        wallet_address: member?.address || `ID: ${action.team_member_id}`,
+        team_member_name: member?.team_member_name || `Multisig Member ${action.team_member_id}`,
+        wallet_address: member?.wallet_address || `ID: ${action.team_member_id}`,
         network: member?.network || "Unknown"
       };
     });
@@ -130,7 +152,7 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
     // Check if user already has an action for this referendum
     // First, find the team member ID for this wallet address
     const teamMembers = await multisigService.getCachedTeamMembers();
-    const userMember = teamMembers.find(m => m.address === req.user.wallet_address);
+    const userMember = teamMembers.find(m => m.wallet_address === req.user.wallet_address);
     
     if (!userMember) {
       return res.status(403).json({
@@ -141,7 +163,7 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
     
     // For now, we'll use a simple hash of the wallet address as team_member_id
     // In a production system, you might want to maintain a mapping table
-    const teamMemberId = teamMembers.findIndex(m => m.address === req.user.wallet_address) + 1;
+    const teamMemberId = teamMembers.findIndex(m => m.wallet_address === req.user.wallet_address) + 1;
     
     const existingAction = await db.get(
       "SELECT id, role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ?",
@@ -226,7 +248,7 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
     // Remove user's action for this referendum
     // First, find the team member ID for this wallet address
     const teamMembers = await multisigService.getCachedTeamMembers();
-    const userMember = teamMembers.find(m => m.address === req.user.wallet_address);
+    const userMember = teamMembers.find(m => m.wallet_address === req.user.wallet_address);
     
     if (!userMember) {
       return res.status(403).json({
@@ -235,7 +257,7 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
       });
     }
     
-    const teamMemberId = teamMembers.findIndex(m => m.address === req.user.wallet_address) + 1;
+    const teamMemberId = teamMembers.findIndex(m => m.wallet_address === req.user.wallet_address) + 1;
     
     const result = await db.run(
       "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ?",

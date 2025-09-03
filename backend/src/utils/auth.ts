@@ -61,9 +61,9 @@ export async function findTeamMemberByAddress(walletAddress: string): Promise<Au
     if (memberInfo) {
       return {
         id: 0, // We don't have database IDs anymore, use 0 as placeholder
-        name: memberInfo.name || `Multisig Member (${memberInfo.network})`,
+        name: memberInfo.team_member_name || `Multisig Member (${memberInfo.network})`,
         email: undefined, // No email from blockchain data
-        wallet_address: memberInfo.address,
+        wallet_address: memberInfo.wallet_address,
         network: memberInfo.network
       };
     }

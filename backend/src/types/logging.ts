@@ -8,6 +8,7 @@ export enum Subsystem {
   MIMIR = 'mimir',
   COINGECKO = 'coingecko',
   SUBSCAN = 'subscan',
+  MULTISIG = 'multisig',
   
   // Infrastructure
   RATE_LIMIT = 'rate-limit',
