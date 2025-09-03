@@ -33,7 +33,7 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
     if (user) {
       req.user = user;
       req.isAuthenticated = true;
-      logger.debug({ userId: user.id, address: user.wallet_address }, "User authenticated");
+      logger.debug({ address: user.address }, "User authenticated");
     } else {
       req.isAuthenticated = false;
       logger.warn("Invalid authentication token");
@@ -77,8 +77,8 @@ export function requireTeamMember(req: Request, res: Response, next: NextFunctio
   }
   
   // Check if user has a valid wallet address
-  if (!req.user.wallet_address) {
-    logger.warn({ userId: req.user.id }, "User wallet address not found");
+  if (!req.user.address) {
+    logger.warn({ address: req.user.address }, "User wallet address not found");
     return res.status(403).json({
       success: false,
       error: "Access denied: Invalid user data"

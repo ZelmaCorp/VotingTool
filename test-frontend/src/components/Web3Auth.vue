@@ -29,8 +29,8 @@
         <button @click="refreshAccounts" :disabled="refreshing" class="refresh-btn">
           {{ refreshing ? 'Refreshing...' : 'Refresh Wallet Connection' }}
         </button>
-        <button @click="reconnectWallet" class="reconnect-btn">
-          Reconnect Wallet
+        <button @click="reconnectWallet" :disabled="reconnecting" class="reconnect-btn">
+          {{ reconnecting ? 'Reconnecting...' : 'Reconnect Wallet' }}
         </button>
         <button @click="checkWalletStatus" class="check-btn">
           Check Wallet Status
@@ -82,6 +82,7 @@ export default {
     const error = ref('');
     const refreshing = ref(false);
     const walletStatus = ref('');
+    const reconnecting = ref(false);
 
     // Computed properties
     const isAuthenticated = computed(() => web3AuthService.isAuthenticated());
@@ -208,6 +209,7 @@ export default {
 
     const reconnectWallet = async () => {
       try {
+        reconnecting.value = true;
         error.value = '';
         console.log('Attempting to reconnect wallet...');
         
@@ -221,14 +223,27 @@ export default {
           availableAccounts.value = accounts;
           walletEnabled.value = accounts.length > 0;
           console.log('Wallet reconnected, found accounts:', accounts.length);
+          
+          // Clear any previous error messages
+          if (accounts.length > 0) {
+            error.value = '';
+          }
         } else if (walletStatus.locked) {
           error.value = `Wallet extensions are locked. Please unlock them and try again.`;
+          walletEnabled.value = false;
+          availableAccounts.value = [];
         } else {
           error.value = `Failed to reconnect wallet: ${walletStatus.error || 'Unknown error'}`;
+          walletEnabled.value = false;
+          availableAccounts.value = [];
         }
       } catch (err) {
         error.value = `Reconnection failed: ${err.message}`;
         console.error('Reconnection error:', err);
+        walletEnabled.value = false;
+        availableAccounts.value = [];
+      } finally {
+        reconnecting.value = false;
       }
     };
 
@@ -240,12 +255,18 @@ export default {
     const initialize = async () => {
       try {
         // Check if wallet is available
-        const isAvailable = await web3AuthService.checkWalletAvailability();
-        if (isAvailable) {
+        const walletStatus = await web3AuthService.checkWalletAvailability();
+        if (walletStatus.available && !walletStatus.locked) {
           // Get accounts if wallet is available
           const accounts = await web3AuthService.getAvailableAccounts();
           availableAccounts.value = accounts;
           walletEnabled.value = accounts.length > 0;
+        } else if (walletStatus.locked) {
+          console.log('Wallet extensions are locked during initialization');
+          walletEnabled.value = false;
+        } else {
+          console.log('Wallet not available during initialization:', walletStatus.error);
+          walletEnabled.value = false;
         }
         
         const wasAuthenticated = await web3AuthService.initialize();
@@ -257,6 +278,7 @@ export default {
         }
       } catch (err) {
         console.error('Initialization error:', err);
+        walletEnabled.value = false;
       }
     };
 
@@ -317,7 +339,8 @@ export default {
       refreshing,
       walletStatus,
       checkWalletStatus,
-      reconnectWallet
+      reconnectWallet,
+      reconnecting
     };
   }
 };

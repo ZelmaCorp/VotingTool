@@ -128,7 +128,7 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
       });
     }
     
-    if (!req.user?.wallet_address) {
+    if (!req.user?.address) {
       return res.status(400).json({
         success: false,
         error: "User wallet address not found"
@@ -152,7 +152,7 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
     // Use wallet address directly as team_member_id
     const existingAction = await db.get(
       "SELECT id, role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ?",
-      [referendumId, req.user.wallet_address]
+      [referendumId, req.user.address]
     );
     
     if (existingAction) {
@@ -163,7 +163,7 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
       );
       
       logger.info({ 
-        walletAddress: req.user.wallet_address, 
+        walletAddress: req.user.address, 
         referendumId, 
         oldAction: existingAction.role_type,
         newAction: action 
@@ -176,18 +176,18 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
           id: existingAction.id,
           action,
           referendum_id: referendumId,
-          team_member_id: req.user.wallet_address
+          team_member_id: req.user.address
         }
       });
     } else {
       // Create new action assignment
       const result = await db.run(
         "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type) VALUES (?, ?, ?)",
-        [referendumId, req.user.wallet_address, action]
+        [referendumId, req.user.address, action]
       );
       
       logger.info({ 
-        walletAddress: req.user.wallet_address, 
+        walletAddress: req.user.address, 
         referendumId, 
         action 
       }, "User assigned governance action for referendum");
@@ -199,7 +199,7 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
           id: result.lastID,
           action,
           referendum_id: referendumId,
-          team_member_id: req.user.wallet_address
+          team_member_id: req.user.address
         }
       });
     }
@@ -221,7 +221,7 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
   try {
     const { referendumId } = req.params;
     
-    if (!req.user?.wallet_address) {
+    if (!req.user?.address) {
       return res.status(400).json({
         success: false,
         error: "User wallet address not found"
@@ -232,7 +232,7 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
     // Use wallet address directly as team_member_id
     const result = await db.run(
       "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ?",
-      [referendumId, req.user.wallet_address]
+      [referendumId, req.user.address]
     );
     
     if (result.changes === 0) {
@@ -243,7 +243,7 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
     }
     
     logger.info({ 
-      walletAddress: req.user.wallet_address, 
+      walletAddress: req.user.address, 
       referendumId 
     }, "User governance action removed from referendum");
     

@@ -56,16 +56,15 @@ router.post("/web3-login", async (req: Request, res: Response) => {
     // Generate authentication token
     const token = generateAuthToken(teamMember);
     
-    logger.info({ userId: teamMember.id, address }, "User authenticated successfully");
+    logger.info({ address: teamMember.address }, "User authenticated successfully");
     
     res.json({
       success: true,
       token,
       user: {
-        id: teamMember.id,
+        address: teamMember.address,  // Use address field
         name: teamMember.name,
-        email: teamMember.email,
-        wallet_address: teamMember.wallet_address
+        network: teamMember.network
       }
     });
     

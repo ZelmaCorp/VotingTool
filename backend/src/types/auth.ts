@@ -17,12 +17,9 @@ export interface Web3AuthResponse {
 }
 
 export interface AuthenticatedUser {
-  id: number;
+  address: string;  // Changed from wallet_address to match desired format
   name: string;
-  email?: string;
-  wallet_address: string;
-  role?: string;
-  network?: "Polkadot" | "Kusama" | "Unknown";
+  network: "Polkadot" | "Kusama" | "Unknown";
 }
 
 export interface AuthToken {
@@ -40,13 +37,10 @@ export interface AuthMiddlewareRequest extends Request {
 export enum ReferendumAction {
   RESPONSIBLE_PERSON = "responsible_person",    // Lead evaluator for this referendum
   AGREE = "agree",                              // Agree with the evaluator
-  NO_WAY = "no_way",                            // Strongly opose this proposal
+  NO_WAY = "no_way",                            // Strongly opose this proposal (Veto)
   RECUSE = "recuse",                            // Abstain due to conflict of interest
   TO_BE_DISCUSSED = "to_be_discussed"           // Needs further discussion
 }
-
-// Legacy type for backward compatibility (deprecated)
-export type TeamRoleType = ReferendumAction;
 
 export interface ReferendumActionAssignment {
   referendum_id: number;

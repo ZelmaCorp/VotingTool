@@ -87,20 +87,16 @@ export async function findTeamMemberByAddress(walletAddress: string): Promise<Au
     
     if (memberInfo) {
       return {
-        id: 0, // No database ID needed for blockchain users
+        address: memberInfo.wallet_address,  // Use address field
         name: memberInfo.team_member_name || `Multisig Member (${memberInfo.network})`,
-        email: undefined, // No email from blockchain data
-        wallet_address: memberInfo.wallet_address,
         network: memberInfo.network
       };
     }
 
     // Fallback if memberInfo is null
     return {
-      id: 0,
+      address: walletAddress,  // Use address field
       name: "Multisig Member",
-      email: undefined,
-      wallet_address: walletAddress,
       network: "Unknown"
     };
   } catch (error) {
@@ -114,8 +110,7 @@ export async function findTeamMemberByAddress(walletAddress: string): Promise<Au
  */
 export function generateAuthToken(user: AuthenticatedUser): string {
   const payload = {
-    userId: user.id,
-    address: user.wallet_address,
+    address: user.address,  // Use address field
     name: user.name,
     network: user.network,
     iat: Math.floor(Date.now() / 1000),
@@ -133,9 +128,8 @@ export function verifyAuthToken(token: string): AuthenticatedUser | null {
     const decoded = jwt.verify(token, JWT_SECRET) as any;
     
     return {
-      id: decoded.userId,
+      address: decoded.address,  // Use address field
       name: decoded.name,
-      wallet_address: decoded.address,
       network: decoded.network
     };
   } catch (error) {
