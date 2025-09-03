@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node build.js",
+    "build": "npm run build:content && npm run build:popup && npm run build:background && npm run build:assets",
+    "build:content": "vite build --config vite.content.config.ts",
+    "build:popup": "vite build --config vite.popup.config.ts",
+    "build:background": "vite build --config vite.background.config.ts",
+    "build:assets": "node build.js",
     "build:simple": "node build.js",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",

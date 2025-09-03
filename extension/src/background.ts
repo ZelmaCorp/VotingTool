@@ -19,10 +19,10 @@ function injectContentScript(tabId: number, url: string) {
   console.log('✅ Supported site detected, injecting content script...')
   
   try {
-    // Try to execute the test content script
+    // Try to execute the content script
     chrome.scripting.executeScript({
       target: { tabId: tabId },
-      files: ['test-content.js']
+      files: ['content.js']
     }).then(() => {
       console.log('✅ Content script injected successfully!')
     }).catch((error) => {

@@ -23,21 +23,21 @@
         "https://polkadot.subsquare.io/*",
         "https://kusama.subsquare.io/*"
       ],
-      "js": ["dist/content.js"],
+      "js": ["content.js"],
       "css": ["design-system.css", "overlay.css"]
     }
   ],
   "action": {
-    "default_popup": "dist/popup.html",
+    "default_popup": "popup.html",
     "default_title": "OpenGov VotingTool"
   },
   "background": {
-    "scripts": ["dist/background.js"]
+    "scripts": ["background.js"]
   },
   "icons": {
-    "16": "dist/icons/icon16.svg",
-    "48": "dist/icons/icon48.svg",
-    "128": "dist/icons/icon128.svg"
+    "16": "icons/icon16.svg",
+    "48": "icons/icon48.svg",
+    "128": "icons/icon128.svg"
   },
   "browser_specific_settings": {
     "gecko": {

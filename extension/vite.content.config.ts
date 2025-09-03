@@ -5,18 +5,15 @@ export default defineConfig({
   plugins: [vue()],
   build: {
     target: 'es2017',
-    outDir: 'dist',
+    outDir: 'dist-temp',
+    emptyOutDir: false,
     rollupOptions: {
-      input: {
-        content: 'src/content.ts',
-        popup: 'src/popup.ts',
-        background: 'src/background.ts'
-      },
+      input: 'src/content.ts',
       output: {
-        entryFileNames: '[name].js',
-        chunkFileNames: '[name]-[hash].js',
-        assetFileNames: '[name]-[hash].[ext]',
-        format: 'es',
+        entryFileNames: 'content.js',
+        chunkFileNames: 'content-[name].js',
+        assetFileNames: 'content-[name].[ext]',
+        format: 'iife',
         globals: {
           vue: 'Vue'
         }
