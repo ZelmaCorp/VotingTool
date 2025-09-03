@@ -227,10 +227,10 @@ class Web3AuthService {
                             console.log('Using extension provider interface:', extension.name);
                             try {
                                 signature = await extension.provider.signRaw({
-                                    address: account.address,
-                                    data: stringToHex(message),
-                                    type: 'bytes'
-                                });
+                address: account.address,
+                data: stringToHex(message),
+                type: 'bytes'
+            });
                                 if (signature) break;
                             } catch (signError) {
                                 console.log(`Extension provider interface failed:`, signError.message);
