@@ -78,13 +78,12 @@ router.get("/referendum/:referendumId/actions", async (req: Request, res: Respon
     
     // Enrich actions with member information
     const enrichedActions = actions.map(action => {
-      // For now, we'll use team_member_id as a placeholder
-      // In the future, this could be enhanced to show actual member names
+      // team_member_id is now the wallet address
       const member = teamMembers.find(m => m.wallet_address === action.team_member_id);
       return {
         ...action,
-        team_member_name: member?.team_member_name || `Multisig Member ${action.team_member_id}`,
-        wallet_address: member?.wallet_address || `ID: ${action.team_member_id}`,
+        team_member_name: member?.team_member_name || `Multisig Member`,
+        wallet_address: action.team_member_id, // This is already the wallet address
         network: member?.network || "Unknown"
       };
     });
@@ -150,24 +149,10 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
     }
     
     // Check if user already has an action for this referendum
-    // First, find the team member ID for this wallet address
-    const teamMembers = await multisigService.getCachedTeamMembers();
-    const userMember = teamMembers.find(m => m.wallet_address === req.user.wallet_address);
-    
-    if (!userMember) {
-      return res.status(403).json({
-        success: false,
-        error: "User not found in multisig members"
-      });
-    }
-    
-    // For now, we'll use a simple hash of the wallet address as team_member_id
-    // In a production system, you might want to maintain a mapping table
-    const teamMemberId = teamMembers.findIndex(m => m.wallet_address === req.user.wallet_address) + 1;
-    
+    // Use wallet address directly as team_member_id
     const existingAction = await db.get(
       "SELECT id, role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ?",
-      [referendumId, teamMemberId]
+      [referendumId, req.user.wallet_address]
     );
     
     if (existingAction) {
@@ -179,7 +164,6 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
       
       logger.info({ 
         walletAddress: req.user.wallet_address, 
-        teamMemberId,
         referendumId, 
         oldAction: existingAction.role_type,
         newAction: action 
@@ -192,19 +176,18 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
           id: existingAction.id,
           action,
           referendum_id: referendumId,
-          team_member_id: teamMemberId
+          team_member_id: req.user.wallet_address
         }
       });
     } else {
       // Create new action assignment
       const result = await db.run(
         "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type) VALUES (?, ?, ?)",
-        [referendumId, teamMemberId, action]
+        [referendumId, req.user.wallet_address, action]
       );
       
       logger.info({ 
         walletAddress: req.user.wallet_address, 
-        teamMemberId,
         referendumId, 
         action 
       }, "User assigned governance action for referendum");
@@ -216,7 +199,7 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
           id: result.lastID,
           action,
           referendum_id: referendumId,
-          team_member_id: teamMemberId
+          team_member_id: req.user.wallet_address
         }
       });
     }
@@ -246,22 +229,10 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
     }
     
     // Remove user's action for this referendum
-    // First, find the team member ID for this wallet address
-    const teamMembers = await multisigService.getCachedTeamMembers();
-    const userMember = teamMembers.find(m => m.wallet_address === req.user.wallet_address);
-    
-    if (!userMember) {
-      return res.status(403).json({
-        success: false,
-        error: "User not found in multisig members"
-      });
-    }
-    
-    const teamMemberId = teamMembers.findIndex(m => m.wallet_address === req.user.wallet_address) + 1;
-    
+    // Use wallet address directly as team_member_id
     const result = await db.run(
       "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ?",
-      [referendumId, teamMemberId]
+      [referendumId, req.user.wallet_address]
     );
     
     if (result.changes === 0) {
@@ -273,7 +244,6 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
     
     logger.info({ 
       walletAddress: req.user.wallet_address, 
-      teamMemberId,
       referendumId 
     }, "User governance action removed from referendum");
     

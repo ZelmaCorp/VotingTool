@@ -2,7 +2,8 @@ import { Web3AuthRequest, AuthenticatedUser, AuthToken } from "../types/auth";
 import { multisigService } from "../services/multisig";
 import { createSubsystemLogger } from "../config/logger";
 import { Subsystem } from "../types/logging";
-import crypto from "crypto";
+import jwt from "jsonwebtoken";
+import { signatureVerify } from '@polkadot/util-crypto';
 
 const logger = createSubsystemLogger(Subsystem.APP);
 
@@ -24,18 +25,33 @@ export async function verifyWeb3Signature(authRequest: Web3AuthRequest): Promise
       return false;
     }
 
-    // For now, we'll do basic validation
-    // In production, you should implement proper signature verification using @polkadot/util-crypto
+    // Validate required fields
     if (!address || !signature || !message) {
+      logger.warn({ address }, "Missing required fields for signature verification");
       return false;
     }
 
     // Basic format validation for Polkadot addresses
     if (!address.startsWith("1") && !address.startsWith("5")) {
+      logger.warn({ address }, "Invalid Polkadot address format");
       return false;
     }
 
-    return true;
+    try {
+      // Verify signature using @polkadot/util-crypto
+      const isValid = signatureVerify(message, signature, address);
+      
+      if (!isValid.isValid) {
+        logger.warn({ address }, "Invalid signature verification");
+        return false;
+      }
+      
+      logger.debug({ address }, "Signature verification successful");
+      return true;
+    } catch (sigError) {
+      logger.error({ error: sigError, address }, "Error during signature verification");
+      return false;
+    }
   } catch (error) {
     logger.error({ error }, "Error verifying Web3 signature");
     return false;
@@ -52,6 +68,17 @@ export async function findTeamMemberByAddress(walletAddress: string): Promise<Au
     
     if (!isMember) {
       logger.debug({ walletAddress }, "Wallet address not found in multisig members");
+      
+      // Get the configured multisig addresses for better error context
+      const polkadotMultisig = process.env.POLKADOT_MULTISIG;
+      const kusamaMultisig = process.env.KUSAMA_MULTISIG;
+      
+      logger.warn({ 
+        walletAddress, 
+        polkadotMultisig, 
+        kusamaMultisig 
+      }, "Authentication failed - address not in configured multisigs");
+      
       return null;
     }
 
@@ -60,7 +87,7 @@ export async function findTeamMemberByAddress(walletAddress: string): Promise<Au
     
     if (memberInfo) {
       return {
-        id: 0, // We don't have database IDs anymore, use 0 as placeholder
+        id: 0, // No database ID needed for blockchain users
         name: memberInfo.team_member_name || `Multisig Member (${memberInfo.network})`,
         email: undefined, // No email from blockchain data
         wallet_address: memberInfo.wallet_address,
@@ -91,17 +118,11 @@ export function generateAuthToken(user: AuthenticatedUser): string {
     address: user.wallet_address,
     name: user.name,
     network: user.network,
+    iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + (JWT_EXPIRY_HOURS * 60 * 60)
   };
   
-  // Simple token generation - in production, use a proper JWT library
-  const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64");
-  const payloadEncoded = Buffer.from(JSON.stringify(payload)).toString("base64");
-  const signature = crypto.createHmac("sha256", JWT_SECRET)
-    .update(`${header}.${payloadEncoded}`)
-    .digest("base64");
-  
-  return `${header}.${payloadEncoded}.${signature}`;
+  return jwt.sign(payload, JWT_SECRET, { algorithm: 'HS256' });
 }
 
 /**
@@ -109,35 +130,13 @@ export function generateAuthToken(user: AuthenticatedUser): string {
  */
 export function verifyAuthToken(token: string): AuthenticatedUser | null {
   try {
-    const parts = token.split(".");
-    if (parts.length !== 3) {
-      return null;
-    }
-    
-    const [header, payload, signature] = parts;
-    
-    // Verify signature
-    const expectedSignature = crypto.createHmac("sha256", JWT_SECRET)
-      .update(`${header}.${payload}`)
-      .digest("base64");
-    
-    if (signature !== expectedSignature) {
-      return null;
-    }
-    
-    // Decode payload
-    const payloadData = JSON.parse(Buffer.from(payload, "base64").toString());
-    
-    // Check expiration
-    if (payloadData.exp < Math.floor(Date.now() / 1000)) {
-      return null;
-    }
+    const decoded = jwt.verify(token, JWT_SECRET) as any;
     
     return {
-      id: payloadData.userId,
-      name: payloadData.name,
-      wallet_address: payloadData.address,
-      network: payloadData.network
+      id: decoded.userId,
+      name: decoded.name,
+      wallet_address: decoded.address,
+      network: decoded.network
     };
   } catch (error) {
     logger.error({ error }, "Error verifying auth token");

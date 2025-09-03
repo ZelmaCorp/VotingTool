@@ -76,12 +76,12 @@ export function requireTeamMember(req: Request, res: Response, next: NextFunctio
     });
   }
   
-  // Check if user has a valid multisig member ID
-  if (!req.user.id || typeof req.user.id !== "number") {
-    logger.warn({ userId: req.user.id }, "User not found in multisig members");
+  // Check if user has a valid wallet address
+  if (!req.user.wallet_address) {
+    logger.warn({ userId: req.user.id }, "User wallet address not found");
     return res.status(403).json({
       success: false,
-      error: "Access denied: Not a multisig member"
+      error: "Access denied: Invalid user data"
     });
   }
   

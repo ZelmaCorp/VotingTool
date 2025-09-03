@@ -37,33 +37,150 @@ class Web3AuthService {
     }
 
     /**
+     * Check if wallet extensions are available
+     */
+    async checkWalletAvailability() {
+        try {
+            console.log('Checking wallet availability...');
+            
+            // Check if we're in a browser environment
+            if (typeof window === 'undefined') {
+                console.log('Not in browser environment');
+                return { available: false, locked: false, error: 'Not in browser environment' };
+            }
+            
+            // Check if the polkadot extension object exists
+            if (typeof window.injectedWeb3 === 'undefined') {
+                console.log('No injectedWeb3 found');
+                return { available: false, locked: false, error: 'No wallet extensions detected' };
+            }
+            
+            console.log('Available injected extensions:', Object.keys(window.injectedWeb3));
+            
+            // Try to enable extensions
+            const extensions = await web3Enable('OpenGov Voting Tool');
+            console.log('web3Enable result:', extensions);
+            
+            // If extensions array is empty but we have injectedWeb3, the extensions might be locked
+            if (extensions.length === 0 && Object.keys(window.injectedWeb3).length > 0) {
+                console.log('Extensions detected but not enabled - likely locked');
+                return { available: true, locked: true, extensions: Object.keys(window.injectedWeb3) };
+            }
+            
+            return { available: extensions.length > 0, locked: false, extensions: extensions };
+        } catch (error) {
+            console.error('Error checking wallet availability:', error);
+            return { available: false, locked: false, error: error.message };
+        }
+    }
+
+    /**
+     * Get available accounts if wallet is enabled
+     */
+    async getAvailableAccounts() {
+        try {
+            console.log('Getting available accounts...');
+            const accounts = await web3Accounts();
+            console.log('Retrieved accounts:', accounts);
+            return accounts;
+        } catch (error) {
+            console.error('Error getting accounts:', error);
+            return [];
+        }
+    }
+
+    /**
      * Authenticate with a specific account
      */
     async authenticate(account) {
         try {
             this.currentAccount = account;
             
+            console.log('Account object:', account);
+            console.log('Account methods:', Object.getOwnPropertyNames(account));
+            console.log('Account prototype methods:', Object.getOwnPropertyNames(Object.getPrototypeOf(account)));
+            
             // Create a message to sign
             const timestamp = Date.now();
             const message = `Authenticate with OpenGov Voting Tool\nTimestamp: ${timestamp}\nAddress: ${account.address}`;
             
             // Request signature from the wallet
-            const signature = await account.signRaw({
-                address: account.address,
-                data: stringToHex(message),
-                type: 'bytes'
-            });
+            let signature;
+            try {
+                // Get the enabled extensions (these have the signing interfaces)
+                console.log('Getting signing interface from enabled extensions...');
+                const enabledExtensions = await web3Enable('OpenGov Voting Tool');
+                console.log('Enabled extensions for signing:', enabledExtensions);
+                
+                // Try to find a signing interface
+                for (const extension of enabledExtensions) {
+                    console.log('Checking extension:', extension.name, 'methods:', Object.getOwnPropertyNames(extension));
+                    console.log('Extension signer:', extension.signer);
+                    console.log('Extension provider:', extension.provider);
+                    
+                    // Check if the extension has a signer with signing methods
+                    if (extension.signer && extension.signer.signRaw && typeof extension.signer.signRaw === 'function') {
+                        console.log('Using extension signer interface:', extension.name);
+                        signature = await extension.signer.signRaw({
+                            address: account.address,
+                            data: stringToHex(message),
+                            type: 'bytes'
+                        });
+                        break;
+                    }
+                    
+                    // Check if the extension itself has signing methods
+                    if (extension.signRaw && typeof extension.signRaw === 'function') {
+                        console.log('Using extension direct signing interface:', extension.name);
+                        signature = await extension.signRaw({
+                            address: account.address,
+                            data: stringToHex(message),
+                            type: 'bytes'
+                        });
+                        break;
+                    }
+                    
+                    // Check if the provider has signing methods
+                    if (extension.provider && extension.provider.signRaw && typeof extension.provider.signRaw === 'function') {
+                        console.log('Using extension provider interface:', extension.name);
+                        signature = await extension.provider.signRaw({
+                            address: account.address,
+                            data: stringToHex(message),
+                            type: 'bytes'
+                        });
+                        break;
+                    }
+                }
+                
+                if (!signature) {
+                    throw new Error(`No signing method found in enabled extensions. Available extensions: ${enabledExtensions.map(e => e.name).join(', ')}`);
+                }
+                
+            } catch (signError) {
+                console.error('Signing error:', signError);
+                throw new Error(`Failed to sign message: ${signError.message}`);
+            }
+
+            // Extract signature from response
+            const signatureData = signature.signature || signature || signature.message;
+            if (!signatureData) {
+                throw new Error('No signature received from wallet');
+            }
+
+            console.log('Signature received:', signatureData);
 
             // Verify signature locally
-            const isValid = signatureVerify(message, signature.signature, account.address);
+            const isValid = signatureVerify(message, signatureData, account.address);
             if (!isValid.isValid) {
-                throw new Error('Invalid signature');
+                throw new Error('Invalid signature verification');
             }
+
+            console.log('Signature verified successfully');
 
             // Send authentication request to backend
             const response = await axios.post(`${API_BASE_URL}/auth/web3-login`, {
                 address: account.address,
-                signature: signature.signature,
+                signature: signatureData,
                 message: message,
                 timestamp: timestamp
             });

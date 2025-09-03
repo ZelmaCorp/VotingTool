@@ -96,7 +96,7 @@ CREATE TABLE scoring_criteria (
 CREATE TABLE referendum_team_roles (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     referendum_id INTEGER NOT NULL,
-    team_member_id INTEGER NOT NULL,
+    team_member_id TEXT NOT NULL, -- Changed from INTEGER to TEXT to store wallet addresses
     role_type TEXT NOT NULL CHECK (role_type IN ('responsible_person', 'agree', 'no_way', 'recuse', 'to_be_discussed')),
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     

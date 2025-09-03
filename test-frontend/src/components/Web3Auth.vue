@@ -26,9 +26,25 @@
         <button @click="enableWallet" :disabled="enabling" class="enable-wallet-btn">
           {{ enabling ? 'Enabling...' : 'Enable Wallet Extensions' }}
         </button>
+        <button @click="refreshAccounts" :disabled="refreshing" class="refresh-btn">
+          {{ refreshing ? 'Refreshing...' : 'Refresh Wallet Connection' }}
+        </button>
+        <button @click="reconnectWallet" class="reconnect-btn">
+          Reconnect Wallet
+        </button>
+        <button @click="checkWalletStatus" class="check-btn">
+          Check Wallet Status
+        </button>
         <p class="wallet-help">
           Make sure you have a Polkadot wallet extension installed (Talisman, Subwallet, etc.)
         </p>
+        <p v-if="walletStatus && walletStatus.includes('locked')" class="wallet-locked-help">
+          <strong>Wallet Locked:</strong> Your wallet extensions are detected but locked. Please unlock them in your browser extension and try again.
+        </p>
+        <div v-if="walletStatus" class="wallet-status">
+          <h5>Wallet Status:</h5>
+          <pre>{{ walletStatus }}</pre>
+        </div>
       </div>
       
       <div v-if="error" class="error-message">
@@ -64,6 +80,8 @@ export default {
     const enabling = ref(false);
     const connecting = ref(false);
     const error = ref('');
+    const refreshing = ref(false);
+    const walletStatus = ref('');
 
     // Computed properties
     const isAuthenticated = computed(() => web3AuthService.isAuthenticated());
@@ -76,7 +94,32 @@ export default {
         enabling.value = true;
         error.value = '';
         
-        const accounts = await web3AuthService.enableWeb3();
+        console.log('Attempting to enable wallet...');
+        
+        // Check if wallet is available
+        const walletStatus = await web3AuthService.checkWalletAvailability();
+        console.log('Wallet status check result:', walletStatus);
+        
+        if (!walletStatus.available) {
+          if (walletStatus.error) {
+            throw new Error(`Wallet check failed: ${walletStatus.error}`);
+          } else {
+            throw new Error('No wallet extensions found. Please install Talisman, Subwallet, or another Polkadot wallet extension.');
+          }
+        }
+        
+        if (walletStatus.locked) {
+          throw new Error(`Wallet extensions detected (${walletStatus.extensions.join(', ')}) but they are locked. Please unlock your wallet in the browser extension and try again.`);
+        }
+        
+        // Get available accounts
+        const accounts = await web3AuthService.getAvailableAccounts();
+        console.log('Retrieved accounts:', accounts);
+        
+        if (accounts.length === 0) {
+          throw new Error('No accounts found in wallet. Please unlock your wallet and try again.');
+        }
+        
         availableAccounts.value = accounts;
         walletEnabled.value = true;
         
@@ -89,10 +132,31 @@ export default {
       }
     };
 
+    const refreshAccounts = async () => {
+      try {
+        refreshing.value = true;
+        const accounts = await web3AuthService.getAvailableAccounts();
+        availableAccounts.value = accounts;
+        walletEnabled.value = accounts.length > 0;
+        console.log('Wallet refreshed, found accounts:', accounts.length);
+      } catch (err) {
+        console.error('Error refreshing accounts:', err);
+        walletEnabled.value = false;
+        availableAccounts.value = [];
+      } finally {
+        refreshing.value = false;
+      }
+    };
+
     const connectAccount = async (account) => {
       try {
         connecting.value = true;
         error.value = '';
+        
+        console.log('Attempting to connect account:', account);
+        console.log('Account type:', typeof account);
+        console.log('Account keys:', Object.keys(account));
+        console.log('Account methods:', Object.getOwnPropertyNames(account));
         
         const result = await web3AuthService.authenticate(account);
         
@@ -101,8 +165,27 @@ export default {
           console.log('Successfully authenticated:', result.user);
         }
       } catch (err) {
-        error.value = err.message || 'Authentication failed';
         console.error('Authentication error:', err);
+        
+        // Handle detailed error messages from backend
+        if (err.response && err.response.data) {
+          const errorData = err.response.data;
+          if (errorData.details) {
+            // Show detailed error information
+            error.value = `${errorData.error}\n\nReason: ${errorData.details.reason}\n\nSuggestion: ${errorData.details.suggestion}`;
+          } else {
+            error.value = errorData.error || 'Authentication failed';
+          }
+        } else if (err.message) {
+          error.value = err.message;
+        } else {
+          error.value = 'Authentication failed';
+        }
+        
+        // Add more detailed error information
+        if (err.message.includes('signRaw') || err.message.includes('sign')) {
+          error.value = `Wallet signing failed: ${err.message}. Please check your wallet extension and try again.`;
+        }
       } finally {
         connecting.value = false;
       }
@@ -113,8 +196,39 @@ export default {
         await web3AuthService.logout();
         emit('auth-changed', { authenticated: false, user: null });
         console.log('User logged out');
+        
+        // Reset wallet state to allow reconnection
+        walletEnabled.value = false;
+        availableAccounts.value = [];
+        error.value = '';
       } catch (err) {
         console.error('Logout error:', err);
+      }
+    };
+
+    const reconnectWallet = async () => {
+      try {
+        error.value = '';
+        console.log('Attempting to reconnect wallet...');
+        
+        // Check wallet availability again
+        const walletStatus = await web3AuthService.checkWalletAvailability();
+        console.log('Reconnection wallet status:', walletStatus);
+        
+        if (walletStatus.available && !walletStatus.locked) {
+          // Get accounts again
+          const accounts = await web3AuthService.getAvailableAccounts();
+          availableAccounts.value = accounts;
+          walletEnabled.value = accounts.length > 0;
+          console.log('Wallet reconnected, found accounts:', accounts.length);
+        } else if (walletStatus.locked) {
+          error.value = `Wallet extensions are locked. Please unlock them and try again.`;
+        } else {
+          error.value = `Failed to reconnect wallet: ${walletStatus.error || 'Unknown error'}`;
+        }
+      } catch (err) {
+        error.value = `Reconnection failed: ${err.message}`;
+        console.error('Reconnection error:', err);
       }
     };
 
@@ -125,6 +239,15 @@ export default {
 
     const initialize = async () => {
       try {
+        // Check if wallet is available
+        const isAvailable = await web3AuthService.checkWalletAvailability();
+        if (isAvailable) {
+          // Get accounts if wallet is available
+          const accounts = await web3AuthService.getAvailableAccounts();
+          availableAccounts.value = accounts;
+          walletEnabled.value = accounts.length > 0;
+        }
+        
         const wasAuthenticated = await web3AuthService.initialize();
         if (wasAuthenticated) {
           emit('auth-changed', { 
@@ -134,6 +257,41 @@ export default {
         }
       } catch (err) {
         console.error('Initialization error:', err);
+      }
+    };
+
+    const checkWalletStatus = async () => {
+      try {
+        walletStatus.value = 'Checking wallet status...';
+        
+        const status = {
+          timestamp: new Date().toISOString(),
+          userAgent: navigator.userAgent,
+          hasWindow: typeof window !== 'undefined',
+          hasInjectedWeb3: typeof window !== 'undefined' && typeof window.injectedWeb3 !== 'undefined',
+          injectedExtensions: typeof window !== 'undefined' && window.injectedWeb3 ? Object.keys(window.injectedWeb3) : [],
+          web3EnableResult: null,
+          web3AccountsResult: null
+        };
+        
+        try {
+          const walletCheck = await web3AuthService.checkWalletAvailability();
+          status.web3EnableResult = walletCheck;
+        } catch (err) {
+          status.web3EnableError = err.message;
+        }
+        
+        try {
+          status.web3AccountsResult = await web3AuthService.getAvailableAccounts();
+        } catch (err) {
+          status.web3AccountsError = err.message;
+        }
+        
+        walletStatus.value = JSON.stringify(status, null, 2);
+        console.log('Detailed wallet status:', status);
+      } catch (err) {
+        walletStatus.value = `Error checking wallet status: ${err.message}`;
+        console.error('Wallet status check error:', err);
       }
     };
 
@@ -152,9 +310,14 @@ export default {
       connecting,
       error,
       enableWallet,
+      refreshAccounts,
       connectAccount,
       logout,
-      formatAddress
+      formatAddress,
+      refreshing,
+      walletStatus,
+      checkWalletStatus,
+      reconnectWallet
     };
   }
 };
@@ -255,6 +418,73 @@ export default {
   cursor: not-allowed;
 }
 
+.refresh-btn {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.refresh-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.reconnect-btn {
+  background: #ffc107;
+  color: #333;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.reconnect-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.check-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.check-btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.wallet-locked-help {
+  background: #fff3cd;
+  color: #856404;
+  padding: 10px;
+  border: 1px solid #ffeaa7;
+  border-radius: 4px;
+  margin-top: 15px;
+  font-size: 14px;
+}
+
+.wallet-status {
+  margin-top: 20px;
+  padding: 15px;
+  background: #e9ecef;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #333;
+  white-space: pre-wrap; /* Preserve whitespace and newlines */
+  word-wrap: break-word; /* Break long words */
+}
+
 .auth-authenticated {
   text-align: center;
 }
@@ -294,9 +524,12 @@ export default {
 .error-message {
   background: #f8d7da;
   color: #721c24;
-  padding: 10px;
-  border-radius: 4px;
+  padding: 15px;
+  border-radius: 6px;
   margin-top: 15px;
   border: 1px solid #f5c6cb;
+  white-space: pre-line; /* Preserve line breaks from \n */
+  font-size: 14px;
+  line-height: 1.4;
 }
 </style> 

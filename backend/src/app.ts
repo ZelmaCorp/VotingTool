@@ -1,5 +1,6 @@
 import express from "express";
 import bodyParser from "body-parser";
+import cors from "cors";
 const dotenv = require("dotenv");
 dotenv.config();
 if (!process.env.REFRESH_INTERVAL)
@@ -29,6 +30,14 @@ try {
 const logger = createSubsystemLogger(Subsystem.APP);
 
 const app = express();
+
+// Configure CORS to allow frontend requests
+app.use(cors({
+  origin: ['http://localhost:8080', 'http://127.0.0.1:8080'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
