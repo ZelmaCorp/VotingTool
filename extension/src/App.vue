@@ -3,18 +3,17 @@
     <!-- Floating Button -->
     <div class="floating-button" @click="toggleMenu" :class="{ 'menu-open': isMenuOpen }">
       <div class="button-icon">
-        <span v-if="!isMenuOpen">🗳️</span>
+        <div v-if="!isMenuOpen" class="hamburger-icon">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
         <span v-else>✕</span>
       </div>
     </div>
 
     <!-- Dropdown Menu -->
     <div v-if="isMenuOpen" class="dropdown-menu">
-      <div class="menu-header">
-        <h3>OpenGov VotingTool</h3>
-        <p>Extension loaded successfully!</p>
-      </div>
-      
       <div class="menu-content">
         <div class="menu-item" @click="handleAction('proposals')">
           <span class="icon">📋</span>
@@ -109,48 +108,46 @@ const handleAction = (action: string) => {
   font-weight: bold;
 }
 
+.hamburger-icon {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 3px;
+}
+
+.hamburger-icon span {
+  width: 20px;
+  height: 2px;
+  background-color: white;
+  border-radius: 1px;
+  transition: all 0.3s ease;
+}
+
 /* Dropdown Menu */
 .dropdown-menu {
   position: absolute;
-  top: 70px;
-  right: 0;
-  width: 300px;
+  bottom: 0;
+  right: 70px;
+  width: 280px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
   border: 1px solid #e1e5e9;
   overflow: hidden;
-  animation: slideDown 0.3s ease;
+  animation: smoothExpand 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transform-origin: bottom right;
 }
 
-@keyframes slideDown {
-  from {
+@keyframes smoothExpand {
+  0% {
     opacity: 0;
-    transform: translateY(-10px);
+    transform: scale(0.1);
   }
-  to {
+  100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1);
   }
-}
-
-.menu-header {
-  background: linear-gradient(135deg, #e6007a, #ff1493);
-  color: white;
-  padding: 20px;
-  text-align: center;
-}
-
-.menu-header h3 {
-  margin: 0 0 8px 0;
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.menu-header p {
-  margin: 0;
-  font-size: 14px;
-  opacity: 0.9;
 }
 
 .menu-content {
