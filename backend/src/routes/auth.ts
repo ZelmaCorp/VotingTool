@@ -83,7 +83,7 @@ router.post("/web3-login", async (req: Request, res: Response) => {
  */
 router.post("/logout", requireAuth, (req: Request, res: Response) => {
   try {
-    logger.info({ userId: req.user?.id }, "User logged out");
+    logger.info({ address: req.user?.address }, "User logged out");
     res.json({
       success: true,
       message: "Logged out successfully"
@@ -113,10 +113,9 @@ router.get("/profile", requireAuth, (req: Request, res: Response) => {
     res.json({
       success: true,
       user: {
-        id: req.user.id,
+        address: req.user.address,
         name: req.user.name,
-        email: req.user.email,
-        wallet_address: req.user.wallet_address
+        network: req.user.network
       }
     });
     
@@ -139,10 +138,9 @@ router.get("/verify", requireAuth, (req: Request, res: Response) => {
       success: true,
       valid: true,
       user: {
-        id: req.user?.id,
+        address: req.user?.address,
         name: req.user?.name,
-        email: req.user?.email,
-        wallet_address: req.user?.wallet_address
+        network: req.user?.network
       }
     });
   } catch (error) {

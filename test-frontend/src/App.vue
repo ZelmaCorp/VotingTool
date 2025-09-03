@@ -31,7 +31,7 @@
         
         <!-- Web3 Authentication -->
         <div class="auth-section">
-          <Web3Auth @auth-changed="onAuthChanged" />
+          <Web3Auth :parentAuthenticated="isAuthenticated" @auth-changed="onAuthChanged" />
         </div>
       </div>
     </header>

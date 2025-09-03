@@ -57,8 +57,8 @@
       <div class="user-info">
         <h4>Connected as:</h4>
         <div class="user-details">
-          <span class="user-name">{{ currentUser.name }}</span>
-          <span class="user-address">{{ formatAddress(currentUser.wallet_address) }}</span>
+          <span class="user-name">{{ currentUser?.name || 'Unknown' }}</span>
+          <span class="user-address">{{ formatAddress(currentUser?.address || '') }}</span>
         </div>
         <button @click="logout" class="logout-btn">Disconnect</button>
       </div>
@@ -72,6 +72,12 @@ import web3AuthService from '../services/web3Auth.js';
 
 export default {
   name: 'Web3Auth',
+  props: {
+    parentAuthenticated: {
+      type: Boolean,
+      default: false
+    }
+  },
   emits: ['auth-changed'],
   
   setup(props, { emit }) {
@@ -83,10 +89,18 @@ export default {
     const refreshing = ref(false);
     const walletStatus = ref('');
     const reconnecting = ref(false);
+    
+    // Reactive authentication state
+    const localAuthState = ref(web3AuthService.isAuthenticated());
 
     // Computed properties
-    const isAuthenticated = computed(() => web3AuthService.isAuthenticated());
-    const currentUser = computed(() => web3AuthService.getCurrentUser());
+    const isAuthenticated = computed(() => {
+      return localAuthState.value;
+    });
+    const currentUser = computed(() => {
+      const user = web3AuthService.getCurrentUser();
+      return user || { name: '', address: '' };
+    });
     const currentAccount = computed(() => web3AuthService.getCurrentAccount());
 
     // Methods
@@ -95,11 +109,8 @@ export default {
         enabling.value = true;
         error.value = '';
         
-        console.log('Attempting to enable wallet...');
-        
         // Check if wallet is available
         const walletStatus = await web3AuthService.checkWalletAvailability();
-        console.log('Wallet status check result:', walletStatus);
         
         if (!walletStatus.available) {
           if (walletStatus.error) {
@@ -115,7 +126,6 @@ export default {
         
         // Get available accounts
         const accounts = await web3AuthService.getAvailableAccounts();
-        console.log('Retrieved accounts:', accounts);
         
         if (accounts.length === 0) {
           throw new Error('No accounts found in wallet. Please unlock your wallet and try again.');
@@ -124,7 +134,6 @@ export default {
         availableAccounts.value = accounts;
         walletEnabled.value = true;
         
-        console.log('Wallet enabled, found accounts:', accounts.length);
       } catch (err) {
         error.value = err.message || 'Failed to enable wallet extensions';
         console.error('Wallet enable error:', err);
@@ -139,7 +148,6 @@ export default {
         const accounts = await web3AuthService.getAvailableAccounts();
         availableAccounts.value = accounts;
         walletEnabled.value = accounts.length > 0;
-        console.log('Wallet refreshed, found accounts:', accounts.length);
       } catch (err) {
         console.error('Error refreshing accounts:', err);
         walletEnabled.value = false;
@@ -154,16 +162,13 @@ export default {
         connecting.value = true;
         error.value = '';
         
-        console.log('Attempting to connect account:', account);
-        console.log('Account type:', typeof account);
-        console.log('Account keys:', Object.keys(account));
-        console.log('Account methods:', Object.getOwnPropertyNames(account));
-        
         const result = await web3AuthService.authenticate(account);
         
         if (result.success) {
+          // Update local state
+          localAuthState.value = true;
+          
           emit('auth-changed', { authenticated: true, user: result.user });
-          console.log('Successfully authenticated:', result.user);
         }
       } catch (err) {
         console.error('Authentication error:', err);
@@ -195,6 +200,10 @@ export default {
     const logout = async () => {
       try {
         await web3AuthService.logout();
+        
+        // Update local state
+        localAuthState.value = false;
+        
         emit('auth-changed', { authenticated: false, user: null });
         console.log('User logged out');
         
@@ -211,18 +220,15 @@ export default {
       try {
         reconnecting.value = true;
         error.value = '';
-        console.log('Attempting to reconnect wallet...');
         
         // Check wallet availability again
         const walletStatus = await web3AuthService.checkWalletAvailability();
-        console.log('Reconnection wallet status:', walletStatus);
         
         if (walletStatus.available && !walletStatus.locked) {
           // Get accounts again
           const accounts = await web3AuthService.getAvailableAccounts();
           availableAccounts.value = accounts;
           walletEnabled.value = accounts.length > 0;
-          console.log('Wallet reconnected, found accounts:', accounts.length);
           
           // Clear any previous error messages
           if (accounts.length > 0) {
@@ -271,6 +277,9 @@ export default {
         
         const wasAuthenticated = await web3AuthService.initialize();
         if (wasAuthenticated) {
+          // Update local state
+          localAuthState.value = true;
+          
           emit('auth-changed', { 
             authenticated: true, 
             user: web3AuthService.getCurrentUser() 

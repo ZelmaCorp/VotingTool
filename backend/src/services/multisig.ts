@@ -21,15 +21,11 @@ export class MultisigService {
 
   /**
    * Convert a generic address to network-specific format
-   * Generic addresses start with 5, network-specific start with 1 (Polkadot) or J (Kusama)
    */
   private convertToNetworkAddress(address: string, network: "Polkadot" | "Kusama"): string {
     try {
-      // Decode the generic address to get the public key
       const publicKey = decodeAddress(address);
-      
-      // Encode to the specific network format
-      const networkPrefix = network === "Polkadot" ? 0 : 2; // 0 for Polkadot, 2 for Kusama
+      const networkPrefix = network === "Polkadot" ? 0 : 2;
       return encodeAddress(publicKey, networkPrefix);
     } catch (error) {
       logger.warn({ address, network, error }, 'Failed to convert address format, using original');
@@ -55,25 +51,11 @@ export class MultisigService {
     const now = Date.now();
     const expiry = this.cacheExpiry.get(cacheKey) || 0;
 
-    logger.info({ 
-      network, 
-      cacheKey, 
-      now, 
-      expiry, 
-      hasCache: this.cache.has(cacheKey),
-      cacheExpired: now >= expiry
-    }, 'getCachedTeamMembers called');
-
     if (this.cache.has(cacheKey) && now < expiry) {                                             
-      const cachedMembers = this.cache.get(cacheKey) || [];
-      logger.debug({ network, cacheHit: true, memberCount: cachedMembers.length }, 'Returning cached multisig members');
-      return cachedMembers;
+      return this.cache.get(cacheKey) || [];
     }
 
-    logger.info({ network }, 'Cache expired or missing, fetching fresh multisig members');
     const members = await this.fetchMultisigMembers(network);
-    
-    logger.info({ network, memberCount: members.length }, 'Fresh members fetched, updating cache');
     this.cache.set(cacheKey, members);
     this.cacheExpiry.set(cacheKey, now + this.CACHE_DURATION);
     
@@ -95,8 +77,6 @@ export class MultisigService {
     }
 
     try {
-      logger.info({ network, multisigAddress }, 'Checking if address is a proxy/delegate');
-      
       const response = await axios.post(
         `https://${network.toLowerCase()}.api.subscan.io/api/v2/scan/search`,
         { key: multisigAddress },
@@ -111,9 +91,7 @@ export class MultisigService {
       if (response.data.code === 0 && response.data.data?.account) {
         const accountData = response.data.data.account;
         
-        // Check if this is a delegate/proxy account
-        if (accountData.delegate && typeof accountData.delegate === 'object' && accountData.delegate.conviction_delegated && Array.isArray(accountData.delegate.conviction_delegated)) {
-          // Look for the parent address in any of the conviction_delegated entries
+        if (accountData.delegate?.conviction_delegated) {
           for (const entry of accountData.delegate.conviction_delegated) {
             if (entry.delegate_account?.people?.parent?.address) {
               const parentAddress = entry.delegate_account.people.parent.address;
@@ -134,12 +112,6 @@ export class MultisigService {
             }
           }
         }
-        
-        logger.info({ 
-          network, 
-          currentAddress: multisigAddress,
-          isProxy: false
-        }, 'Address is not a proxy');
         
         return {
           isProxy: false,
@@ -178,22 +150,13 @@ export class MultisigService {
     }
 
     try {
-      // First, check if this is a proxy/delegate account
       const parentInfo = await this.getParentAddress(network);
       
-      // Determine which address to use for fetching members
       let targetAddress = multisigAddress;
       if (parentInfo.isProxy && parentInfo.parentAddress) {
-        logger.info({ 
-          network, 
-          originalAddress: multisigAddress, 
-          parentAddress: parentInfo.parentAddress 
-        }, 'Using parent address for member fetch (proxy detected)');
         targetAddress = parentInfo.parentAddress;
       }
 
-      logger.info({ network, targetAddress }, 'Querying Subscan for multisig info');
-      
       const response = await axios.post(
         `https://${network.toLowerCase()}.api.subscan.io/api/v2/scan/search`,
         { key: targetAddress },
@@ -209,19 +172,12 @@ export class MultisigService {
         const accountData = response.data.data.account;
         const members: MultisigMember[] = [];
 
-        // Check if this is a delegate/proxy account
-        if (accountData.delegate && typeof accountData.delegate === 'object' && accountData.delegate.conviction_delegated && Array.isArray(accountData.delegate.conviction_delegated)) {
-          logger.info({ network, targetAddress, delegateCount: accountData.delegate.conviction_delegated.length }, 'Found delegate account, extracting members');
-          
-          // Extract members from the conviction_delegated array
+        if (accountData.delegate?.conviction_delegated) {
           for (const entry of accountData.delegate.conviction_delegated) {
             if (entry.account?.address) {
-              const memberAddress = entry.account.address;
-              const memberName = entry.account.people?.display || 'Unknown';
-              
               members.push({
-                wallet_address: memberAddress,
-                team_member_name: memberName,
+                wallet_address: entry.account.address,
+                team_member_name: entry.account.people?.display || 'Unknown',
                 network: network
               });
             }
@@ -231,19 +187,12 @@ export class MultisigService {
           return members;
         }
 
-        // Check if this is a direct multisig account
-        if (accountData.multisig && accountData.multisig.multi_account_member && Array.isArray(accountData.multisig.multi_account_member)) {
-          logger.info({ network, targetAddress, multisigCount: accountData.multisig.multi_account_member.length }, 'Found direct multisig account, extracting members');
-          
-          // Extract members from the multi_account_member array
+        if (accountData.multisig?.multi_account_member) {
           for (const entry of accountData.multisig.multi_account_member) {
             if (entry.address) {
-              const memberAddress = entry.address;
-              const memberName = entry.people?.display || 'Unknown';
-              
               members.push({
-                wallet_address: memberAddress,
-                team_member_name: memberName,
+                wallet_address: entry.address,
+                team_member_name: entry.people?.display || 'Unknown',
                 network: network
               });
             }
