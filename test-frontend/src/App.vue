@@ -1,23 +1,5 @@
 <template>
-  <!-- 
-    OPENGOV VOTING TOOL - TEST FRONTEND
-    
-    This is a temporary testing frontend created during 
-    the SQLite migration phase. 
-    
-    PURPOSE: Test the SQLite database functionality and provide
-    a UI for managing discussion and voting workflow of existing referendas.
-    
-    IMPORTANT: This tool does NOT create referendas. Referendas are created
-    by OpenGov (Polkadot governance). This tool is for:
-    - Viewing and filtering referendas
-    - Managing internal workflow status
-    - Scoring referendas (10-criteria evaluation)
-    - Recording voting decisions and reasoning
-    - Adding comments and team assignments
-    
-    TODO: This will be replaced by the Polkassembly overlay
-  -->
+  <!-- OpenGov Voting Tool - Test Frontend -->
   <div id="app">
     <!-- Header -->
     <header class="header">

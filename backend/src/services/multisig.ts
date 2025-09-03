@@ -222,43 +222,13 @@ export class MultisigService {
   async isTeamMember(walletAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): Promise<boolean> {
     const members = await this.getCachedTeamMembers(network);
     
-    // Debug logging to see exact format comparison
-    logger.info({ 
-      walletAddress, 
-      walletAddressLength: walletAddress.length,
-      walletAddressType: typeof walletAddress,
-      membersCount: members.length,
-      memberAddresses: members.map(m => ({ 
-        address: m.wallet_address, 
-        length: m.wallet_address.length,
-        type: typeof m.wallet_address,
-        matches: m.wallet_address === walletAddress
-      }))
-    }, 'Checking if wallet address is team member');
-    
     // Try exact match first
     let isMember = members.some(member => member.wallet_address === walletAddress);
     
     // If no exact match, try the converted network-specific address
     if (!isMember) {
       const networkAddress = this.convertToNetworkAddress(walletAddress, network);
-      logger.info({ 
-        walletAddress, 
-        networkAddress, 
-        network,
-        originalMatch: false
-      }, 'Trying converted network address');
-      
       isMember = members.some(member => member.wallet_address === networkAddress);
-      
-      if (isMember) {
-        logger.info({ 
-          walletAddress, 
-          networkAddress,
-          originalMatch: false,
-          networkMatch: true 
-        }, 'Found match with converted network address');
-      }
     }
     
     // If still no match, try case-insensitive and trimmed comparison
@@ -267,18 +237,7 @@ export class MultisigService {
       isMember = members.some(member => 
         member.wallet_address.trim().toLowerCase() === normalizedWalletAddress
       );
-      
-      if (isMember) {
-        logger.info({ 
-          walletAddress, 
-          normalizedWalletAddress,
-          originalMatch: false,
-          normalizedMatch: true 
-        }, 'Found match after normalization');
-      }
     }
-    
-    logger.info({ walletAddress, isMember, network }, 'Team member check result');
     
     return isMember;
   }

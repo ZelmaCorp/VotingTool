@@ -1,15 +1,24 @@
 <template>
   <div class="wallet-connect">
-    <!-- TODO: Implement wallet connection -->
+    <!-- Wallet connection component -->
+    <div class="connect-container">
+      <p>Wallet connection interface will be implemented here</p>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// TODO: Implement wallet connection logic
+// Wallet connection component
 </script>
 
 <style scoped>
 .wallet-connect {
-  /* TODO: Add styles */
+  /* Wallet connection styles */
+}
+
+.connect-container {
+  padding: 20px;
+  text-align: center;
+  color: #666;
 }
 </style> 

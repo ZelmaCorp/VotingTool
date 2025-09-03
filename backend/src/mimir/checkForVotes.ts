@@ -99,12 +99,6 @@ export async function checkForVotes(): Promise<void> {
       // Use on-chain vote data as primary source, fallback to Subscan, then suggested vote
       const actualVote = chainVote || subscanData?.actualVote || transaction.voted;
 
-      logger.debug({ 
-        chainVote, 
-        subscanVote: subscanData?.actualVote, 
-        suggestedVote: transaction.voted,
-        finalVote: actualVote 
-      }, "Vote data sources");
       let votedStatus: InternalStatus;
       
       switch (actualVote) {
@@ -126,7 +120,7 @@ export async function checkForVotes(): Promise<void> {
       
       // Update the voting decision to mark as executed and store the actual vote
       await VotingDecision.upsert(transaction.referendum_id, {
-        final_vote: actualVote, // Store the actual vote that was executed
+        final_vote: actualVote,
         vote_executed: true,
         vote_executed_date: new Date().toISOString()
       });
@@ -305,33 +299,20 @@ export async function checkSubscan(votedList: ReferendumId[]): Promise<Record<nu
 
     // Combine extrinsics from both networks
     const allExtrinsics = [...polkadotExtrinsics, ...kusamaExtrinsics];
-    logger.info({ 
-      polkadotCount: polkadotExtrinsics.length, 
-      kusamaCount: kusamaExtrinsics.length, 
-      totalCount: allExtrinsics.length 
-    }, "Fetched extrinsics from Subscan");
 
     // Process each extrinsic to find referendum votes
     for (const extrinsic of allExtrinsics) {
       try {
         if (extrinsic.call_module === 'ConvictionVoting' && extrinsic.call_module_function === 'vote') {
-          // Parse the referendum ID from the extrinsic parameters
           const refId = parseReferendumIdFromExtrinsic(extrinsic);
           
           if (refId && votedList.includes(refId)) {
-            // Parse the actual vote from the extrinsic
             const actualVote = parseVoteFromExtrinsic(extrinsic);
             
             extrinsicVoteMap[refId] = {
               extrinsicHash: extrinsic.extrinsic_hash,
               actualVote: actualVote
             };
-            
-            logger.debug({ 
-              refId, 
-              hash: extrinsic.extrinsic_hash, 
-              actualVote 
-            }, "Mapped referendum to extrinsic hash and vote data");
           }
         }
       } catch (error) {

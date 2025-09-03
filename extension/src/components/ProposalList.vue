@@ -1,15 +1,24 @@
 <template>
   <div class="proposal-list">
-    <!-- TODO: Implement proposal list -->
+    <!-- Proposal list component -->
+    <div class="list-container">
+      <p>Proposal list will be implemented here</p>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// TODO: Implement proposal list logic
+// Proposal list component
 </script>
 
 <style scoped>
 .proposal-list {
-  /* TODO: Add styles */
+  /* Proposal list styles */
+}
+
+.list-container {
+  padding: 20px;
+  text-align: center;
+  color: #666;
 }
 </style> 

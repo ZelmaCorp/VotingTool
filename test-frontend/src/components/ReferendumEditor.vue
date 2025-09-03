@@ -1,22 +1,5 @@
 <template>
-  <!-- 
-    REFERENDUM EDITOR - FOR TEST FRONTEND ONLY
-    
-    This component was created for the test frontend with SQLite database
-    during the SQLite migration testing phase.
-    
-    IMPORTANT: The "Create" mode is DISABLED for production use.
-    Referendas are created by OpenGov (Polkadot governance), not by this tool.
-    
-    This tool is for managing discussion and voting workflow of existing referendas:
-    - Scoring referendas (10-criteria evaluation)
-    - Managing internal status (Considering, Ready to vote, etc.)
-    - Recording voting decisions and reasoning
-    - Adding comments and AI summaries
-    - Tracking team member assignments
-    
-    TODO: This will eventually be replaced by the Polkassembly overlay
-  -->
+  <!-- Referendum Editor - Test Frontend Only -->
   <div class="referendum-editor">
     <div class="editor-header">
       <h2>{{ isEditing ? 'Edit' : 'Create (DISABLED)' }} Referendum</h2>
@@ -544,16 +527,12 @@ export default {
         
         let response
         if (this.isEditing) {
-          // Update existing referendum - THIS IS THE MAIN PURPOSE OF THIS TOOL
           response = await axios.put(
             `/api/referendums/${this.referendum.post_id}/${this.referendum.chain}`,
             dataToSave
           )
         } else {
-          // Create new referendum - DISABLED: Referendas are created by OpenGov
           throw new Error('Creating referendas is disabled. Referendas are created by OpenGov (Polkadot governance), not by this tool.')
-          // LEGACY CODE - kept for potential future testing needs
-          // response = await axios.post('/api/referendums', dataToSave)
         }
         
         this.$emit('saved', response.data)

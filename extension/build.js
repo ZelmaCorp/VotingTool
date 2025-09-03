@@ -5,17 +5,13 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-console.log('🚀 Starting OpenGov VotingTool Extension build...');
-
 // Ensure dist directory exists
 if (!fs.existsSync('dist')) {
   fs.mkdirSync('dist');
-  console.log('✅ Created dist/ directory');
 }
 
 // Copy Vite build files from dist-temp to dist
 if (fs.existsSync('dist-temp')) {
-  console.log('📁 Copying Vite build files from dist-temp...');
   
   const tempFiles = fs.readdirSync('dist-temp');
   tempFiles.forEach(file => {
@@ -24,13 +20,11 @@ if (fs.existsSync('dist-temp')) {
     
     if (fs.statSync(sourcePath).isFile()) {
       fs.copyFileSync(sourcePath, destPath);
-      console.log(`✅ Copied ${file} to dist/`);
     }
   });
   
   // Clean up temp directory
   fs.rmSync('dist-temp', { recursive: true, force: true });
-  console.log('🧹 Cleaned up dist-temp/ directory');
 } else {
   console.log('⚠️  Warning: dist-temp/ directory not found');
 }
@@ -40,7 +34,6 @@ const manifestFiles = ['manifest.json', 'manifest-firefox.json'];
 manifestFiles.forEach(file => {
   if (fs.existsSync(file)) {
     fs.copyFileSync(file, path.join('dist', file));
-    console.log(`✅ Copied ${file} to dist/`);
   } else {
     console.log(`⚠️  Warning: ${file} not found, skipping...`);
   }
@@ -51,7 +44,6 @@ const cssFiles = ['design-system.css', 'overlay.css'];
 cssFiles.forEach(file => {
   if (fs.existsSync(file)) {
     fs.copyFileSync(file, path.join('dist', file));
-    console.log(`✅ Copied ${file} to dist/`);
   } else {
     console.log(`⚠️  Warning: ${file} not found, skipping...`);
   }
@@ -68,7 +60,6 @@ iconFiles.forEach(file => {
   const destPath = path.join('dist/icons', file);
   if (fs.existsSync(sourcePath)) {
     fs.copyFileSync(sourcePath, destPath);
-    console.log(`✅ Copied ${file} to dist/icons/`);
   } else {
     console.log(`⚠️  Warning: ${file} not found, skipping...`);
   }
@@ -77,7 +68,6 @@ iconFiles.forEach(file => {
 // Copy popup.html
 if (fs.existsSync('popup.html')) {
   fs.copyFileSync('popup.html', path.join('dist', 'popup.html'));
-  console.log('✅ Copied popup.html to dist/');
 } else {
   console.log('⚠️  Warning: popup.html not found, creating default...');
   // Create default popup.html
@@ -107,9 +97,7 @@ let allFilesExist = true;
 requiredFiles.forEach(file => {
   const filePath = path.join('dist', file);
   if (fs.existsSync(filePath)) {
-    console.log(`✅ ${file} found in dist/`);
   } else {
-    console.log(`❌ ${file} NOT found in dist/`);
     allFilesExist = false;
   }
 });
@@ -121,9 +109,7 @@ let allManifestsExist = true;
 requiredManifests.forEach(file => {
   const filePath = path.join('dist', file);
   if (fs.existsSync(filePath)) {
-    console.log(`✅ ${file} found in dist/`);
   } else {
-    console.log(`❌ ${file} NOT found in dist/`);
     allManifestsExist = false;
   }
 });

@@ -1,15 +1,24 @@
 <template>
   <div class="assignment-widget">
-    <!-- TODO: Implement assignment widget -->
+    <!-- Assignment widget component -->
+    <div class="widget-container">
+      <p>Team assignment interface will be implemented here</p>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// TODO: Implement assignment widget logic
+// Assignment widget component
 </script>
 
 <style scoped>
 .assignment-widget {
-  /* TODO: Add styles */
+  /* Assignment widget styles */
+}
+
+.widget-container {
+  padding: 20px;
+  text-align: center;
+  color: #666;
 }
 </style> 

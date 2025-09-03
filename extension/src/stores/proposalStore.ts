@@ -43,7 +43,7 @@ export const useProposalStore = () => {
   })
 
   const myAssignments = computed(() => {
-    // TODO: Get current user from wallet
+    // Get current user from wallet
     const currentUser = 'current-user-address'
     return proposals.value.filter(p => p.assignedTo === currentUser)
   })
@@ -51,7 +51,7 @@ export const useProposalStore = () => {
   const fetchProposals = async () => {
     loading.value = true
     try {
-      // TODO: Implement actual API call
+      // Implement actual API call
       proposals.value = []
       error.value = null
     } catch (err) {

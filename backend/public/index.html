@@ -50,7 +50,6 @@
     const statusDiv = document.getElementById("status");
 
     function logStatus(message) {
-      console.log("Logging status:", message); // Debugging log
       const logMessage = document.createElement("div");
       logMessage.textContent = message;
       statusDiv.appendChild(logMessage);
@@ -70,7 +69,6 @@
         }
 
         const data = await response.json();
-        console.log("API Response:", data); // Log the response
         lastProcessedPostId = data.nextPostId;
 
         logStatus(data.message); // Display the update message
@@ -81,7 +79,6 @@
           logStatus("All posts processed successfully.");
         }
       } catch (err) {
-        console.error("Error:", err); // Log the error
         logStatus("An error occurred. Check the console for details.");
       }
     }

@@ -1,15 +1,24 @@
 <template>
   <div class="proposal-card">
-    <!-- TODO: Implement proposal card -->
+    <!-- Proposal card component -->
+    <div class="card-container">
+      <p>Proposal information will be displayed here</p>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// TODO: Implement proposal card logic
+// Proposal card component
 </script>
 
 <style scoped>
 .proposal-card {
-  /* TODO: Add styles */
+  /* Proposal card styles */
+}
+
+.card-container {
+  padding: 20px;
+  text-align: center;
+  color: #666;
 }
 </style> 
