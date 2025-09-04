@@ -1,11 +1,8 @@
 // OpenGov VotingTool Extension - Background Script
 // This will be the main entry point for the extension
 
-console.log('OpenGov VotingTool Background script loaded!')
-
-// Build identifier for debugging
+// Build identifier
 const BUILD_ID = 'v1.1.0-' + Date.now()
-console.log('🏗️ Background: Build ID:', BUILD_ID)
 
 // Message counter for debugging
 let messageCounter = 0
