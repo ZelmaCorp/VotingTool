@@ -1,7 +1,6 @@
 import { reactive, readonly } from 'vue'
 import { AuthState, AuthenticatedUser, Web3AuthRequest, AuthResponse } from '../types'
 import { config } from '../config/environment'
-import axios from 'axios'
 
 // Create reactive state
 const state = reactive<AuthState>({
@@ -11,19 +10,67 @@ const state = reactive<AuthState>({
     isLoading: false
 })
 
-// Create axios instance with auth interceptor
-const api = axios.create({
-    baseURL: config.api.baseUrl,
-    timeout: config.api.timeout
-})
-
-// Add auth token to requests if available
-api.interceptors.request.use((config) => {
-    if (state.token) {
-        config.headers.Authorization = `Bearer ${state.token}`
-    }
-    return config
-})
+// Function to make API calls through background script (bypasses CSP)
+async function makeApiCall(endpoint: string, method: string, data?: any, headers?: any): Promise<any> {
+    return new Promise((resolve, reject) => {
+        // Add authorization header if token is available
+        const requestHeaders = { ...headers }
+        if (state.token) {
+            requestHeaders.Authorization = `Bearer ${state.token}`
+        }
+        
+        console.log('📤 Content script: Sending API call message to background script...')
+        console.log('📤 Content script: Message details:', {
+            type: 'VOTING_TOOL_API_CALL',
+            endpoint,
+            method,
+            data,
+            headers: requestHeaders
+        })
+        
+        // First, let's test if the background script is working at all
+        chrome.runtime.sendMessage({ type: 'TEST' }, (testResponse) => {
+            console.log('🧪 Content script: Test message response:', testResponse)
+            if (chrome.runtime.lastError) {
+                console.error('❌ Content script: Test message error:', chrome.runtime.lastError)
+            }
+        })
+        
+        // Wait a bit before sending the actual API call to ensure test message is processed
+        setTimeout(() => {
+            console.log('📤 Content script: Sending actual API call message...')
+            
+            const messageId = Date.now().toString()
+            console.log('📤 Content script: Message ID:', messageId)
+            
+            chrome.runtime.sendMessage({
+                type: 'VOTING_TOOL_API_CALL',
+                messageId,
+                endpoint,
+                method,
+                data,
+                headers: requestHeaders
+            }, (response) => {
+                console.log('📥 Content script: Received response from background script:', response)
+                console.log('📥 Content script: Response for message ID:', messageId)
+                
+                if (chrome.runtime.lastError) {
+                    console.error('❌ Content script: Chrome runtime error:', chrome.runtime.lastError)
+                    reject(new Error(chrome.runtime.lastError.message))
+                    return
+                }
+                
+                if (response && response.success) {
+                    console.log('✅ Content script: API call successful, resolving with data:', response.data)
+                    resolve(response.data)
+                } else {
+                    console.error('❌ Content script: API call failed, response:', response)
+                    reject(new Error(response?.error || 'API call failed'))
+                }
+            })
+        }, 100) // Small delay to ensure test message is processed first
+    })
+}
 
 export const authStore = {
     // State
@@ -41,20 +88,20 @@ export const authStore = {
                 timestamp: Date.now()
             }
 
-            const response = await api.post<AuthResponse>('/auth/web3-login', authRequest)
+            const response = await makeApiCall('/auth/web3-login', 'POST', authRequest)
             
-            if (response.data.success && response.data.token && response.data.user) {
-                state.token = response.data.token
-                state.user = response.data.user
+            if (response.success && response.token && response.user) {
+                state.token = response.token
+                state.user = response.user
                 state.isAuthenticated = true
                 
                 // Store token in localStorage for persistence
-                localStorage.setItem('auth_token', response.data.token)
-                localStorage.setItem('auth_user', JSON.stringify(response.data.user))
+                localStorage.setItem('auth_token', response.token)
+                localStorage.setItem('auth_user', JSON.stringify(response.user))
                 
                 return true
             } else {
-                console.error('Login failed:', response.data.error)
+                console.error('Login failed:', response.error)
                 return false
             }
         } catch (error) {
@@ -68,7 +115,7 @@ export const authStore = {
     async logout(): Promise<void> {
         try {
             if (state.token) {
-                await api.post('/auth/logout')
+                await makeApiCall('/auth/logout', 'POST')
             }
         } catch (error) {
             console.error('Logout error:', error)
@@ -88,12 +135,12 @@ export const authStore = {
         try {
             if (!state.token) return false
             
-            const response = await api.get<AuthResponse>('/auth/verify')
+            const response = await makeApiCall('/auth/verify', 'GET')
             
-            if (response.data.success && response.data.valid) {
+            if (response.success && response.valid) {
                 // Update user info if needed
-                if (response.data.user) {
-                    state.user = response.data.user
+                if (response.user) {
+                    state.user = response.user
                 }
                 return true
             } else {

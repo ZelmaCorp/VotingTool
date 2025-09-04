@@ -356,6 +356,8 @@ const handleSignMessage = async () => {
     error.value = ''
     
     console.log('✍️ Sending sign message request to page context...')
+    console.log('✍️ Account:', selectedAccount.value.address)
+    console.log('✍️ Message:', messageToSign.value)
     
     // Send sign request to page context
     window.postMessage({
@@ -368,15 +370,24 @@ const handleSignMessage = async () => {
     let attempts = 0
     const maxAttempts = 20 // Wait up to 10 seconds
     
+    console.log('⏳ Waiting for signature result...')
+    
     while (attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 500))
       attempts++
       
+      console.log(`🔍 Attempt ${attempts}/${maxAttempts}: Checking for signature result...`)
+      console.log('🔍 Current opengovVotingToolResult:', window.opengovVotingToolResult)
+      console.log('🔍 signatureResult:', window.opengovVotingToolResult?.signatureResult)
+      
       if (window.opengovVotingToolResult?.signatureResult) {
         const result = window.opengovVotingToolResult.signatureResult
         
+        console.log('🎯 Found signature result:', result)
+        
         if (result.success && result.signature) {
           console.log('✅ Received signature from page context:', result.signature)
+          console.log('🚀 Starting authentication with authStore.login...')
           
           // Attempt login with the signature
           const success = await authStore.login(
@@ -385,19 +396,25 @@ const handleSignMessage = async () => {
             messageToSign.value
           )
           
+          console.log('🔐 Authentication result:', success)
+          
           if (success) {
+            console.log('🎉 Authentication successful!')
             emit('close')
           } else {
+            console.log('❌ Authentication failed')
             error.value = 'Authentication failed. Please try again.'
           }
           return
         } else {
+          console.log('❌ Signature result indicates failure:', result)
           throw new Error(result.error || 'Failed to sign message')
         }
       }
     }
     
     // If we get here, we didn't receive a signature
+    console.log('⏰ Timeout waiting for signature result')
     throw new Error('Timeout waiting for signature from Polkadot Extension')
     
   } catch (err) {

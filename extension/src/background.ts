@@ -3,6 +3,275 @@
 
 console.log('OpenGov VotingTool Background script loaded!')
 
+// Build identifier for debugging
+const BUILD_ID = 'v1.1.0-' + Date.now()
+console.log('🏗️ Background: Build ID:', BUILD_ID)
+
+// Message counter for debugging
+let messageCounter = 0
+
+// API configuration
+const API_CONFIG = {
+  // For development, you can use ngrok: ngrok http 3000
+  // baseURL: 'https://abc123.ngrok.io',
+  //baseURL: 'http://localhost:3000',
+  baseURL: 'https://f194c85000f7.ngrok-free.app',
+  timeout: 10000
+}
+
+// Function to make API calls from background script context (bypasses CSP)
+async function makeApiCall(endpoint: string, method: string, data?: any, headers?: any) {
+  const debugInfo: any = {
+    step: 'starting',
+    timestamp: Date.now(),
+    endpoint,
+    method,
+    data,
+    headers
+  }
+  
+  try {
+    debugInfo.step = 'fetch_available_check'
+    
+    // Test if fetch is available
+    if (typeof fetch === 'undefined') {
+      debugInfo.error = 'Fetch API is not available in this context'
+      debugInfo.step = 'fetch_not_available'
+      return {
+        success: false,
+        error: 'Fetch API is not available in this context',
+        debugInfo
+      }
+    }
+    
+    debugInfo.step = 'url_construction'
+    const url = `${API_CONFIG.baseURL}${endpoint}`
+    debugInfo.fullUrl = url
+    
+    // Test if we can construct a URL
+    try {
+      new URL(url)
+      debugInfo.urlConstructionSuccess = true
+    } catch (urlError) {
+      debugInfo.urlConstructionError = urlError instanceof Error ? urlError.message : 'Unknown URL error'
+      return {
+        success: false,
+        error: `Invalid URL: ${url}`,
+        debugInfo
+      }
+    }
+    
+    debugInfo.step = 'test_fetch'
+    // Test if fetch works with a simple URL first
+    try {
+      const testResponse = await fetch('https://httpbin.org/get')
+      debugInfo.testFetchSuccess = true
+      debugInfo.testFetchStatus = testResponse.status
+    } catch (testError) {
+      debugInfo.testFetchError = testError instanceof Error ? testError.message : 'Unknown test error'
+      debugInfo.testFetchErrorName = testError instanceof Error ? testError.name : 'Unknown'
+    }
+    
+    debugInfo.step = 'prepare_fetch_options'
+    const options: RequestInit = {
+      method: method.toUpperCase(),
+      headers: {
+        'Content-Type': 'application/json',
+        ...headers
+      },
+      body: data ? JSON.stringify(data) : undefined
+    }
+    
+    debugInfo.fetchOptions = options
+    debugInfo.step = 'about_to_fetch'
+    
+    // Add timeout handling
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => {
+      debugInfo.timeout = true
+      controller.abort()
+    }, API_CONFIG.timeout)
+    
+    try {
+      debugInfo.step = 'executing_fetch'
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      })
+      
+      clearTimeout(timeoutId)
+      debugInfo.step = 'fetch_completed'
+      debugInfo.responseStatus = response.status
+      debugInfo.responseStatusText = response.statusText
+      
+      if (!response.ok) {
+        debugInfo.step = 'response_not_ok'
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+      
+      debugInfo.step = 'parsing_response'
+      const responseData = await response.json()
+      debugInfo.step = 'success'
+      
+      return {
+        success: true,
+        data: responseData,
+        status: response.status,
+        debugInfo
+      }
+      
+    } catch (fetchError) {
+      clearTimeout(timeoutId)
+      debugInfo.step = 'fetch_error'
+      debugInfo.fetchError = fetchError instanceof Error ? fetchError.message : 'Unknown fetch error'
+      debugInfo.fetchErrorName = fetchError instanceof Error ? fetchError.name : 'Unknown'
+      debugInfo.fetchErrorStack = fetchError instanceof Error ? fetchError.stack : undefined
+      
+      return {
+        success: false,
+        error: fetchError instanceof Error ? fetchError.message : 'Unknown fetch error',
+        debugInfo
+      }
+    }
+    
+  } catch (outerError) {
+    debugInfo.step = 'outer_error'
+    debugInfo.outerError = outerError instanceof Error ? outerError.message : 'Unknown outer error'
+    debugInfo.outerErrorName = outerError instanceof Error ? outerError.name : 'Unknown'
+    debugInfo.outerErrorStack = outerError instanceof Error ? outerError.stack : undefined
+    
+    return {
+      success: false,
+      error: outerError instanceof Error ? outerError.message : 'Unknown outer error',
+      debugInfo
+    }
+  }
+}
+
+// Message handler for content script communication
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  messageCounter++
+  const currentCount = messageCounter
+  
+  try {
+    console.log(`📨 Background: Received message #${currentCount}:`, message)
+    console.log(`📨 Background: Message type: ${message?.type}`)
+    console.log(`📨 Background: Sender:`, sender)
+    console.log(`📨 Background: Full message object:`, JSON.stringify(message, null, 2))
+    
+    if (message?.type === 'TEST') {
+      console.log(`🧪 Background: Processing test message #${currentCount}`)
+      sendResponse({ 
+        success: true, 
+        message: 'Background script is working!',
+        messageCount: currentCount,
+        timestamp: Date.now(),
+        buildId: BUILD_ID
+      })
+      return false // Synchronous response
+    }
+    
+    if (message?.type === 'VOTING_TOOL_API_CALL') {
+      console.log(`🌐 Background: Processing voting tool API call request #${currentCount}:`, {
+        messageId: message.messageId,
+        endpoint: message.endpoint,
+        method: message.method,
+        data: message.data,
+        headers: message.headers
+      })
+      
+      // Handle API calls from content script asynchronously
+      makeApiCall(message.endpoint, message.method, message.data, message.headers)
+        .then(result => {
+          console.log(`📤 Background: Sending API result back to content script for message #${currentCount}:`, result)
+          try {
+            sendResponse({
+              ...result,
+              messageCount: currentCount,
+              messageId: message.messageId
+            })
+          } catch (error) {
+            console.error(`❌ Background: Failed to send response for message #${currentCount}:`, error)
+            // Try to send error response
+            try {
+              sendResponse({
+                success: false,
+                error: 'Failed to send response',
+                details: error instanceof Error ? error.message : 'Unknown error',
+                messageCount: currentCount,
+                messageId: message.messageId,
+                responseError: true
+              })
+            } catch (sendError) {
+              console.error(`❌ Background: Completely failed to send any response for message #${currentCount}:`, sendError)
+            }
+          }
+        })
+        .catch(error => {
+          console.error(`❌ Background: Error in API call for message #${currentCount}:`, error)
+          try {
+            sendResponse({
+              success: false,
+              error: error.message || 'Unknown error',
+              details: error instanceof Error ? error.stack : undefined,
+              backgroundError: true,
+              messageCount: currentCount,
+              messageId: message.messageId
+            })
+          } catch (responseError) {
+            console.error(`❌ Background: Failed to send error response for message #${currentCount}:`, responseError)
+            // Try one more time with minimal data
+            try {
+              sendResponse({
+                success: false,
+                error: 'Failed to send error response',
+                messageCount: currentCount,
+                messageId: message.messageId,
+                criticalError: true
+              })
+            } catch (finalError) {
+              console.error(`❌ Background: Final attempt to send response failed for message #${currentCount}:`, finalError)
+            }
+          }
+        })
+      
+      // Return true to indicate we'll send response asynchronously
+      return true
+    }
+    
+    console.log(`⚠️ Background: Unknown message type #${currentCount}: ${message?.type}`)
+    console.log(`⚠️ Background: Sending default error response`)
+    
+    // Send a default error response for unknown message types
+    sendResponse({
+      success: false,
+      error: `Unknown message type: ${message?.type || 'undefined'}`,
+      messageCount: currentCount
+    })
+    
+    return false // Synchronous response
+    
+  } catch (outerError) {
+    console.error(`💥 Background: Critical error in message handler for message #${currentCount}:`, outerError)
+    
+    // Try to send error response even if everything else failed
+    try {
+      sendResponse({
+        success: false,
+        error: 'Critical error in message handler',
+        details: outerError instanceof Error ? outerError.message : 'Unknown critical error',
+        messageCount: currentCount,
+        criticalError: true,
+        stack: outerError instanceof Error ? outerError.stack : undefined
+      })
+    } catch (sendError) {
+      console.error(`💥 Background: Failed to send critical error response for message #${currentCount}:`, sendError)
+    }
+    
+    return false
+  }
+})
+
 // Function to inject content script
 function injectContentScript(tabId: number, url: string) {
   console.log('🎯 Attempting to inject content script into tab:', tabId, 'URL:', url)
