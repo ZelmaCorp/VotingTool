@@ -56,6 +56,7 @@ document.body.appendChild(extensionContainer)
 const script = document.createElement('script')
 script.src = chrome.runtime.getURL('inject.js')
 script.onload = () => {
+  console.log('✅ Inject.js loaded successfully, removing script element')
   script.remove()
 }
 document.head.appendChild(script)
@@ -64,7 +65,7 @@ document.head.appendChild(script)
 window.addEventListener('message', function(event) {
   if (event.source !== window) return;
   
-  // Message received from page context
+  console.log('📡 Extension context: received message:', event.data.type, event.data.data);
   
   if (event.data.type === 'WALLET_EXTENSION_RESULT') {
     window.opengovVotingToolResult = event.data.data;
@@ -89,10 +90,25 @@ window.addEventListener('message', function(event) {
   }
 });
 
-// Background script connection test (disabled - extension working)
-
-// Trigger initial wallet check
+// Test background script connection
 setTimeout(() => {
+  console.log('🔍 Testing background script connection...');
+  try {
+    chrome.runtime.sendMessage({ type: 'PING' }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.error('❌ Background script connection failed:', chrome.runtime.lastError);
+      } else {
+        console.log('✅ Background script connection successful:', response);
+      }
+    });
+  } catch (error) {
+    console.error('❌ Error testing background script connection:', error);
+  }
+}, 500);
+
+// Trigger initial check
+setTimeout(() => {
+  console.log('🔍 Extension context: triggering initial check...');
   window.postMessage({
     type: 'CHECK_WALLET_EXTENSION'
   }, '*');

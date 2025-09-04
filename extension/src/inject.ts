@@ -2,15 +2,17 @@
 // This script runs in the page context, not the extension context
 // It has access to window.injectedWeb3 and can interact with wallet extensions
 
-// OpenGov VotingTool: Page context injector loaded
+console.log('🚀 OpenGov VotingTool: Page context injector loaded')
 
 // Global object to store results
 ;(window as any).opengovVotingTool = {
   // Check if wallet extensions are available
   checkWalletExtension: function() {
+    console.log('🔍 Page context: checking for wallet extensions...')
+    
     const availableWallets = []
     
-    // Check available wallet extensions
+    // Check Polkadot Extension
     if (window.injectedWeb3?.['polkadot-js']) {
       availableWallets.push({
         name: 'Polkadot Extension',
@@ -18,6 +20,7 @@
       })
     }
     
+    // Check Talisman
     if (window.injectedWeb3?.talisman) {
       availableWallets.push({
         name: 'Talisman',
@@ -25,12 +28,15 @@
       })
     }
     
+    // Check Subwallet
     if (window.injectedWeb3?.subwallet) {
       availableWallets.push({
         name: 'Subwallet',
         key: 'subwallet'
       })
     }
+    
+    console.log('🔍 Page context: available wallets =', availableWallets)
     
     return {
       hasPolkadotExtension: availableWallets.length > 0,
@@ -42,15 +48,22 @@
   // Get accounts from a specific wallet
   getWalletAccounts: async function(walletKey: string) {
     try {
+      console.log('📋 Page context: getting accounts from wallet:', walletKey)
+      
       if (!window.injectedWeb3?.[walletKey]) {
         throw new Error(`Wallet ${walletKey} not available`)
       }
       
       // Enable the wallet
+      console.log('🔗 Page context: enabling wallet:', walletKey)
       const enabledWallet = await window.injectedWeb3[walletKey].enable()
+      console.log('✅ Page context: wallet enabled:', enabledWallet)
       
       // Get accounts
+      console.log('📋 Page context: getting accounts...')
       const walletAccounts = await enabledWallet.accounts.get()
+      console.log('📋 Page context: raw wallet accounts =', walletAccounts)
+      console.log('📋 Page context: got', walletAccounts.length, 'accounts')
       
       if (walletAccounts.length === 0) {
         throw new Error(`No accounts found in ${walletKey}`)
@@ -63,6 +76,8 @@
         wallet: walletKey
       }))
       
+      console.log('📋 Page context: transformed accounts =', accounts)
+      
       return {
         success: true,
         accounts: accounts,
@@ -71,7 +86,7 @@
       }
       
     } catch (error: any) {
-      console.error(`Failed to get accounts from ${walletKey}:`, error)
+      console.error(`❌ Page context: Failed to get accounts from ${walletKey}:`, error)
       return {
         success: false,
         error: error.message,
