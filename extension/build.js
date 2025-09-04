@@ -91,7 +91,7 @@ if (fs.existsSync('popup.html')) {
 }
 
 // Verify that all required files exist
-const requiredFiles = ['content.js', 'popup.js', 'background.js'];
+const requiredFiles = ['content.js', 'popup.js', 'background.js', 'inject.js'];
 let allFilesExist = true;
 
 requiredFiles.forEach(file => {

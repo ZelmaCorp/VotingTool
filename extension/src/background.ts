@@ -159,6 +159,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log(`📨 Background: Sender:`, sender)
     console.log(`📨 Background: Full message object:`, JSON.stringify(message, null, 2))
     
+    // Add immediate response for connection testing
+    if (message?.type === 'PING') {
+      console.log(`🏓 Background: Responding to PING message #${currentCount}`)
+      sendResponse({ 
+        success: true, 
+        message: 'Background script is alive and responding!',
+        messageCount: currentCount,
+        timestamp: Date.now(),
+        buildId: BUILD_ID
+      })
+      return false // Synchronous response
+    }
+    
     if (message?.type === 'TEST') {
       console.log(`🧪 Background: Processing test message #${currentCount}`)
       sendResponse({ 
@@ -272,9 +285,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 })
 
+// Track which tabs have already been injected to prevent duplicates
+const injectedTabs = new Set<number>()
+
 // Function to inject content script
 function injectContentScript(tabId: number, url: string) {
   console.log('🎯 Attempting to inject content script into tab:', tabId, 'URL:', url)
+  
+  // Check if this tab has already been injected
+  if (injectedTabs.has(tabId)) {
+    console.log('✅ Tab already injected, skipping:', tabId)
+    return
+  }
   
   // Check if this is a supported site
   const isPolkassembly = url.includes('polkassembly.io')
@@ -294,6 +316,8 @@ function injectContentScript(tabId: number, url: string) {
       files: ['content.js']
     }).then(() => {
       console.log('✅ Content script injected successfully!')
+      // Mark this tab as injected
+      injectedTabs.add(tabId)
     }).catch((error) => {
       console.error('❌ Failed to inject content script:', error)
       
@@ -329,6 +353,8 @@ function injectContentScript(tabId: number, url: string) {
         }
       }).then(() => {
         console.log('✅ Fallback script injected successfully!')
+        // Mark this tab as injected even for fallback
+        injectedTabs.add(tabId)
       }).catch((fallbackError) => {
         console.error('❌ Fallback injection also failed:', fallbackError)
       })
@@ -359,9 +385,20 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
   })
 })
 
+// Listen for tab removal to clean up tracking
+chrome.tabs.onRemoved.addListener((tabId) => {
+  if (injectedTabs.has(tabId)) {
+    console.log('🧹 Cleaning up injected tab tracking:', tabId)
+    injectedTabs.delete(tabId)
+  }
+})
+
 // Listen for extension installation/update
 chrome.runtime.onInstalled.addListener(() => {
   console.log('🚀 Extension installed/updated, checking current tabs...')
+  
+  // Clear any stale tab tracking
+  injectedTabs.clear()
   
   // Inject into all existing tabs
   chrome.tabs.query({}, (tabs) => {

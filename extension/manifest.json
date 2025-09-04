@@ -17,6 +17,15 @@
     "http://localhost:3000/*",
     "https://f194c85000f7.ngrok-free.app/*"
   ],
+  "web_accessible_resources": [{
+    "resources": ["inject.js"],
+    "matches": [
+      "https://polkadot.polkassembly.io/*",
+      "https://kusama.polkassembly.io/*",
+      "https://polkadot.subsquare.io/*",
+      "https://kusama.subsquare.io/*"
+    ]
+  }],
   "content_scripts": [
     {
       "matches": [
