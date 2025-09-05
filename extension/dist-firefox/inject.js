@@ -4,31 +4,39 @@
   window.opengovVotingTool = {
     // Check if wallet extensions are available
     checkWalletExtension: function() {
-      var _a, _b, _c;
       console.log("🔍 Page context: checking for wallet extensions...");
       console.log("🔍 Page context: window.injectedWeb3 =", window.injectedWeb3);
-      console.log("🔍 Page context: Object.keys(window.injectedWeb3 || {}) =", Object.keys(window.injectedWeb3 || {}));
       const availableWallets = [];
-      if ((_a = window.injectedWeb3) == null ? void 0 : _a["polkadot-js"]) {
-        console.log("✅ Found Polkadot Extension");
+      if (!window.injectedWeb3) {
+        console.log("❌ Page context: window.injectedWeb3 is not available");
+        return {
+          hasPolkadotExtension: false,
+          availableWallets: [],
+          timestamp: Date.now(),
+          debug: "window.injectedWeb3 not found"
+        };
+      }
+      console.log("🔍 Page context: Available injected wallets:", Object.keys(window.injectedWeb3));
+      if (window.injectedWeb3["polkadot-js"]) {
+        console.log("✅ Page context: Found polkadot-js");
         availableWallets.push({
           name: "Polkadot Extension",
           key: "polkadot-js"
         });
       }
-      if ((_b = window.injectedWeb3) == null ? void 0 : _b.talisman) {
-        console.log("✅ Found Talisman");
+      if (window.injectedWeb3.talisman) {
+        console.log("✅ Page context: Found talisman");
         availableWallets.push({
           name: "Talisman",
           key: "talisman"
         });
       }
-      const subwalletKeys = ["subwallet-js", "subwallet", "SubWallet"];
+      const subwalletKeys = ["subwallet-js", "SubWallet", "subwallet"];
       for (const key of subwalletKeys) {
-        if ((_c = window.injectedWeb3) == null ? void 0 : _c[key]) {
-          console.log(`✅ Found Subwallet with key: ${key}`);
+        if (window.injectedWeb3[key]) {
+          console.log("✅ Page context: Found subwallet with key:", key);
           availableWallets.push({
-            name: "Subwallet",
+            name: "SubWallet",
             key
           });
           break;
@@ -38,7 +46,8 @@
       return {
         hasPolkadotExtension: availableWallets.length > 0,
         availableWallets,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        debug: `Found ${availableWallets.length} wallets from keys: ${Object.keys(window.injectedWeb3).join(", ")}`
       };
     },
     // Get accounts from a specific wallet
@@ -85,7 +94,7 @@
       var _a;
       try {
         console.log("✍️ Page context: signing message for address:", address);
-        const wallets = ["polkadot-js", "talisman", "subwallet-js", "subwallet", "SubWallet"];
+        const wallets = ["polkadot-js", "talisman", "subwallet", "subwallet-js", "SubWallet"];
         for (const walletKey of wallets) {
           try {
             console.log("🔗 Page context: trying to enable wallet for signing:", walletKey);
@@ -130,7 +139,7 @@
       var _a;
       try {
         console.log("✍️ Page context: signing transaction for address:", address);
-        const wallets = ["polkadot-js", "talisman", "subwallet-js", "subwallet", "SubWallet"];
+        const wallets = ["polkadot-js", "talisman", "subwallet", "subwallet-js", "SubWallet"];
         for (const walletKey of wallets) {
           try {
             if (!((_a = window.injectedWeb3) == null ? void 0 : _a[walletKey])) {
@@ -206,15 +215,41 @@
       });
     }
   });
-  console.log("🚀 Page context script loaded");
-  const initialResult = window.opengovVotingTool.checkWalletExtension();
-  if (initialResult.hasPolkadotExtension) {
-    console.log("🎉 Page context: Initial check found wallet extensions!");
-    window.postMessage({
-      type: "WALLET_EXTENSION_DETECTED",
-      data: initialResult
-    }, "*");
+  function performWalletCheck() {
+    console.log("🚀 Page context: Performing wallet check");
+    const result = window.opengovVotingTool.checkWalletExtension();
+    window.opengovVotingToolResult = {
+      hasPolkadotExtension: result.hasPolkadotExtension,
+      availableWallets: result.availableWallets,
+      timestamp: result.timestamp,
+      debug: result.debug
+    };
+    if (result.hasPolkadotExtension) {
+      console.log("🎉 Page context: Wallet extensions found!");
+      window.postMessage({
+        type: "WALLET_EXTENSION_DETECTED",
+        data: result
+      }, "*");
+    } else {
+      console.log("❌ Page context: No wallet extensions found yet");
+      console.log("🔍 Page context: Debug info:", result.debug);
+    }
+    return result;
   }
+  console.log("🚀 Page context script loaded");
+  performWalletCheck();
+  setTimeout(() => {
+    console.log("🔄 Page context: 500ms delayed check");
+    performWalletCheck();
+  }, 500);
+  setTimeout(() => {
+    console.log("🔄 Page context: 1000ms delayed check");
+    performWalletCheck();
+  }, 1e3);
+  setTimeout(() => {
+    console.log("🔄 Page context: 2000ms delayed check");
+    performWalletCheck();
+  }, 2e3);
   window.postMessage({
     type: "INJECTOR_READY",
     data: { timestamp: Date.now() }

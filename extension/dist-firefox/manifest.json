@@ -12,9 +12,6 @@
     "https://polkadot.subsquare.io/*",
     "https://kusama.subsquare.io/*"
   ],
-  "web_accessible_resources": [
-    "inject.js"
-  ],
   "content_scripts": [
     {
       "matches": [

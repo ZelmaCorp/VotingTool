@@ -10,13 +10,25 @@ console.log('🚀 OpenGov VotingTool: Page context injector loaded')
   checkWalletExtension: function() {
     console.log('🔍 Page context: checking for wallet extensions...')
     console.log('🔍 Page context: window.injectedWeb3 =', window.injectedWeb3)
-    console.log('🔍 Page context: Object.keys(window.injectedWeb3 || {}) =', Object.keys(window.injectedWeb3 || {}))
     
     const availableWallets = []
     
+    // Check if injectedWeb3 exists at all
+    if (!window.injectedWeb3) {
+      console.log('❌ Page context: window.injectedWeb3 is not available')
+      return {
+        hasPolkadotExtension: false,
+        availableWallets: [],
+        timestamp: Date.now(),
+        debug: 'window.injectedWeb3 not found'
+      }
+    }
+    
+    console.log('🔍 Page context: Available injected wallets:', Object.keys(window.injectedWeb3))
+    
     // Check Polkadot Extension
-    if (window.injectedWeb3?.['polkadot-js']) {
-      console.log('✅ Found Polkadot Extension')
+    if (window.injectedWeb3['polkadot-js']) {
+      console.log('✅ Page context: Found polkadot-js')
       availableWallets.push({
         name: 'Polkadot Extension',
         key: 'polkadot-js'
@@ -24,24 +36,24 @@ console.log('🚀 OpenGov VotingTool: Page context injector loaded')
     }
     
     // Check Talisman
-    if (window.injectedWeb3?.talisman) {
-      console.log('✅ Found Talisman')
+    if (window.injectedWeb3.talisman) {
+      console.log('✅ Page context: Found talisman')
       availableWallets.push({
         name: 'Talisman',
         key: 'talisman'
       })
     }
     
-    // Check Subwallet - try multiple possible keys
-    const subwalletKeys = ['subwallet-js', 'subwallet', 'SubWallet']
+    // Check Subwallet (multiple possible keys)
+    const subwalletKeys = ['subwallet-js', 'SubWallet', 'subwallet']
     for (const key of subwalletKeys) {
-      if (window.injectedWeb3?.[key]) {
-        console.log(`✅ Found Subwallet with key: ${key}`)
+      if (window.injectedWeb3[key]) {
+        console.log('✅ Page context: Found subwallet with key:', key)
         availableWallets.push({
-          name: 'Subwallet',
+          name: 'SubWallet',
           key: key
         })
-        break // Only add once
+        break // Only add once even if multiple keys exist
       }
     }
     
@@ -50,7 +62,8 @@ console.log('🚀 OpenGov VotingTool: Page context injector loaded')
     return {
       hasPolkadotExtension: availableWallets.length > 0,
       availableWallets: availableWallets,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      debug: `Found ${availableWallets.length} wallets from keys: ${Object.keys(window.injectedWeb3).join(', ')}`
     }
   },
   
@@ -111,7 +124,7 @@ console.log('🚀 OpenGov VotingTool: Page context injector loaded')
       
       // We need to re-enable the wallet for signing since we don't store the enabled state
       // Let's try all available wallets to see which one has this address
-      const wallets = ['polkadot-js', 'talisman', 'subwallet-js', 'subwallet', 'SubWallet']
+      const wallets = ['polkadot-js', 'talisman', 'subwallet', 'subwallet-js', 'SubWallet']
       
       for (const walletKey of wallets) {
         try {
@@ -170,7 +183,7 @@ console.log('🚀 OpenGov VotingTool: Page context injector loaded')
       console.log('✍️ Page context: signing transaction for address:', address)
       
       // Similar logic to signMessage but for transactions
-      const wallets = ['polkadot-js', 'talisman', 'subwallet-js', 'subwallet', 'SubWallet']
+      const wallets = ['polkadot-js', 'talisman', 'subwallet', 'subwallet-js', 'SubWallet']
       
       for (const walletKey of wallets) {
         try {
@@ -262,16 +275,52 @@ window.addEventListener('message', function(event) {
   }
 })
 
+// Function to do delayed checks for wallet extensions
+function performWalletCheck() {
+  console.log('🚀 Page context: Performing wallet check')
+  const result = window.opengovVotingTool.checkWalletExtension()
+  
+  // Store result globally for access by extension context
+  ;(window as any).opengovVotingToolResult = {
+    hasPolkadotExtension: result.hasPolkadotExtension,
+    availableWallets: result.availableWallets,
+    timestamp: result.timestamp,
+    debug: result.debug
+  }
+  
+  if (result.hasPolkadotExtension) {
+    console.log('🎉 Page context: Wallet extensions found!')
+    window.postMessage({
+      type: 'WALLET_EXTENSION_DETECTED',
+      data: result
+    }, '*')
+  } else {
+    console.log('❌ Page context: No wallet extensions found yet')
+    console.log('🔍 Page context: Debug info:', result.debug)
+  }
+  
+  return result
+}
+
 // Initial check and notification
 console.log('🚀 Page context script loaded')
-const initialResult = window.opengovVotingTool.checkWalletExtension()
-if (initialResult.hasPolkadotExtension) {
-  console.log('🎉 Page context: Initial check found wallet extensions!')
-  window.postMessage({
-    type: 'WALLET_EXTENSION_DETECTED',
-    data: initialResult
-  }, '*')
-}
+performWalletCheck()
+
+// Check again after delays to catch late injections
+setTimeout(() => {
+  console.log('🔄 Page context: 500ms delayed check')
+  performWalletCheck()
+}, 500)
+
+setTimeout(() => {
+  console.log('🔄 Page context: 1000ms delayed check')
+  performWalletCheck()
+}, 1000)
+
+setTimeout(() => {
+  console.log('🔄 Page context: 2000ms delayed check')
+  performWalletCheck()
+}, 2000)
 
 // Notify that the injector is ready
 window.postMessage({
