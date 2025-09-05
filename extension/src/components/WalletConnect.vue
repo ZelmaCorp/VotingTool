@@ -129,7 +129,9 @@
       <div v-if="error" class="error-message">
         <div class="error-icon">⚠️</div>
         <div class="error-text">{{ error }}</div>
-        <button @click="clearError" class="btn-secondary">Try Again</button>
+        <div class="error-actions">
+          <button @click="clearError" class="btn-secondary">Try Again</button>
+        </div>
       </div>
     </div>
   </div>
@@ -390,20 +392,26 @@ const handleSignMessage = async () => {
           console.log('🚀 Starting authentication with authStore.login...')
           
           // Attempt login with the signature
-          const success = await authStore.login(
+          const loginResult = await authStore.login(
             selectedAccount.value.address,
             result.signature,
             messageToSign.value
           )
           
-          console.log('🔐 Authentication result:', success)
+          console.log('🔐 Authentication result:', loginResult)
           
-          if (success) {
+          if (loginResult.success) {
             console.log('🎉 Authentication successful!')
             emit('close')
           } else {
-            console.log('❌ Authentication failed')
-            error.value = 'Authentication failed. Please try again.'
+            console.log('❌ Authentication failed:', loginResult.error)
+            
+            // Check if this is a multisig access denied error
+            if (loginResult.details && loginResult.details.reason) {
+              error.value = formatMultisigError(loginResult.details)
+            } else {
+              error.value = loginResult.error || 'Authentication failed. Please try again.'
+            }
           }
           return
         } else {
@@ -437,6 +445,35 @@ const formatAddress = (address: string) => {
 const clearError = () => {
   error.value = ''
   step.value = 'select'
+}
+
+const formatMultisigError = (details: any) => {
+  if (!details) return 'Access denied: Not authorized as multisig member'
+  
+  const address = details.address || 'your wallet address'
+  const suggestion = details.suggestion || 'Please contact an administrator to add your address to the multisig'
+  
+  let configuredMultisigs = ''
+  if (details.configured_multisigs) {
+    const multisigs = []
+    if (details.configured_multisigs.polkadot && details.configured_multisigs.polkadot !== 'Not configured') {
+      multisigs.push(`Polkadot: ${details.configured_multisigs.polkadot}`)
+    }
+    if (details.configured_multisigs.kusama && details.configured_multisigs.kusama !== 'Not configured') {
+      multisigs.push(`Kusama: ${details.configured_multisigs.kusama}`)
+    }
+    if (multisigs.length > 0) {
+      configuredMultisigs = `\n\nConfigured multisigs:\n${multisigs.join('\n')}`
+    }
+  }
+  
+  return `🚫 Access Denied: Multisig Member Required
+
+${details.reason || 'Your wallet address is not registered as a multisig member.'}
+
+Your address: ${address}${configuredMultisigs}
+
+💡 ${suggestion}`
 }
 </script>
 
@@ -728,7 +765,7 @@ const clearError = () => {
 }
 
 .error-message {
-  text-align: center;
+  text-align: left;
   padding: 24px;
   background: #fff5f5;
   border: 1px solid #fed7d7;
@@ -736,14 +773,23 @@ const clearError = () => {
 }
 
 .error-icon {
-  font-size: 32px;
-  margin-bottom: 12px;
+  font-size: 24px;
+  margin-bottom: 8px;
+  display: block;
 }
 
 .error-text {
   color: #c53030;
-  margin-bottom: 16px;
   font-weight: 500;
+  white-space: pre-line;
+  line-height: 1.5;
+  margin-bottom: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.error-actions {
+  display: flex;
+  justify-content: center;
 }
 
 .no-wallets {

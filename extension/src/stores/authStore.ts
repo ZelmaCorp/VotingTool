@@ -65,7 +65,13 @@ async function makeApiCall(endpoint: string, method: string, data?: any, headers
                     resolve(response.data)
                 } else {
                     console.error('❌ Content script: API call failed, response:', response)
-                    reject(new Error(response?.error || 'API call failed'))
+                    const error = new Error(response?.error || 'API call failed')
+                    // Attach additional details for better error handling
+                    if (response?.debugInfo?.errorResponseBody?.details) {
+                        ;(error as any).details = response.debugInfo.errorResponseBody.details
+                        ;(error as any).status = response?.debugInfo?.responseStatus
+                    }
+                    reject(error)
                 }
             })
         }, 100) // Small delay to ensure test message is processed first
@@ -77,7 +83,7 @@ export const authStore = {
     state: readonly(state),
 
     // Actions
-    async login(address: string, signature: string, message: string): Promise<boolean> {
+    async login(address: string, signature: string, message: string): Promise<{ success: boolean; error?: string; details?: any }> {
         try {
             state.isLoading = true
             
@@ -99,14 +105,23 @@ export const authStore = {
                 localStorage.setItem('auth_token', response.token)
                 localStorage.setItem('auth_user', JSON.stringify(response.user))
                 
-                return true
+                return { success: true }
             } else {
                 console.error('Login failed:', response.error)
-                return false
+                return { 
+                    success: false, 
+                    error: response.error || 'Login failed'
+                }
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Login error:', error)
-            return false
+            
+            // Return detailed error information, especially for 403 multisig errors
+            return {
+                success: false,
+                error: error.message || 'Login failed',
+                details: error.details || null
+            }
         } finally {
             state.isLoading = false
         }

@@ -9,11 +9,14 @@ console.log('🚀 OpenGov VotingTool: Page context injector loaded')
   // Check if wallet extensions are available
   checkWalletExtension: function() {
     console.log('🔍 Page context: checking for wallet extensions...')
+    console.log('🔍 Page context: window.injectedWeb3 =', window.injectedWeb3)
+    console.log('🔍 Page context: Object.keys(window.injectedWeb3 || {}) =', Object.keys(window.injectedWeb3 || {}))
     
     const availableWallets = []
     
     // Check Polkadot Extension
     if (window.injectedWeb3?.['polkadot-js']) {
+      console.log('✅ Found Polkadot Extension')
       availableWallets.push({
         name: 'Polkadot Extension',
         key: 'polkadot-js'
@@ -22,18 +25,24 @@ console.log('🚀 OpenGov VotingTool: Page context injector loaded')
     
     // Check Talisman
     if (window.injectedWeb3?.talisman) {
+      console.log('✅ Found Talisman')
       availableWallets.push({
         name: 'Talisman',
         key: 'talisman'
       })
     }
     
-    // Check Subwallet
-    if (window.injectedWeb3?.subwallet) {
-      availableWallets.push({
-        name: 'Subwallet',
-        key: 'subwallet'
-      })
+    // Check Subwallet - try multiple possible keys
+    const subwalletKeys = ['subwallet-js', 'subwallet', 'SubWallet']
+    for (const key of subwalletKeys) {
+      if (window.injectedWeb3?.[key]) {
+        console.log(`✅ Found Subwallet with key: ${key}`)
+        availableWallets.push({
+          name: 'Subwallet',
+          key: key
+        })
+        break // Only add once
+      }
     }
     
     console.log('🔍 Page context: available wallets =', availableWallets)
@@ -102,7 +111,7 @@ console.log('🚀 OpenGov VotingTool: Page context injector loaded')
       
       // We need to re-enable the wallet for signing since we don't store the enabled state
       // Let's try all available wallets to see which one has this address
-      const wallets = ['polkadot-js', 'talisman', 'subwallet']
+      const wallets = ['polkadot-js', 'talisman', 'subwallet-js', 'subwallet', 'SubWallet']
       
       for (const walletKey of wallets) {
         try {
@@ -161,7 +170,7 @@ console.log('🚀 OpenGov VotingTool: Page context injector loaded')
       console.log('✍️ Page context: signing transaction for address:', address)
       
       // Similar logic to signMessage but for transactions
-      const wallets = ['polkadot-js', 'talisman', 'subwallet']
+      const wallets = ['polkadot-js', 'talisman', 'subwallet-js', 'subwallet', 'SubWallet']
       
       for (const walletKey of wallets) {
         try {

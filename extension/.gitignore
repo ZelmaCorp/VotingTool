@@ -8,6 +8,8 @@ lerna-debug.log*
 
 # Build outputs
 dist/
+dist-chrome/
+dist-firefox/
 build/
 *.tsbuildinfo
 

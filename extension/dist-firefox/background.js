@@ -99,6 +99,21 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
         debugInfo.responseStatusText = response.statusText;
         if (!response.ok) {
           debugInfo.step = "response_not_ok";
+          try {
+            const errorResponse = await response.json();
+            debugInfo.errorResponseBody = errorResponse;
+            if (errorResponse.error) {
+              const error = new Error(errorResponse.error);
+              if (response.status === 403 && errorResponse.details) {
+                ;
+                error.details = errorResponse.details;
+                error.status = response.status;
+              }
+              throw error;
+            }
+          } catch (jsonError) {
+            debugInfo.jsonParseError = jsonError instanceof Error ? jsonError.message : "Unknown JSON error";
+          }
           throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         debugInfo.step = "parsing_response";

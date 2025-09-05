@@ -106,6 +106,27 @@ async function makeApiCall(endpoint: string, method: string, data?: any, headers
       
       if (!response.ok) {
         debugInfo.step = 'response_not_ok'
+        
+        // For HTTP errors, try to extract the error response body for better error messages
+        try {
+          const errorResponse = await response.json()
+          debugInfo.errorResponseBody = errorResponse
+          
+          // If there's a structured error response, use it
+          if (errorResponse.error) {
+            const error = new Error(errorResponse.error)
+            // Attach additional details for 403 errors (multisig access denied)
+            if (response.status === 403 && errorResponse.details) {
+              ;(error as any).details = errorResponse.details
+              ;(error as any).status = response.status
+            }
+            throw error
+          }
+        } catch (jsonError) {
+          // If we can't parse JSON, fall back to status text
+          debugInfo.jsonParseError = jsonError instanceof Error ? jsonError.message : 'Unknown JSON error'
+        }
+        
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
       

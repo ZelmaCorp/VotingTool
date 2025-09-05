@@ -6,24 +6,33 @@
     checkWalletExtension: function() {
       var _a, _b, _c;
       console.log("🔍 Page context: checking for wallet extensions...");
+      console.log("🔍 Page context: window.injectedWeb3 =", window.injectedWeb3);
+      console.log("🔍 Page context: Object.keys(window.injectedWeb3 || {}) =", Object.keys(window.injectedWeb3 || {}));
       const availableWallets = [];
       if ((_a = window.injectedWeb3) == null ? void 0 : _a["polkadot-js"]) {
+        console.log("✅ Found Polkadot Extension");
         availableWallets.push({
           name: "Polkadot Extension",
           key: "polkadot-js"
         });
       }
       if ((_b = window.injectedWeb3) == null ? void 0 : _b.talisman) {
+        console.log("✅ Found Talisman");
         availableWallets.push({
           name: "Talisman",
           key: "talisman"
         });
       }
-      if ((_c = window.injectedWeb3) == null ? void 0 : _c.subwallet) {
-        availableWallets.push({
-          name: "Subwallet",
-          key: "subwallet"
-        });
+      const subwalletKeys = ["subwallet-js", "subwallet", "SubWallet"];
+      for (const key of subwalletKeys) {
+        if ((_c = window.injectedWeb3) == null ? void 0 : _c[key]) {
+          console.log(`✅ Found Subwallet with key: ${key}`);
+          availableWallets.push({
+            name: "Subwallet",
+            key
+          });
+          break;
+        }
       }
       console.log("🔍 Page context: available wallets =", availableWallets);
       return {
@@ -76,7 +85,7 @@
       var _a;
       try {
         console.log("✍️ Page context: signing message for address:", address);
-        const wallets = ["polkadot-js", "talisman", "subwallet"];
+        const wallets = ["polkadot-js", "talisman", "subwallet-js", "subwallet", "SubWallet"];
         for (const walletKey of wallets) {
           try {
             console.log("🔗 Page context: trying to enable wallet for signing:", walletKey);
@@ -121,7 +130,7 @@
       var _a;
       try {
         console.log("✍️ Page context: signing transaction for address:", address);
-        const wallets = ["polkadot-js", "talisman", "subwallet"];
+        const wallets = ["polkadot-js", "talisman", "subwallet-js", "subwallet", "SubWallet"];
         for (const walletKey of wallets) {
           try {
             if (!((_a = window.injectedWeb3) == null ? void 0 : _a[walletKey])) {
