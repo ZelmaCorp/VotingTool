@@ -1,14 +1,10 @@
 (function() {
   "use strict";
-  console.log("🚀 OpenGov VotingTool: Page context injector loaded");
   window.opengovVotingTool = {
     // Check if wallet extensions are available
     checkWalletExtension: function() {
-      console.log("🔍 Page context: checking for wallet extensions...");
-      console.log("🔍 Page context: window.injectedWeb3 =", window.injectedWeb3);
       const availableWallets = [];
       if (!window.injectedWeb3) {
-        console.log("❌ Page context: window.injectedWeb3 is not available");
         return {
           hasPolkadotExtension: false,
           availableWallets: [],
@@ -16,16 +12,14 @@
           debug: "window.injectedWeb3 not found"
         };
       }
-      console.log("🔍 Page context: Available injected wallets:", Object.keys(window.injectedWeb3));
-      if (window.injectedWeb3["polkadot-js"]) {
-        console.log("✅ Page context: Found polkadot-js");
+      const injectedWeb3 = window.injectedWeb3;
+      if (injectedWeb3["polkadot-js"]) {
         availableWallets.push({
           name: "Polkadot Extension",
           key: "polkadot-js"
         });
       }
-      if (window.injectedWeb3.talisman) {
-        console.log("✅ Page context: Found talisman");
+      if (injectedWeb3.talisman) {
         availableWallets.push({
           name: "Talisman",
           key: "talisman"
@@ -33,8 +27,7 @@
       }
       const subwalletKeys = ["subwallet-js", "SubWallet", "subwallet"];
       for (const key of subwalletKeys) {
-        if (window.injectedWeb3[key]) {
-          console.log("✅ Page context: Found subwallet with key:", key);
+        if (injectedWeb3[key]) {
           availableWallets.push({
             name: "SubWallet",
             key
@@ -42,29 +35,22 @@
           break;
         }
       }
-      console.log("🔍 Page context: available wallets =", availableWallets);
       return {
         hasPolkadotExtension: availableWallets.length > 0,
         availableWallets,
         timestamp: Date.now(),
-        debug: `Found ${availableWallets.length} wallets from keys: ${Object.keys(window.injectedWeb3).join(", ")}`
+        debug: `Found ${availableWallets.length} wallets from keys: ${Object.keys(injectedWeb3).join(", ")}`
       };
     },
     // Get accounts from a specific wallet
     getWalletAccounts: async function(walletKey) {
-      var _a;
       try {
-        console.log("📋 Page context: getting accounts from wallet:", walletKey);
-        if (!((_a = window.injectedWeb3) == null ? void 0 : _a[walletKey])) {
+        const injectedWeb3 = window.injectedWeb3;
+        if (!(injectedWeb3 == null ? void 0 : injectedWeb3[walletKey])) {
           throw new Error(`Wallet ${walletKey} not available`);
         }
-        console.log("🔗 Page context: enabling wallet:", walletKey);
-        const enabledWallet = await window.injectedWeb3[walletKey].enable();
-        console.log("✅ Page context: wallet enabled:", enabledWallet);
-        console.log("📋 Page context: getting accounts...");
+        const enabledWallet = await injectedWeb3[walletKey].enable();
         const walletAccounts = await enabledWallet.accounts.get();
-        console.log("📋 Page context: raw wallet accounts =", walletAccounts);
-        console.log("📋 Page context: got", walletAccounts.length, "accounts");
         if (walletAccounts.length === 0) {
           throw new Error(`No accounts found in ${walletKey}`);
         }
@@ -73,7 +59,6 @@
           name: acc.name || "Unnamed Account",
           wallet: walletKey
         }));
-        console.log("📋 Page context: transformed accounts =", accounts);
         return {
           success: true,
           accounts,
@@ -91,28 +76,23 @@
     },
     // Sign a message
     signMessage: async function(address, message) {
-      var _a;
       try {
-        console.log("✍️ Page context: signing message for address:", address);
         const wallets = ["polkadot-js", "talisman", "subwallet", "subwallet-js", "SubWallet"];
+        const injectedWeb3 = window.injectedWeb3;
         for (const walletKey of wallets) {
           try {
-            console.log("🔗 Page context: trying to enable wallet for signing:", walletKey);
-            if (!((_a = window.injectedWeb3) == null ? void 0 : _a[walletKey])) {
+            if (!(injectedWeb3 == null ? void 0 : injectedWeb3[walletKey])) {
               continue;
             }
-            const enabledWallet = await window.injectedWeb3[walletKey].enable();
-            console.log("✅ Page context: wallet enabled for signing:", walletKey);
+            const enabledWallet = await injectedWeb3[walletKey].enable();
             const accounts = await enabledWallet.accounts.get();
             const hasAddress = accounts.some((acc) => acc.address === address);
             if (hasAddress) {
-              console.log("✅ Page context: found address in wallet:", walletKey);
               const { signature } = await enabledWallet.signer.signRaw({
                 address,
                 data: message,
                 type: "bytes"
               });
-              console.log("✅ Page context: message signed successfully");
               return {
                 success: true,
                 signature,
@@ -121,7 +101,6 @@
               };
             }
           } catch (walletError) {
-            console.log("⚠️ Page context: failed to use wallet:", walletKey, walletError);
             continue;
           }
         }
@@ -136,20 +115,18 @@
     },
     // Sign a transaction (for future use)
     signTransaction: async function(address, transaction) {
-      var _a;
       try {
-        console.log("✍️ Page context: signing transaction for address:", address);
         const wallets = ["polkadot-js", "talisman", "subwallet", "subwallet-js", "SubWallet"];
+        const injectedWeb3 = window.injectedWeb3;
         for (const walletKey of wallets) {
           try {
-            if (!((_a = window.injectedWeb3) == null ? void 0 : _a[walletKey])) {
+            if (!(injectedWeb3 == null ? void 0 : injectedWeb3[walletKey])) {
               continue;
             }
-            const enabledWallet = await window.injectedWeb3[walletKey].enable();
+            const enabledWallet = await injectedWeb3[walletKey].enable();
             const accounts = await enabledWallet.accounts.get();
             const hasAddress = accounts.some((acc) => acc.address === address);
             if (hasAddress) {
-              console.log("✅ Page context: found address in wallet:", walletKey);
               const { signature } = await enabledWallet.signer.signRaw({
                 address,
                 data: transaction,
@@ -163,7 +140,6 @@
               };
             }
           } catch (walletError) {
-            console.log("⚠️ Page context: failed to use wallet:", walletKey, walletError);
             continue;
           }
         }
@@ -179,7 +155,6 @@
   };
   window.addEventListener("message", function(event) {
     if (event.source !== window) return;
-    console.log("📡 Page context: received message:", event.data.type);
     if (event.data.type === "CHECK_WALLET_EXTENSION") {
       const result = window.opengovVotingTool.checkWalletExtension();
       window.postMessage({
@@ -216,7 +191,6 @@
     }
   });
   function performWalletCheck() {
-    console.log("🚀 Page context: Performing wallet check");
     const result = window.opengovVotingTool.checkWalletExtension();
     window.opengovVotingToolResult = {
       hasPolkadotExtension: result.hasPolkadotExtension,
@@ -225,29 +199,21 @@
       debug: result.debug
     };
     if (result.hasPolkadotExtension) {
-      console.log("🎉 Page context: Wallet extensions found!");
       window.postMessage({
         type: "WALLET_EXTENSION_DETECTED",
         data: result
       }, "*");
-    } else {
-      console.log("❌ Page context: No wallet extensions found yet");
-      console.log("🔍 Page context: Debug info:", result.debug);
     }
     return result;
   }
-  console.log("🚀 Page context script loaded");
   performWalletCheck();
   setTimeout(() => {
-    console.log("🔄 Page context: 500ms delayed check");
     performWalletCheck();
   }, 500);
   setTimeout(() => {
-    console.log("🔄 Page context: 1000ms delayed check");
     performWalletCheck();
   }, 1e3);
   setTimeout(() => {
-    console.log("🔄 Page context: 2000ms delayed check");
     performWalletCheck();
   }, 2e3);
   window.postMessage({

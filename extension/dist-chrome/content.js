@@ -6145,54 +6145,33 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
       if (state.token) {
         requestHeaders.Authorization = `Bearer ${state.token}`;
       }
-      console.log("📤 Content script: Sending API call message to background script...");
-      console.log("📤 Content script: Message details:", {
+      const messageId = Date.now().toString();
+      chrome.runtime.sendMessage({
         type: "VOTING_TOOL_API_CALL",
+        messageId,
         endpoint,
         method,
         data,
         headers: requestHeaders
-      });
-      chrome.runtime.sendMessage({ type: "TEST" }, (testResponse) => {
-        console.log("🧪 Content script: Test message response:", testResponse);
+      }, (response) => {
+        var _a, _b, _c;
         if (chrome.runtime.lastError) {
-          console.error("❌ Content script: Test message error:", chrome.runtime.lastError);
+          console.error("❌ Content script: Chrome runtime error:", chrome.runtime.lastError);
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+        if (response && response.success) {
+          resolve(response.data);
+        } else {
+          console.error("❌ Content script: API call failed, response:", response);
+          const error = new Error((response == null ? void 0 : response.error) || "API call failed");
+          if ((_b = (_a = response == null ? void 0 : response.debugInfo) == null ? void 0 : _a.errorResponseBody) == null ? void 0 : _b.details) {
+            error.details = response.debugInfo.errorResponseBody.details;
+            error.status = (_c = response == null ? void 0 : response.debugInfo) == null ? void 0 : _c.responseStatus;
+          }
+          reject(error);
         }
       });
-      setTimeout(() => {
-        console.log("📤 Content script: Sending actual API call message...");
-        const messageId = Date.now().toString();
-        console.log("📤 Content script: Message ID:", messageId);
-        chrome.runtime.sendMessage({
-          type: "VOTING_TOOL_API_CALL",
-          messageId,
-          endpoint,
-          method,
-          data,
-          headers: requestHeaders
-        }, (response) => {
-          var _a, _b, _c;
-          console.log("📥 Content script: Received response from background script:", response);
-          console.log("📥 Content script: Response for message ID:", messageId);
-          if (chrome.runtime.lastError) {
-            console.error("❌ Content script: Chrome runtime error:", chrome.runtime.lastError);
-            reject(new Error(chrome.runtime.lastError.message));
-            return;
-          }
-          if (response && response.success) {
-            console.log("✅ Content script: API call successful, resolving with data:", response.data);
-            resolve(response.data);
-          } else {
-            console.error("❌ Content script: API call failed, response:", response);
-            const error = new Error((response == null ? void 0 : response.error) || "API call failed");
-            if ((_b = (_a = response == null ? void 0 : response.debugInfo) == null ? void 0 : _a.errorResponseBody) == null ? void 0 : _b.details) {
-              error.details = response.debugInfo.errorResponseBody.details;
-              error.status = (_c = response == null ? void 0 : response.debugInfo) == null ? void 0 : _c.responseStatus;
-            }
-            reject(error);
-          }
-        });
-      }, 100);
     });
   }
   const authStore = {
@@ -6869,7 +6848,6 @@ Your address: ${address}${configuredMultisigs}
   });
   const App = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-20d5b619"]]);
   if (window.opengovVotingToolInitialized) {
-    console.log("🚫 OpenGov VotingTool already initialized, skipping...");
     throw new Error("Already initialized");
   }
   window.opengovVotingToolInitialized = true;
@@ -6886,13 +6864,11 @@ Your address: ${address}${configuredMultisigs}
   const script = document.createElement("script");
   script.src = chrome.runtime.getURL("inject.js");
   script.onload = () => {
-    console.log("✅ Inject.js loaded successfully, removing script element");
     script.remove();
   };
   document.head.appendChild(script);
   window.addEventListener("message", function(event) {
     if (event.source !== window) return;
-    console.log("📡 Extension context: received message:", event.data.type, event.data.data);
     if (event.data.type === "WALLET_EXTENSION_RESULT") {
       window.opengovVotingToolResult = event.data.data;
     }
@@ -6911,13 +6887,10 @@ Your address: ${address}${configuredMultisigs}
     }
   });
   setTimeout(() => {
-    console.log("🔍 Testing background script connection...");
     try {
       chrome.runtime.sendMessage({ type: "PING" }, (response) => {
         if (chrome.runtime.lastError) {
           console.error("❌ Background script connection failed:", chrome.runtime.lastError);
-        } else {
-          console.log("✅ Background script connection successful:", response);
         }
       });
     } catch (error) {
@@ -6925,7 +6898,6 @@ Your address: ${address}${configuredMultisigs}
     }
   }, 500);
   setTimeout(() => {
-    console.log("🔍 Extension context: triggering initial check...");
     window.postMessage({
       type: "CHECK_WALLET_EXTENSION"
     }, "*");

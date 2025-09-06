@@ -10,7 +10,9 @@
     "https://polkadot.polkassembly.io/*",
     "https://kusama.polkassembly.io/*",
     "https://polkadot.subsquare.io/*",
-    "https://kusama.subsquare.io/*"
+    "https://kusama.subsquare.io/*",
+    "http://localhost:3000/*",
+    "https://528cc77057ef.ngrok-free.app/*"
   ],
   "content_scripts": [
     {

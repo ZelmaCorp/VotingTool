@@ -19,14 +19,11 @@ var __spreadValues = (a, b) => {
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 (function() {
   "use strict";
-  console.log("OpenGov VotingTool Background script loaded!");
   const BUILD_ID = "v1.1.0-" + Date.now();
-  console.log("🏗️ Background: Build ID:", BUILD_ID);
   let messageCounter = 0;
   const API_CONFIG = {
     // For development, you can use ngrok: ngrok http 3000
     // baseURL: 'https://abc123.ngrok.io',
-    //baseURL: 'http://localhost:3000',
     baseURL: "https://528cc77057ef.ngrok-free.app",
     timeout: 1e4
   };
@@ -64,21 +61,12 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
           debugInfo
         };
       }
-      debugInfo.step = "test_fetch";
-      try {
-        const testResponse = await fetch("https://httpbin.org/get");
-        debugInfo.testFetchSuccess = true;
-        debugInfo.testFetchStatus = testResponse.status;
-      } catch (testError) {
-        debugInfo.testFetchError = testError instanceof Error ? testError.message : "Unknown test error";
-        debugInfo.testFetchErrorName = testError instanceof Error ? testError.name : "Unknown";
-      }
       debugInfo.step = "prepare_fetch_options";
       const options = {
         method: method.toUpperCase(),
-        headers: __spreadValues({
+        headers: __spreadValues(__spreadValues({
           "Content-Type": "application/json"
-        }, headers),
+        }, API_CONFIG.baseURL.includes("ngrok") && { "ngrok-skip-browser-warning": "true" }), headers),
         body: data ? JSON.stringify(data) : void 0
       };
       debugInfo.fetchOptions = options;
@@ -130,7 +118,6 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
         debugInfo.step = "fetch_error";
         debugInfo.fetchError = fetchError instanceof Error ? fetchError.message : "Unknown fetch error";
         debugInfo.fetchErrorName = fetchError instanceof Error ? fetchError.name : "Unknown";
-        debugInfo.fetchErrorStack = fetchError instanceof Error ? fetchError.stack : void 0;
         return {
           success: false,
           error: fetchError instanceof Error ? fetchError.message : "Unknown fetch error",
@@ -140,8 +127,6 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     } catch (outerError) {
       debugInfo.step = "outer_error";
       debugInfo.outerError = outerError instanceof Error ? outerError.message : "Unknown outer error";
-      debugInfo.outerErrorName = outerError instanceof Error ? outerError.name : "Unknown";
-      debugInfo.outerErrorStack = outerError instanceof Error ? outerError.stack : void 0;
       return {
         success: false,
         error: outerError instanceof Error ? outerError.message : "Unknown outer error",
@@ -153,12 +138,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     messageCounter++;
     const currentCount = messageCounter;
     try {
-      console.log(`📨 Background: Received message #${currentCount}:`, message);
-      console.log(`📨 Background: Message type: ${message == null ? void 0 : message.type}`);
-      console.log(`📨 Background: Sender:`, sender);
-      console.log(`📨 Background: Full message object:`, JSON.stringify(message, null, 2));
       if ((message == null ? void 0 : message.type) === "PING") {
-        console.log(`🏓 Background: Responding to PING message #${currentCount}`);
         sendResponse({
           success: true,
           message: "Background script is alive and responding!",
@@ -169,7 +149,6 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
         return false;
       }
       if ((message == null ? void 0 : message.type) === "TEST") {
-        console.log(`🧪 Background: Processing test message #${currentCount}`);
         sendResponse({
           success: true,
           message: "Background script is working!",
@@ -180,15 +159,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
         return false;
       }
       if ((message == null ? void 0 : message.type) === "VOTING_TOOL_API_CALL") {
-        console.log(`🌐 Background: Processing voting tool API call request #${currentCount}:`, {
-          messageId: message.messageId,
-          endpoint: message.endpoint,
-          method: message.method,
-          data: message.data,
-          headers: message.headers
-        });
         makeApiCall(message.endpoint, message.method, message.data, message.headers).then((result) => {
-          console.log(`📤 Background: Sending API result back to content script for message #${currentCount}:`, result);
           try {
             sendResponse(__spreadProps(__spreadValues({}, result), {
               messageCount: currentCount,
@@ -222,23 +193,10 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
             });
           } catch (responseError) {
             console.error(`❌ Background: Failed to send error response for message #${currentCount}:`, responseError);
-            try {
-              sendResponse({
-                success: false,
-                error: "Failed to send error response",
-                messageCount: currentCount,
-                messageId: message.messageId,
-                criticalError: true
-              });
-            } catch (finalError) {
-              console.error(`❌ Background: Final attempt to send response failed for message #${currentCount}:`, finalError);
-            }
           }
         });
         return true;
       }
-      console.log(`⚠️ Background: Unknown message type #${currentCount}: ${message == null ? void 0 : message.type}`);
-      console.log(`⚠️ Background: Sending default error response`);
       sendResponse({
         success: false,
         error: `Unknown message type: ${(message == null ? void 0 : message.type) || "undefined"}`,
@@ -253,8 +211,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
           error: "Critical error in message handler",
           details: outerError instanceof Error ? outerError.message : "Unknown critical error",
           messageCount: currentCount,
-          criticalError: true,
-          stack: outerError instanceof Error ? outerError.stack : void 0
+          criticalError: true
         });
       } catch (sendError) {
         console.error(`💥 Background: Failed to send critical error response for message #${currentCount}:`, sendError);
@@ -264,58 +221,22 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
   });
   const injectedTabs = /* @__PURE__ */ new Set();
   function injectContentScript(tabId, url) {
-    console.log("🎯 Attempting to inject content script into tab:", tabId, "URL:", url);
     if (injectedTabs.has(tabId)) {
-      console.log("✅ Tab already injected, skipping:", tabId);
       return;
     }
     const isPolkassembly = url.includes("polkassembly.io");
     const isSubsquare = url.includes("subsquare.io");
     if (!isPolkassembly && !isSubsquare) {
-      console.log("❌ Not a supported site, skipping injection");
       return;
     }
-    console.log("✅ Supported site detected, injecting content script...");
     try {
       chrome.scripting.executeScript({
         target: { tabId },
         files: ["content.js"]
       }).then(() => {
-        console.log("✅ Content script injected successfully!");
         injectedTabs.add(tabId);
       }).catch((error) => {
         console.error("❌ Failed to inject content script:", error);
-        chrome.scripting.executeScript({
-          target: { tabId },
-          func: () => {
-            console.log("🧪 FALLBACK CONTENT SCRIPT INJECTED!");
-            console.log("📍 Current URL:", window.location.href);
-            const testDiv = document.createElement("div");
-            testDiv.style.cssText = `
-            position: fixed;
-            top: 50px;
-            left: 50px;
-            z-index: 999999;
-            background: #00ff00;
-            color: black;
-            border: 5px solid #000000;
-            border-radius: 10px;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-            font-size: 24px;
-            font-weight: bold;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-          `;
-            testDiv.innerHTML = "🧪 FALLBACK INJECTION - EXTENSION WORKS! 🧪";
-            document.body.appendChild(testDiv);
-            console.log("✅ Fallback test element added to page");
-          }
-        }).then(() => {
-          console.log("✅ Fallback script injected successfully!");
-          injectedTabs.add(tabId);
-        }).catch((fallbackError) => {
-          console.error("❌ Fallback injection also failed:", fallbackError);
-        });
       });
     } catch (error) {
       console.error("❌ Error in injection attempt:", error);
@@ -323,32 +244,26 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
   }
   chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
     if (changeInfo.status === "complete" && tab.url) {
-      console.log("🔄 Tab updated:", tabId, "URL:", tab.url);
       injectContentScript(tabId, tab.url);
     }
   });
   chrome.tabs.onActivated.addListener((activeInfo) => {
-    console.log("🎯 Tab activated:", activeInfo.tabId);
     chrome.tabs.get(activeInfo.tabId, (tab) => {
       if (tab.url) {
-        console.log("📍 Active tab URL:", tab.url);
         injectContentScript(tab.id, tab.url);
       }
     });
   });
   chrome.tabs.onRemoved.addListener((tabId) => {
     if (injectedTabs.has(tabId)) {
-      console.log("🧹 Cleaning up injected tab tracking:", tabId);
       injectedTabs.delete(tabId);
     }
   });
   chrome.runtime.onInstalled.addListener(() => {
-    console.log("🚀 Extension installed/updated, checking current tabs...");
     injectedTabs.clear();
     chrome.tabs.query({}, (tabs) => {
       tabs.forEach((tab) => {
         if (tab.url && tab.id) {
-          console.log("🔍 Checking existing tab:", tab.id, tab.url);
           injectContentScript(tab.id, tab.url);
         }
       });

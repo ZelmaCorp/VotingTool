@@ -17,8 +17,4 @@ function initializeVueApp() {
 }
 
 // Initialize when popup loads
-initializeVueApp()
-
-// TODO: Initialize Vue app for popup
-// TODO: Set up popup functionality
-// TODO: Handle user interactions and data display 
+initializeVueApp() 

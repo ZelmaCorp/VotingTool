@@ -91,11 +91,11 @@ setTimeout(() => {
   try {
     chrome.runtime.sendMessage({ type: 'PING' }, (response) => {
       if (chrome.runtime.lastError) {
-        console.error('Background script connection failed:', chrome.runtime.lastError);
+        console.error('❌ Background script connection failed:', chrome.runtime.lastError);
       }
     });
   } catch (error) {
-    console.error('Error testing background script connection:', error);
+    console.error('❌ Error testing background script connection:', error);
   }
 }, 500);
 

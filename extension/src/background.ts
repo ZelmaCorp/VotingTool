@@ -1,11 +1,8 @@
 // OpenGov VotingTool Extension - Background Script
 // This will be the main entry point for the extension
 
-console.log('OpenGov VotingTool Background script loaded!')
-
 // Build identifier for debugging
 const BUILD_ID = 'v1.1.0-' + Date.now()
-console.log('🏗️ Background: Build ID:', BUILD_ID)
 
 // Message counter for debugging
 let messageCounter = 0
@@ -14,7 +11,6 @@ let messageCounter = 0
 const API_CONFIG = {
   // For development, you can use ngrok: ngrok http 3000
   // baseURL: 'https://abc123.ngrok.io',
-  //baseURL: 'http://localhost:3000',
   baseURL: 'https://528cc77057ef.ngrok-free.app',
   timeout: 10000
 }
@@ -61,22 +57,13 @@ async function makeApiCall(endpoint: string, method: string, data?: any, headers
       }
     }
     
-    debugInfo.step = 'test_fetch'
-    // Test if fetch works with a simple URL first
-    try {
-      const testResponse = await fetch('https://httpbin.org/get')
-      debugInfo.testFetchSuccess = true
-      debugInfo.testFetchStatus = testResponse.status
-    } catch (testError) {
-      debugInfo.testFetchError = testError instanceof Error ? testError.message : 'Unknown test error'
-      debugInfo.testFetchErrorName = testError instanceof Error ? testError.name : 'Unknown'
-    }
-    
     debugInfo.step = 'prepare_fetch_options'
     const options: RequestInit = {
       method: method.toUpperCase(),
       headers: {
         'Content-Type': 'application/json',
+        // Add ngrok bypass header if using ngrok
+        ...(API_CONFIG.baseURL.includes('ngrok') && { 'ngrok-skip-browser-warning': 'true' }),
         ...headers
       },
       body: data ? JSON.stringify(data) : undefined
@@ -146,7 +133,6 @@ async function makeApiCall(endpoint: string, method: string, data?: any, headers
       debugInfo.step = 'fetch_error'
       debugInfo.fetchError = fetchError instanceof Error ? fetchError.message : 'Unknown fetch error'
       debugInfo.fetchErrorName = fetchError instanceof Error ? fetchError.name : 'Unknown'
-      debugInfo.fetchErrorStack = fetchError instanceof Error ? fetchError.stack : undefined
       
       return {
         success: false,
@@ -158,8 +144,6 @@ async function makeApiCall(endpoint: string, method: string, data?: any, headers
   } catch (outerError) {
     debugInfo.step = 'outer_error'
     debugInfo.outerError = outerError instanceof Error ? outerError.message : 'Unknown outer error'
-    debugInfo.outerErrorName = outerError instanceof Error ? outerError.name : 'Unknown'
-    debugInfo.outerErrorStack = outerError instanceof Error ? outerError.stack : undefined
     
     return {
       success: false,
@@ -175,14 +159,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const currentCount = messageCounter
   
   try {
-    console.log(`📨 Background: Received message #${currentCount}:`, message)
-    console.log(`📨 Background: Message type: ${message?.type}`)
-    console.log(`📨 Background: Sender:`, sender)
-    console.log(`📨 Background: Full message object:`, JSON.stringify(message, null, 2))
-    
     // Add immediate response for connection testing
     if (message?.type === 'PING') {
-      console.log(`🏓 Background: Responding to PING message #${currentCount}`)
       sendResponse({ 
         success: true, 
         message: 'Background script is alive and responding!',
@@ -194,7 +172,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     
     if (message?.type === 'TEST') {
-      console.log(`🧪 Background: Processing test message #${currentCount}`)
       sendResponse({ 
         success: true, 
         message: 'Background script is working!',
@@ -206,18 +183,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
     
     if (message?.type === 'VOTING_TOOL_API_CALL') {
-      console.log(`🌐 Background: Processing voting tool API call request #${currentCount}:`, {
-        messageId: message.messageId,
-        endpoint: message.endpoint,
-        method: message.method,
-        data: message.data,
-        headers: message.headers
-      })
       
       // Handle API calls from content script asynchronously
       makeApiCall(message.endpoint, message.method, message.data, message.headers)
         .then(result => {
-          console.log(`📤 Background: Sending API result back to content script for message #${currentCount}:`, result)
           try {
             sendResponse({
               ...result,
@@ -226,7 +195,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             })
           } catch (error) {
             console.error(`❌ Background: Failed to send response for message #${currentCount}:`, error)
-            // Try to send error response
             try {
               sendResponse({
                 success: false,
@@ -254,27 +222,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             })
           } catch (responseError) {
             console.error(`❌ Background: Failed to send error response for message #${currentCount}:`, responseError)
-            // Try one more time with minimal data
-            try {
-              sendResponse({
-                success: false,
-                error: 'Failed to send error response',
-                messageCount: currentCount,
-                messageId: message.messageId,
-                criticalError: true
-              })
-            } catch (finalError) {
-              console.error(`❌ Background: Final attempt to send response failed for message #${currentCount}:`, finalError)
-            }
           }
         })
       
       // Return true to indicate we'll send response asynchronously
       return true
     }
-    
-    console.log(`⚠️ Background: Unknown message type #${currentCount}: ${message?.type}`)
-    console.log(`⚠️ Background: Sending default error response`)
     
     // Send a default error response for unknown message types
     sendResponse({
@@ -295,8 +248,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         error: 'Critical error in message handler',
         details: outerError instanceof Error ? outerError.message : 'Unknown critical error',
         messageCount: currentCount,
-        criticalError: true,
-        stack: outerError instanceof Error ? outerError.stack : undefined
+        criticalError: true
       })
     } catch (sendError) {
       console.error(`💥 Background: Failed to send critical error response for message #${currentCount}:`, sendError)
@@ -311,11 +263,8 @@ const injectedTabs = new Set<number>()
 
 // Function to inject content script
 function injectContentScript(tabId: number, url: string) {
-  console.log('🎯 Attempting to inject content script into tab:', tabId, 'URL:', url)
-  
   // Check if this tab has already been injected
   if (injectedTabs.has(tabId)) {
-    console.log('✅ Tab already injected, skipping:', tabId)
     return
   }
   
@@ -324,11 +273,8 @@ function injectContentScript(tabId: number, url: string) {
   const isSubsquare = url.includes('subsquare.io')
   
   if (!isPolkassembly && !isSubsquare) {
-    console.log('❌ Not a supported site, skipping injection')
     return
   }
-  
-  console.log('✅ Supported site detected, injecting content script...')
   
   try {
     // Try to execute the content script
@@ -336,49 +282,10 @@ function injectContentScript(tabId: number, url: string) {
       target: { tabId: tabId },
       files: ['content.js']
     }).then(() => {
-      console.log('✅ Content script injected successfully!')
       // Mark this tab as injected
       injectedTabs.add(tabId)
     }).catch((error) => {
       console.error('❌ Failed to inject content script:', error)
-      
-      // Fallback: try to inject the script content directly
-      chrome.scripting.executeScript({
-        target: { tabId: tabId },
-        func: () => {
-          console.log('🧪 FALLBACK CONTENT SCRIPT INJECTED!')
-          console.log('📍 Current URL:', window.location.href)
-          
-          // Create a very visible test element
-          const testDiv = document.createElement('div')
-          testDiv.style.cssText = `
-            position: fixed;
-            top: 50px;
-            left: 50px;
-            z-index: 999999;
-            background: #00ff00;
-            color: black;
-            border: 5px solid #000000;
-            border-radius: 10px;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-            font-size: 24px;
-            font-weight: bold;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-          `
-          testDiv.innerHTML = '🧪 FALLBACK INJECTION - EXTENSION WORKS! 🧪'
-          
-          // Add to page
-          document.body.appendChild(testDiv)
-          console.log('✅ Fallback test element added to page')
-        }
-      }).then(() => {
-        console.log('✅ Fallback script injected successfully!')
-        // Mark this tab as injected even for fallback
-        injectedTabs.add(tabId)
-      }).catch((fallbackError) => {
-        console.error('❌ Fallback injection also failed:', fallbackError)
-      })
     })
   } catch (error) {
     console.error('❌ Error in injection attempt:', error)
@@ -388,19 +295,15 @@ function injectContentScript(tabId: number, url: string) {
 // Listen for tab updates
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === 'complete' && tab.url) {
-    console.log('🔄 Tab updated:', tabId, 'URL:', tab.url)
     injectContentScript(tabId, tab.url)
   }
 })
 
 // Listen for tab activation
 chrome.tabs.onActivated.addListener((activeInfo) => {
-  console.log('🎯 Tab activated:', activeInfo.tabId)
-  
   // Get the active tab info
   chrome.tabs.get(activeInfo.tabId, (tab) => {
     if (tab.url) {
-      console.log('📍 Active tab URL:', tab.url)
       injectContentScript(tab.id!, tab.url)
     }
   })
@@ -409,15 +312,12 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
 // Listen for tab removal to clean up tracking
 chrome.tabs.onRemoved.addListener((tabId) => {
   if (injectedTabs.has(tabId)) {
-    console.log('🧹 Cleaning up injected tab tracking:', tabId)
     injectedTabs.delete(tabId)
   }
 })
 
 // Listen for extension installation/update
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('🚀 Extension installed/updated, checking current tabs...')
-  
   // Clear any stale tab tracking
   injectedTabs.clear()
   
@@ -425,13 +325,8 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.tabs.query({}, (tabs) => {
     tabs.forEach(tab => {
       if (tab.url && tab.id) {
-        console.log('🔍 Checking existing tab:', tab.id, tab.url)
         injectContentScript(tab.id, tab.url)
       }
     })
   })
-})
-
-// TODO: Set up background script functionality
-// TODO: Handle extension lifecycle events
-// TODO: Manage content script injection 
+}) 
