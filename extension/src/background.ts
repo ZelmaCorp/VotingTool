@@ -15,7 +15,7 @@ const API_CONFIG = {
   // For development, you can use ngrok: ngrok http 3000
   // baseURL: 'https://abc123.ngrok.io',
   //baseURL: 'http://localhost:3000',
-  baseURL: 'https://adbd39243b76.ngrok-free.app',
+  baseURL: 'https://528cc77057ef.ngrok-free.app',
   timeout: 10000
 }
 
