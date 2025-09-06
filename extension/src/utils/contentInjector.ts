@@ -183,13 +183,6 @@ export class ContentInjector {
         container.setAttribute('data-opengov-proposal', proposal.postId.toString());
         container.style.cssText = `
             pointer-events: auto;
-            background: red !important;
-            color: white !important;
-            padding: 4px 8px !important;
-            border-radius: 4px !important;
-            font-size: 12px !important;
-            min-width: 60px !important;
-            text-align: center !important;
         `;
         
         wrapper.appendChild(container);
