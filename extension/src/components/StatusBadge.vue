@@ -156,14 +156,19 @@ const saveStatusChange = async () => {
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   padding: 4px 8px;
   border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  border: 1px solid transparent;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.6);
   transition: all 0.2s ease;
   user-select: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(3px);
+  white-space: nowrap;
+  min-width: 80px;
+  justify-content: center;
 }
 
 .status-clickable {
@@ -171,9 +176,9 @@ const saveStatusChange = async () => {
 }
 
 .status-clickable:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  border-color: rgba(0,0,0,0.1);
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 1);
 }
 
 .status-icon {
@@ -185,17 +190,57 @@ const saveStatusChange = async () => {
   opacity: 0.7;
 }
 
-/* Status color classes */
-.status-not-started { background: #6c757d; color: white; }
-.status-considering { background: #ffc107; color: #212529; }
-.status-ready-for-approval { background: #17a2b8; color: white; }
-.status-waiting-for-agreement { background: #fd7e14; color: white; }
-.status-ready-to-vote { background: #28a745; color: white; }
-.status-reconsidering { background: #dc3545; color: white; }
-.status-voted-----aye---- { background: #198754; color: white; }
-.status-voted-----nay---- { background: #dc3545; color: white; }
-.status-voted------abstain------ { background: #6f42c1; color: white; }
-.status-not-voted { background: #e9ecef; color: #495057; }
+/* Status color classes with enhanced floating design */
+.status-not-started { 
+  background: linear-gradient(135deg, #6c757d, #5a6268); 
+  color: white; 
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.status-considering { 
+  background: linear-gradient(135deg, #ffc107, #e0a800); 
+  color: #212529; 
+  border-color: rgba(33, 37, 41, 0.2);
+}
+.status-ready-for-approval { 
+  background: linear-gradient(135deg, #17a2b8, #138496); 
+  color: white; 
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.status-waiting-for-agreement { 
+  background: linear-gradient(135deg, #fd7e14, #e8680b); 
+  color: white; 
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.status-ready-to-vote { 
+  background: linear-gradient(135deg, #28a745, #1e7e34); 
+  color: white; 
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.status-reconsidering { 
+  background: linear-gradient(135deg, #dc3545, #c82333); 
+  color: white; 
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.status-voted-----aye---- { 
+  background: linear-gradient(135deg, #198754, #155724); 
+  color: white; 
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.status-voted-----nay---- { 
+  background: linear-gradient(135deg, #dc3545, #c82333); 
+  color: white; 
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.status-voted------abstain------ { 
+  background: linear-gradient(135deg, #6f42c1, #5a32a3); 
+  color: white; 
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.status-not-voted { 
+  background: linear-gradient(135deg, #e9ecef, #dee2e6); 
+  color: #495057; 
+  border-color: rgba(73, 80, 87, 0.2);
+}
 
 /* Modal styles */
 .modal-overlay {

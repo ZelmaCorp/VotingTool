@@ -90,6 +90,15 @@ export class ProposalDetector {
         const titleElement = this.findTitleElement();
         if (!titleElement) return null;
 
+        // First check if we're in a table row context
+        let current: HTMLElement | null = titleElement;
+        while (current && current !== document.body) {
+            if (current.tagName.toLowerCase() === 'tr') {
+                return current;
+            }
+            current = current.parentElement;
+        }
+
         // Look for a container that wraps the title and metadata
         let container = titleElement.parentElement;
         while (container && container !== document.body) {
@@ -165,40 +174,119 @@ export class ProposalDetector {
         const chain = this.getChainFromUrl();
         if (!chain) return proposals;
 
-        // Look for proposal cards/items in lists
-        const proposalSelectors = [
-            'a[href*="/referendum/"]',
-            'a[href*="/proposal/"]',
-            'a[href*="/referenda/"]',
-            '[class*="proposal-card"]',
-            '[class*="referendum-card"]'
-        ];
-
-        for (const selector of proposalSelectors) {
-            const elements = document.querySelectorAll(selector);
+        // Look for the Polkassembly structure: <a><tr>...</tr></a>
+        const linkWrappers = document.querySelectorAll('a.contents[href*="/referenda/"], a.contents[href*="/referendum/"], a.contents[href*="/proposal/"]');
+        console.log(`🔍 ProposalDetector: Found ${linkWrappers.length} link wrappers`);
+        
+        // Also log what we're looking for
+        console.log('🔍 Looking for selectors: a.contents[href*="/referenda/"], a.contents[href*="/referendum/"], a.contents[href*="/proposal/"]');
+        
+        linkWrappers.forEach((linkWrapper, index) => {
+            const anchor = linkWrapper as HTMLAnchorElement;
+            console.log(`🔗 Link wrapper ${index}: ${anchor.href}`);
             
-            elements.forEach((element) => {
-                const link = element.getAttribute('href') || element.querySelector('a')?.getAttribute('href');
-                if (!link) return;
+            const match = anchor.href.match(/\/(referendum|proposal|referenda)\/(\d+)/);
+            if (!match) {
+                console.log(`  ❌ No match for: ${anchor.href}`);
+                return;
+            }
 
-                const match = link.match(/\/(referendum|proposal|referenda)\/(\d+)/);
-                if (!match) return;
+            const postId = parseInt(match[2], 10);
+            const row = anchor.querySelector('tr') as HTMLElement;
+            if (!row) {
+                console.log(`  ❌ No TR found in link wrapper`);
+                return;
+            }
 
-                const postId = parseInt(match[2], 10);
-                const titleElement = element.querySelector('h1, h2, h3, .title, [class*="title"]') as HTMLElement;
-                const title = titleElement?.textContent?.trim() || `${match[1]} #${postId}`;
+            const titleElement = row.querySelector('h1, h2, h3, .title, [class*="title"], td:first-child') as HTMLElement;
+            const title = titleElement?.textContent?.trim() || `${match[1]} #${postId}`;
 
-                proposals.push({
-                    postId,
-                    title,
-                    chain,
-                    url: link.startsWith('http') ? link : `${window.location.origin}${link}`,
-                    titleElement,
-                    headerElement: element as HTMLElement
+            console.log(`  ✅ Found proposal #${postId}: ${title.substring(0, 50)}...`);
+
+            proposals.push({
+                postId,
+                title,
+                chain,
+                url: anchor.href,
+                titleElement,
+                headerElement: anchor // Use the <a> wrapper as the header element
+            });
+        });
+
+        // Fallback: look for traditional table rows if no link wrappers found
+        if (proposals.length === 0) {
+            const tableRows = document.querySelectorAll('tr.border-b, tr[class*="border"]');
+            console.log(`🔍 ProposalDetector: Fallback - Found ${tableRows.length} table rows`);
+            
+            tableRows.forEach((row, index) => {
+                const links = row.querySelectorAll('a[href*="/referendum/"], a[href*="/proposal/"], a[href*="/referenda/"]');
+                console.log(`🔗 Row ${index}: Found ${links.length} proposal links`);
+                
+                links.forEach((link, linkIndex) => {
+                    const anchor = link as HTMLAnchorElement;
+                    console.log(`  Link ${linkIndex}: ${anchor.href}`);
+                    
+                    const match = anchor.href.match(/\/(referendum|proposal|referenda)\/(\d+)/);
+                    if (!match) {
+                        console.log(`  ❌ No match for: ${anchor.href}`);
+                        return;
+                    }
+
+                    const postId = parseInt(match[2], 10);
+                    const titleElement = row.querySelector('h1, h2, h3, .title, [class*="title"], td:first-child') as HTMLElement;
+                    const title = titleElement?.textContent?.trim() || `${match[1]} #${postId}`;
+
+                    console.log(`  ✅ Found proposal #${postId}: ${title.substring(0, 50)}...`);
+
+                    proposals.push({
+                        postId,
+                        title,
+                        chain,
+                        url: anchor.href,
+                        titleElement,
+                        headerElement: row as HTMLElement
+                    });
                 });
             });
         }
 
+        // Fallback: Look for other proposal containers if no table rows found
+        if (proposals.length === 0) {
+            const proposalSelectors = [
+                'a[href*="/referendum/"]',
+                'a[href*="/proposal/"]',
+                'a[href*="/referenda/"]',
+                '[class*="proposal-card"]',
+                '[class*="referendum-card"]'
+            ];
+
+            for (const selector of proposalSelectors) {
+                const elements = document.querySelectorAll(selector);
+                
+                elements.forEach((element) => {
+                    const link = element.getAttribute('href') || element.querySelector('a')?.getAttribute('href');
+                    if (!link) return;
+
+                    const match = link.match(/\/(referendum|proposal|referenda)\/(\d+)/);
+                    if (!match) return;
+
+                    const postId = parseInt(match[2], 10);
+                    const titleElement = element.querySelector('h1, h2, h3, .title, [class*="title"]') as HTMLElement;
+                    const title = titleElement?.textContent?.trim() || `${match[1]} #${postId}`;
+
+                    proposals.push({
+                        postId,
+                        title,
+                        chain,
+                        url: link.startsWith('http') ? link : `${window.location.origin}${link}`,
+                        titleElement,
+                        headerElement: element as HTMLElement
+                    });
+                });
+            }
+        }
+
+        console.log(`🎯 ProposalDetector: Returning ${proposals.length} total proposals`);
         return proposals;
     }
 

@@ -58,6 +58,7 @@ export class ContentInjector {
      */
     private async handlePageChange(): Promise<void> {
         console.log('📄 Page change detected, checking for proposals...');
+        console.log('🔍 Current URL:', window.location.href);
 
         // Clean up existing injections first
         this.cleanupExistingInjections();
@@ -65,15 +66,46 @@ export class ContentInjector {
         if (this.detector.isProposalPage()) {
             const proposal = this.detector.detectCurrentProposal();
             if (proposal) {
-                console.log('📋 Detected proposal:', proposal);
+                console.log('📋 Detected single proposal:', proposal);
                 await this.injectProposalComponents(proposal);
+            } else {
+                console.log('❌ No proposal detected on proposal page');
             }
         } else {
             // Check for proposal lists
+            console.log('🔍 Searching for table rows with selectors: tr.border-b, tr[class*="border"]');
+            const tableRows = document.querySelectorAll('tr.border-b, tr[class*="border"]');
+            console.log('📊 Found table rows:', tableRows.length);
+            
+            // Debug: let's see what links are in these rows
+            tableRows.forEach((tr, index) => {
+                const links = tr.querySelectorAll('a[href*="/referendum/"], a[href*="/proposal/"], a[href*="/referenda/"]');
+                if (links.length > 0) {
+                    console.log(`TR ${index} has ${links.length} proposal links:`, Array.from(links).map(l => (l as HTMLAnchorElement).href));
+                }
+            });
+            
             const proposals = this.detector.detectProposalsOnListPage();
+            
             if (proposals.length > 0) {
                 console.log('📋 Detected proposals on list page:', proposals.length);
+                proposals.forEach((p, index) => {
+                    console.log(`  Proposal ${index}: #${p.postId} - ${p.title.substring(0, 50)}...`);
+                });
                 await this.injectListPageComponents(proposals);
+            } else {
+                console.log('❌ No proposals detected on list page');
+                // Debug: let's see what elements are actually on the page
+                const allTrs = document.querySelectorAll('tr');
+                console.log('🔍 All TR elements found:', allTrs.length);
+                const allLinks = document.querySelectorAll('a[href*="/referendum/"], a[href*="/proposal/"], a[href*="/referenda/"]');
+                console.log('🔍 All proposal links found:', allLinks.length);
+                
+                allLinks.forEach((link, index) => {
+                    if (index < 5) { // Log first 5 for debugging
+                        console.log(`Link ${index}:`, (link as HTMLAnchorElement).href);
+                    }
+                });
             }
         }
     }
@@ -97,12 +129,24 @@ export class ContentInjector {
      * Inject components for proposal list pages
      */
     private async injectListPageComponents(proposals: DetectedProposal[]): Promise<void> {
-        for (const proposal of proposals) {
-            const proposalData = await this.getProposalData(proposal.postId, proposal.chain);
+        console.log(`🚀 Starting injection for ${proposals.length} proposals`);
+        
+        for (let i = 0; i < proposals.length; i++) {
+            const proposal = proposals[i];
+            console.log(`📌 Processing proposal ${i + 1}/${proposals.length}: #${proposal.postId}`);
             
-            // Inject status badge for each proposal in the list
-            await this.injectStatusBadge(proposal, proposalData);
+            try {
+                const proposalData = await this.getProposalData(proposal.postId, proposal.chain);
+                
+                // Inject status badge for each proposal in the list
+                await this.injectStatusBadge(proposal, proposalData);
+                console.log(`✅ Successfully injected badge for proposal #${proposal.postId}`);
+            } catch (error) {
+                console.error(`❌ Failed to inject badge for proposal #${proposal.postId}:`, error);
+            }
         }
+        
+        console.log(`🎉 Completed injection for all ${proposals.length} proposals`);
     }
 
     /**
@@ -115,27 +159,62 @@ export class ContentInjector {
         }
 
         // Check if already injected
-        const existingBadge = proposal.headerElement.querySelector('.opengov-status-badge');
+        const existingBadge = document.querySelector(`#voting-tool-badge-${proposal.postId}`);
         if (existingBadge) {
+            console.log(`⚠️ Badge already exists for proposal #${proposal.postId}, skipping`);
             return;
         }
 
-        // Create container for the status badge
-        const container = document.createElement('div');
-        container.className = 'opengov-status-badge';
-        container.style.cssText = `
-            display: inline-block;
-            margin-left: 8px;
-            vertical-align: middle;
+        // Create wrapper that will be positioned relative to the table row
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = `
+            position: absolute;
+            left: -100px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 10000;
+            pointer-events: none;
         `;
 
-        // Determine the best insertion point
-        const insertionPoint = this.findStatusBadgeInsertionPoint(proposal.headerElement);
-        if (insertionPoint) {
-            insertionPoint.appendChild(container);
-        } else {
-            proposal.headerElement.appendChild(container);
+        // Create container for the status badge
+        const container = document.createElement('div');
+        container.className = 'opengov-status-badge-floating';
+        container.id = `voting-tool-badge-${proposal.postId}`;
+        container.setAttribute('data-opengov-proposal', proposal.postId.toString());
+        container.style.cssText = `
+            pointer-events: auto;
+            background: red !important;
+            color: white !important;
+            padding: 4px 8px !important;
+            border-radius: 4px !important;
+            font-size: 12px !important;
+            min-width: 60px !important;
+            text-align: center !important;
+        `;
+        
+        wrapper.appendChild(container);
+
+        // Find the best parent for positioning (should be the table row itself or its direct parent)
+        const positioningParent = this.findRowPositioningParent(proposal.headerElement);
+        
+        // Make the positioning parent relative if it's not already
+        const parentStyle = window.getComputedStyle(positioningParent);
+        if (parentStyle.position === 'static') {
+            positioningParent.style.position = 'relative';
         }
+
+        // Fix overflow issues that would clip the badge (look higher up the DOM tree)
+        this.fixOverflowClipping(proposal.headerElement);
+
+        // Insert the wrapper
+        positioningParent.appendChild(wrapper);
+
+        console.log('🎯 Positioning badge for proposal', proposal.postId, {
+            targetElement: proposal.headerElement.tagName + '.' + proposal.headerElement.className,
+            positioningParent: positioningParent.tagName + '.' + positioningParent.className,
+            parentPosition: parentStyle.position,
+            sameElement: proposal.headerElement === positioningParent
+        });
 
         // Create Vue app and mount the StatusBadge component
         const app = createApp(StatusBadge, {
@@ -153,29 +232,108 @@ export class ContentInjector {
     }
 
     /**
-     * Find the best insertion point for status badge within the header
+     * Find the best parent element for positioning the badge (focused on row-level positioning)
      */
-    private findStatusBadgeInsertionPoint(headerElement: HTMLElement): HTMLElement | null {
-        // Look for title element within the header
-        const titleElement = headerElement.querySelector('h1, h2, h3, [class*="title"]') as HTMLElement;
-        if (titleElement) {
-            // Try to find a container that wraps the title
-            let container = titleElement.parentElement;
-            while (container && container !== headerElement) {
-                // If we find a flex or inline container, use it
-                const style = window.getComputedStyle(container);
-                if (style.display.includes('flex') || style.display.includes('inline')) {
-                    return container;
-                }
-                container = container.parentElement;
+    private findRowPositioningParent(targetElement: HTMLElement): HTMLElement {
+        // If the target element is an <a> wrapper, look for the <tr> inside it
+        if (targetElement.tagName.toLowerCase() === 'a') {
+            const tr = targetElement.querySelector('tr');
+            if (tr) {
+                console.log('🔗 Found TR inside A tag, using TR for positioning');
+                return tr;
             }
-            
-            // Fallback to title's parent
-            return titleElement.parentElement;
         }
         
-        return null;
+        // Start with the target element and work our way up
+        let current: HTMLElement | null = targetElement;
+        
+        while (current && current !== document.body) {
+            // If we find a table row, use it directly
+            if (current.tagName.toLowerCase() === 'tr') {
+                console.log('🔗 Found TR, using TR for positioning');
+                return current;
+            }
+            
+            current = current.parentElement;
+        }
+        
+        // Fallback to the target element itself
+        return targetElement;
     }
+
+    /**
+     * Find the best parent element for positioning the badge (legacy method)
+     */
+    private findPositioningParent(targetElement: HTMLElement): HTMLElement {
+        // Start with the target element and work our way up
+        let current: HTMLElement | null = targetElement;
+        
+        while (current && current !== document.body) {
+            // If we find a table row, use its parent (likely tbody or table)
+            if (current.tagName.toLowerCase() === 'tr') {
+                return current.parentElement as HTMLElement || current;
+            }
+            
+            // If we find a positioned element, use it
+            const style = window.getComputedStyle(current);
+            if (style.position !== 'static') {
+                return current;
+            }
+            
+            current = current.parentElement;
+        }
+        
+        // Fallback to the target element itself
+        return targetElement;
+    }
+
+    /**
+     * Fix overflow clipping that would hide badges positioned outside the container
+     */
+    private fixOverflowClipping(positioningParent: HTMLElement): void {
+        // Look for overflow containers that might clip our badge
+        let current: HTMLElement | null = positioningParent;
+        
+        while (current && current !== document.body) {
+            const style = window.getComputedStyle(current);
+            
+            // Check for containers with overflow that would clip left-positioned elements
+            const hasClippingOverflow = 
+                style.overflowX === 'auto' || style.overflowX === 'scroll' || style.overflowX === 'hidden' ||
+                style.overflow === 'auto' || style.overflow === 'scroll' || style.overflow === 'hidden';
+            
+            if (hasClippingOverflow) {
+                console.log('🔧 Found overflow container, adjusting:', {
+                    element: current.tagName + '.' + current.className,
+                    originalOverflow: { 
+                        overflow: style.overflow, 
+                        overflowX: style.overflowX, 
+                        overflowY: style.overflowY 
+                    }
+                });
+                
+                // Store original values for cleanup
+                if (!current.hasAttribute('data-opengov-original-overflow-x')) {
+                    current.setAttribute('data-opengov-original-overflow-x', style.overflowX);
+                    current.setAttribute('data-opengov-original-overflow', style.overflow);
+                    current.setAttribute('data-opengov-original-overflow-y', style.overflowY);
+                }
+                
+                // Apply comprehensive overflow fix with !important to override any CSS
+                current.style.setProperty('overflow-x', 'visible', 'important');
+                current.style.setProperty('overflow', 'visible', 'important');
+                
+                // Preserve overflow-y if it was specifically set to something useful
+                if (style.overflowY === 'visible' || style.overflowY === 'auto' || style.overflowY === 'scroll') {
+                    current.style.setProperty('overflow-y', style.overflowY, 'important');
+                }
+            }
+            
+            current = current.parentElement;
+        }
+    }
+
+
 
     /**
      * Get proposal data from API with caching
@@ -261,9 +419,41 @@ export class ContentInjector {
         });
         this.injectedComponents.clear();
 
-        // Remove injected DOM elements
-        document.querySelectorAll('.opengov-status-badge').forEach(element => {
-            element.remove();
+        // Remove injected DOM elements (both old inline and new floating)
+        document.querySelectorAll('.opengov-status-badge, .opengov-status-badge-floating').forEach(element => {
+            // Remove the wrapper if it exists
+            const wrapper = element.parentElement;
+            if (wrapper && wrapper.style.position === 'absolute' && wrapper.style.left === '-110px') {
+                wrapper.remove();
+            } else {
+                element.remove();
+            }
+        });
+
+        // Restore original overflow properties
+        document.querySelectorAll('[data-opengov-original-overflow-x]').forEach(element => {
+            const htmlElement = element as HTMLElement;
+            const originalOverflowX = element.getAttribute('data-opengov-original-overflow-x');
+            const originalOverflow = element.getAttribute('data-opengov-original-overflow');
+            const originalOverflowY = element.getAttribute('data-opengov-original-overflow-y');
+            
+            if (originalOverflowX) {
+                htmlElement.style.removeProperty('overflow-x');
+                htmlElement.style.overflowX = originalOverflowX;
+                element.removeAttribute('data-opengov-original-overflow-x');
+            }
+            
+            if (originalOverflow) {
+                htmlElement.style.removeProperty('overflow');
+                htmlElement.style.overflow = originalOverflow;
+                element.removeAttribute('data-opengov-original-overflow');
+            }
+            
+            if (originalOverflowY) {
+                htmlElement.style.removeProperty('overflow-y');
+                htmlElement.style.overflowY = originalOverflowY;
+                element.removeAttribute('data-opengov-original-overflow-y');
+            }
         });
     }
 
