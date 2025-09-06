@@ -258,75 +258,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 })
 
-// Track which tabs have already been injected to prevent duplicates
-const injectedTabs = new Set<number>()
-
-// Function to inject content script
-function injectContentScript(tabId: number, url: string) {
-  // Check if this tab has already been injected
-  if (injectedTabs.has(tabId)) {
-    return
-  }
-  
-  // Check if this is a supported site
-  const isPolkassembly = url.includes('polkassembly.io')
-  const isSubsquare = url.includes('subsquare.io')
-  
-  if (!isPolkassembly && !isSubsquare) {
-    return
-  }
-  
-  try {
-    // Try to execute the content script
-    chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      files: ['content.js']
-    }).then(() => {
-      // Mark this tab as injected
-      injectedTabs.add(tabId)
-    }).catch((error) => {
-      console.error('❌ Failed to inject content script:', error)
-    })
-  } catch (error) {
-    console.error('❌ Error in injection attempt:', error)
-  }
-}
-
-// Listen for tab updates
-chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete' && tab.url) {
-    injectContentScript(tabId, tab.url)
-  }
-})
-
-// Listen for tab activation
-chrome.tabs.onActivated.addListener((activeInfo) => {
-  // Get the active tab info
-  chrome.tabs.get(activeInfo.tabId, (tab) => {
-    if (tab.url) {
-      injectContentScript(tab.id!, tab.url)
-    }
-  })
-})
-
-// Listen for tab removal to clean up tracking
-chrome.tabs.onRemoved.addListener((tabId) => {
-  if (injectedTabs.has(tabId)) {
-    injectedTabs.delete(tabId)
-  }
-})
+// Content scripts are automatically injected via manifest.json
+// The content scripts will be injected automatically when users visit supported pages
 
 // Listen for extension installation/update
 chrome.runtime.onInstalled.addListener(() => {
-  // Clear any stale tab tracking
-  injectedTabs.clear()
-  
-  // Inject into all existing tabs
-  chrome.tabs.query({}, (tabs) => {
-    tabs.forEach(tab => {
-      if (tab.url && tab.id) {
-        injectContentScript(tab.id, tab.url)
-      }
-    })
-  })
+  console.log('🚀 OpenGov VotingTool Extension installed/updated')
+  console.log('📋 Content scripts will be automatically injected on supported sites')
 }) 
