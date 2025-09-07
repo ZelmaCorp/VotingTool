@@ -9,6 +9,8 @@ if (window.opengovVotingToolInitialized) {
 // Mark as initialized
 window.opengovVotingToolInitialized = true
 
+import { createApp } from 'vue'
+import App from './App.vue'
 import { ContentInjector } from './utils/contentInjector'
 
 // Extend Window interface
@@ -43,6 +45,26 @@ async function initializeExtension() {
   try {
     console.log('🚀 OpenGov VotingTool Extension - Starting initialization');
     
+    // Create container for our floating hamburger menu
+    const extensionContainer = document.createElement('div');
+    extensionContainer.id = 'opengov-voting-extension';
+    extensionContainer.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 999999;
+    `;
+    document.body.appendChild(extensionContainer);
+
+    // Mount our App.vue with the floating hamburger and menu
+    const app = createApp(App);
+    app.mount('#opengov-voting-extension');
+    console.log('✅ Mounted floating hamburger menu');
+    
+    // Initialize content injector for status badges
     contentInjector = ContentInjector.getInstance();
     await contentInjector.initialize();
     
