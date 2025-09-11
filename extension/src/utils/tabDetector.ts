@@ -13,25 +13,20 @@ export class TabDetector {
     // Map polkassembly categories to our Origin enum values
     private readonly POLKASSEMBLY_TO_ORIGIN_MAP: Record<string, string> = {
         'Root': 'Root',
-        'Wish For Change': 'WishForChange', 
-        'Big Spender': 'BigSpender',
-        'Medium Spender': 'MediumSpender',
-        'Small Spender': 'SmallSpender',
-        'Big Tipper': 'BigTipper',
-        'Small Tipper': 'SmallTipper',
+        'WishForChange': 'Wish For Change', 
+        'BigSpender': 'Big Spender',
+        'MediumSpender': 'Medium Spender',
+        'SmallSpender': 'Small Spender',
+        'BigTipper': 'Big Tipper',
+        'SmallTipper': 'Small Tipper',
         'Treasurer': 'Treasurer',
-        'Whitelisted Caller': 'WhitelistedCaller', // Note: polkassembly has 'WhitlistedCaller' (typo)
-        'Staking Admin': 'StakingAdmin',
-        'Lease Admin': 'LeaseAdmin',
-        'Fellowship Admin': 'FellowshipAdmin',
-        'General Admin': 'GeneralAdmin',
-        'Auction Admin': 'AuctionAdmin',
-        'Referendum Canceller': 'ReferendumCanceller',
-        'Referendum Killer': 'ReferendumKiller'
+        'WhitelistedCaller': 'Whitelisted Caller',
+        'ReferendumCanceller': 'Referendum Canceller',
+        'ReferendumKiller': 'Referendum Killer',
     };
 
     // Categories from polkassembly that we don't track (so no badges should show)
-    private readonly UNTRACKED_CATEGORIES = ['Discussion'];
+    private readonly UNTRACKED_CATEGORIES = ['Discussion', 'Staking Admin', 'Lease Admin', 'Fellowship Admin', 'General Admin', 'Auction Admin'];
 
     static getInstance(): TabDetector {
         if (!TabDetector.instance) {
@@ -113,6 +108,7 @@ export class TabDetector {
             category = category.replace(/ /g, '');
         }
 
+        console.log('🔍 TabDetector: Extracted category:', category);
         return category;
     }
 
@@ -120,29 +116,22 @@ export class TabDetector {
      * Check if a category is tracked in our Origin enum
      */
     private isCategoryTracked(category: string): boolean {
-        // Handle the polkassembly typo case
-        if (category === 'WhitlistedCaller') {
-            category = 'WhitelistedCaller';
-        }
-
         // Check if it's explicitly untracked
         if (this.UNTRACKED_CATEGORIES.includes(category)) {
             return false;
         }
 
         // Check if it's in our mapping (this covers all tracked origins)
-        return this.POLKASSEMBLY_TO_ORIGIN_MAP.hasOwnProperty(category);
+        return this.POLKASSEMBLY_TO_ORIGIN_MAP.hasOwnProperty(category) || category.includes('all');
     }
 
     /**
      * Get the mapped Origin enum value for a polkassembly category
      */
     getOriginForCategory(category: string): string | null {
-        // Handle the polkassembly typo case
-        if (category === 'WhitlistedCaller') {
-            return 'WhitelistedCaller';
+        if (category.includes('All')) {
+            return 'All';
         }
-
         return this.POLKASSEMBLY_TO_ORIGIN_MAP[category] || null;
     }
 
