@@ -4,19 +4,23 @@
 import { createApp, App as VueApp } from 'vue';
 import StatusBadge from '../components/StatusBadge.vue';
 import { ProposalDetector, type DetectedProposal } from './proposalDetector';
+import { TabDetector, type ActiveTabInfo } from './tabDetector';
 import { ApiService } from './apiService';
 import type { ProposalData, InternalStatus } from '../types';
 
 export class ContentInjector {
     private static instance: ContentInjector;
     private detector: ProposalDetector;
+    private tabDetector: TabDetector;
     private apiService: ApiService;
     private injectedComponents: Map<number, VueApp> = new Map();
     private proposalCache: Map<string, ProposalData> = new Map();
     private cleanupFunctions: (() => void)[] = [];
+    private currentActiveTab: ActiveTabInfo | null = null;
 
     constructor() {
         this.detector = ProposalDetector.getInstance();
+        this.tabDetector = TabDetector.getInstance();
         this.apiService = ApiService.getInstance();
     }
 
@@ -38,7 +42,8 @@ export class ContentInjector {
             return;
         }
 
-        // Check initial page
+        // Check initial page and tab state
+        this.currentActiveTab = this.tabDetector.detectActiveTab();
         await this.handlePageChange();
 
         // Watch for navigation changes
@@ -47,10 +52,32 @@ export class ContentInjector {
         });
         this.cleanupFunctions.push(cleanup);
 
+        // Watch for tab changes
+        const tabCleanup = this.tabDetector.watchForTabChanges(async (tabInfo) => {
+            console.log('🔄 Tab change detected:', tabInfo);
+            this.currentActiveTab = tabInfo;
+            await this.handleTabChange(tabInfo);
+        });
+        this.cleanupFunctions.push(tabCleanup);
+
         // Listen for status change events from components
         window.addEventListener('statusChanged', this.handleStatusChange.bind(this) as EventListener);
 
         console.log('✅ Content injector initialized');
+    }
+
+    /**
+     * Handle tab changes and re-render badges if needed
+     */
+    private async handleTabChange(tabInfo: ActiveTabInfo): Promise<void> {
+        console.log('🔄 Handling tab change:', tabInfo);
+        
+        // If we're on a category page, re-render all badges based on new tab state
+        if (this.tabDetector.isOnCategoryPage()) {
+            // Clean up existing injections and re-inject based on new tab state
+            this.cleanupExistingInjections();
+            await this.handlePageChange();
+        }
     }
 
     /**
@@ -117,6 +144,15 @@ export class ContentInjector {
         // Get proposal data from API
         const proposalData = await this.getProposalData(proposal.postId, proposal.chain);
         
+        // Check if we're on a category page and should show badges
+        if (this.tabDetector.isOnCategoryPage()) {
+            const currentTab = this.currentActiveTab || this.tabDetector.detectActiveTab();
+            if (!currentTab.shouldShowBadges) {
+                console.log(`⏸️ Not showing badge for single proposal - active tab "${currentTab.activeCategory}" is not tracked`);
+                return;
+            }
+        }
+        
         // Inject status badge
         await this.injectStatusBadge(proposal, proposalData);
         
@@ -130,6 +166,16 @@ export class ContentInjector {
      */
     private async injectListPageComponents(proposals: DetectedProposal[]): Promise<void> {
         console.log(`🚀 Starting injection for ${proposals.length} proposals`);
+        
+        // Check if we should show badges based on current active tab
+        const currentTab = this.currentActiveTab || this.tabDetector.detectActiveTab();
+        
+        if (!currentTab.shouldShowBadges) {
+            console.log(`⏸️ Not showing badges - active tab "${currentTab.activeCategory}" is not tracked`);
+            return;
+        }
+        
+        console.log(`✅ Showing badges - active tab "${currentTab.activeCategory}" is tracked`);
         
         for (let i = 0; i < proposals.length; i++) {
             const proposal = proposals[i];
