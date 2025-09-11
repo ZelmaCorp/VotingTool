@@ -111,7 +111,13 @@ export class ContentInjector {
                     console.log(`TR ${index} has ${links.length} proposal links:`, Array.from(links).map(l => (l as HTMLAnchorElement).href));
                 }
             });
-            
+
+            while (this.detector.isStillLoading()) {
+                // wait for 1 second
+                await sleep(1000);
+                console.log('🔍 Still loading, waiting for 1 second...');
+            }
+
             const proposals = this.detector.detectProposalsOnListPage();
             
             if (proposals.length > 0) {
@@ -513,4 +519,8 @@ export class ContentInjector {
         
         console.log('🧹 Content injector cleaned up');
     }
-} 
+}
+
+async function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
