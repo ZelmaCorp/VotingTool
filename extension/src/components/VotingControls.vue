@@ -23,7 +23,6 @@
         @click="handleAssignToMe"
         :disabled="!isAuthenticated"
       >
-        <span class="btn-icon">👤</span>
         <span class="btn-text">Assign to Me</span>
       </button>
       
@@ -33,8 +32,7 @@
         @click="handleChangeVote"
         :disabled="!isAuthenticated"
       >
-        <span class="btn-icon">🗳️</span>
-        <span class="btn-text">Change Suggested Vote</span>
+        <span class="btn-text">{{ suggestedVote || 'No Suggested Vote' }}</span>
       </button>
     </div>
 
@@ -181,13 +179,14 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { InternalStatus } from '../types'
+import type { InternalStatus, SuggestedVote } from '../types'
 
 interface VotingControlsProps {
   status: InternalStatus
   proposalId: number
   editable?: boolean
   isAuthenticated?: boolean
+  suggestedVote?: SuggestedVote
 }
 
 const props = defineProps<VotingControlsProps>()
