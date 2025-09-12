@@ -11,7 +11,7 @@ let messageCounter = 0
 const API_CONFIG = {
   // For development, you can use ngrok: ngrok http 3000
   // baseURL: 'https://abc123.ngrok.io',
-  baseURL: 'https://528cc77057ef.ngrok-free.app',
+  baseURL: 'https://40df7fbbabd1.ngrok-free.app',
   timeout: 10000
 }
 

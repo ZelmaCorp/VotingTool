@@ -15,7 +15,7 @@
     "https://polkadot.subsquare.io/*",
     "https://kusama.subsquare.io/*",
     "http://localhost:3000/*",
-    "https://528cc77057ef.ngrok-free.app/*"
+    "https://40df7fbbabd1.ngrok-free.app/*"
   ],
   "web_accessible_resources": [{
     "resources": ["inject.js"],

@@ -24,6 +24,11 @@ export class ApiService {
         this.token = localStorage.getItem('opengov-auth-token');
     }
 
+    // Method to refresh token from localStorage
+    public refreshToken(): void {
+        this.loadToken();
+    }
+
     private saveToken(token: string): void {
         this.token = token;
         localStorage.setItem('opengov-auth-token', token);

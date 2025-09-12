@@ -19,6 +19,7 @@ export class ContentInjector {
     private cleanupFunctions: (() => void)[] = [];
     private currentActiveTab: ActiveTabInfo | null = null;
     private isInjecting: boolean = false;
+    private isInitialized: boolean = false;
 
     constructor() {
         this.detector = ProposalDetector.getInstance();
@@ -37,12 +38,19 @@ export class ContentInjector {
      * Initialize the content injector
      */
     async initialize(): Promise<void> {
+        if (this.isInitialized) {
+            console.log('ℹ️ Content injector already initialized, skipping...');
+            return;
+        }
+
         console.log('🚀 Initializing OpenGov VotingTool Content Injector');
 
         if (!this.detector.isSupportedSite()) {
             console.log('❌ Not on a supported site');
             return;
         }
+
+        this.isInitialized = true;
 
         // Check initial page and tab state
         this.currentActiveTab = this.tabDetector.detectActiveTab();
@@ -73,6 +81,9 @@ export class ContentInjector {
         // Listen for voting controls events
         window.addEventListener('proposalAssigned', this.handleProposalAssigned.bind(this) as EventListener);
         window.addEventListener('voteChanged', this.handleVoteChanged.bind(this) as EventListener);
+        
+        // Listen for authentication state changes
+        window.addEventListener('authStateChanged', this.handleAuthStateChanged.bind(this) as EventListener);
 
         console.log('✅ Content injector initialized');
     }
@@ -89,6 +100,14 @@ export class ContentInjector {
             this.cleanupExistingInjections();
             await this.handlePageChange();
         }
+    }
+
+    /**
+     * Re-inject all components to reflect authentication changes
+     */
+    public async refreshAllComponents(): Promise<void> {
+        console.log('🔄 Refreshing all components due to authentication change');
+        await this.handlePageChange();
     }
 
     /**
@@ -784,15 +803,47 @@ export class ContentInjector {
                 return;
             }
 
-            // TODO: Implement assignment API call
-            console.log('Assignment would be processed for proposal', proposalId, 'on chain', currentProposal.chain);
+            // Call the assignment API
+            const result = await this.apiService.assignProposal(
+                proposalId, 
+                currentProposal.chain, 
+                action
+            );
             
-            // For now, just show a success message
-            console.log('✅ Proposal assigned successfully (placeholder)');
+            if (result.success) {
+                console.log('✅ Proposal assigned successfully');
+                
+                // Update cache to reflect the assignment
+                const cacheKey = `${currentProposal.chain}-${proposalId}`;
+                const cachedData = this.proposalCache.get(cacheKey);
+                if (cachedData) {
+                    // Mark as assigned to current user
+                    cachedData.assigned_to = 'current_user'; // This would need proper user identification
+                    this.proposalCache.set(cacheKey, cachedData);
+                }
+                
+                // Re-inject components to reflect the change
+                await this.handlePageChange();
+            } else {
+                console.error('❌ Failed to assign proposal:', result.error);
+            }
             
         } catch (error) {
-            console.error('Failed to assign proposal:', error);
+            console.error('❌ Failed to assign proposal:', error);
         }
+    }
+
+    /**
+     * Handle authentication state changes
+     */
+    private async handleAuthStateChanged(event: Event): Promise<void> {
+        const customEvent = event as CustomEvent;
+        const { isAuthenticated } = customEvent.detail;
+        
+        console.log('🔐 Authentication state changed:', isAuthenticated);
+        
+        // Refresh all components to reflect the new authentication state
+        await this.refreshAllComponents();
     }
 
     /**
@@ -903,9 +954,13 @@ export class ContentInjector {
         window.removeEventListener('statusChanged', this.handleStatusChange.bind(this) as EventListener);
         window.removeEventListener('proposalAssigned', this.handleProposalAssigned.bind(this) as EventListener);
         window.removeEventListener('voteChanged', this.handleVoteChanged.bind(this) as EventListener);
+        window.removeEventListener('authStateChanged', this.handleAuthStateChanged.bind(this) as EventListener);
         
         // Clear caches
         this.proposalCache.clear();
+        
+        // Reset initialization state
+        this.isInitialized = false;
         
         console.log('🧹 Content injector cleaned up');
     }

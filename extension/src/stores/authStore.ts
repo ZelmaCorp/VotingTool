@@ -1,6 +1,7 @@
 import { reactive, readonly } from 'vue'
 import { AuthState, AuthenticatedUser, Web3AuthRequest, AuthResponse } from '../types'
 import { config } from '../config/environment'
+import { ApiService } from '../utils/apiService'
 
 // Create reactive state
 const state = reactive<AuthState>({
@@ -75,8 +76,16 @@ export const authStore = {
                 state.isAuthenticated = true
                 
                 // Store token in localStorage for persistence
-                localStorage.setItem('auth_token', response.token)
-                localStorage.setItem('auth_user', JSON.stringify(response.user))
+                localStorage.setItem('opengov-auth-token', response.token)
+                localStorage.setItem('opengov-auth-user', JSON.stringify(response.user))
+                
+                // Refresh ApiService token
+                ApiService.getInstance().refreshToken()
+                
+                // Dispatch authentication change event
+                window.dispatchEvent(new CustomEvent('authStateChanged', { 
+                    detail: { isAuthenticated: true, user: response.user } 
+                }))
                 
                 return { success: true }
             } else {
@@ -114,8 +123,16 @@ export const authStore = {
             state.isAuthenticated = false
             
             // Clear localStorage
-            localStorage.removeItem('auth_token')
-            localStorage.removeItem('auth_user')
+            localStorage.removeItem('opengov-auth-token')
+            localStorage.removeItem('opengov-auth-user')
+            
+            // Refresh ApiService token
+            ApiService.getInstance().refreshToken()
+            
+            // Dispatch authentication change event
+            window.dispatchEvent(new CustomEvent('authStateChanged', { 
+                detail: { isAuthenticated: false, user: null } 
+            }))
         }
     },
 
@@ -146,8 +163,8 @@ export const authStore = {
 
     // Initialize auth state from localStorage
     initializeFromStorage(): void {
-        const token = localStorage.getItem('auth_token')
-        const userStr = localStorage.getItem('auth_user')
+        const token = localStorage.getItem('opengov-auth-token')
+        const userStr = localStorage.getItem('opengov-auth-user')
         
         if (token && userStr) {
             try {

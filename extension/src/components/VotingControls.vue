@@ -282,7 +282,7 @@ const confirmAssign = async () => {
   try {
     const assignData = {
       proposalId: props.proposalId,
-      action: 'assign'
+      action: 'responsible_person'
     }
     
     console.log('Assignment requested:', assignData)
