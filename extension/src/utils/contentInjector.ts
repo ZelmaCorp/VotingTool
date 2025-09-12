@@ -3,6 +3,7 @@
 
 import { createApp, App as VueApp } from 'vue';
 import StatusBadge from '../components/StatusBadge.vue';
+import VotingControls from '../components/VotingControls.vue';
 import { ProposalDetector, type DetectedProposal } from './proposalDetector';
 import { TabDetector, type ActiveTabInfo } from './tabDetector';
 import { ApiService } from './apiService';
@@ -62,6 +63,10 @@ export class ContentInjector {
 
         // Listen for status change events from components
         window.addEventListener('statusChanged', this.handleStatusChange.bind(this) as EventListener);
+        
+        // Listen for voting controls events
+        window.addEventListener('proposalAssigned', this.handleProposalAssigned.bind(this) as EventListener);
+        window.addEventListener('voteChanged', this.handleVoteChanged.bind(this) as EventListener);
 
         console.log('✅ Content injector initialized');
     }
@@ -159,12 +164,16 @@ export class ContentInjector {
             }
         }
         
-        // Inject status badge
-        await this.injectStatusBadge(proposal, proposalData);
-        
-        // TODO: Inject other components (assignment display, quick vote indicators)
-        // await this.injectAssignmentDisplay(proposal, proposalData);
-        // await this.injectQuickVoteIndicators(proposal, proposalData);
+        // Check if this is a referenda detail page (matches pattern like /referenda/123)
+        const referendaDetailPattern = /\/referenda\/\d+/;
+        if (referendaDetailPattern.test(window.location.pathname)) {
+            console.log('📋 Detected referenda detail page, injecting voting controls');
+            console.log('🔍 URL:', window.location.pathname);
+            await this.injectVotingControls(proposal, proposalData);
+        } else {
+            // For other proposal pages, inject status badge
+            await this.injectStatusBadge(proposal, proposalData);
+        }
     }
 
     /**
@@ -199,6 +208,97 @@ export class ContentInjector {
         }
         
         console.log(`🎉 Completed injection for all ${proposals.length} proposals`);
+    }
+
+    /**
+     * Inject voting controls component for referenda detail pages
+     */
+    private async injectVotingControls(proposal: DetectedProposal, proposalData: ProposalData | null): Promise<void> {
+        console.log('🎯 Injecting voting controls for proposal', proposal.postId);
+
+        // Check if already injected
+        const existingControls = document.querySelector('#voting-tool-controls');
+        if (existingControls) {
+            console.log('⚠️ Voting controls already exist, skipping');
+            return;
+        }
+
+        // Find PostDetails_rightWrapper element - it might have dynamic class names
+        const rightWrapper = this.findPostDetailsRightWrapper();
+        if (!rightWrapper) {
+            console.warn('❌ PostDetails_rightWrapper not found, cannot inject voting controls');
+            return;
+        }
+
+        console.log('✅ Found PostDetails_rightWrapper:', rightWrapper.className);
+
+        // Create container for voting controls
+        const container = document.createElement('div');
+        container.id = 'voting-tool-controls-container';
+        container.setAttribute('data-opengov-proposal', proposal.postId.toString());
+        
+        // Insert at the top of the right wrapper
+        rightWrapper.insertBefore(container, rightWrapper.firstChild);
+
+        // Create Vue app and mount the VotingControls component
+        const app = createApp(VotingControls, {
+            status: proposalData?.internal_status || 'Not started',
+            proposalId: proposal.postId,
+            editable: this.apiService.isAuthenticated(),
+            isAuthenticated: this.apiService.isAuthenticated()
+        });
+
+        app.mount(container);
+
+        // Store the app instance for cleanup
+        this.injectedComponents.set(proposal.postId, app);
+
+        console.log('✅ Injected voting controls for proposal', proposal.postId);
+    }
+
+    /**
+     * Find PostDetails_rightWrapper element with dynamic class names
+     */
+    private findPostDetailsRightWrapper(): HTMLElement | null {
+        // Try multiple selectors to find the right wrapper
+        const selectors = [
+            '[class*="PostDetails_rightWrapper"]',
+            '[class*="rightWrapper"]',
+            '[class*="right-wrapper"]',
+            '.flex.flex-col.gap-6', // Common Tailwind pattern
+            '.flex.flex-col.space-y-6',
+            '.grid-cols-12 > div:last-child', // If it's in a grid layout
+        ];
+
+        for (const selector of selectors) {
+            const element = document.querySelector(selector) as HTMLElement;
+            if (element) {
+                // Verify this looks like the right wrapper by checking for typical content
+                const hasTypicalContent = element.querySelector('[class*="card"]') || 
+                                        element.querySelector('[class*="panel"]') ||
+                                        element.querySelector('.bg-white') ||
+                                        element.querySelector('[class*="border"]');
+                
+                if (hasTypicalContent) {
+                    console.log('🎯 Found PostDetails_rightWrapper with selector:', selector);
+                    return element;
+                }
+            }
+        }
+
+        // Fallback: look for flex containers on the right side of the page
+        const flexContainers = document.querySelectorAll('.flex.flex-col');
+        for (const container of flexContainers) {
+            const rect = container.getBoundingClientRect();
+            // Check if it's on the right side of the page (more than 60% from left)
+            if (rect.left > window.innerWidth * 0.6 && rect.width > 200) {
+                console.log('🎯 Found right-side flex container as fallback');
+                return container as HTMLElement;
+            }
+        }
+
+        console.warn('❌ Could not find PostDetails_rightWrapper element');
+        return null;
     }
 
     /**
@@ -451,6 +551,63 @@ export class ContentInjector {
     }
 
     /**
+     * Handle proposal assignment events from components
+     */
+    private async handleProposalAssigned(event: Event): Promise<void> {
+        const customEvent = event as CustomEvent;
+        const { proposalId, action } = customEvent.detail;
+        
+        console.log('👤 Proposal assignment requested:', customEvent.detail);
+        
+        try {
+            // Get the current proposal to determine chain
+            const currentProposal = this.detector.detectCurrentProposal();
+            if (!currentProposal) {
+                console.error('Could not determine current proposal for assignment');
+                return;
+            }
+
+            // TODO: Implement assignment API call
+            console.log('Assignment would be processed for proposal', proposalId, 'on chain', currentProposal.chain);
+            
+            // For now, just show a success message
+            console.log('✅ Proposal assigned successfully (placeholder)');
+            
+        } catch (error) {
+            console.error('Failed to assign proposal:', error);
+        }
+    }
+
+    /**
+     * Handle vote change events from components
+     */
+    private async handleVoteChanged(event: Event): Promise<void> {
+        const customEvent = event as CustomEvent;
+        const { proposalId, vote, reason } = customEvent.detail;
+        
+        console.log('🗳️ Vote change requested:', customEvent.detail);
+        
+        try {
+            // Get the current proposal to determine chain
+            const currentProposal = this.detector.detectCurrentProposal();
+            if (!currentProposal) {
+                console.error('Could not determine current proposal for vote change');
+                return;
+            }
+
+            // TODO: Implement vote change API call
+            console.log('Vote change would be processed for proposal', proposalId, 'on chain', currentProposal.chain);
+            console.log('Vote:', vote, 'Reason:', reason);
+            
+            // For now, just show a success message
+            console.log('✅ Vote updated successfully (placeholder)');
+            
+        } catch (error) {
+            console.error('Failed to update vote:', error);
+        }
+    }
+
+    /**
      * Clean up existing injections
      */
     private cleanupExistingInjections(): void {
@@ -464,7 +621,7 @@ export class ContentInjector {
         });
         this.injectedComponents.clear();
 
-        // Remove injected DOM elements (both old inline and new floating)
+        // Remove injected DOM elements (status badges and voting controls)
         document.querySelectorAll('.opengov-status-badge, .opengov-status-badge-floating').forEach(element => {
             // Remove the wrapper if it exists
             const wrapper = element.parentElement;
@@ -473,6 +630,11 @@ export class ContentInjector {
             } else {
                 element.remove();
             }
+        });
+
+        // Remove voting controls
+        document.querySelectorAll('#voting-tool-controls, #voting-tool-controls-container').forEach(element => {
+            element.remove();
         });
 
         // Restore original overflow properties
@@ -513,6 +675,8 @@ export class ContentInjector {
         this.cleanupFunctions = [];
         
         window.removeEventListener('statusChanged', this.handleStatusChange.bind(this) as EventListener);
+        window.removeEventListener('proposalAssigned', this.handleProposalAssigned.bind(this) as EventListener);
+        window.removeEventListener('voteChanged', this.handleVoteChanged.bind(this) as EventListener);
         
         // Clear caches
         this.proposalCache.clear();
