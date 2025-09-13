@@ -22,8 +22,9 @@
         class="control-btn assign-btn"
         @click="handleAssignToMe"
         :disabled="!isAuthenticated"
+        :title="props.assignedTo ? `Assigned to: ${props.assignedTo}` : 'Assign this proposal to yourself'"
       >
-        <span class="btn-text">Assign to Me</span>
+        <span class="btn-text">{{ assignButtonText }}</span>
       </button>
       
       <button 
@@ -74,6 +75,7 @@ interface VotingControlsProps {
   editable?: boolean
   isAuthenticated?: boolean
   suggestedVote?: SuggestedVote
+  assignedTo?: string | null
 }
 
 const props = defineProps<VotingControlsProps>()
@@ -82,6 +84,21 @@ const props = defineProps<VotingControlsProps>()
 const showStatusModal = ref(false)
 const showAssignModal = ref(false)
 const showVoteModal = ref(false)
+
+// Utility function to format wallet address
+const formatAddress = (address: string): string => {
+  if (!address) return ''
+  if (address.length <= 10) return address
+  return `${address.substring(0, 4)}..${address.substring(address.length - 5)}`
+}
+
+// Computed property for button text
+const assignButtonText = computed(() => {
+  if (props.assignedTo) {
+    return `Assigned: ${formatAddress(props.assignedTo)}`
+  }
+  return 'Assign to Me'
+})
 
 const statusConfig = {
   'Not started': { color: '#6c757d', icon: '⚪' },

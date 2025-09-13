@@ -386,13 +386,31 @@ export class ContentInjector {
         // Insert at the top of the right wrapper
         rightWrapper.insertBefore(container, rightWrapper.firstChild);
 
+        // Fetch assignment data from the database
+        let assignedTo: string | null = null;
+        try {
+            const assignmentResult = await this.apiService.getProposalAssignments(proposal.postId, proposal.chain);
+            if (assignmentResult.success && assignmentResult.actions) {
+                // Find the "responsible_person" assignment
+                const responsiblePersonAction = assignmentResult.actions.find(
+                    (action: any) => action.role_type === 'responsible_person'
+                );
+                if (responsiblePersonAction) {
+                    assignedTo = responsiblePersonAction.wallet_address || responsiblePersonAction.team_member_id;
+                }
+            }
+        } catch (error) {
+            console.warn('Could not fetch assignment data:', error);
+        }
+
         // Create Vue app and mount the VotingControls component
         const app = createApp(VotingControls, {
             status: proposalData?.internal_status || 'Not started',
             proposalId: proposal.postId,
             editable: this.apiService.isAuthenticated(),
             isAuthenticated: this.apiService.isAuthenticated(),
-            suggestedVote: proposalData?.suggested_vote || null
+            suggestedVote: proposalData?.suggested_vote || null,
+            assignedTo: assignedTo
         });
 
         app.mount(container);

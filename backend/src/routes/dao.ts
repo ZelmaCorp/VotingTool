@@ -64,14 +64,36 @@ router.get("/parent", authenticateToken, async (req: Request, res: Response) => 
 router.get("/referendum/:referendumId/actions", async (req: Request, res: Response) => {
   try {
     const { referendumId } = req.params;
+    const { chain } = req.query;
     
-    // Get actions from the database
+    // Validate chain parameter
+    if (!chain) {
+      return res.status(400).json({
+        success: false,
+        error: "Chain parameter is required"
+      });
+    }
+    
+    // First, get the internal referendum ID using post_id and chain
+    const referendum = await db.get(
+      "SELECT id FROM referendums WHERE post_id = ? AND chain = ?",
+      [referendumId, chain]
+    );
+    
+    if (!referendum) {
+      return res.status(404).json({
+        success: false,
+        error: `Referendum ${referendumId} not found on ${chain} network`
+      });
+    }
+    
+    // Get actions from the database using the internal referendum ID
     const actions = await db.all(`
       SELECT rtr.*
       FROM referendum_team_roles rtr
       WHERE rtr.referendum_id = ?
       ORDER BY rtr.created_at DESC
-    `, [referendumId]);
+    `, [referendum.id]);
     
     // Get current multisig members to enrich the data
     const teamMembers = await multisigService.getCachedTeamMembers();
@@ -110,7 +132,7 @@ router.get("/referendum/:referendumId/actions", async (req: Request, res: Respon
 router.post("/referendum/:referendumId/action", requireTeamMember, async (req: Request, res: Response) => {
   try {
     const { referendumId } = req.params;
-    const { action } = req.body;
+    const { action, chain } = req.body;
     
     // Validate action using the enum
     if (!action || !Object.values(ReferendumAction).includes(action)) {
@@ -135,24 +157,32 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
       });
     }
     
-    // Check if referendum exists
+    // Validate chain parameter
+    if (!chain) {
+      return res.status(400).json({
+        success: false,
+        error: "Chain parameter is required"
+      });
+    }
+    
+    // Check if referendum exists using post_id and chain
     const referendum = await db.get(
-      "SELECT id, title FROM referendums WHERE id = ?",
-      [referendumId]
+      "SELECT id, title FROM referendums WHERE post_id = ? AND chain = ?",
+      [referendumId, chain]
     );
     
     if (!referendum) {
       return res.status(404).json({
         success: false,
-        error: "Referendum not found"
+        error: `Referendum ${referendumId} not found on ${chain} network`
       });
     }
     
     // Check if user already has an action for this referendum
-    // Use wallet address directly as team_member_id
+    // Use wallet address directly as team_member_id and the internal referendum.id
     const existingAction = await db.get(
       "SELECT id, role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ?",
-      [referendumId, req.user.address]
+      [referendum.id, req.user.address]
     );
     
     if (existingAction) {
@@ -175,7 +205,9 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
         action: {
           id: existingAction.id,
           action,
-          referendum_id: referendumId,
+          referendum_id: referendum.id,
+          post_id: referendumId,
+          chain: chain,
           team_member_id: req.user.address
         }
       });
@@ -183,7 +215,7 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
       // Create new action assignment
       const result = await db.run(
         "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type) VALUES (?, ?, ?)",
-        [referendumId, req.user.address, action]
+        [referendum.id, req.user.address, action]
       );
       
       logger.info({ 
@@ -198,7 +230,9 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
         action: {
           id: result.lastID,
           action,
-          referendum_id: referendumId,
+          referendum_id: referendum.id,
+          post_id: referendumId,
+          chain: chain,
           team_member_id: req.user.address
         }
       });
@@ -220,6 +254,7 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
 router.delete("/referendum/:referendumId/action", requireTeamMember, async (req: Request, res: Response) => {
   try {
     const { referendumId } = req.params;
+    const { chain } = req.body;
     
     if (!req.user?.address) {
       return res.status(400).json({
@@ -228,11 +263,32 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
       });
     }
     
+    // Validate chain parameter
+    if (!chain) {
+      return res.status(400).json({
+        success: false,
+        error: "Chain parameter is required"
+      });
+    }
+    
+    // Get the internal referendum ID first
+    const referendum = await db.get(
+      "SELECT id FROM referendums WHERE post_id = ? AND chain = ?",
+      [referendumId, chain]
+    );
+    
+    if (!referendum) {
+      return res.status(404).json({
+        success: false,
+        error: `Referendum ${referendumId} not found on ${chain} network`
+      });
+    }
+    
     // Remove user's action for this referendum
-    // Use wallet address directly as team_member_id
+    // Use wallet address directly as team_member_id and the internal referendum.id
     const result = await db.run(
       "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ?",
-      [referendumId, req.user.address]
+      [referendum.id, req.user.address]
     );
     
     if (result.changes === 0) {

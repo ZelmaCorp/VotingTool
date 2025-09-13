@@ -19,6 +19,50 @@ router.get("/", async (req: Request, res: Response) => {
   }
 });
 
+// Get a specific referendum by post_id and chain
+router.get("/:postId", async (req: Request, res: Response) => {
+  try {
+    const postId = parseInt(req.params.postId);
+    const chain = req.query.chain as Chain;
+
+    if (isNaN(postId)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Invalid post ID" 
+      });
+    }
+
+    // Validate chain
+    if (!chain || !Object.values(Chain).includes(chain)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Valid chain parameter is required. Must be 'Polkadot' or 'Kusama'" 
+      });
+    }
+
+    // Find the referendum
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
+    
+    if (!referendum) {
+      return res.status(404).json({ 
+        success: false, 
+        error: `Referendum ${postId} not found on ${chain} network` 
+      });
+    }
+
+    res.json({ 
+      success: true, 
+      referendum 
+    });
+  } catch (error) {
+    logger.error({ error: (error as any).message }, "Error fetching referendum from database");
+    res.status(500).json({ 
+      success: false, 
+      error: "Error fetching referendum: " + (error as any).message 
+    });
+  }
+});
+
 // Update a specific referendum by post_id and chain
 router.put("/:postId/:chain", async (req: Request, res: Response) => {
   try {

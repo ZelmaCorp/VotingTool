@@ -47,26 +47,50 @@ export class ApiService {
     }
 
     private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-        const url = `${this.baseUrl}${endpoint}`;
-        
-        const response = await fetch(url, {
-            ...options,
-            headers: {
+        // Use background script to make API calls (bypasses CSP)
+        return new Promise((resolve, reject) => {
+            const headers = {
                 ...this.getHeaders(),
                 ...options.headers,
-            },
+            };
+            
+            const messageId = Date.now().toString();
+            
+            chrome.runtime.sendMessage({
+                type: 'VOTING_TOOL_API_CALL',
+                messageId,
+                endpoint,
+                method: options.method || 'GET',
+                data: options.body ? JSON.parse(options.body as string) : undefined,
+                headers
+            }, (response) => {
+                if (chrome.runtime.lastError) {
+                    console.error('❌ API Service: Chrome runtime error:', chrome.runtime.lastError);
+                    reject(new Error(chrome.runtime.lastError.message));
+                    return;
+                }
+                
+                if (response && response.success) {
+                    resolve(response.data);
+                } else {
+                    console.error('❌ API Service: API call failed, response:', response);
+                    
+                    // Handle 401 unauthorized
+                    if (response?.debugInfo?.responseStatus === 401) {
+                        this.token = null;
+                        localStorage.removeItem('opengov-auth-token');
+                    }
+                    
+                    const error = new Error(response?.error || 'API call failed');
+                    // Attach additional details for better error handling
+                    if (response?.debugInfo?.errorResponseBody?.details) {
+                        (error as any).details = response.debugInfo.errorResponseBody.details;
+                        (error as any).status = response?.debugInfo?.responseStatus;
+                    }
+                    reject(error);
+                }
+            });
         });
-
-        if (!response.ok) {
-            if (response.status === 401) {
-                // Token expired or invalid
-                this.token = null;
-                localStorage.removeItem('opengov-auth-token');
-            }
-            throw new Error(`API Error: ${response.status} ${response.statusText}`);
-        }
-
-        return response.json();
     }
 
     // Authentication methods
@@ -146,19 +170,21 @@ export class ApiService {
             const result = await this.request<{ success: boolean; error?: string }>(`/dao/referendum/${postId}/action`, {
                 method: 'POST',
                 body: JSON.stringify({
-                    action
+                    action,
+                    chain  // Include chain information in the request
                 }),
             });
 
             return result;
         } catch (error) {
+            console.error('Failed to assign proposal:', error);
             return { success: false, error: error instanceof Error ? error.message : 'Failed to assign proposal' };
         }
     }
 
-    async getProposalAssignments(postId: number): Promise<{ success: boolean; actions?: any[]; error?: string }> {
+    async getProposalAssignments(postId: number, chain: Chain): Promise<{ success: boolean; actions?: any[]; error?: string }> {
         try {
-            const result = await this.request<{ success: boolean; actions?: any[]; error?: string }>(`/dao/referendum/${postId}/actions`);
+            const result = await this.request<{ success: boolean; actions?: any[]; error?: string }>(`/dao/referendum/${postId}/actions?chain=${chain}`);
             return result;
         } catch (error) {
             return { success: false, error: error instanceof Error ? error.message : 'Failed to get assignments' };
@@ -241,14 +267,30 @@ export class ApiService {
             const existing = await this.getProposal(postId, chain);
             
             if (!existing) {
+                console.log(`Referendum ${postId} not found, attempting to refresh from Polkassembly...`);
                 // If it doesn't exist, try to create it by triggering a refresh
-                await this.request(`/admin/refresh-referendas`, {
-                    method: 'POST',
-                    body: JSON.stringify({ chain, post_id: postId })
+                await this.request(`/admin/refresh-referendas?limit=50`, {
+                    method: 'GET'
                 });
+                console.log(`Refresh request sent for referendum ${postId}`);
             }
         } catch (error) {
-            console.warn('Could not ensure referendum exists:', error);
+            // If it's a 404, the referendum doesn't exist yet - try to refresh it
+            if (error instanceof Error && error.message.includes('404')) {
+                console.log(`Referendum ${postId} not found (404), attempting to refresh from Polkassembly...`);
+                try {
+                    await this.request(`/admin/refresh-referendas?limit=50`, {
+                        method: 'GET'
+                    });
+                    console.log(`Refresh request sent for referendum ${postId}`);
+                } catch (refreshError) {
+                    console.warn('Could not refresh referendum:', refreshError);
+                    throw new Error(`Referendum ${postId} not found and could not be refreshed. Please try again in a moment.`);
+                }
+            } else {
+                console.warn('Could not ensure referendum exists:', error);
+                throw error;
+            }
         }
     }
 
