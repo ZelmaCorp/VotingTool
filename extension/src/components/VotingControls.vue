@@ -21,8 +21,7 @@
         id="voting-tool-assign"
         class="control-btn assign-btn"
         @click="handleAssignToMe"
-        :disabled="!isAuthenticated"
-        :title="props.assignedTo ? `Assigned to: ${props.assignedTo}` : 'Assign this proposal to yourself'"
+        :title="props.assignedTo ? `Assigned to: ${props.assignedTo}` : (authStore.state.isAuthenticated ? 'Assign this proposal to yourself' : 'Click to connect wallet and assign')"
       >
         <span class="btn-text">{{ assignButtonText }}</span>
       </button>
@@ -31,7 +30,7 @@
         id="voting-tool-change-vote"
         class="control-btn vote-btn"
         @click="handleChangeVote"
-        :disabled="!isAuthenticated"
+        :title="authStore.state.isAuthenticated ? 'Change suggested vote' : 'Click to connect wallet and vote'"
       >
         <span class="btn-text">{{ suggestedVote || 'No Suggested Vote' }}</span>
       </button>
@@ -40,8 +39,7 @@
         id="voting-tool-team-actions"
         class="control-btn team-btn"
         @click="handleTeamActions"
-        :disabled="!isAuthenticated"
-        title="Open team collaboration panel"
+        :title="authStore.state.isAuthenticated ? 'Open team collaboration panel' : 'Click to connect wallet for team actions'"
       >
         <span class="btn-text">👥 Team Actions</span>
       </button>
@@ -87,6 +85,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { InternalStatus, SuggestedVote, Chain } from '../types'
+import { authStore } from '../stores/authStore'
 import StatusChangeModal from './StatusChangeModal.vue'
 import AssignModal from './AssignModal.vue'
 import VoteChangeModal from './VoteChangeModal.vue'
@@ -186,7 +185,10 @@ const saveStatusChange = async (data: { newStatus: InternalStatus; reason: strin
 }
 
 const handleAssignToMe = () => {
-  if (!props.isAuthenticated) return
+  if (!authStore.state.isAuthenticated) {
+    showLoginPrompt('Please connect your wallet to assign proposals to yourself.')
+    return
+  }
   showAssignModal.value = true
 }
 
@@ -198,7 +200,8 @@ const confirmAssign = async () => {
   try {
     const assignData = {
       proposalId: props.proposalId,
-      action: 'responsible_person'
+      action: 'responsible_person',
+      autoStatus: 'Considering' // Auto-change status to Considering
     }
     
     console.log('Assignment requested:', assignData)
@@ -213,7 +216,10 @@ const confirmAssign = async () => {
 }
 
 const handleChangeVote = () => {
-  if (!props.isAuthenticated) return
+  if (!authStore.state.isAuthenticated) {
+    showLoginPrompt('Please connect your wallet to change suggested votes.')
+    return
+  }
   showVoteModal.value = true
 }
 
@@ -241,7 +247,10 @@ const saveVoteChange = async (data: { vote: 'aye' | 'nay' | 'abstain'; reason: s
 }
 
 const handleTeamActions = () => {
-  if (!props.isAuthenticated) return
+  if (!authStore.state.isAuthenticated) {
+    showLoginPrompt('Please connect your wallet to access team collaboration features.')
+    return
+  }
   showTeamPanel.value = true
 }
 
@@ -252,6 +261,15 @@ const closeTeamPanel = () => {
 const handleTeamUpdate = () => {
   // Emit custom event for parent to handle team updates
   window.dispatchEvent(new CustomEvent('teamDataUpdated', { detail: { proposalId: props.proposalId } }))
+}
+
+// Show login prompt with custom message
+const showLoginPrompt = (message: string) => {
+  const shouldConnect = confirm(`${message}\n\nWould you like to connect your wallet now?`)
+  if (shouldConnect) {
+    // Trigger wallet connection by dispatching an event
+    window.dispatchEvent(new CustomEvent('requestWalletConnection'))
+  }
 }
 </script>
 

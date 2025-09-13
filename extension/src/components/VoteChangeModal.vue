@@ -65,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 
 interface VoteChangeModalProps {
   show: boolean
@@ -89,6 +89,22 @@ const handleSave = () => {
     reason: voteReason.value
   })
 }
+
+// ESC key handler
+const handleEscKey = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    emit('close')
+  }
+}
+
+// Lifecycle
+onMounted(() => {
+  document.addEventListener('keydown', handleEscKey)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEscKey)
+})
 
 // Reset form when modal opens
 watch(() => props.show, (newShow) => {

@@ -52,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, onUnmounted } from 'vue'
 import type { InternalStatus } from '../types'
 
 interface StatusChangeModalProps {
@@ -97,6 +97,22 @@ const handleSave = () => {
     reason: changeReason.value
   })
 }
+
+// ESC key handler
+const handleEscKey = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    emit('close')
+  }
+}
+
+// Lifecycle
+onMounted(() => {
+  document.addEventListener('keydown', handleEscKey)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEscKey)
+})
 
 // Reset form when modal opens
 watch(() => props.show, (newShow) => {

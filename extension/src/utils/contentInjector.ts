@@ -82,9 +82,13 @@ export class ContentInjector {
         // Listen for voting controls events
         window.addEventListener('proposalAssigned', this.handleProposalAssigned.bind(this) as EventListener);
         window.addEventListener('voteChanged', this.handleVoteChanged.bind(this) as EventListener);
+        window.addEventListener('suggestedVoteChanged', this.handleSuggestedVoteChanged.bind(this) as EventListener);
         
         // Listen for authentication state changes
         window.addEventListener('authStateChanged', this.handleAuthStateChanged.bind(this) as EventListener);
+        
+        // Listen for wallet connection requests
+        window.addEventListener('requestWalletConnection', this.handleWalletConnectionRequest.bind(this) as EventListener);
 
         console.log('✅ Content injector initialized');
     }
@@ -788,12 +792,22 @@ export class ContentInjector {
         console.log('📝 Status change requested:', customEvent.detail);
         
         try {
+            // Check authentication first
+            if (!this.apiService.isAuthenticated()) {
+                console.error('❌ User not authenticated for manual status change');
+                alert('Please connect your wallet to change proposal status.');
+                return;
+            }
+
             // Get the current proposal to determine chain
             const currentProposal = this.detector.detectCurrentProposal();
             if (!currentProposal) {
                 console.error('Could not determine current proposal for status change');
                 return;
             }
+
+            console.log(`🔄 Manual status change: ${proposalId} from "${currentProposal.chain}" to "${newStatus}"`);
+            console.log(`🔐 Authentication status: ${this.apiService.isAuthenticated()}`);
 
             // Update status via API
             const result = await this.apiService.updateProposalStatus(
@@ -802,26 +816,29 @@ export class ContentInjector {
                 newStatus
             );
 
+            console.log(`📊 Manual status change result:`, result);
+
             if (result.success) {
                 // Update cache
                 const cacheKey = `${currentProposal.chain}-${proposalId}`;
                 const cachedData = this.proposalCache.get(cacheKey);
                 if (cachedData) {
                     cachedData.internal_status = newStatus;
+                    cachedData.updated_at = new Date().toISOString();
                     this.proposalCache.set(cacheKey, cachedData);
                 }
 
                 // Re-inject components to reflect the change
                 await this.handlePageChange();
                 
-                console.log('✅ Status updated successfully');
+                console.log('✅ Status updated successfully in database');
             } else {
-                console.error('❌ Failed to update status:', result.error);
-                // TODO: Show error message to user
+                console.error('❌ Failed to update status in database:', result.error);
+                alert(`Failed to update status: ${result.error || 'Unknown error'}`);
             }
         } catch (error) {
-            console.error('❌ Error updating status:', error);
-            // TODO: Show error message to user
+            console.error('❌ Error updating status in database:', error);
+            alert('Failed to update status. Please check your connection and try again.');
         }
     }
 
@@ -830,7 +847,7 @@ export class ContentInjector {
      */
     private async handleProposalAssigned(event: Event): Promise<void> {
         const customEvent = event as CustomEvent;
-        const { proposalId, action } = customEvent.detail;
+        const { proposalId, action, autoStatus } = customEvent.detail;
         
         console.log('👤 Proposal assignment requested:', customEvent.detail);
         
@@ -839,6 +856,13 @@ export class ContentInjector {
             const currentProposal = this.detector.detectCurrentProposal();
             if (!currentProposal) {
                 console.error('Could not determine current proposal for assignment');
+                return;
+            }
+
+            // Check if user is authenticated
+            if (!this.apiService.isAuthenticated()) {
+                console.error('User not authenticated for assignment');
+                alert('Please authenticate to assign proposals');
                 return;
             }
 
@@ -852,6 +876,22 @@ export class ContentInjector {
             if (result.success) {
                 console.log('✅ Proposal assigned successfully');
                 
+                // If autoStatus is specified, also update the status
+                if (autoStatus) {
+                    console.log(`🔄 Auto-updating status to: ${autoStatus}`);
+                    const statusResult = await this.apiService.updateProposalStatus(
+                        proposalId,
+                        currentProposal.chain,
+                        autoStatus
+                    );
+                    
+                    if (statusResult.success) {
+                        console.log('✅ Status auto-updated successfully');
+                    } else {
+                        console.error('❌ Failed to auto-update status:', statusResult.error);
+                    }
+                }
+                
                 // Clear cache to ensure fresh data is fetched
                 const cacheKey = `${currentProposal.chain}-${proposalId}`;
                 this.proposalCache.delete(cacheKey);
@@ -860,10 +900,80 @@ export class ContentInjector {
                 await this.handlePageChange();
             } else {
                 console.error('❌ Failed to assign proposal:', result.error);
+                alert(`Failed to assign proposal: ${result.error || 'Unknown error'}`);
             }
             
         } catch (error) {
             console.error('❌ Failed to assign proposal:', error);
+            alert('Failed to assign proposal. Please check your connection and try again.');
+        }
+    }
+
+    /**
+     * Handle suggested vote changes from components
+     */
+    private async handleSuggestedVoteChanged(event: Event): Promise<void> {
+        const customEvent = event as CustomEvent;
+        const { proposalId, vote, reason } = customEvent.detail;
+        
+        console.log('🗳️ Suggested vote change requested:', customEvent.detail);
+        
+        try {
+            // Get the current proposal to determine chain
+            const currentProposal = this.detector.detectCurrentProposal();
+            if (!currentProposal) {
+                console.error('Could not determine current proposal for vote change');
+                return;
+            }
+
+            // Update suggested vote via API
+            const result = await this.apiService.updateSuggestedVote(
+                proposalId,
+                currentProposal.chain,
+                vote,
+                reason
+            );
+
+            if (result.success) {
+                // Update cache
+                const cacheKey = `${currentProposal.chain}-${proposalId}`;
+                const cachedData = this.proposalCache.get(cacheKey);
+                if (cachedData) {
+                    cachedData.suggested_vote = vote;
+                    cachedData.suggested_vote_reason = reason;
+                    cachedData.updated_at = new Date().toISOString();
+                    this.proposalCache.set(cacheKey, cachedData);
+                }
+
+                // Re-inject components to reflect the change
+                await this.handlePageChange();
+                
+                console.log('✅ Suggested vote updated successfully in database');
+            } else {
+                console.error('❌ Failed to update suggested vote in database:', result.error);
+                alert(`Failed to update suggested vote: ${result.error || 'Unknown error'}`);
+            }
+        } catch (error) {
+            console.error('❌ Error updating suggested vote in database:', error);
+            alert('Failed to update suggested vote. Please check your connection and try again.');
+        }
+    }
+
+    /**
+     * Handle wallet connection requests from components
+     */
+    private handleWalletConnectionRequest(event: Event): void {
+        console.log('🔗 Wallet connection requested from component');
+        
+        // Find the floating hamburger button and trigger it
+        const hamburgerButton = document.querySelector('.floating-button') as HTMLElement;
+        if (hamburgerButton) {
+            hamburgerButton.click();
+            console.log('✅ Opened wallet connection menu');
+        } else {
+            console.warn('⚠️ Could not find floating hamburger button');
+            // Fallback: show a simple alert
+            alert('Please click the pink floating button in the bottom-right corner to connect your wallet.');
         }
     }
 
@@ -988,7 +1098,9 @@ export class ContentInjector {
         window.removeEventListener('statusChanged', this.handleStatusChange.bind(this) as EventListener);
         window.removeEventListener('proposalAssigned', this.handleProposalAssigned.bind(this) as EventListener);
         window.removeEventListener('voteChanged', this.handleVoteChanged.bind(this) as EventListener);
+        window.removeEventListener('suggestedVoteChanged', this.handleSuggestedVoteChanged.bind(this) as EventListener);
         window.removeEventListener('authStateChanged', this.handleAuthStateChanged.bind(this) as EventListener);
+        window.removeEventListener('requestWalletConnection', this.handleWalletConnectionRequest.bind(this) as EventListener);
         
         // Clear caches
         this.proposalCache.clear();

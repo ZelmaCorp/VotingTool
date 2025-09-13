@@ -138,31 +138,36 @@ export class ApiService {
 
     async updateProposalStatus(postId: number, chain: Chain, status: InternalStatus): Promise<{ success: boolean; error?: string }> {
         try {
-            await this.ensureReferendumExists(postId, chain);
+            console.log(`🔄 Updating status: PUT /referendums/${postId}/${chain}`, { internal_status: status });
+            console.log(`🔐 Auth token present: ${!!this.token}`);
             
-            const result = await this.request<{ success: boolean; error?: string }>(`/dao/referendum/${postId}/status`, {
+            const updatedReferendum = await this.request<any>(`/referendums/${postId}/${chain}`, {
                 method: 'PUT',
                 body: JSON.stringify({
-                    chain,
                     internal_status: status
                 }),
             });
 
-            return result;
+            console.log('✅ Status update result:', updatedReferendum);
+            
+            if (updatedReferendum && updatedReferendum.internal_status === status) {
+                return { success: true };
+            } else {
+                return { success: false, error: 'Status update did not apply correctly' };
+            }
         } catch (error) {
+            console.error('❌ Status update error:', error);
             return { success: false, error: error instanceof Error ? error.message : 'Failed to update status' };
         }
     }
 
-    async assignProposal(postId: number, chain: Chain, assignTo: string): Promise<{ success: boolean; error?: string }> {
+    async assignProposal(postId: number, chain: Chain, action: string): Promise<{ success: boolean; error?: string }> {
         try {
-            await this.ensureReferendumExists(postId, chain);
-            
-            const result = await this.request<{ success: boolean; error?: string }>(`/dao/referendum/${postId}/assign`, {
-                method: 'PUT',
+            const result = await this.request<{ success: boolean; error?: string }>(`/dao/referendum/${postId}/action`, {
+                method: 'POST',
                 body: JSON.stringify({
                     chain,
-                    assigned_to: assignTo
+                    action
                 }),
             });
 
@@ -172,14 +177,13 @@ export class ApiService {
         }
     }
 
+
+
     async updateSuggestedVote(postId: number, chain: Chain, vote: SuggestedVote, reason?: string): Promise<{ success: boolean; error?: string }> {
         try {
-            await this.ensureReferendumExists(postId, chain);
-            
-            const result = await this.request<{ success: boolean; error?: string }>(`/dao/referendum/${postId}/suggested-vote`, {
+            const result = await this.request<{ success: boolean; error?: string }>(`/referendums/${postId}/${chain}`, {
                 method: 'PUT',
                 body: JSON.stringify({
-                    chain,
                     suggested_vote: vote,
                     suggested_vote_reason: reason
                 }),
@@ -193,12 +197,9 @@ export class ApiService {
 
     async updateFinalVote(postId: number, chain: Chain, vote: SuggestedVote, reason?: string): Promise<{ success: boolean; error?: string }> {
         try {
-            await this.ensureReferendumExists(postId, chain);
-            
-            const result = await this.request<{ success: boolean; error?: string }>(`/dao/referendum/${postId}/vote`, {
+            const result = await this.request<{ success: boolean; error?: string }>(`/referendums/${postId}/${chain}`, {
                 method: 'PUT',
                 body: JSON.stringify({
-                    chain,
                     final_vote: vote,
                     reason_for_vote: reason
                 }),
@@ -213,13 +214,24 @@ export class ApiService {
     // New team collaboration methods
     async submitTeamAction(postId: number, chain: Chain, action: TeamAction, reason?: string): Promise<{ success: boolean; error?: string }> {
         try {
-            await this.ensureReferendumExists(postId, chain);
+            // Map frontend action names to backend enum values
+            const actionMap: Record<TeamAction, string> = {
+                'Agree': 'agree',
+                'To be discussed': 'to_be_discussed',
+                'NO WAY': 'no_way',
+                'Recuse': 'recuse'
+            };
             
-            const result = await this.request<{ success: boolean; error?: string }>(`/dao/referendum/${postId}/team-action`, {
+            const backendAction = actionMap[action];
+            if (!backendAction) {
+                return { success: false, error: `Unknown action: ${action}` };
+            }
+            
+            const result = await this.request<{ success: boolean; error?: string }>(`/dao/referendum/${postId}/action`, {
                 method: 'POST',
                 body: JSON.stringify({
                     chain,
-                    action,
+                    action: backendAction,
                     reason
                 }),
             });
@@ -232,7 +244,7 @@ export class ApiService {
 
     async getTeamActions(postId: number, chain: Chain): Promise<ProposalAction[]> {
         try {
-            const result = await this.request<{ success: boolean; actions?: ProposalAction[]; error?: string }>(`/dao/referendum/${postId}/team-actions?chain=${chain}`);
+            const result = await this.request<{ success: boolean; actions?: ProposalAction[]; error?: string }>(`/dao/referendum/${postId}/actions?chain=${chain}`);
             return result.actions || [];
         } catch (error) {
             console.error('Failed to fetch team actions:', error);
@@ -252,8 +264,6 @@ export class ApiService {
 
     async addComment(postId: number, chain: Chain, content: string): Promise<{ success: boolean; error?: string }> {
         try {
-            await this.ensureReferendumExists(postId, chain);
-            
             const result = await this.request<{ success: boolean; error?: string }>(`/dao/referendum/${postId}/comments`, {
                 method: 'POST',
                 body: JSON.stringify({

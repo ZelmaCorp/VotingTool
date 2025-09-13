@@ -72,41 +72,41 @@
       <div class="user-actions-section">
         <h4>Your Action</h4>
         <div class="action-buttons">
-          <button 
-            @click="submitAction('Agree')"
-            class="action-btn agree-btn"
-            :class="{ active: currentUserAction === 'Agree' }"
-            :disabled="!canTakeAction"
-          >
-            👍 Agree
-          </button>
-          
-          <button 
-            @click="submitAction('To be discussed')"
-            class="action-btn discuss-btn"
-            :class="{ active: currentUserAction === 'To be discussed' }"
-            :disabled="!canTakeAction"
-          >
-            💬 To be discussed
-          </button>
-          
-          <button 
-            @click="showVetoModal = true"
-            class="action-btn veto-btn"
-            :class="{ active: currentUserAction === 'NO WAY' }"
-            :disabled="!canTakeAction"
-          >
-            🚫 NO WAY
-          </button>
-          
-          <button 
-            @click="submitAction('Recuse')"
-            class="action-btn recuse-btn"
-            :class="{ active: currentUserAction === 'Recuse' }"
-            :disabled="!canTakeAction"
-          >
-            🤐 Recuse
-          </button>
+                      <button 
+              @click="submitAction('Agree')"
+              class="action-btn agree-btn"
+              :class="{ active: currentUserAction === 'Agree' }"
+              :title="!authStore.state.isAuthenticated ? 'Connect wallet to agree' : 'Agree with this proposal'"
+            >
+              👍 {{ authStore.state.isAuthenticated ? 'Agree' : 'Connect to Agree' }}
+            </button>
+            
+            <button 
+              @click="submitAction('To be discussed')"
+              class="action-btn discuss-btn"
+              :class="{ active: currentUserAction === 'To be discussed' }"
+              :title="!authStore.state.isAuthenticated ? 'Connect wallet to mark for discussion' : 'Mark for team discussion'"
+            >
+              💬 {{ authStore.state.isAuthenticated ? 'To be discussed' : 'Connect to Discuss' }}
+            </button>
+            
+            <button 
+              @click="showVetoModal = true"
+              class="action-btn veto-btn"
+              :class="{ active: currentUserAction === 'NO WAY' }"
+              :title="!authStore.state.isAuthenticated ? 'Connect wallet to veto' : 'Veto this proposal'"
+            >
+              🚫 {{ authStore.state.isAuthenticated ? 'NO WAY' : 'Connect to Veto' }}
+            </button>
+            
+            <button 
+              @click="submitAction('Recuse')"
+              class="action-btn recuse-btn"
+              :class="{ active: currentUserAction === 'Recuse' }"
+              :title="!authStore.state.isAuthenticated ? 'Connect wallet to recuse' : 'Recuse from this proposal'"
+            >
+              🤐 {{ authStore.state.isAuthenticated ? 'Recuse' : 'Connect to Recuse' }}
+            </button>
         </div>
       </div>
 
@@ -119,7 +119,7 @@
               @click="updateVote('Aye')"
               class="vote-btn aye-btn"
               :class="{ active: suggestedVote === 'Aye' }"
-              :disabled="!canTakeAction"
+              :title="!authStore.state.isAuthenticated ? 'Connect wallet to vote' : 'Vote Aye'"
             >
               👍 Aye
             </button>
@@ -128,7 +128,7 @@
               @click="updateVote('Nay')"
               class="vote-btn nay-btn"
               :class="{ active: suggestedVote === 'Nay' }"
-              :disabled="!canTakeAction"
+              :title="!authStore.state.isAuthenticated ? 'Connect wallet to vote' : 'Vote Nay'"
             >
               👎 Nay
             </button>
@@ -137,20 +137,21 @@
               @click="updateVote('Abstain')"
               class="vote-btn abstain-btn"
               :class="{ active: suggestedVote === 'Abstain' }"
-              :disabled="!canTakeAction"
+              :title="!authStore.state.isAuthenticated ? 'Connect wallet to vote' : 'Vote Abstain'"
             >
               ✌️ Abstain
             </button>
           </div>
           
           <div v-if="suggestedVote" class="vote-reason">
-            <textarea 
-              v-model="voteReason"
-              placeholder="Explain your vote reasoning..."
-              class="reason-input"
-              :disabled="!canTakeAction"
-              @blur="saveVoteReason"
-            ></textarea>
+                          <textarea 
+                v-model="voteReason"
+                :placeholder="authStore.state.isAuthenticated ? 'Explain your vote reasoning...' : 'Connect wallet to add vote reasoning'"
+                class="reason-input"
+                :readonly="!authStore.state.isAuthenticated"
+                @blur="saveVoteReason"
+                @focus="!authStore.state.isAuthenticated && showLoginPrompt('Please connect your wallet to add vote reasoning.')"
+              ></textarea>
           </div>
         </div>
       </div>
@@ -198,25 +199,27 @@
         <!-- Add Comment - Enhanced -->
         <div class="add-comment">
           <div class="comment-input-wrapper">
-            <textarea 
-              v-model="newComment"
-              placeholder="Share your thoughts with the team..."
-              class="comment-input"
-              :disabled="!canComment"
-              rows="3"
-            ></textarea>
-            <div class="comment-actions">
-              <div class="comment-hint">
-                <span v-if="!canComment" class="hint-text">Connect wallet to comment</span>
-                <span v-else class="hint-text">{{ newComment.length }}/500 characters</span>
-              </div>
-              <button 
-                @click="addComment"
-                class="add-comment-btn"
-                :disabled="!newComment.trim() || !canComment || newComment.length > 500"
-              >
-                <span>💬 Send</span>
-              </button>
+                          <textarea 
+                v-model="newComment"
+                :placeholder="authStore.state.isAuthenticated ? 'Share your thoughts with the team...' : 'Connect wallet to comment'"
+                class="comment-input"
+                :readonly="!authStore.state.isAuthenticated"
+                rows="3"
+                @focus="!authStore.state.isAuthenticated && showLoginPrompt('Please connect your wallet to add comments.')"
+              ></textarea>
+              <div class="comment-actions">
+                <div class="comment-hint">
+                  <span v-if="!authStore.state.isAuthenticated" class="hint-text">Connect wallet to comment</span>
+                  <span v-else class="hint-text">{{ newComment.length }}/500 characters</span>
+                </div>
+                <button 
+                  @click="addComment"
+                  class="add-comment-btn"
+                  :disabled="!newComment.trim() || newComment.length > 500"
+                  :title="!authStore.state.isAuthenticated ? 'Connect wallet to send comments' : 'Send comment'"
+                >
+                  <span>💬 {{ authStore.state.isAuthenticated ? 'Send' : 'Connect to Send' }}</span>
+                </button>
             </div>
           </div>
         </div>
@@ -250,7 +253,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ApiService } from '../utils/apiService'
 import { authStore } from '../stores/authStore'
 import type { TeamAction, ProposalAction, ProposalComment, AgreementSummary, SuggestedVote, TeamMember } from '../types'
@@ -264,7 +267,7 @@ interface Props {
 const props = defineProps<Props>()
 
 // Emits
-defineEmits<{
+const emit = defineEmits<{
   close: []
   updated: []
 }>()
@@ -294,6 +297,15 @@ const canTakeAction = computed(() => {
 const canComment = computed(() => {
   return authStore.state.isAuthenticated
 })
+
+// Show login prompt for actions
+const showLoginPrompt = (message: string) => {
+  const shouldConnect = confirm(`${message}\n\nWould you like to connect your wallet now?`)
+  if (shouldConnect) {
+    // Trigger wallet connection by dispatching an event
+    window.dispatchEvent(new CustomEvent('requestWalletConnection'))
+  }
+}
 
 const agreementPercentage = computed(() => {
   if (!agreementSummary.value) return 0
@@ -359,7 +371,15 @@ const loadSuggestedVote = async () => {
 }
 
 const submitAction = async (action: TeamAction) => {
-  if (!canTakeAction.value) return
+  if (!authStore.state.isAuthenticated) {
+    showLoginPrompt('Please connect your wallet to take team actions.')
+    return
+  }
+  
+  if (agreementSummary.value?.vetoed) {
+    alert('This proposal has been vetoed and no further actions can be taken.')
+    return
+  }
   
   try {
     const result = await apiService.submitTeamAction(props.proposalId, props.chain, action)
@@ -395,15 +415,28 @@ const submitVeto = async () => {
 }
 
 const updateVote = async (vote: SuggestedVote) => {
-  if (!canTakeAction.value) return
+  if (!authStore.state.isAuthenticated) {
+    showLoginPrompt('Please connect your wallet to change suggested votes.')
+    return
+  }
+  
+  if (agreementSummary.value?.vetoed) {
+    alert('This proposal has been vetoed and no vote changes can be made.')
+    return
+  }
   
   try {
-    const result = await apiService.updateSuggestedVote(props.proposalId, props.chain, vote, voteReason.value)
-    if (result.success) {
-      suggestedVote.value = vote
-    } else {
-      alert(`Failed to update vote: ${result.error}`)
-    }
+    suggestedVote.value = vote
+    
+    // Emit event for content injector to handle database update
+    window.dispatchEvent(new CustomEvent('suggestedVoteChanged', { 
+      detail: { 
+        proposalId: props.proposalId, 
+        vote: vote, 
+        reason: voteReason.value 
+      } 
+    }))
+    
   } catch (error) {
     console.error('Failed to update vote:', error)
     alert('Failed to update vote. Please try again.')
@@ -414,14 +447,26 @@ const saveVoteReason = async () => {
   if (!suggestedVote.value) return
   
   try {
-    await apiService.updateSuggestedVote(props.proposalId, props.chain, suggestedVote.value, voteReason.value)
+    // Emit event for content injector to handle database update
+    window.dispatchEvent(new CustomEvent('suggestedVoteChanged', { 
+      detail: { 
+        proposalId: props.proposalId, 
+        vote: suggestedVote.value, 
+        reason: voteReason.value 
+      } 
+    }))
   } catch (error) {
     console.error('Failed to save vote reason:', error)
   }
 }
 
 const addComment = async () => {
-  if (!newComment.value.trim() || !canComment.value) return
+  if (!newComment.value.trim()) return
+  
+  if (!authStore.state.isAuthenticated) {
+    showLoginPrompt('Please connect your wallet to add comments.')
+    return
+  }
   
   try {
     const result = await apiService.addComment(props.proposalId, props.chain, newComment.value)
@@ -494,9 +539,23 @@ const formatTime = (timestamp: string) => {
   return new Date(timestamp).toLocaleString()
 }
 
+// ESC key handler
+const handleEscKey = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    emit('close')
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   loadData()
+  // Add ESC key listener
+  document.addEventListener('keydown', handleEscKey)
+})
+
+// Cleanup
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEscKey)
 })
 
 // Watch for auth changes
