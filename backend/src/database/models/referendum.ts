@@ -55,18 +55,37 @@ export class Referendum {
                 sc.blueprint_score, sc.track_record_score, sc.reports_score,
                 sc.synergy_score, sc.revenue_score, sc.security_score,
                 sc.open_source_score, sc.ref_score,
-                vd.suggested_vote, vd.final_vote, vd.vote_executed, vd.vote_executed_date,
-                GROUP_CONCAT(DISTINCT tm.name || ':' || rtr.role_type) as team_roles
+                vd.suggested_vote, vd.final_vote, vd.vote_executed, vd.vote_executed_date
             FROM referendums r
             LEFT JOIN scoring_criteria sc ON r.id = sc.referendum_id
             LEFT JOIN voting_decisions vd ON r.id = vd.referendum_id
-            LEFT JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id
-            LEFT JOIN team_members tm ON rtr.team_member_id = tm.id
             WHERE r.post_id = ? AND r.chain = ?
-            GROUP BY r.id
         `;
 
-        return await db.get(sql, [postId, chain]);
+        const referendum = await db.get(sql, [postId, chain]);
+        
+        if (!referendum) {
+            return null;
+        }
+        
+        // Get team assignments separately since team_member_id is now a wallet address
+        const assignmentsSql = `
+            SELECT rtr.team_member_id as wallet_address, rtr.role_type, rtr.created_at
+            FROM referendum_team_roles rtr
+            WHERE rtr.referendum_id = ?
+            ORDER BY rtr.created_at DESC
+        `;
+        
+        const assignments = await db.all(assignmentsSql, [referendum.id]);
+        
+        // Find who is assigned as responsible person
+        const responsiblePerson = assignments.find(a => a.role_type === 'responsible_person');
+        
+        return {
+            ...referendum,
+            assigned_to: responsiblePerson?.wallet_address || null,
+            team_assignments: assignments
+        };
     }
 
     /**

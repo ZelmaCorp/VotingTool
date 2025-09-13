@@ -110,52 +110,6 @@
         </div>
       </div>
 
-      <!-- Vote Reasoning Section -->
-      <div class="vote-section">
-        <h4>Suggested Vote</h4>
-        <div class="vote-controls">
-          <div class="vote-buttons">
-            <button 
-              @click="updateVote('Aye')"
-              class="vote-btn aye-btn"
-              :class="{ active: suggestedVote === 'Aye' }"
-              :title="!authStore.state.isAuthenticated ? 'Connect wallet to vote' : 'Vote Aye'"
-            >
-              👍 Aye
-            </button>
-            
-            <button 
-              @click="updateVote('Nay')"
-              class="vote-btn nay-btn"
-              :class="{ active: suggestedVote === 'Nay' }"
-              :title="!authStore.state.isAuthenticated ? 'Connect wallet to vote' : 'Vote Nay'"
-            >
-              👎 Nay
-            </button>
-            
-            <button 
-              @click="updateVote('Abstain')"
-              class="vote-btn abstain-btn"
-              :class="{ active: suggestedVote === 'Abstain' }"
-              :title="!authStore.state.isAuthenticated ? 'Connect wallet to vote' : 'Vote Abstain'"
-            >
-              ✌️ Abstain
-            </button>
-          </div>
-          
-          <div v-if="suggestedVote" class="vote-reason">
-                          <textarea 
-                v-model="voteReason"
-                :placeholder="authStore.state.isAuthenticated ? 'Explain your vote reasoning...' : 'Connect wallet to add vote reasoning'"
-                class="reason-input"
-                :readonly="!authStore.state.isAuthenticated"
-                @blur="saveVoteReason"
-                @focus="!authStore.state.isAuthenticated && showLoginPrompt('Please connect your wallet to add vote reasoning.')"
-              ></textarea>
-          </div>
-        </div>
-      </div>
-
       <!-- Internal Discussion - Enhanced with more space -->
       <div class="discussion-section">
         <h4>💬 Internal Team Discussion</h4>
@@ -279,8 +233,6 @@ const apiService = ApiService.getInstance()
 const agreementSummary = ref<AgreementSummary | null>(null)
 const comments = ref<ProposalComment[]>([])
 const currentUserAction = ref<TeamAction | null>(null)
-const suggestedVote = ref<SuggestedVote | null>(null)
-const voteReason = ref('')
 
 const newComment = ref('')
 const showVetoModal = ref(false)
@@ -339,7 +291,6 @@ const loadData = async () => {
       loadAgreementSummary(),
       loadComments(),
       loadCurrentUserAction(),
-      loadSuggestedVote()
     ])
   } catch (error) {
     console.error('Failed to load team data:', error)
@@ -360,14 +311,8 @@ const loadComments = async () => {
 
 const loadCurrentUserAction = async () => {
   const actions = await apiService.getTeamActions(props.proposalId, props.chain)
-  const userAction = actions.find(action => action.user_address === currentUserAddress.value)
-  currentUserAction.value = userAction?.action || null
-}
-
-const loadSuggestedVote = async () => {
-  const proposal = await apiService.getProposal(props.proposalId, props.chain)
-  suggestedVote.value = proposal?.suggested_vote || null
-  voteReason.value = proposal?.suggested_vote_reason || ''
+  const userAction = actions.find(action => action.wallet_address === currentUserAddress.value)
+  currentUserAction.value = userAction?.role_type || null
 }
 
 const submitAction = async (action: TeamAction) => {
@@ -411,52 +356,6 @@ const submitVeto = async () => {
   } catch (error) {
     console.error('Failed to veto proposal:', error)
     alert('Failed to veto proposal. Please try again.')
-  }
-}
-
-const updateVote = async (vote: SuggestedVote) => {
-  if (!authStore.state.isAuthenticated) {
-    showLoginPrompt('Please connect your wallet to change suggested votes.')
-    return
-  }
-  
-  if (agreementSummary.value?.vetoed) {
-    alert('This proposal has been vetoed and no vote changes can be made.')
-    return
-  }
-  
-  try {
-    suggestedVote.value = vote
-    
-    // Emit event for content injector to handle database update
-    window.dispatchEvent(new CustomEvent('suggestedVoteChanged', { 
-      detail: { 
-        proposalId: props.proposalId, 
-        vote: vote, 
-        reason: voteReason.value 
-      } 
-    }))
-    
-  } catch (error) {
-    console.error('Failed to update vote:', error)
-    alert('Failed to update vote. Please try again.')
-  }
-}
-
-const saveVoteReason = async () => {
-  if (!suggestedVote.value) return
-  
-  try {
-    // Emit event for content injector to handle database update
-    window.dispatchEvent(new CustomEvent('suggestedVoteChanged', { 
-      detail: { 
-        proposalId: props.proposalId, 
-        vote: suggestedVote.value, 
-        reason: voteReason.value 
-      } 
-    }))
-  } catch (error) {
-    console.error('Failed to save vote reason:', error)
   }
 }
 

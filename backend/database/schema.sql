@@ -138,6 +138,26 @@ CREATE TABLE discussion_topics (
     FOREIGN KEY (referendum_id) REFERENCES referendums(id) ON DELETE CASCADE
 );
 
+-- Comments for referendum discussions
+CREATE TABLE referendum_comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    referendum_id INTEGER NOT NULL,
+    team_member_id TEXT NOT NULL,               -- Wallet address of commenter
+    content TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    
+    FOREIGN KEY (referendum_id) REFERENCES referendums(id) ON DELETE CASCADE
+);
+
+-- Create trigger to auto-update updated_at for comments
+CREATE TRIGGER update_referendum_comments_updated_at
+    AFTER UPDATE ON referendum_comments
+    FOR EACH ROW
+BEGIN
+    UPDATE referendum_comments SET updated_at = datetime('now') WHERE id = NEW.id;
+END;
+
 -- ============================================================================
 -- MIMIR INTEGRATION TABLES
 -- ============================================================================

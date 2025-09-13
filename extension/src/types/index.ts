@@ -72,11 +72,12 @@ export interface TeamMember {
 
 export interface ProposalAction {
     id?: number;
-    proposal_id: number;
-    user_address: string;
-    user_name: string;
-    action: TeamAction;
-    reason?: string;  // Required for NO WAY, optional for others
+    proposal_id?: number;
+    team_member_id: string;      // Backend field name
+    wallet_address: string;      // Backend enriched field
+    role_type: TeamAction;       // Backend field name
+    team_member_name?: string;   // Backend enriched field
+    network?: string;            // Backend enriched field
     created_at: string;
     updated_at?: string;
 }
