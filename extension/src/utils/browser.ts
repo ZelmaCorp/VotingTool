@@ -27,7 +27,7 @@ export interface BrowserAPI {
 
 // Detect available browser APIs
 export const detectBrowser = (): 'firefox' | 'chrome' | 'unknown' => {
-  if (typeof browser !== 'undefined' && browser.runtime?.id) {
+  if (typeof (window as any).browser !== 'undefined' && (window as any).browser.runtime?.id) {
     return 'firefox';
   } else if (typeof chrome !== 'undefined' && chrome.runtime?.id) {
     return 'chrome';
@@ -40,7 +40,7 @@ export const getBrowserAPI = (): BrowserAPI => {
   const browserType = detectBrowser();
   
   if (browserType === 'firefox') {
-    return browser as unknown as BrowserAPI;
+    return (window as any).browser as unknown as BrowserAPI;
   } else if (browserType === 'chrome') {
     return chrome as unknown as BrowserAPI;
   }

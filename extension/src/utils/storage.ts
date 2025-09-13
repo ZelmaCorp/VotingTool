@@ -1,13 +1,13 @@
 // Browser-agnostic storage utilities for the extension
 
 // Detect browser and use appropriate API
-const isFirefox = typeof browser !== 'undefined' && browser.runtime?.id;
+const isFirefox = typeof (window as any).browser !== 'undefined' && (window as any).browser.runtime?.id;
 const isChrome = typeof chrome !== 'undefined' && chrome.runtime?.id;
 
 // Get the appropriate storage API
 const getStorageAPI = () => {
   if (isFirefox) {
-    return browser.storage.local;
+    return (window as any).browser.storage.local;
   } else if (isChrome) {
     return chrome.storage.local;
   } else {

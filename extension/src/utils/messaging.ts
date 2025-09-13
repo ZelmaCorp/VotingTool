@@ -13,13 +13,13 @@ export interface MessageResponse {
 }
 
 // Detect browser and use appropriate API
-const isFirefox = typeof browser !== 'undefined' && browser.runtime?.id;
+const isFirefox = typeof (window as any).browser !== 'undefined' && (window as any).browser.runtime?.id;
 const isChrome = typeof chrome !== 'undefined' && chrome.runtime?.id;
 
 // Get the appropriate runtime API
 const getRuntimeAPI = () => {
   if (isFirefox) {
-    return browser.runtime;
+    return (window as any).browser.runtime;
   } else if (isChrome) {
     return chrome.runtime;
   } else {
@@ -30,7 +30,7 @@ const getRuntimeAPI = () => {
 // Get the appropriate tabs API
 const getTabsAPI = () => {
   if (isFirefox) {
-    return browser.tabs;
+    return (window as any).browser.tabs;
   } else if (isChrome) {
     return chrome.tabs;
   } else {
@@ -41,7 +41,7 @@ const getTabsAPI = () => {
 // Get the appropriate scripting API
 const getScriptingAPI = () => {
   if (isFirefox) {
-    return browser.scripting;
+    return (window as any).browser.scripting;
   } else if (isChrome) {
     return chrome.scripting;
   } else {

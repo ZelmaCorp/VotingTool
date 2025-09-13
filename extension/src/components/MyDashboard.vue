@@ -832,4 +832,50 @@ onUnmounted(() => {
   font-size: 0.8rem;
   color: #666;
 }
+
+.modal-content {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.section {
+  margin-bottom: 24px;
+  overflow-y: auto;
+  max-height: calc(80vh - 120px); /* Account for header and padding */
+}
+
+.activity-list {
+  overflow-y: auto;
+  max-height: 300px;
+  padding-right: 16px; /* Space for scrollbar */
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
+}
 </style> 

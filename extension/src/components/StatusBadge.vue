@@ -8,7 +8,7 @@
     >
       <span class="status-icon">{{ statusIcon }}</span>
       <span class="status-text">{{ status }}</span>
-      <span v-if="editable" class="edit-icon">✏️</span>
+      <span v-if="editable" class="edit-icon">edit</span>
     </div>
     
     <!-- Status Change Modal -->
@@ -76,16 +76,16 @@ const selectedStatus = ref<InternalStatus>(props.status)
 const changeReason = ref('')
 
 const statusConfig = {
-  'Not started': { color: '#6c757d', icon: '⚪' },
-  'Considering': { color: '#ffc107', icon: '🤔' },
-  'Ready for approval': { color: '#17a2b8', icon: '📋' },
-  'Waiting for agreement': { color: '#fd7e14', icon: '⏳' },
-  'Ready to vote': { color: '#28a745', icon: '🗳️' },
-  'Reconsidering': { color: '#dc3545', icon: '🔄' },
-  'Voted 👍 Aye 👍': { color: '#198754', icon: '👍' },
-  'Voted 👎 Nay 👎': { color: '#dc3545', icon: '👎' },
-  'Voted ✌️ Abstain ✌️': { color: '#6f42c1', icon: '✌️' },
-  'Not Voted': { color: '#e9ecef', icon: '❌' }
+  'Not started': { color: '#6c757d', icon: '•' },
+  'Considering': { color: '#ffc107', icon: '?' },
+  'Ready for approval': { color: '#17a2b8', icon: '✓' },
+  'Waiting for agreement': { color: '#fd7e14', icon: '...' },
+  'Ready to vote': { color: '#28a745', icon: '>' },
+  'Reconsidering': { color: '#dc3545', icon: '↻' },
+  'Voted Aye': { color: '#198754', icon: '+' },
+  'Voted Nay': { color: '#dc3545', icon: '-' },
+  'Voted Abstain': { color: '#6f42c1', icon: '=' },
+  'Not Voted': { color: '#e9ecef', icon: 'x' }
 }
 
 const statusOptions = Object.keys(statusConfig).map(status => ({
@@ -221,17 +221,17 @@ const saveStatusChange = async () => {
   color: white; 
   border-color: rgba(255, 255, 255, 0.3);
 }
-.status-voted-----aye---- { 
+.status-voted-aye { 
   background: linear-gradient(135deg, #198754, #155724); 
   color: white; 
   border-color: rgba(255, 255, 255, 0.3);
 }
-.status-voted-----nay---- { 
+.status-voted-nay { 
   background: linear-gradient(135deg, #dc3545, #c82333); 
   color: white; 
   border-color: rgba(255, 255, 255, 0.3);
 }
-.status-voted------abstain------ { 
+.status-voted-abstain { 
   background: linear-gradient(135deg, #6f42c1, #5a32a3); 
   color: white; 
   border-color: rgba(255, 255, 255, 0.3);
