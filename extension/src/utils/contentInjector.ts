@@ -20,6 +20,7 @@ export class ContentInjector {
     private currentActiveTab: ActiveTabInfo | null = null;
     private isInjecting: boolean = false;
     private isInitialized: boolean = false;
+    private currentProposalId: number | null = null;
 
     constructor() {
         this.detector = ProposalDetector.getInstance();
@@ -96,8 +97,9 @@ export class ContentInjector {
         
         // If we're on a category page, re-render all badges based on new tab state
         if (this.tabDetector.isOnCategoryPage()) {
-            // Clean up existing injections and re-inject based on new tab state
-            this.cleanupExistingInjections();
+            // Only clean up and re-inject if we're actually showing different content
+            // Tab changes on the same proposal shouldn't remove the voting controls
+            console.log('🔄 Tab change detected on category page, checking if re-injection needed');
             await this.handlePageChange();
         }
     }
@@ -117,16 +119,31 @@ export class ContentInjector {
         console.log('📄 Page change detected, checking for proposals...');
         console.log('🔍 Current URL:', window.location.href);
 
-        // Clean up existing injections first
-        this.cleanupExistingInjections();
+        // Only clean up if we're actually changing to a different page/proposal
+        // This prevents unnecessary removal and re-injection of the same components
 
         if (this.detector.isProposalPage()) {
             const proposal = this.detector.detectCurrentProposal();
             if (proposal) {
                 console.log('📋 Detected single proposal:', proposal);
-                await this.injectProposalComponents(proposal);
+                
+                // Only cleanup and re-inject if the proposal has changed
+                if (this.currentProposalId !== proposal.postId) {
+                    console.log(`🔄 Proposal changed from ${this.currentProposalId} to ${proposal.postId}, cleaning up...`);
+                    this.cleanupExistingInjections();
+                    this.currentProposalId = proposal.postId;
+                    await this.injectProposalComponents(proposal);
+                } else {
+                    console.log(`✅ Same proposal ${proposal.postId}, skipping cleanup and re-injection`);
+                }
             } else {
                 console.log('❌ No proposal detected on proposal page');
+                // If no proposal is detected but we had one before, cleanup
+                if (this.currentProposalId !== null) {
+                    console.log('🧹 No proposal detected, cleaning up previous injections');
+                    this.cleanupExistingInjections();
+                    this.currentProposalId = null;
+                }
             }
         } else {
             // Check for proposal lists
@@ -155,9 +172,18 @@ export class ContentInjector {
                 proposals.forEach((p, index) => {
                     console.log(`  Proposal ${index}: #${p.postId} - ${p.title.substring(0, 50)}...`);
                 });
+                // For list pages, we need to cleanup and re-inject as the list might have changed
+                this.cleanupExistingInjections();
+                this.currentProposalId = null;
                 await this.injectListPageComponents(proposals);
             } else {
                 console.log('❌ No proposals detected on list page');
+                // If we're not on any recognizable page, cleanup
+                if (this.currentProposalId !== null || this.injectedComponents.size > 0) {
+                    console.log('🧹 Not on a recognized page, cleaning up all injections');
+                    this.cleanupExistingInjections();
+                    this.currentProposalId = null;
+                }
                 // Debug: let's see what elements are actually on the page
                 const allTrs = document.querySelectorAll('tr');
                 console.log('🔍 All TR elements found:', allTrs.length);
@@ -961,6 +987,7 @@ export class ContentInjector {
         
         // Reset initialization state
         this.isInitialized = false;
+        this.currentProposalId = null;
         
         console.log('🧹 Content injector cleaned up');
     }

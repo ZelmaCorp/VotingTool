@@ -160,9 +160,8 @@ function ensureInitialization() {
         console.log('🔄 No content injector found, initializing as fallback...');
         initializeExtension();
       } else {
-        console.log('✅ Content injector already exists, triggering page change...');
-        // Trigger a page change detection in case content loaded after initial init
-        contentInjector.initialize();
+        console.log('✅ Content injector already exists, skipping duplicate initialization...');
+        // Don't call initialize() again as it can cause unnecessary cleanup/re-injection
       }
     }, 1000);
   });
