@@ -5,6 +5,7 @@ import { ReferendumAction } from "../types/auth";
 import { multisigService } from "../services/multisig";
 import { createSubsystemLogger } from "../config/logger";
 import { Subsystem } from "../types/logging";
+import { Referendum } from "../database/models/referendum";
 
 const router = Router();
 const logger = createSubsystemLogger(Subsystem.APP);
@@ -758,6 +759,39 @@ router.delete("/comments/:commentId", requireTeamMember, async (req: Request, re
     
   } catch (error) {
     logger.error({ error, commentId: req.params.commentId }, "Error deleting comment");
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
+});
+
+/**
+ * GET /dao/my-assignments
+ * Get all referendums assigned to the current user
+ */
+router.get("/my-assignments", requireTeamMember, async (req: Request, res: Response) => {
+  try {
+    if (!req.user?.address) {
+      return res.status(400).json({
+        success: false,
+        error: "User wallet address not found"
+      });
+    }
+
+    const referendums = await Referendum.getAssignedToUser(req.user.address);
+    
+    logger.info({ 
+      walletAddress: req.user.address,
+      count: referendums.length 
+    }, "Retrieved user's assigned referendums");
+
+    res.json({
+      success: true,
+      referendums
+    });
+  } catch (error) {
+    logger.error({ error }, "Error retrieving user's assigned referendums");
     res.status(500).json({
       success: false,
       error: "Internal server error"

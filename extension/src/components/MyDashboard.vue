@@ -7,8 +7,16 @@
       </div>
 
       <div class="dashboard-content">
-        <!-- Quick Stats -->
-        <div class="stats-section">
+        <!-- Auth Check -->
+        <div v-if="!authStore.state.isAuthenticated" class="auth-required">
+          <div class="auth-icon">🔐</div>
+          <h3>Authentication Required</h3>
+          <p>Please connect your wallet to view your dashboard</p>
+          <button @click="$emit('close')" class="connect-btn">Connect Wallet</button>
+        </div>
+        <div v-else>
+          <!-- Quick Stats -->
+          <div class="stats-section">
           <div class="stat-card">
             <div class="stat-number">{{ myAssignments.length }}</div>
             <div class="stat-label">My Assignments</div>
@@ -78,7 +86,11 @@
                 >
                   <div class="proposal-header">
                     <span class="proposal-id">#{{ proposal.post_id }}</span>
-                    <StatusBadge :status="proposal.internal_status" :editable="false" />
+                    <StatusBadge 
+                      :status="proposal.internal_status" 
+                      :proposal-id="proposal.post_id"
+                      :editable="false" 
+                    />
                   </div>
                   <h4 class="proposal-title">{{ proposal.title }}</h4>
                   <div class="proposal-meta">
@@ -109,7 +121,11 @@
                 >
                   <div class="proposal-header">
                     <span class="proposal-id">#{{ proposal.post_id }}</span>
-                    <StatusBadge :status="proposal.internal_status" :editable="false" />
+                    <StatusBadge 
+                      :status="proposal.internal_status" 
+                      :proposal-id="proposal.post_id"
+                      :editable="false" 
+                    />
                   </div>
                   <h4 class="proposal-title">{{ proposal.title }}</h4>
                   <div class="action-required">
@@ -143,7 +159,11 @@
                 >
                   <div class="proposal-header">
                     <span class="proposal-id">#{{ proposal.post_id }}</span>
-                    <StatusBadge :status="proposal.internal_status" :editable="false" />
+                    <StatusBadge 
+                      :status="proposal.internal_status" 
+                      :proposal-id="proposal.post_id"
+                      :editable="false" 
+                    />
                   </div>
                   <h4 class="proposal-title">{{ proposal.title }}</h4>
                   <div class="evaluation-info">
@@ -208,15 +228,61 @@
             </div>
           </div>
         </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
+<style scoped>
+.auth-required {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  text-align: center;
+  padding: 20px;
+}
+
+.auth-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.auth-required h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+}
+
+.auth-required p {
+  margin: 0 0 20px 0;
+  color: #666;
+}
+
+.connect-btn {
+  background: linear-gradient(135deg, #e6007a, #ff1493);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.connect-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);
+}
+</style>
+
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import type { ProposalData } from '../types'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ApiService } from '../utils/apiService'
 import { authStore } from '../stores/authStore'
+import type { ProposalData } from '../types'
 import StatusBadge from './StatusBadge.vue'
 
 interface Props {
@@ -225,33 +291,52 @@ interface Props {
 
 interface ActivityItem {
   id: string
-  type: 'evaluation' | 'team-action' | 'assignment' | 'vote'
+  type: string
   description: string
   timestamp: string
 }
 
-defineProps<Props>()
-defineEmits<{
+const props = defineProps<Props>()
+const emit = defineEmits<{
   close: []
 }>()
 
 // Data
+const apiService = ApiService.getInstance()
+const loading = ref(false)
 const proposals = ref<ProposalData[]>([])
 const recentActivity = ref<ActivityItem[]>([])
 const activeTab = ref<'assignments' | 'actions' | 'evaluations' | 'activity'>('assignments')
 
 // Computed
-const currentUser = computed(() => authStore.state.user?.address)
+const currentUser = computed(() => {
+  const address = authStore.state.user?.address
+  console.log('👤 Current user address:', address)
+  return address || null
+})
 
-const myAssignments = computed(() => 
-  proposals.value.filter(p => p.assigned_to === currentUser.value)
-)
+const myAssignments = computed(() => {
+  const user = currentUser.value
+  const assignments = proposals.value.filter(p => p.assigned_to === user)
+  console.log('📊 My assignments:', {
+    total: proposals.value.length,
+    currentUser: user,
+    foundAssignments: assignments.length,
+    sampleAssignments: proposals.value.slice(0, 3).map(p => ({
+      id: p.post_id,
+      assigned_to: p.assigned_to,
+      matches: p.assigned_to === user
+    }))
+  })
+  return assignments
+})
 
 const actionsNeeded = computed(() => 
   proposals.value.filter(p => {
+    const user = currentUser.value
     // Proposals where user needs to take action
-    const hasNoTeamAction = !p.team_actions?.some(action => action.wallet_address === currentUser.value)
-    const isAssignedToMe = p.assigned_to === currentUser.value
+    const hasNoTeamAction = !p.team_actions?.some(action => action.wallet_address === user)
+    const isAssignedToMe = p.assigned_to === user
     const needsEvaluation = isAssignedToMe && !p.suggested_vote
     const inActionableStatus = ['Considering', 'Ready for approval', 'Waiting for agreement'].includes(p.internal_status)
     
@@ -264,9 +349,10 @@ const myEvaluations = computed(() =>
 )
 
 const totalTeamActions = computed(() => {
+  const user = currentUser.value
   let count = 0
   proposals.value.forEach(p => {
-    if (p.team_actions?.some(action => action.wallet_address === currentUser.value)) {
+    if (p.team_actions?.some(action => action.wallet_address === user)) {
       count++
     }
   })
@@ -281,19 +367,83 @@ const completedAssignments = computed(() =>
 
 // Methods
 const loadData = async () => {
-  // Load user's proposals and activity
-  // This would be implemented with actual API calls
-  console.log('Loading dashboard data...')
+  console.log('🔄 Loading dashboard data...', {
+    isAuthenticated: authStore.state.isAuthenticated,
+    user: authStore.state.user,
+    token: !!localStorage.getItem('opengov-auth-token')
+  })
+  
+  if (!authStore.state.isAuthenticated || !authStore.state.user?.address) {
+    console.warn('⚠️ Not authenticated or no user address, skipping data load')
+    return
+  }
+
+  loading.value = true
+  try {
+    // Load my assignments first
+    const myAssignedProposals = await apiService.getMyAssignments()
+    console.log('📦 Loaded my assignments:', {
+      count: myAssignedProposals.length,
+      sample: myAssignedProposals.slice(0, 1).map(p => ({
+        id: p.post_id,
+        assigned_to: p.assigned_to
+      }))
+    })
+
+    // Load proposals needing attention
+    const needingAttention = await apiService.getProposalsNeedingAttention()
+    console.log('⚠️ Loaded proposals needing attention:', needingAttention.length)
+
+    // Merge and deduplicate proposals
+    const allProposals = [...myAssignedProposals]
+    needingAttention.forEach(proposal => {
+      if (!allProposals.some(p => p.post_id === proposal.post_id && p.chain === proposal.chain)) {
+        allProposals.push(proposal)
+      }
+    })
+
+    proposals.value = allProposals
+    console.log('📊 Total unique proposals:', proposals.value.length)
+
+    // Load recent activity
+    const recentProposals = await apiService.getRecentActivity()
+    console.log('📊 Recent activity:', recentProposals.length)
+    
+    // Convert proposals to activity items
+    recentActivity.value = recentProposals.map(p => ({
+      id: `${p.chain}-${p.post_id}`,
+      type: p.suggested_vote ? 'evaluation' : 'assignment',
+      description: `${p.suggested_vote ? 'Evaluated' : 'Assigned to'} proposal #${p.post_id}: ${p.title}`,
+      timestamp: p.updated_at || p.created_at
+    }))
+  } catch (error) {
+    console.error('❌ Failed to load dashboard data:', error)
+  } finally {
+    loading.value = false
+  }
 }
 
-const openProposal = (proposal: ProposalData) => {
-  const url = `https://${proposal.chain}.polkassembly.io/referenda/${proposal.post_id}`
-  window.open(url, '_blank')
+const openProposal = async (proposal: ProposalData) => {
+  try {
+    // First check if the proposal exists in our database
+    const existingProposal = await apiService.getProposal(proposal.post_id, proposal.chain)
+    if (!existingProposal) {
+      // If not found, trigger a refresh
+      await apiService.refreshReferenda()
+    }
+    
+    // Open the proposal in a new tab
+    const url = `https://${proposal.chain}.polkassembly.io/referenda/${proposal.post_id}`
+    window.open(url, '_blank')
+  } catch (error) {
+    console.error('❌ Failed to open proposal:', error)
+  }
 }
 
 const getRequiredAction = (proposal: ProposalData): string => {
-  const hasTeamAction = proposal.team_actions?.some(action => action.wallet_address === currentUser.value)
-  const isAssignedToMe = proposal.assigned_to === currentUser.value
+  const user = currentUser.value
+  const hasTeamAction = proposal.team_actions?.some(action => action.wallet_address === user)
+  const isAssignedToMe = proposal.assigned_to === user
   
   if (isAssignedToMe && !proposal.suggested_vote) {
     return 'Needs Evaluation'
@@ -324,8 +474,32 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString()
 }
 
+// Handle ESC key
+const handleEscKey = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    emit('close')
+  }
+}
+
+// Watch for auth state changes
+watch(() => authStore.state.isAuthenticated, (isAuthenticated) => {
+  console.log('👤 Auth state changed:', isAuthenticated)
+  if (isAuthenticated) {
+    loadData()
+  }
+})
+
+// Setup and cleanup
 onMounted(() => {
-  loadData()
+  console.log('🔄 Component mounted, auth state:', authStore.state.isAuthenticated)
+  if (authStore.state.isAuthenticated) {
+    loadData()
+  }
+  document.addEventListener('keydown', handleEscKey)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEscKey)
 })
 </script>
 

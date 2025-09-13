@@ -302,6 +302,13 @@ const filteredProposals = computed(() => {
   // Assignment filter
   if (selectedAssignment.value) {
     const currentUser = authStore.state.user?.address
+    console.log('🔍 Filtering by assignment:', { 
+      filter: selectedAssignment.value, 
+      currentUser,
+      totalProposals: filtered.length,
+      sampleAssignments: filtered.slice(0, 3).map(p => p.assigned_to)
+    })
+    
     switch (selectedAssignment.value) {
       case 'me':
         filtered = filtered.filter(p => p.assigned_to === currentUser)
@@ -313,6 +320,14 @@ const filteredProposals = computed(() => {
         filtered = filtered.filter(p => p.assigned_to && p.assigned_to !== currentUser)
         break
     }
+    
+    console.log('📊 After assignment filter:', {
+      remainingProposals: filtered.length,
+      sampleResults: filtered.slice(0, 3).map(p => ({
+        id: p.post_id,
+        assigned_to: p.assigned_to
+      }))
+    })
   }
 
   // Team action filter
@@ -407,15 +422,21 @@ const assignToMe = async (proposal: ProposalData, event: Event) => {
   event.stopPropagation() // Prevent opening the proposal
   
   try {
+    console.log('🎯 Attempting to assign proposal:', proposal.post_id);
     const result = await apiService.assignProposal(proposal.post_id, proposal.chain, 'responsible_person')
+    console.log('📝 Assignment result:', result);
+    
     if (result.success) {
       // Refresh the proposal list to show updated assignment
       await loadProposals()
     } else {
       console.error('❌ Failed to assign proposal:', result.error)
+      // TODO: Show error to user
+      alert(result.error || 'Failed to assign proposal. Please try again.')
     }
   } catch (error) {
     console.error('❌ Failed to assign proposal:', error)
+    alert('Failed to assign proposal. Please try again.')
   }
 }
 
