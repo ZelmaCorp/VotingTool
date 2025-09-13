@@ -101,13 +101,16 @@
               
               <div class="form-group">
                 <label>Team Members</label>
+                <p class="form-note">Team members are managed by the multisig. Names can be edited for display purposes.</p>
                 <div class="team-members-list">
                   <div v-for="(member, index) in daoConfig.teamMembers" :key="index" class="member-item">
-                    <input v-model="member.name" placeholder="Name" class="member-name" />
-                    <input v-model="member.address" placeholder="Wallet Address" class="member-address" />
-                    <button @click="removeMember(index)" class="remove-btn">×</button>
+                    <input v-model="member.name" placeholder="Display Name" class="member-name" />
+                    <input v-model="member.address" placeholder="Wallet Address" class="member-address" readonly />
+                    <span class="member-info">From multisig</span>
                   </div>
-                  <button @click="addMember" class="add-member-btn">+ Add Member</button>
+                  <div v-if="daoConfig.teamMembers.length === 0" class="no-members">
+                    No team members found. Connect to multisig to load members.
+                  </div>
                 </div>
               </div>
               
@@ -122,44 +125,19 @@
           <div v-if="activeSection === 'preferences'" class="section-content">
             <div class="section-header">
               <h3>User Preferences</h3>
-              <p>Customize your extension experience</p>
+              <p>Customize your extension experience (coming soon)</p>
             </div>
             
-            <div class="preferences-form">
-              <div class="form-group">
-                <label class="checkbox-label">
-                  <input v-model="userPrefs.notifications" type="checkbox" />
-                  Enable browser notifications
-                </label>
-              </div>
-              
-              <div class="form-group">
-                <label class="checkbox-label">
-                  <input v-model="userPrefs.autoSync" type="checkbox" />
-                  Auto-sync data every 5 minutes
-                </label>
-              </div>
-              
-              <div class="form-group">
-                <label>Default View Mode</label>
-                <select v-model="userPrefs.defaultView" class="form-select">
-                  <option value="list">List View</option>
-                  <option value="cards">Card View</option>
-                </select>
-              </div>
-              
-              <div class="form-group">
-                <label>Theme</label>
-                <select v-model="userPrefs.theme" class="form-select">
-                  <option value="light">Light</option>
-                  <option value="dark">Dark</option>
-                  <option value="auto">Auto</option>
-                </select>
-              </div>
-              
-              <div class="form-actions">
-                <button @click="savePreferences" class="save-btn">Save Preferences</button>
-              </div>
+            <div class="coming-soon">
+              <div class="coming-soon-icon">🚧</div>
+              <h4>Feature in Development</h4>
+              <p>User preferences will be available in a future update. This will include:</p>
+              <ul>
+                <li>Notification settings</li>
+                <li>Default view modes</li>
+                <li>Theme customization</li>
+                <li>Auto-sync preferences</li>
+              </ul>
             </div>
           </div>
 
@@ -245,26 +223,17 @@
           <div v-if="activeSection === 'data-sync'" class="section-content">
             <div class="section-header">
               <h3>Data Synchronization</h3>
-              <p>Manage data sync with Polkassembly and backend</p>
+              <p>Manage data sync with Polkassembly and backend (under review)</p>
             </div>
             
-            <div class="sync-controls">
-              <div class="sync-status">
-                <div class="status-item">
-                  <span class="status-label">Last Sync:</span>
-                  <span class="status-value">{{ lastSyncTime || 'Never' }}</span>
-                </div>
-                <div class="status-item">
-                  <span class="status-label">Sync Status:</span>
-                  <span class="status-value" :class="syncStatus">{{ syncStatus }}</span>
-                </div>
-              </div>
-              
-              <div class="sync-actions">
-                <button @click="syncNow" :disabled="syncing" class="sync-btn">
-                  {{ syncing ? 'Syncing...' : 'Sync Now' }}
+            <div class="under-review">
+              <div class="under-review-icon">🤔</div>
+              <h4>Feature Under Review</h4>
+              <p>We're evaluating whether automatic data synchronization is needed, or if manual refresh is sufficient.</p>
+              <div class="temp-actions">
+                <button @click="manualRefresh" :disabled="refreshing" class="refresh-btn">
+                  {{ refreshing ? 'Refreshing...' : 'Manual Refresh' }}
                 </button>
-                <button @click="clearCache" class="clear-cache-btn">Clear Cache</button>
               </div>
             </div>
           </div>
@@ -415,9 +384,7 @@ defineEmits<{
 // Data
 const activeSection = ref<'dao-config' | 'preferences' | 'voting-history' | 'activity-log' | 'data-sync' | 'help' | 'about'>('dao-config')
 const extensionVersion = ref('1.0.0')
-const syncing = ref(false)
-const syncStatus = ref<'connected' | 'disconnected' | 'error'>('connected')
-const lastSyncTime = ref<string>('')
+const refreshing = ref(false)
 
 const daoConfig = ref<DAOConfig>({
   name: '',
@@ -474,17 +441,16 @@ const savePreferences = async () => {
   // Save to storage
 }
 
-const syncNow = async () => {
-  syncing.value = true
+const manualRefresh = async () => {
+  refreshing.value = true
   try {
-    // Perform sync
-    await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate sync
-    lastSyncTime.value = new Date().toLocaleString()
-    syncStatus.value = 'connected'
+    // Perform manual refresh
+    await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate refresh
+    console.log('Manual refresh completed')
   } catch (error) {
-    syncStatus.value = 'error'
+    console.error('Refresh failed:', error)
   } finally {
-    syncing.value = false
+    refreshing.value = false
   }
 }
 
@@ -699,6 +665,13 @@ onMounted(() => {
   font-size: 0.8rem;
 }
 
+.form-note {
+  margin: 0 0 12px 0;
+  color: #666;
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
 .checkbox-label {
   display: flex;
   align-items: center;
@@ -736,6 +709,20 @@ onMounted(() => {
   border: 1px solid #ced4da;
   border-radius: 4px;
   font-family: monospace;
+  background: #f8f9fa;
+}
+
+.member-info {
+  font-size: 0.8rem;
+  color: #666;
+  font-style: italic;
+}
+
+.no-members {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 20px;
 }
 
 .remove-btn {
@@ -931,6 +918,57 @@ onMounted(() => {
   border-radius: 6px;
   cursor: pointer;
   font-weight: 500;
+}
+
+.coming-soon,
+.under-review {
+  text-align: center;
+  padding: 40px 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.coming-soon-icon,
+.under-review-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.coming-soon h4,
+.under-review h4 {
+  margin: 0 0 12px 0;
+  color: #333;
+}
+
+.coming-soon p,
+.under-review p {
+  margin: 0 0 16px 0;
+  color: #666;
+}
+
+.coming-soon ul {
+  text-align: left;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.temp-actions {
+  margin-top: 20px;
+}
+
+.refresh-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .help-content,

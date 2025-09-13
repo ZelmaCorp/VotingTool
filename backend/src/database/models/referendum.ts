@@ -124,6 +124,7 @@ export class Referendum {
      * Get all referendums
      */
     public static async getAll(): Promise<ReferendumWithDetails[]> {
+        // First get all referendums with basic data
         const sql = `
             SELECT 
                 r.*,
@@ -135,7 +136,42 @@ export class Referendum {
             ORDER BY r.created_at DESC
         `;
 
-        return await db.all(sql);
+        const referendums = await db.all(sql);
+
+        // Get all team assignments in one query
+        const assignmentsSql = `
+            SELECT 
+                rtr.referendum_id,
+                rtr.team_member_id as wallet_address,
+                rtr.role_type,
+                rtr.created_at
+            FROM referendum_team_roles rtr
+            WHERE rtr.referendum_id IN (${referendums.map(() => '?').join(',')})
+            ORDER BY rtr.created_at DESC
+        `;
+
+        const assignments = await db.all(assignmentsSql, referendums.map(r => r.id));
+
+        // Group assignments by referendum_id
+        const assignmentsByRef = assignments.reduce((acc, curr) => {
+            if (!acc[curr.referendum_id]) {
+                acc[curr.referendum_id] = [];
+            }
+            acc[curr.referendum_id].push(curr);
+            return acc;
+        }, {} as Record<number, any[]>);
+
+        // Merge assignments into referendums
+        return referendums.map(ref => {
+            const refAssignments = assignmentsByRef[ref.id] || [];
+            const responsiblePerson = refAssignments.find(a => a.role_type === 'responsible_person');
+            
+            return {
+                ...ref,
+                assigned_to: responsiblePerson?.wallet_address || null,
+                team_assignments: refAssignments
+            };
+        });
     }
 
     /**

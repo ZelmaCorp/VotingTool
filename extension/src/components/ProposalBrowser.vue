@@ -140,10 +140,17 @@
                   <div class="proposal-id">#{{ proposal.post_id }}</div>
                   <div class="proposal-title">{{ proposal.title }}</div>
                   <div class="proposal-status">
-                    <StatusBadge :status="proposal.internal_status" :editable="false" />
+                    <StatusBadge :status="proposal.internal_status" :proposal-id="proposal.post_id" :editable="false" />
                   </div>
                   <div class="proposal-assignment">
-                    {{ proposal.assigned_to || 'Unassigned' }}
+                    <span>{{ proposal.assigned_to || 'Unassigned' }}</span>
+                    <button 
+                      v-if="!proposal.assigned_to" 
+                      @click="assignToMe(proposal, $event)"
+                      class="assign-btn"
+                    >
+                      Assign to me
+                    </button>
                   </div>
                   <div class="proposal-updated">
                     {{ formatDate(proposal.updated_at || proposal.created_at) }}
@@ -161,7 +168,7 @@
                 >
                   <div class="card-header">
                     <span class="proposal-id">#{{ proposal.post_id }}</span>
-                    <StatusBadge :status="proposal.internal_status" :editable="false" />
+                    <StatusBadge :status="proposal.internal_status" :proposal-id="proposal.post_id" :editable="false" />
                   </div>
                   <h4 class="card-title">{{ proposal.title }}</h4>
                   <div class="card-meta">
@@ -207,9 +214,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import type { ProposalData, InternalStatus, TimelineStatus, TeamAction } from '../types'
-import { apiService } from '../utils/apiService'
+import { ApiService } from '../utils/apiService'
 import { authStore } from '../stores/authStore'
 import StatusBadge from './StatusBadge.vue'
 
@@ -218,7 +225,7 @@ interface Props {
 }
 
 defineProps<Props>()
-defineEmits<{
+const emit = defineEmits<{
   close: []
 }>()
 
@@ -345,15 +352,26 @@ const paginatedProposals = computed(() => {
 })
 
 // Methods
+const apiService = ApiService.getInstance()
+
 const loadProposals = async () => {
+  console.log('🔄 Loading proposals...')
   loading.value = true
   try {
-    // This would need to be implemented in apiService
-    // For now, we'll use a placeholder
-    proposals.value = []
-    console.log('Loading proposals...')
+    // Check if API service is authenticated
+    if (!apiService.isAuthenticated()) {
+      console.warn('⚠️ API Service not authenticated')
+      return
+    }
+
+    console.log('📡 Making API call to get all proposals...')
+    const allProposals = await apiService.getAllProposals()
+    console.log('📦 Raw API response:', allProposals)
+    
+    proposals.value = allProposals
+    console.log('✅ Loaded proposals:', allProposals.length)
   } catch (error) {
-    console.error('Failed to load proposals:', error)
+    console.error('❌ Failed to load proposals:', error)
   } finally {
     loading.value = false
   }
@@ -368,10 +386,37 @@ const clearFilters = () => {
   currentPage.value = 1
 }
 
-const openProposal = (proposal: ProposalData) => {
-  // Open the proposal in a new tab or navigate to it
-  const url = `https://${proposal.chain}.polkassembly.io/referenda/${proposal.post_id}`
-  window.open(url, '_blank')
+const openProposal = async (proposal: ProposalData) => {
+  try {
+    // First check if the proposal exists in our database
+    const existingProposal = await apiService.getProposal(proposal.post_id, proposal.chain)
+    if (!existingProposal) {
+      // If not found, trigger a refresh
+      await apiService.refreshReferenda()
+    }
+    
+    // Open the proposal in a new tab
+    const url = `https://${proposal.chain}.polkassembly.io/referenda/${proposal.post_id}`
+    window.open(url, '_blank')
+  } catch (error) {
+    console.error('❌ Failed to open proposal:', error)
+  }
+}
+
+const assignToMe = async (proposal: ProposalData, event: Event) => {
+  event.stopPropagation() // Prevent opening the proposal
+  
+  try {
+    const result = await apiService.assignProposal(proposal.post_id, proposal.chain, 'responsible_person')
+    if (result.success) {
+      // Refresh the proposal list to show updated assignment
+      await loadProposals()
+    } else {
+      console.error('❌ Failed to assign proposal:', result.error)
+    }
+  } catch (error) {
+    console.error('❌ Failed to assign proposal:', error)
+  }
 }
 
 const formatDate = (dateString: string) => {
@@ -383,9 +428,32 @@ watch([searchQuery, selectedInternalStatus, selectedTimelineStatus, selectedAssi
   currentPage.value = 1
 })
 
-// Load data when component mounts
+// Handle ESC key
+const handleEscKey = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    emit('close')
+  }
+}
+
+// Watch for auth state changes
+watch(() => authStore.state.isAuthenticated, (isAuthenticated) => {
+  console.log('👤 Auth state changed:', isAuthenticated)
+  if (isAuthenticated) {
+    loadProposals()
+  }
+})
+
+// Setup and cleanup
 onMounted(() => {
-  loadProposals()
+  console.log('🔄 Component mounted, auth state:', authStore.state.isAuthenticated)
+  if (authStore.state.isAuthenticated) {
+    loadProposals()
+  }
+  document.addEventListener('keydown', handleEscKey)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('keydown', handleEscKey)
 })
 </script>
 
@@ -654,7 +722,29 @@ onMounted(() => {
   white-space: nowrap;
 }
 
-.proposal-assignment,
+.proposal-assignment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.assign-btn {
+  padding: 4px 8px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.assign-btn:hover {
+  background: #0056b3;
+}
+
 .proposal-updated {
   font-size: 0.9rem;
   color: #666;

@@ -28,7 +28,7 @@
           </div>
           <div class="agreement-text">
             <span v-if="agreementSummary?.vetoed" class="veto-text">
-              🚫 VETOED by {{ agreementSummary.veto_by }}
+              🚫 NO WAYED by {{ agreementSummary.veto_by }}
             </span>
             <span v-else>
               {{ agreementSummary?.total_agreements || 0 }} / {{ agreementSummary?.required_agreements || 4 }} agreements

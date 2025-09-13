@@ -13,10 +13,16 @@ const router = Router();
 router.get("/", async (req: Request, res: Response) => {
   try {
     const referendums = await Referendum.getAll();
-    res.json(referendums);
+    res.json({
+      success: true,
+      referendums
+    });
   } catch (error) {
     logger.error({ error: (error as any).message }, "Error fetching referendums from database");
-    res.status(500).json({ error: "Error fetching referendums: " + (error as any).message });
+    res.status(500).json({ 
+      success: false,
+      error: "Error fetching referendums: " + (error as any).message 
+    });
   }
 });
 

@@ -26,7 +26,7 @@
           </div>
           <div class="stat-card">
             <div class="stat-number">{{ vetoedProposals.length }}</div>
-            <div class="stat-label">Vetoed</div>
+            <div class="stat-label">NO WAYED</div>
             <div class="stat-icon">🚫</div>
           </div>
         </div>
@@ -60,7 +60,7 @@
               :class="{ active: activeTab === 'vetoed' }"
               class="tab-btn"
             >
-              🚫 Vetoed ({{ vetoedProposals.length }})
+              🚫 NO WAY ({{ vetoedProposals.length }})
             </button>
           </div>
 
@@ -257,17 +257,17 @@
               </div>
             </div>
 
-            <!-- Vetoed Tab -->
+            <!-- NO-wAY Tab -->
             <div v-if="activeTab === 'vetoed'" class="tab-panel">
               <div class="panel-header">
-                <h3>Vetoed Proposals</h3>
-                <p>These proposals have been vetoed by team members and require resolution.</p>
+                <h3>NO WAYED Proposals</h3>
+                <p>These proposals have been NO-WAYED by team members and require resolution.</p>
               </div>
               
               <div v-if="vetoedProposals.length === 0" class="empty-state">
                 <div class="empty-icon">✅</div>
-                <h3>No vetoed proposals</h3>
-                <p>No proposals have been vetoed</p>
+                <h3>No NO-WAYED proposals</h3>
+                <p>No proposals have been NO-WAYED</p>
               </div>
               
               <div v-else class="proposals-list">
@@ -286,7 +286,7 @@
                   <div class="veto-info">
                     <div class="veto-alert">
                       <span class="alert-icon">🚫</span>
-                      <strong>Vetoed by:</strong>
+                      <strong>NO-WAYED by:</strong>
                       <div class="member-list">
                         <span 
                           v-for="member in getVetoMembers(proposal)" 
