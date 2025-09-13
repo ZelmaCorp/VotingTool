@@ -167,8 +167,8 @@ const formatAssignmentDisplay = (address: string): string => {
     }
     return name
   }
-  // Show full address when no name is available - there's space in the button
-  return address
+  // Show shortened address when no name is available for button display
+  return formatAddress(address, true)
 }
 
 /**
@@ -411,7 +411,7 @@ const showLoginPrompt = (message: string) => {
     title: 'Connect Wallet',
     message: `${message}\n\nWould you like to connect your wallet now?`,
     onConfirm: () => {
-      // Trigger wallet connection by dispatching an event
+      // Trigger menu opening which will show wallet connect modal
       window.dispatchEvent(new CustomEvent('requestWalletConnection'))
     }
   }

@@ -78,7 +78,7 @@
               :class="{ active: currentUserAction === 'Agree' }"
               :title="!authStore.state.isAuthenticated ? 'Connect wallet to agree' : 'Agree with this proposal'"
             >
-              👍 {{ authStore.state.isAuthenticated ? 'Agree' : 'Connect to Agree' }}
+              {{ authStore.state.isAuthenticated ? 'Agree' : 'Connect to Agree' }}
             </button>
             
             <button 
@@ -87,7 +87,7 @@
               :class="{ active: currentUserAction === 'To be discussed' }"
               :title="!authStore.state.isAuthenticated ? 'Connect wallet to mark for discussion' : 'Mark for team discussion'"
             >
-              💬 {{ authStore.state.isAuthenticated ? 'To be discussed' : 'Connect to Discuss' }}
+              {{ authStore.state.isAuthenticated ? 'To be discussed' : 'Connect to Discuss' }}
             </button>
             
             <button 
@@ -96,7 +96,7 @@
               :class="{ active: currentUserAction === 'NO WAY' }"
               :title="!authStore.state.isAuthenticated ? 'Connect wallet to veto' : 'Veto this proposal'"
             >
-              🚫 {{ authStore.state.isAuthenticated ? 'NO WAY' : 'Connect to Veto' }}
+              {{ authStore.state.isAuthenticated ? 'NO WAY' : 'Connect to Veto' }}
             </button>
             
             <button 
@@ -105,7 +105,7 @@
               :class="{ active: currentUserAction === 'Recuse' }"
               :title="!authStore.state.isAuthenticated ? 'Connect wallet to recuse' : 'Recuse from this proposal'"
             >
-              🤐 {{ authStore.state.isAuthenticated ? 'Recuse' : 'Connect to Recuse' }}
+              {{ authStore.state.isAuthenticated ? 'Recuse' : 'Connect to Recuse' }}
             </button>
         </div>
       </div>
@@ -172,7 +172,7 @@
                   :disabled="!newComment.trim() || newComment.length > 500"
                   :title="!authStore.state.isAuthenticated ? 'Connect wallet to send comments' : 'Send comment'"
                 >
-                  <span>💬 {{ authStore.state.isAuthenticated ? 'Send' : 'Connect to Send' }}</span>
+                  <span>{{ authStore.state.isAuthenticated ? 'Send' : 'Connect to Send' }}</span>
                 </button>
             </div>
           </div>
@@ -198,7 +198,7 @@
             class="veto-confirm-btn"
             :disabled="!vetoReason.trim()"
           >
-            🚫 Veto Proposal
+            Veto Proposal
           </button>
         </div>
       </div>
@@ -304,7 +304,7 @@ const showLoginPrompt = (message: string) => {
     'Connect Wallet',
     `${message}\n\nWould you like to connect your wallet now?`,
     () => {
-      // Trigger wallet connection by dispatching an event
+      // Trigger menu opening which will show wallet connect modal
       window.dispatchEvent(new CustomEvent('requestWalletConnection'))
     },
     'default'
@@ -495,10 +495,10 @@ const getMemberActionClass = (member: TeamMember) => {
 const getMemberActionText = (member: TeamMember) => {
   const statusClass = getMemberStatusClass(member)
   switch (statusClass) {
-    case 'agreed': return '👍 Agreed'
-    case 'recused': return '🤐 Recused'
-    case 'discuss': return '💬 To discuss'
-    default: return '⏳ Pending'
+    case 'agreed': return 'Agreed'
+    case 'recused': return 'Recused'
+    case 'discuss': return 'To discuss'
+    default: return 'Pending'
   }
 }
 

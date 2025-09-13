@@ -4,6 +4,7 @@ import { VotingDecision } from '../database/models/votingDecision';
 import { Chain } from '../types/properties';
 import { createSubsystemLogger } from '../config/logger';
 import { Subsystem } from '../types/logging';
+import { db } from '../database/connection';
 
 const logger = createSubsystemLogger(Subsystem.APP);
 const router = Router();
@@ -117,6 +118,35 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
     // Update voting decision fields if any
     if (Object.keys(votingFields).length > 0) {
       await VotingDecision.upsert(referendum.id!, votingFields);
+      
+      // If suggested_vote is being updated, automatically set the user to "agree"
+      // This assumes the person changing suggested vote is the evaluator/responsible person
+      if (votingFields.suggested_vote && req.user?.address) {
+        try {
+          // Check if user is assigned as responsible person for this referendum
+          const existingAssignment = await db.get(
+            "SELECT role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = 'responsible_person'",
+            [referendum.id, req.user.address]
+          );
+          
+          if (existingAssignment) {
+            // Auto-set to agree when evaluator changes suggested vote
+            await db.run(
+              "INSERT OR REPLACE INTO referendum_team_roles (referendum_id, team_member_id, role_type) VALUES (?, ?, 'agree')",
+              [referendum.id, req.user.address]
+            );
+            
+            logger.info({ 
+              walletAddress: req.user.address, 
+              postId, 
+              chain,
+              suggestedVote: votingFields.suggested_vote 
+            }, "Auto-set evaluator to 'agree' after changing suggested vote");
+          }
+        } catch (autoAgreeError) {
+          logger.warn({ autoAgreeError, walletAddress: req.user.address, postId }, "Failed to auto-set evaluator to agree");
+        }
+      }
     }
 
     // Return the updated referendum with all related data
