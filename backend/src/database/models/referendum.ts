@@ -124,6 +124,7 @@ export class Referendum {
      * Get all referendums
      */
     public static async getAll(): Promise<ReferendumWithDetails[]> {
+        // First get all referendums with basic data
         const sql = `
             SELECT 
                 r.*,
@@ -135,7 +136,42 @@ export class Referendum {
             ORDER BY r.created_at DESC
         `;
 
-        return await db.all(sql);
+        const referendums = await db.all(sql);
+
+        // Get all team assignments in one query
+        const assignmentsSql = `
+            SELECT 
+                rtr.referendum_id,
+                rtr.team_member_id as wallet_address,
+                rtr.role_type,
+                rtr.created_at
+            FROM referendum_team_roles rtr
+            WHERE rtr.referendum_id IN (${referendums.map(() => '?').join(',')})
+            ORDER BY rtr.created_at DESC
+        `;
+
+        const assignments = await db.all(assignmentsSql, referendums.map(r => r.id));
+
+        // Group assignments by referendum_id
+        const assignmentsByRef = assignments.reduce((acc, curr) => {
+            if (!acc[curr.referendum_id]) {
+                acc[curr.referendum_id] = [];
+            }
+            acc[curr.referendum_id].push(curr);
+            return acc;
+        }, {} as Record<number, { role_type: string; wallet_address: string; created_at: string }[]>);
+
+        // Merge assignments into referendums
+        return referendums.map(ref => {
+            const refAssignments = assignmentsByRef[ref.id] || [];
+            const responsiblePerson = refAssignments.find((a: { role_type: string }) => a.role_type === 'responsible_person');
+            
+            return {
+                ...ref,
+                assigned_to: responsiblePerson?.wallet_address || null,
+                team_assignments: refAssignments
+            };
+        });
     }
 
     /**
@@ -212,5 +248,49 @@ export class Referendum {
     public static async delete(postId: number, chain: Chain): Promise<void> {
         const sql = 'DELETE FROM referendums WHERE post_id = ? AND chain = ?';
         await db.run(sql, [postId, chain]);
+    }
+
+    /**
+     * Get referendums assigned to a specific user
+     */
+    public static async getAssignedToUser(userAddress: string): Promise<ReferendumWithDetails[]> {
+        const sql = `
+            SELECT 
+                r.*,
+                sc.necessity_score, sc.funding_score, sc.competition_score,
+                sc.blueprint_score, sc.track_record_score, sc.reports_score,
+                sc.synergy_score, sc.revenue_score, sc.security_score,
+                sc.open_source_score, sc.ref_score,
+                vd.suggested_vote, vd.final_vote, vd.vote_executed, vd.vote_executed_date
+            FROM referendums r
+            LEFT JOIN scoring_criteria sc ON r.id = sc.referendum_id
+            LEFT JOIN voting_decisions vd ON r.id = vd.referendum_id
+            INNER JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id
+            WHERE rtr.team_member_id = ? AND rtr.role_type = 'responsible_person'
+            ORDER BY r.created_at DESC
+        `;
+
+        const referendums = await db.all(sql, [userAddress]);
+
+        // Get team assignments for each referendum
+        const results: ReferendumWithDetails[] = [];
+        for (const ref of referendums) {
+            const assignmentsSql = `
+                SELECT rtr.team_member_id as wallet_address, rtr.role_type, rtr.created_at
+                FROM referendum_team_roles rtr
+                WHERE rtr.referendum_id = ?
+                ORDER BY rtr.created_at DESC
+            `;
+            
+            const assignments = await db.all(assignmentsSql, [ref.id]);
+            
+            results.push({
+                ...ref,
+                assigned_to: userAddress, // We know it's assigned to this user
+                team_assignments: assignments
+            });
+        }
+
+        return results;
     }
 } 

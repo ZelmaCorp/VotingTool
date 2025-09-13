@@ -27,48 +27,61 @@
 
     <!-- Menu Items -->
     <div class="menu-items">
-      <div class="menu-item" @click="handleAction('proposals')">
+      <div class="menu-item" @click="handleAction('browse-proposals')">
         <span class="icon">📋</span>
-        <span>View Proposals</span>
+        <span>Browse Proposals</span>
+        <span class="menu-subtitle">All proposals with advanced filters</span>
       </div>
       
-        <div class="menu-item" @click="handleAction('my-assignments')">
+      <div class="menu-item" @click="handleAction('my-dashboard')">
         <span class="icon">👤</span>
-        <span>My Assignments</span>
+        <span>My Dashboard</span>
+        <span class="menu-subtitle">My assignments & actions needed</span>
       </div>
       
-      <div class="menu-item" @click="handleAction('team-activity')">
+      <div class="menu-item" @click="handleAction('team-workflow')">
         <span class="icon">👥</span>
-        <span>Team Activity</span>
+        <span>Team Workflow</span>
+        <span class="menu-subtitle">Team collaboration & approvals</span>
       </div>
       
-      <div class="menu-item" @click="handleAction('needs-attention')">
-        <span class="icon">⚠️</span>
-        <span>Needs Attention</span>
-      </div>
-      
-      <div class="menu-item" @click="handleAction('voting')">
-        <span class="icon">✅</span>
-        <span>Voting History</span>
-      </div>
-      
-      <div class="menu-item" @click="handleAction('settings')">
+      <div class="menu-item" @click="handleAction('settings-more')">
         <span class="icon">⚙️</span>
-        <span>Settings</span>
-      </div>
-      
-      <div class="menu-item" @click="handleAction('help')">
-        <span class="icon">❓</span>
-        <span>Help</span>
+        <span>Settings & More</span>
+        <span class="menu-subtitle">Configuration, history & help</span>
       </div>
     </div>
 
-    <!-- Wallet Connect Modal -->
+    <!-- Modals -->
     <div v-if="showWalletConnect" class="modal-overlay" @click="showWalletConnect = false">
       <div class="modal-content" @click.stop>
         <WalletConnect @close="showWalletConnect = false" />
       </div>
     </div>
+
+    <!-- Browse Proposals Modal -->
+    <ProposalBrowser 
+      :show="showProposalBrowser"
+      @close="showProposalBrowser = false"
+    />
+
+    <!-- My Dashboard Modal -->
+    <MyDashboard 
+      :show="showMyDashboard"
+      @close="showMyDashboard = false"
+    />
+
+    <!-- Team Workflow Modal -->
+    <TeamWorkflow 
+      :show="showTeamWorkflow"
+      @close="showTeamWorkflow = false"
+    />
+
+    <!-- Settings & More Modal -->
+    <SettingsMore 
+      :show="showSettingsMore"
+      @close="showSettingsMore = false"
+    />
 
     <!-- DAO Config Modal -->
     <DAOConfigModal 
@@ -84,9 +97,17 @@ import { ref } from 'vue'
 import { authStore } from '../stores/authStore'
 import WalletConnect from './WalletConnect.vue'
 import DAOConfigModal from './DAOConfigModal.vue'
+import ProposalBrowser from './ProposalBrowser.vue'
+import MyDashboard from './MyDashboard.vue'
+import TeamWorkflow from './TeamWorkflow.vue'
+import SettingsMore from './SettingsMore.vue'
 
 const showWalletConnect = ref(false)
 const showDAOConfig = ref(false)
+const showProposalBrowser = ref(false)
+const showMyDashboard = ref(false)
+const showTeamWorkflow = ref(false)
+const showSettingsMore = ref(false)
 
 const getUserInitials = () => {
   const name = authStore.state.user?.name
@@ -105,42 +126,26 @@ const handleLogout = async () => {
 
 const handleAction = (action: string) => {
   console.log(`Action clicked: ${action}`)
-  // Handle different actions here
+  
   switch (action) {
-    case 'proposals':
-      // Handle proposals view
-      window.open('https://polkadot.polkassembly.io/referenda', '_blank')
+    case 'browse-proposals':
+      showProposalBrowser.value = true
       break
-    case 'my-assignments':
-      // Show proposals assigned to current user
-      alert('My Assignments feature - shows proposals assigned to you')
+    case 'my-dashboard':
+      showMyDashboard.value = true
       break
-    case 'team-activity':
-      // Show team collaboration activity
-      alert('Team Activity feature - shows recent team actions and discussions')
+    case 'team-workflow':
+      showTeamWorkflow.value = true
       break
-    case 'needs-attention':
-      // Show proposals needing team attention
-      alert('Needs Attention feature - shows proposals waiting for team action')
-      break
-    case 'voting':
-      // Handle voting history
-      alert('Voting History feature - shows your voting record')
-      break
-    case 'settings':
-      // Handle settings - open DAO configuration
-      showDAOConfig.value = true
-      break
-    case 'help':
-      // Handle help
-      window.open('https://github.com/your-repo/wiki', '_blank')
+    case 'settings-more':
+      showSettingsMore.value = true
       break
   }
 }
 
 const handleConfigSaved = () => {
   console.log('DAO configuration saved successfully')
-  // Could refresh data or show success message
+  showDAOConfig.value = false
 }
 </script>
 
@@ -258,11 +263,12 @@ const handleConfigSaved = () => {
 
 .menu-item {
   display: flex;
-  align-items: center;
-  padding: 16px 20px;
+  flex-direction: column;
+  padding: 20px 20px;
   cursor: pointer;
   transition: background-color 0.2s ease;
   border-bottom: 1px solid #f0f0f0;
+  gap: 4px;
 }
 
 .menu-item:last-child {
@@ -278,12 +284,23 @@ const handleConfigSaved = () => {
   margin-right: 12px;
   width: 24px;
   text-align: center;
+  align-self: flex-start;
 }
 
-.menu-item span:last-child {
-  font-size: 14px;
+.menu-item > span:nth-child(2) {
+  font-size: 15px;
   color: #333;
-  font-weight: 500;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+}
+
+.menu-subtitle {
+  font-size: 12px;
+  color: #666;
+  font-weight: 400;
+  margin-left: 36px;
+  margin-top: -2px;
 }
 
 /* Modal styles */

@@ -1,5 +1,5 @@
 import { ref, computed, reactive } from 'vue'
-import type { Proposal, FilterOptions } from '@/types'
+import type { Proposal, FilterOptions } from '../types'
 
 // Simple reactive store using Vue 3 composition API
 export const useProposalStore = () => {
@@ -13,26 +13,26 @@ export const useProposalStore = () => {
     let filtered = proposals.value
 
     if (filters.status) {
-      filtered = filtered.filter(p => p.status === filters.status)
+      filtered = filtered.filter((p: Proposal) => p.status === filters.status)
     }
 
     if (filters.chain) {
-      filtered = filtered.filter(p => p.chain === filters.chain)
+      filtered = filtered.filter((p: Proposal) => p.chain === filters.chain)
     }
 
     if (filters.assignedTo) {
-      filtered = filtered.filter(p => p.assignedTo === filters.assignedTo)
+      filtered = filtered.filter((p: Proposal) => p.assignedTo === filters.assignedTo)
     }
 
     if (filters.suggestedVote) {
-      filtered = filtered.filter(p => p.suggestedVote === filters.suggestedVote)
+      filtered = filtered.filter((p: Proposal) => p.suggestedVote === filters.suggestedVote)
     }
 
     return filtered
   })
 
   const proposalsByStatus = computed(() => {
-    return proposals.value.reduce((acc, proposal) => {
+    return proposals.value.reduce((acc: Record<string, Proposal[]>, proposal: Proposal) => {
       const status = proposal.status
       if (!acc[status]) {
         acc[status] = []
@@ -45,7 +45,7 @@ export const useProposalStore = () => {
   const myAssignments = computed(() => {
     // Get current user from wallet
     const currentUser = 'current-user-address'
-    return proposals.value.filter(p => p.assignedTo === currentUser)
+    return proposals.value.filter((p: Proposal) => p.assignedTo === currentUser)
   })
 
   const fetchProposals = async () => {
@@ -62,7 +62,7 @@ export const useProposalStore = () => {
   }
 
   const updateProposal = async (proposalId: string, updates: Partial<Proposal>) => {
-    const index = proposals.value.findIndex(p => p.id === proposalId)
+    const index = proposals.value.findIndex((p: Proposal) => p.id === proposalId)
     if (index !== -1) {
       proposals.value[index] = { ...proposals.value[index], ...updates, updatedAt: new Date().toISOString() }
     }

@@ -11,6 +11,10 @@ export class ApiService {
         // Default to localhost, but this could be configurable
         this.baseUrl = 'http://localhost:3000';
         this.loadToken();
+        console.log('🔧 ApiService initialized:', {
+            baseUrl: this.baseUrl,
+            hasToken: !!this.token
+        });
     }
 
     static getInstance(): ApiService {
@@ -22,6 +26,7 @@ export class ApiService {
 
     private loadToken(): void {
         this.token = localStorage.getItem('opengov-auth-token');
+        console.log('🔑 Loaded token:', this.token ? 'Present' : 'Not found');
     }
 
     // Method to refresh token from localStorage
@@ -70,24 +75,30 @@ export class ApiService {
                     return;
                 }
                 
-                if (response && response.success) {
-                    resolve(response.data);
-                } else {
-                    console.error('❌ API Service: API call failed, response:', response);
-                    
-                    // Handle 401 unauthorized
-                    if (response?.debugInfo?.responseStatus === 401) {
-                        this.token = null;
-                        localStorage.removeItem('opengov-auth-token');
-                    }
-                    
-                    const error = new Error(response?.error || 'API call failed');
-                    // Attach additional details for better error handling
-                    if (response?.debugInfo?.errorResponseBody?.details) {
-                        (error as any).details = response.debugInfo.errorResponseBody.details;
-                        (error as any).status = response?.debugInfo?.responseStatus;
-                    }
-                    reject(error);
+                            console.log('📡 Chrome message response:', response);
+            
+            if (response && response.success) {
+                console.log('✅ API call successful, raw response:', response);
+                // Always use the data field from the response
+                resolve(response.data);
+            } else {
+                console.error('❌ API Service: API call failed, response:', response);
+                
+                // Handle 401 unauthorized
+                if (response?.debugInfo?.responseStatus === 401) {
+                    console.warn('⚠️ Unauthorized - clearing token');
+                    this.token = null;
+                    localStorage.removeItem('opengov-auth-token');
+                }
+                
+                const error = new Error(response?.error || 'API call failed');
+                // Attach additional details for better error handling
+                if (response?.debugInfo?.errorResponseBody?.details) {
+                    (error as any).details = response.debugInfo.errorResponseBody.details;
+                    (error as any).status = response?.debugInfo?.responseStatus;
+                }
+                console.error('❌ Rejecting with error:', error);
+                reject(error);
                 }
             });
         });
@@ -348,10 +359,42 @@ export class ApiService {
     // List methods for different views
     async getMyAssignments(): Promise<ProposalData[]> {
         try {
-            const result = await this.request<{ success: boolean; referendums?: ProposalData[]; error?: string }>('/dao/my-assignments');
-            return result.referendums || [];
+            // Check auth token
+            console.log('🔑 Auth check:', {
+                hasToken: !!this.token,
+                headers: this.getHeaders()
+            });
+
+            console.log('🔍 Fetching my assignments...');
+            const result = await this.request<{ success: boolean; referendums: ProposalData[]; error?: string }>('/dao/my-assignments');
+            console.log('📦 Raw assignments response:', result);
+            
+            if (!result.success) {
+                console.warn('⚠️ API returned success: false', result.error);
+                return [];
+            }
+
+            const assignments = result.referendums || [];
+            console.log('✅ Found assignments:', {
+                count: assignments.length,
+                sample: assignments.slice(0, 2).map(p => ({
+                    id: p.post_id,
+                    title: p.title,
+                    assigned_to: p.assigned_to,
+                    hasTeamAssignments: 'team_assignments' in p
+                }))
+            });
+            
+            return assignments;
         } catch (error) {
-            console.error('Failed to fetch assignments:', error);
+            console.error('❌ Failed to fetch assignments:', error);
+            if (error instanceof Error) {
+                console.error('Error details:', {
+                    message: error.message,
+                    details: (error as any).details,
+                    status: (error as any).status
+                });
+            }
             return [];
         }
     }
@@ -368,11 +411,22 @@ export class ApiService {
 
     async getAllProposals(chain?: Chain): Promise<ProposalData[]> {
         try {
+            console.log('🔍 getAllProposals called', { chain, baseUrl: this.baseUrl, hasToken: !!this.token });
             const queryParam = chain ? `?chain=${chain}` : '';
-            const result = await this.request<{ success: boolean; referendums?: ProposalData[]; error?: string }>(`/referendums${queryParam}`);
+            const endpoint = `/referendums${queryParam}`;
+            console.log('📡 Making request to:', endpoint);
+            
+            const result = await this.request<{ success: boolean; referendums: ProposalData[] }>(endpoint);
+            console.log('📦 Raw API result:', result);
+            
+            if (!result.success) {
+                console.warn('⚠️ API returned success: false');
+                return [];
+            }
+            
             return result.referendums || [];
         } catch (error) {
-            console.error('Failed to fetch all proposals:', error);
+            console.error('❌ Failed to fetch all proposals:', error);
             return [];
         }
     }
@@ -433,8 +487,8 @@ export class ApiService {
         }
     }
 
-    // Helper method to trigger referendum refresh
-    private async refreshReferenda(): Promise<void> {
+    // Method to trigger referendum refresh from Polkassembly
+    async refreshReferenda(): Promise<void> {
         try {
             await this.request(`/admin/refresh-referendas?limit=50`, {
                 method: 'GET'

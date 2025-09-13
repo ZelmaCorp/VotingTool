@@ -185,3 +185,22 @@ export interface DAOConfig {
     name: string;
     multisig_address?: string;
 } 
+
+export interface Proposal {
+    id: string;
+    chain: Chain;
+    status: InternalStatus;
+    assignedTo?: string;
+    suggestedVote?: SuggestedVote;
+    title: string;
+    description?: string;
+    updatedAt: string;
+    createdAt: string;
+}
+
+export interface FilterOptions {
+    status?: InternalStatus;
+    chain?: Chain;
+    assignedTo?: string;
+    suggestedVote?: SuggestedVote;
+} 

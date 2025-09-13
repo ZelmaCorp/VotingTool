@@ -45,29 +45,36 @@ declare namespace chrome {
 
 // Firefox WebExtension API types
 declare namespace browser {
-  const storage: {
-    local: {
-      get(keys: string[]): Promise<Record<string, any>>;
-      set(items: Record<string, any>): Promise<void>;
-      remove(keys: string[]): Promise<void>;
-    };
-  };
-  
-  const tabs: {
-    query(queryInfo: any): Promise<any[]>;
-    sendMessage(tabId: number, message: any): Promise<any>;
-  };
-  
-  const scripting: {
-    executeScript(injection: any): Promise<any>;
-  };
-  
   const runtime: {
     id: string;
-    sendMessage(message: any): Promise<any>;
+    getURL: (path: string) => string;
+    getManifest: () => any;
+    sendMessage: (message: any) => Promise<any>;
     onMessage: {
-      addListener(callback: (message: any, sender: any) => void): void;
-      removeListener(callback: (message: any, sender: any) => void): void;
+      addListener: (callback: (message: any, sender: any) => void) => void;
+      removeListener: (callback: (message: any, sender: any) => void) => void;
+    };
+  };
+
+  const tabs: {
+    query: (queryInfo: { active: boolean; currentWindow: boolean }) => Promise<any[]>;
+    sendMessage: (tabId: number, message: any) => Promise<any>;
+    executeScript: (tabId: number, details: { file: string }) => Promise<any>;
+  };
+
+  const scripting: {
+    executeScript: (injection: {
+      target: { tabId: number };
+      files?: string[];
+      func?: () => void;
+    }) => Promise<any>;
+  };
+
+  const storage: {
+    local: {
+      get: (keys: string | string[] | null) => Promise<any>;
+      set: (items: { [key: string]: any }) => Promise<void>;
+      remove: (keys: string | string[]) => Promise<void>;
     };
   };
 }
