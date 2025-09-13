@@ -40,7 +40,7 @@
         @click="handleTeamActions"
         :title="authStore.state.isAuthenticated ? 'Open team collaboration panel' : 'Click to connect wallet for team actions'"
       >
-        <span class="btn-text">👥 Team Actions</span>
+        <span class="btn-text">Team Actions</span>
       </button>
     </div>
 

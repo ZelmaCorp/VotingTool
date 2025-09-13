@@ -266,6 +266,23 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
       [referendum.id, req.user.address]
     );
     
+    // Special handling for responsible_person assignment
+    if (action === 'responsible_person') {
+      // Check if someone else is already assigned as responsible person
+      const currentResponsible = await db.get(
+        "SELECT team_member_id FROM referendum_team_roles WHERE referendum_id = ? AND role_type = 'responsible_person'",
+        [referendum.id]
+      );
+      
+      if (currentResponsible && currentResponsible.team_member_id !== req.user.address) {
+        return res.status(409).json({
+          success: false,
+          error: `This proposal is already assigned to another team member. Please ask them to unassign first, or contact an admin.`,
+          current_assignee: currentResponsible.team_member_id
+        });
+      }
+    }
+    
     if (existingAction) {
       // Update existing action
       await db.run(

@@ -101,8 +101,14 @@ CREATE TABLE referendum_team_roles (
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     
     FOREIGN KEY (referendum_id) REFERENCES referendums(id) ON DELETE CASCADE,
+    -- Allow one person to have multiple different roles for the same referendum
     UNIQUE(referendum_id, team_member_id, role_type)
 );
+
+-- Ensure only one responsible person per referendum
+CREATE UNIQUE INDEX idx_one_responsible_person_per_referendum 
+ON referendum_team_roles(referendum_id) 
+WHERE role_type = 'responsible_person';
 
 -- ============================================================================
 -- VOTING TABLES
