@@ -12,7 +12,7 @@
         
         <div class="status-options">
           <label>New Status:</label>
-          <div class="status-grid">
+          <div class="status-list">
             <button
               v-for="statusOption in statusOptions"
               :key="statusOption.value"
@@ -20,8 +20,8 @@
               :class="{ selected: selectedStatus === statusOption.value }"
               @click="selectedStatus = statusOption.value"
             >
-              <span class="option-icon">{{ statusOption.icon }}</span>
               <span class="option-text">{{ statusOption.value }}</span>
+              <span v-if="selectedStatus === statusOption.value" class="selected-indicator">✓</span>
             </button>
           </div>
         </div>
@@ -129,7 +129,9 @@ watch(() => props.show, (newShow) => {
   width: 90%;
   max-width: 500px;
   max-height: 80vh;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
@@ -171,6 +173,8 @@ watch(() => props.show, (newShow) => {
 
 .modal-content {
   padding: 24px;
+  flex: 1;
+  overflow-y: auto;
 }
 
 .modal-content p {
@@ -189,44 +193,51 @@ watch(() => props.show, (newShow) => {
   color: #495057;
 }
 
-.status-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 8px;
+.status-list {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
   margin-bottom: 16px;
 }
 
 .status-option {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  gap: 4px;
-  padding: 12px 8px;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
+  padding: 12px 16px;
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
   background: white;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.8rem;
+  font-size: 0.9rem;
+  width: 100%;
+  text-align: left;
+}
+
+.status-option:last-child {
+  border-bottom: none;
 }
 
 .status-option:hover {
-  border-color: #e6007a;
-  box-shadow: 0 2px 8px rgba(230, 0, 122, 0.15);
+  background: #f8f9fa;
 }
 
 .status-option.selected {
-  border-color: #e6007a;
   background: linear-gradient(135deg, #fff5f8, #ffe8f0);
-}
-
-.option-icon {
-  font-size: 1.2rem;
+  border-left: 4px solid #e6007a;
 }
 
 .option-text {
-  text-align: center;
   font-weight: 500;
+  color: #333;
+}
+
+.selected-indicator {
+  color: #e6007a;
+  font-weight: bold;
+  font-size: 1rem;
 }
 
 .reason-section {

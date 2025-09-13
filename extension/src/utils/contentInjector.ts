@@ -389,16 +389,10 @@ export class ContentInjector {
         // Fetch current assignment data from the database (single source of truth)
         let assignedTo: string | null = null;
         try {
-            const assignmentResult = await this.apiService.getProposalAssignments(proposal.postId, proposal.chain);
-            if (assignmentResult.success && assignmentResult.actions) {
-                // Find the "responsible_person" assignment (the main assignee)
-                const responsiblePersonAction = assignmentResult.actions.find(
-                    (action: any) => action.role_type === 'responsible_person'
-                );
-                if (responsiblePersonAction) {
-                    assignedTo = responsiblePersonAction.wallet_address || responsiblePersonAction.team_member_id;
-                    console.log(`📋 Proposal ${proposal.postId} is assigned to:`, assignedTo);
-                }
+            // Get assignment from proposal data
+            assignedTo = proposalData?.assigned_to || null;
+            if (assignedTo) {
+                console.log(`📋 Proposal ${proposal.postId} is assigned to:`, assignedTo);
             }
         } catch (error) {
             console.warn('⚠️ Could not fetch assignment data:', error);
@@ -411,7 +405,8 @@ export class ContentInjector {
             editable: this.apiService.isAuthenticated(),
             isAuthenticated: this.apiService.isAuthenticated(),
             suggestedVote: proposalData?.suggested_vote || null,
-            assignedTo: assignedTo
+            assignedTo: assignedTo,
+            chain: proposal.chain
         });
 
         app.mount(container);
@@ -804,8 +799,7 @@ export class ContentInjector {
             const result = await this.apiService.updateProposalStatus(
                 proposalId,
                 currentProposal.chain,
-                newStatus,
-                reason
+                newStatus
             );
 
             if (result.success) {

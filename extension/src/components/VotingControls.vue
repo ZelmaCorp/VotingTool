@@ -35,6 +35,16 @@
       >
         <span class="btn-text">{{ suggestedVote || 'No Suggested Vote' }}</span>
       </button>
+
+      <button 
+        id="voting-tool-team-actions"
+        class="control-btn team-btn"
+        @click="handleTeamActions"
+        :disabled="!isAuthenticated"
+        title="Open team collaboration panel"
+      >
+        <span class="btn-text">👥 Team Actions</span>
+      </button>
     </div>
 
     <!-- Modals -->
@@ -59,15 +69,28 @@
       @close="closeVoteModal"
       @save="saveVoteChange"
     />
+
+    <!-- Team Actions Panel -->
+    <div v-if="showTeamPanel" class="team-panel-overlay" @click="closeTeamPanel">
+      <div class="team-panel-wrapper" @click.stop>
+        <TeamActionsPanel 
+          :proposal-id="proposalId"
+          :chain="chain"
+          @close="closeTeamPanel"
+          @updated="handleTeamUpdate"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { InternalStatus, SuggestedVote } from '../types'
+import type { InternalStatus, SuggestedVote, Chain } from '../types'
 import StatusChangeModal from './StatusChangeModal.vue'
 import AssignModal from './AssignModal.vue'
 import VoteChangeModal from './VoteChangeModal.vue'
+import TeamActionsPanel from './TeamActionsPanel.vue'
 
 interface VotingControlsProps {
   status: InternalStatus
@@ -76,6 +99,7 @@ interface VotingControlsProps {
   isAuthenticated?: boolean
   suggestedVote?: SuggestedVote
   assignedTo?: string | null
+  chain: Chain
 }
 
 const props = defineProps<VotingControlsProps>()
@@ -84,6 +108,7 @@ const props = defineProps<VotingControlsProps>()
 const showStatusModal = ref(false)
 const showAssignModal = ref(false)
 const showVoteModal = ref(false)
+const showTeamPanel = ref(false)
 
 /**
  * Format wallet address to shortened display format (e.g., "1xf2..355ee")
@@ -213,6 +238,20 @@ const saveVoteChange = async (data: { vote: 'aye' | 'nay' | 'abstain'; reason: s
   } catch (error) {
     console.error('Failed to update vote:', error)
   }
+}
+
+const handleTeamActions = () => {
+  if (!props.isAuthenticated) return
+  showTeamPanel.value = true
+}
+
+const closeTeamPanel = () => {
+  showTeamPanel.value = false
+}
+
+const handleTeamUpdate = () => {
+  // Emit custom event for parent to handle team updates
+  window.dispatchEvent(new CustomEvent('teamDataUpdated', { detail: { proposalId: props.proposalId } }))
 }
 </script>
 
@@ -384,6 +423,38 @@ const saveVoteChange = async (data: { vote: 'aye' | 'nay' | 'abstain'; reason: s
 
 .btn-text {
   font-size: 0.9rem;
+}
+
+/* Team Panel Styles */
+.team-btn {
+  background: linear-gradient(135deg, #17a2b8, #138496);
+  color: white;
+  border: 1px solid #138496;
+}
+
+.team-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #138496, #117a8b);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+}
+
+.team-panel-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.team-panel-wrapper {
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
 }
 
 /* Removed modal styles - now in separate modal components */

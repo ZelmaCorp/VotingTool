@@ -32,6 +32,21 @@
         <span>View Proposals</span>
       </div>
       
+        <div class="menu-item" @click="handleAction('my-assignments')">
+        <span class="icon">👤</span>
+        <span>My Assignments</span>
+      </div>
+      
+      <div class="menu-item" @click="handleAction('team-activity')">
+        <span class="icon">👥</span>
+        <span>Team Activity</span>
+      </div>
+      
+      <div class="menu-item" @click="handleAction('needs-attention')">
+        <span class="icon">⚠️</span>
+        <span>Needs Attention</span>
+      </div>
+      
       <div class="menu-item" @click="handleAction('voting')">
         <span class="icon">✅</span>
         <span>Voting History</span>
@@ -54,6 +69,13 @@
         <WalletConnect @close="showWalletConnect = false" />
       </div>
     </div>
+
+    <!-- DAO Config Modal -->
+    <DAOConfigModal 
+      :show="showDAOConfig"
+      @close="showDAOConfig = false"
+      @saved="handleConfigSaved"
+    />
   </div>
 </template>
 
@@ -61,8 +83,10 @@
 import { ref } from 'vue'
 import { authStore } from '../stores/authStore'
 import WalletConnect from './WalletConnect.vue'
+import DAOConfigModal from './DAOConfigModal.vue'
 
 const showWalletConnect = ref(false)
+const showDAOConfig = ref(false)
 
 const getUserInitials = () => {
   const name = authStore.state.user?.name
@@ -85,17 +109,38 @@ const handleAction = (action: string) => {
   switch (action) {
     case 'proposals':
       // Handle proposals view
+      window.open('https://polkadot.polkassembly.io/referenda', '_blank')
+      break
+    case 'my-assignments':
+      // Show proposals assigned to current user
+      alert('My Assignments feature - shows proposals assigned to you')
+      break
+    case 'team-activity':
+      // Show team collaboration activity
+      alert('Team Activity feature - shows recent team actions and discussions')
+      break
+    case 'needs-attention':
+      // Show proposals needing team attention
+      alert('Needs Attention feature - shows proposals waiting for team action')
       break
     case 'voting':
       // Handle voting history
+      alert('Voting History feature - shows your voting record')
       break
     case 'settings':
-      // Handle settings
+      // Handle settings - open DAO configuration
+      showDAOConfig.value = true
       break
     case 'help':
       // Handle help
+      window.open('https://github.com/your-repo/wiki', '_blank')
       break
   }
+}
+
+const handleConfigSaved = () => {
+  console.log('DAO configuration saved successfully')
+  // Could refresh data or show success message
 }
 </script>
 
