@@ -85,14 +85,21 @@ const showStatusModal = ref(false)
 const showAssignModal = ref(false)
 const showVoteModal = ref(false)
 
-// Utility function to format wallet address
+/**
+ * Format wallet address to shortened display format (e.g., "1xf2..355ee")
+ * @param address - Full wallet address
+ * @returns Shortened address format
+ */
 const formatAddress = (address: string): string => {
   if (!address) return ''
   if (address.length <= 10) return address
   return `${address.substring(0, 4)}..${address.substring(address.length - 5)}`
 }
 
-// Computed property for button text
+/**
+ * Computed property for assignment button text
+ * Shows "Assign to Me" when unassigned, or "Assigned: [address]" when assigned
+ */
 const assignButtonText = computed(() => {
   if (props.assignedTo) {
     return `Assigned: ${formatAddress(props.assignedTo)}`

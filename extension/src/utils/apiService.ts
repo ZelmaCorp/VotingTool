@@ -266,31 +266,36 @@ export class ApiService {
             // Try to fetch the referendum first
             const existing = await this.getProposal(postId, chain);
             
-            if (!existing) {
-                console.log(`Referendum ${postId} not found, attempting to refresh from Polkassembly...`);
-                // If it doesn't exist, try to create it by triggering a refresh
-                await this.request(`/admin/refresh-referendas?limit=50`, {
-                    method: 'GET'
-                });
-                console.log(`Refresh request sent for referendum ${postId}`);
+            if (existing) {
+                return; // Referendum exists, nothing to do
             }
+            
+            // Referendum doesn't exist, try to refresh from Polkassembly
+            console.log(`Referendum ${postId} not found, attempting to refresh from Polkassembly...`);
+            await this.refreshReferenda();
+            
         } catch (error) {
             // If it's a 404, the referendum doesn't exist yet - try to refresh it
             if (error instanceof Error && error.message.includes('404')) {
                 console.log(`Referendum ${postId} not found (404), attempting to refresh from Polkassembly...`);
-                try {
-                    await this.request(`/admin/refresh-referendas?limit=50`, {
-                        method: 'GET'
-                    });
-                    console.log(`Refresh request sent for referendum ${postId}`);
-                } catch (refreshError) {
-                    console.warn('Could not refresh referendum:', refreshError);
-                    throw new Error(`Referendum ${postId} not found and could not be refreshed. Please try again in a moment.`);
-                }
+                await this.refreshReferenda();
             } else {
                 console.warn('Could not ensure referendum exists:', error);
                 throw error;
             }
+        }
+    }
+
+    // Helper method to trigger referendum refresh
+    private async refreshReferenda(): Promise<void> {
+        try {
+            await this.request(`/admin/refresh-referendas?limit=50`, {
+                method: 'GET'
+            });
+            console.log('Referendum refresh request sent');
+        } catch (refreshError) {
+            console.warn('Could not refresh referenda:', refreshError);
+            throw new Error('Referendum not found and could not be refreshed. Please try again in a moment.');
         }
     }
 

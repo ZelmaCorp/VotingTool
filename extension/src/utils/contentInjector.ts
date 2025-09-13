@@ -386,21 +386,22 @@ export class ContentInjector {
         // Insert at the top of the right wrapper
         rightWrapper.insertBefore(container, rightWrapper.firstChild);
 
-        // Fetch assignment data from the database
+        // Fetch current assignment data from the database (single source of truth)
         let assignedTo: string | null = null;
         try {
             const assignmentResult = await this.apiService.getProposalAssignments(proposal.postId, proposal.chain);
             if (assignmentResult.success && assignmentResult.actions) {
-                // Find the "responsible_person" assignment
+                // Find the "responsible_person" assignment (the main assignee)
                 const responsiblePersonAction = assignmentResult.actions.find(
                     (action: any) => action.role_type === 'responsible_person'
                 );
                 if (responsiblePersonAction) {
                     assignedTo = responsiblePersonAction.wallet_address || responsiblePersonAction.team_member_id;
+                    console.log(`📋 Proposal ${proposal.postId} is assigned to:`, assignedTo);
                 }
             }
         } catch (error) {
-            console.warn('Could not fetch assignment data:', error);
+            console.warn('⚠️ Could not fetch assignment data:', error);
         }
 
         // Create Vue app and mount the VotingControls component
@@ -857,16 +858,11 @@ export class ContentInjector {
             if (result.success) {
                 console.log('✅ Proposal assigned successfully');
                 
-                // Update cache to reflect the assignment
+                // Clear cache to ensure fresh data is fetched
                 const cacheKey = `${currentProposal.chain}-${proposalId}`;
-                const cachedData = this.proposalCache.get(cacheKey);
-                if (cachedData) {
-                    // Mark as assigned to current user
-                    cachedData.assigned_to = 'current_user'; // This would need proper user identification
-                    this.proposalCache.set(cacheKey, cachedData);
-                }
+                this.proposalCache.delete(cacheKey);
                 
-                // Re-inject components to reflect the change
+                // Re-inject components to reflect the updated assignment
                 await this.handlePageChange();
             } else {
                 console.error('❌ Failed to assign proposal:', result.error);
