@@ -247,7 +247,50 @@ export class MultisigService {
    */
   async getTeamMemberByAddress(walletAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): Promise<MultisigMember | null> {
     const members = await this.getCachedTeamMembers(network);
-    return members.find(member => member.wallet_address === walletAddress) || null;
+    
+    // Try exact match first
+    let member = members.find(m => m.wallet_address === walletAddress);
+    
+    // If no exact match, try the converted network-specific address
+    if (!member) {
+      const networkAddress = this.convertToNetworkAddress(walletAddress, network);
+      member = members.find(m => m.wallet_address === networkAddress);
+    }
+    
+    // If still no match, try case-insensitive and trimmed comparison
+    if (!member) {
+      const normalizedWalletAddress = walletAddress.trim().toLowerCase();
+      member = members.find(m => 
+        m.wallet_address.trim().toLowerCase() === normalizedWalletAddress
+      );
+    }
+    
+    return member || null;
+  }
+
+  /**
+   * Find team member with flexible address matching
+   * Used for matching addresses that might be in different formats
+   */
+  findMemberByAddress(members: MultisigMember[], walletAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): MultisigMember | null {
+    // Try exact match first
+    let member = members.find(m => m.wallet_address === walletAddress);
+    
+    // If no exact match, try the converted network-specific address
+    if (!member) {
+      const networkAddress = this.convertToNetworkAddress(walletAddress, network);
+      member = members.find(m => m.wallet_address === networkAddress);
+    }
+    
+    // If still no match, try case-insensitive and trimmed comparison
+    if (!member) {
+      const normalizedWalletAddress = walletAddress.trim().toLowerCase();
+      member = members.find(m => 
+        m.wallet_address.trim().toLowerCase() === normalizedWalletAddress
+      );
+    }
+    
+    return member || null;
   }
 }
 

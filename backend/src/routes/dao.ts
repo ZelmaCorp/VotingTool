@@ -384,14 +384,26 @@ router.get("/referendum/:referendumId/agreement-summary", async (req: Request, r
       name: member.team_member_name || `Multisig Member (${member.network})`
     }));
     
-    // Process actions
+    // Process actions with flexible address matching
     const actionMap = new Map();
     actions.forEach(action => {
       actionMap.set(action.wallet_address, action);
     });
     
     allMembers.forEach(member => {
-      const action = actionMap.get(member.address);
+      // Try to find action for this member with flexible address matching
+      let action = actionMap.get(member.address);
+      
+      // If no direct match, try to find by flexible address matching
+      if (!action) {
+        for (const [actionAddress, actionData] of actionMap.entries()) {
+          const matchingMember = multisigService.findMemberByAddress(teamMembers, actionAddress, chain as "Polkadot" | "Kusama");
+          if (matchingMember && matchingMember.wallet_address === member.address) {
+            action = actionData;
+            break;
+          }
+        }
+      }
       
       if (!action) {
         // No action taken - pending
@@ -482,9 +494,7 @@ router.get("/referendum/:referendumId/comments", async (req: Request, res: Respo
     
     // Get comments from database
     const comments = await db.all(`
-      SELECT 
-        rc.*,
-        'Team Member' as user_name
+      SELECT rc.*
       FROM referendum_comments rc
       WHERE rc.referendum_id = ?
       ORDER BY rc.created_at ASC
@@ -493,14 +503,14 @@ router.get("/referendum/:referendumId/comments", async (req: Request, res: Respo
     // Get team members from multisig service for member names
     const teamMembers = await multisigService.getCachedTeamMembers();
     
-    // Enrich comments with member information
+    // Enrich comments with member information using flexible address matching
     const enrichedComments = comments.map(comment => {
-      const member = teamMembers.find(m => m.wallet_address === comment.team_member_id);
+      const member = multisigService.findMemberByAddress(teamMembers, comment.team_member_id, chain as "Polkadot" | "Kusama");
       return {
         id: comment.id,
         content: comment.content,
         user_address: comment.team_member_id,
-        user_name: member?.team_member_name || `Team Member`,
+        user_name: member?.team_member_name || comment.team_member_id,
         created_at: comment.created_at,
         updated_at: comment.updated_at
       };
@@ -663,6 +673,74 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
     
   } catch (error) {
     logger.error({ error, referendumId: req.params.referendumId }, "Error removing user governance action from referendum");
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
+});
+
+/**
+ * DELETE /dao/comments/:commentId
+ * Delete a specific comment (only by the author)
+ */
+router.delete("/comments/:commentId", requireTeamMember, async (req: Request, res: Response) => {
+  try {
+    const { commentId } = req.params;
+    
+    if (!req.user?.address) {
+      return res.status(400).json({
+        success: false,
+        error: "User wallet address not found"
+      });
+    }
+    
+    // Check if comment exists and belongs to the current user
+    const comment = await db.get(
+      "SELECT id, team_member_id FROM referendum_comments WHERE id = ?",
+      [commentId]
+    );
+    
+    if (!comment) {
+      return res.status(404).json({
+        success: false,
+        error: "Comment not found"
+      });
+    }
+    
+    // Verify the comment belongs to the current user
+    if (comment.team_member_id !== req.user.address) {
+      return res.status(403).json({
+        success: false,
+        error: "You can only delete your own comments"
+      });
+    }
+    
+    // Delete the comment
+    const result = await db.run(
+      "DELETE FROM referendum_comments WHERE id = ?",
+      [commentId]
+    );
+    
+    if (result.changes === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Comment not found or already deleted"
+      });
+    }
+    
+    logger.info({ 
+      walletAddress: req.user.address, 
+      commentId 
+    }, "Comment deleted successfully");
+    
+    res.json({
+      success: true,
+      message: "Comment deleted successfully"
+    });
+    
+  } catch (error) {
+    logger.error({ error, commentId: req.params.commentId }, "Error deleting comment");
     res.status(500).json({
       success: false,
       error: "Internal server error"

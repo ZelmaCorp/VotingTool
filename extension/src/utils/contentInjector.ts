@@ -8,6 +8,7 @@ import { ProposalDetector, type DetectedProposal } from './proposalDetector';
 import { TabDetector, type ActiveTabInfo } from './tabDetector';
 import { ApiService } from './apiService';
 import type { ProposalData, InternalStatus } from '../types';
+import type { TeamMember } from '../types';
 
 export class ContentInjector {
     private static instance: ContentInjector;
@@ -393,11 +394,30 @@ export class ContentInjector {
 
         // Fetch current assignment data from the database (single source of truth)
         let assignedTo: string | null = null;
+        let teamMembers: TeamMember[] = [];
         try {
             // Get assignment from proposal data
             assignedTo = proposalData?.assigned_to || null;
             if (assignedTo) {
                 console.log(`📋 Proposal ${proposal.postId} is assigned to:`, assignedTo);
+            }
+            
+            // Fetch team members for name resolution
+            const agreementSummary = await this.apiService.getAgreementSummary(proposal.postId, proposal.chain);
+            if (agreementSummary) {
+                // Collect all unique team members from different arrays
+                const allMembers = [
+                    ...agreementSummary.agreed_members,
+                    ...agreementSummary.pending_members,
+                    ...agreementSummary.recused_members,
+                    ...agreementSummary.to_be_discussed_members
+                ];
+                
+                // Remove duplicates by address
+                teamMembers = allMembers.filter((member, index, self) => 
+                    index === self.findIndex(m => m.address === member.address)
+                );
+                console.log(`👥 Found ${teamMembers.length} team members for name resolution`);
             }
         } catch (error) {
             console.warn('⚠️ Could not fetch assignment data:', error);
@@ -412,6 +432,7 @@ export class ContentInjector {
             suggestedVote: proposalData?.suggested_vote || null,
             reasonForVote: proposalData?.reason_for_vote || null,
             assignedTo: assignedTo,
+            teamMembers: teamMembers,
             chain: proposal.chain
         });
 
@@ -764,42 +785,63 @@ export class ContentInjector {
      * Update existing components with fresh data without full re-injection
      */
     private async updateExistingComponents(proposalId: number, proposalData: ProposalData | null): Promise<void> {
+        console.log('🔄 Updating existing components with new data for proposal:', proposalId);
+        
         try {
-            // Find the existing voting controls component
-            const existingContainer = document.querySelector(`[data-opengov-proposal="${proposalId}"]`);
-            if (existingContainer && this.injectedComponents.has(proposalId)) {
-                console.log(`🔄 Updating existing component for proposal ${proposalId}`);
-                
-                // Unmount the existing component
-                const existingApp = this.injectedComponents.get(proposalId);
-                if (existingApp) {
-                    existingApp.unmount();
+            // Get team members for name resolution
+            let teamMembers: TeamMember[] = [];
+            if (proposalData?.chain) {
+                const agreementSummary = await this.apiService.getAgreementSummary(proposalId, proposalData.chain);
+                if (agreementSummary) {
+                    // Collect all unique team members from different arrays
+                    const allMembers = [
+                        ...agreementSummary.agreed_members,
+                        ...agreementSummary.pending_members,
+                        ...agreementSummary.recused_members,
+                        ...agreementSummary.to_be_discussed_members
+                    ];
+                    
+                    // Remove duplicates by address
+                    teamMembers = allMembers.filter((member, index, self) => 
+                        index === self.findIndex(m => m.address === member.address)
+                    );
                 }
-                
-                // Re-mount with updated data
-                const app = createApp(VotingControls, {
-                    status: proposalData?.internal_status || 'Not started',
-                    proposalId: proposalId,
-                    editable: this.apiService.isAuthenticated(),
-                    isAuthenticated: this.apiService.isAuthenticated(),
-                    suggestedVote: proposalData?.suggested_vote || null,
-                    reasonForVote: proposalData?.reason_for_vote || null,
-                    assignedTo: proposalData?.assigned_to || null,
-                    chain: proposalData?.chain || 'Polkadot'
-                });
-
-                app.mount(existingContainer);
-                this.injectedComponents.set(proposalId, app);
-                
-                console.log('✅ Component updated successfully');
-            } else {
-                console.log('⚠️ No existing component found, falling back to full page change');
-                await this.handlePageChange();
             }
+            
+            // Unmount existing component if it exists
+            const existingApp = this.injectedComponents.get(proposalId);
+            if (existingApp) {
+                existingApp.unmount();
+                this.injectedComponents.delete(proposalId);
+            }
+            
+            // Find the container
+            const container = document.getElementById('voting-tool-controls-container');
+            if (!container) {
+                console.warn('⚠️ Could not find controls container for update');
+                return;
+            }
+            
+            // Create new app with updated data
+            const app = createApp(VotingControls, {
+                status: proposalData?.internal_status || 'Not started',
+                proposalId: proposalId,
+                editable: this.apiService.isAuthenticated(),
+                isAuthenticated: this.apiService.isAuthenticated(),
+                suggestedVote: proposalData?.suggested_vote || null,
+                reasonForVote: proposalData?.reason_for_vote || null,
+                assignedTo: proposalData?.assigned_to || null,
+                teamMembers: teamMembers,
+                chain: proposalData?.chain || 'Polkadot'
+            });
+            
+            app.mount(container);
+            this.injectedComponents.set(proposalId, app);
+            
+            console.log('✅ Updated existing component with fresh data');
+            
         } catch (error) {
-            console.error('❌ Error updating components:', error);
-            // Fallback to full page change
-            await this.handlePageChange();
+            console.error('❌ Error updating existing components:', error);
         }
     }
 

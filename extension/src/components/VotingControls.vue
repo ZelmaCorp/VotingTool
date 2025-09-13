@@ -85,7 +85,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { InternalStatus, SuggestedVote, Chain } from '../types'
+import type { InternalStatus, SuggestedVote, Chain, TeamMember } from '../types'
 import { authStore } from '../stores/authStore'
 import StatusChangeModal from './StatusChangeModal.vue'
 import AssignModal from './AssignModal.vue'
@@ -100,6 +100,7 @@ interface VotingControlsProps {
   suggestedVote?: SuggestedVote
   reasonForVote?: string
   assignedTo?: string | null
+  teamMembers?: TeamMember[]
   chain: Chain
 }
 
@@ -114,18 +115,49 @@ const showTeamPanel = ref(false)
 /**
  * Format wallet address to shortened display format (e.g., "1xf2..355ee")
  * @param address - Full wallet address
- * @returns Shortened address format
+ * @param forceShorten - Whether to force shortening even if there's space
+ * @returns Shortened or full address format
  */
-const formatAddress = (address: string): string => {
+const formatAddress = (address: string, forceShorten: boolean = true): string => {
   if (!address) return ''
-  if (address.length <= 10) return address
+  if (!forceShorten || address.length <= 10) return address
   return `${address.substring(0, 4)}..${address.substring(address.length - 5)}`
+}
+
+/**
+ * Get team member name by wallet address
+ * @param address - Wallet address to look up
+ * @returns Team member name if found, otherwise null
+ */
+const getTeamMemberName = (address: string): string | null => {
+  if (!props.teamMembers || !address) return null
+  const member = props.teamMembers.find(m => m.address === address)
+  return member?.name || null
+}
+
+/**
+ * Format assignment display with name if available, fallback to address
+ * Truncates long names for button display, but shows full addresses
+ * @param address - Wallet address
+ * @returns Formatted display string
+ */
+const formatAssignmentDisplay = (address: string): string => {
+  const name = getTeamMemberName(address)
+  if (name) {
+    // Truncate long names for button display
+    if (name.length > 20) {
+      return `${name.substring(0, 17)}...`
+    }
+    return name
+  }
+  // Show full address when no name is available - there's space in the button
+  return address
 }
 
 /**
  * Computed property for assignment button text
  * Shows "Assign to Me" when unassigned, "Unassign" when current user is assigned, 
- * or "Assigned: [address]" when someone else is assigned
+ * or just the assignee name when someone else is assigned
  */
 const assignButtonText = computed(() => {
   if (props.assignedTo) {
@@ -133,7 +165,7 @@ const assignButtonText = computed(() => {
     if (currentUserAddress && props.assignedTo === currentUserAddress) {
       return 'Unassign'
     } else {
-      return `Assigned: ${formatAddress(props.assignedTo)}`
+      return formatAssignmentDisplay(props.assignedTo)
     }
   }
   return 'Assign to Me'
@@ -152,7 +184,12 @@ const assignButtonTooltip = computed(() => {
     if (currentUserAddress && props.assignedTo === currentUserAddress) {
       return 'Click to unassign yourself from this proposal'
     } else {
-      return `Assigned to: ${props.assignedTo}`
+      const name = getTeamMemberName(props.assignedTo)
+      if (name) {
+        return `Assigned to: ${name} (${formatAddress(props.assignedTo, true)})`
+      } else {
+        return `Assigned to: ${props.assignedTo}`
+      }
     }
   }
   
