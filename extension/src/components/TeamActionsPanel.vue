@@ -362,15 +362,8 @@ const loadComments = async () => {
 }
 
 const loadCurrentUserAction = async () => {
-  console.log('🔍 Loading current user action...')
-  console.log('Current user address:', currentUserAddress.value)
-  console.log('Is authenticated:', authStore.state.isAuthenticated)
-  
   const actions = await apiService.getTeamActions(props.proposalId, props.chain)
-  console.log('📋 All team actions:', actions)
-  
   const userAction = actions.find(action => action.wallet_address === currentUserAddress.value)
-  console.log('👤 Found user action:', userAction)
   
   // Map backend role_type to frontend TeamAction
   if (userAction?.role_type) {
@@ -381,10 +374,8 @@ const loadCurrentUserAction = async () => {
       'recuse': 'Recuse'
     }
     currentUserAction.value = roleTypeMapping[userAction.role_type] || null
-    console.log('✅ Mapped current user action:', currentUserAction.value)
   } else {
     currentUserAction.value = null
-    console.log('❌ No user action found')
   }
 }
 

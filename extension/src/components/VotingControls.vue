@@ -142,13 +142,66 @@ const formatAddress = (address: string, forceShorten: boolean = true): string =>
 }
 
 /**
+ * Normalize address for comparison by removing whitespace and converting to lowercase
+ * This helps with basic address format differences
+ * @param address - Wallet address to normalize
+ * @returns Normalized address string
+ */
+const normalizeAddress = (address: string): string => {
+  if (!address) return ''
+  return address.trim().toLowerCase()
+}
+
+/**
+ * Check if two addresses are the same, accounting for SS58 format differences
+ * Uses the team members list to find matches by checking if both addresses 
+ * correspond to the same team member
+ * @param addr1 - First address (usually from API)
+ * @param addr2 - Second address (usually from wallet)
+ * @returns True if addresses match
+ */
+const addressesMatch = (addr1?: string | null, addr2?: string | null): boolean => {
+  if (!addr1 || !addr2) {
+    return false
+  }
+  
+  // First try simple string comparison
+  if (normalizeAddress(addr1) === normalizeAddress(addr2)) {
+    return true
+  }
+  
+  // If we have team members, use them to check for SS58 format matches
+  if (props.teamMembers && props.teamMembers.length > 0) {
+    // Find team member by first address
+    const member1 = props.teamMembers.find(m => normalizeAddress(m.address) === normalizeAddress(addr1))
+    // Find team member by second address  
+    const member2 = props.teamMembers.find(m => normalizeAddress(m.address) === normalizeAddress(addr2))
+    
+    // If both addresses correspond to the same team member, they match
+    if (member1 && member2 && member1.address === member2.address) {
+      return true
+    }
+    
+    // Handle SS58 format differences - if stored address matches a team member
+    // but wallet address doesn't, they might still be the same person
+    // This requires backend address conversion to resolve properly
+    if (member1 && !member2) {
+      // For now, return false and let backend handle SS58 conversion
+      return false
+    }
+  }
+  
+  return false
+}
+
+/**
  * Get team member name by wallet address
  * @param address - Wallet address to look up
  * @returns Team member name if found, otherwise null
  */
 const getTeamMemberName = (address: string): string | null => {
   if (!props.teamMembers || !address) return null
-  const member = props.teamMembers.find(m => m.address === address)
+  const member = props.teamMembers.find(m => addressesMatch(m.address, address))
   return member?.name || null
 }
 
@@ -179,7 +232,7 @@ const formatAssignmentDisplay = (address: string): string => {
 const assignButtonText = computed(() => {
   if (props.assignedTo) {
     const currentUserAddress = authStore.state.user?.address
-    if (currentUserAddress && props.assignedTo === currentUserAddress) {
+    if (addressesMatch(props.assignedTo, currentUserAddress)) {
       return 'Unassign'
     } else {
       return formatAssignmentDisplay(props.assignedTo)
@@ -198,7 +251,7 @@ const assignButtonTooltip = computed(() => {
   
   if (props.assignedTo) {
     const currentUserAddress = authStore.state.user?.address
-    if (currentUserAddress && props.assignedTo === currentUserAddress) {
+    if (addressesMatch(props.assignedTo, currentUserAddress)) {
       return 'Click to unassign yourself from this proposal'
     } else {
       const name = getTeamMemberName(props.assignedTo)
@@ -217,11 +270,9 @@ const assignButtonTooltip = computed(() => {
  * Computed property to determine if current user can unassign
  */
 const canUnassign = computed(() => {
-  const currentUserAddress = authStore.state.user?.address
   return authStore.state.isAuthenticated && 
          props.assignedTo && 
-         currentUserAddress && 
-         props.assignedTo === currentUserAddress
+         addressesMatch(props.assignedTo, authStore.state.user?.address)
 })
 
 /**
