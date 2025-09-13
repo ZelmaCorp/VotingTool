@@ -13,28 +13,25 @@
         <div class="vote-options">
           <button
             class="vote-option aye"
-            :class="{ selected: selectedVote === 'aye' }"
-            @click="selectedVote = 'aye'"
+            :class="{ selected: selectedVote === '👍 Aye 👍' }"
+            @click="selectedVote = '👍 Aye 👍'"
           >
-            <span class="vote-icon">👍</span>
             <span class="vote-text">Aye</span>
           </button>
           
           <button
             class="vote-option nay"
-            :class="{ selected: selectedVote === 'nay' }"
-            @click="selectedVote = 'nay'"
+            :class="{ selected: selectedVote === '👎 Nay 👎' }"
+            @click="selectedVote = '👎 Nay 👎'"
           >
-            <span class="vote-icon">👎</span>
             <span class="vote-text">Nay</span>
           </button>
           
           <button
             class="vote-option abstain"
-            :class="{ selected: selectedVote === 'abstain' }"
-            @click="selectedVote = 'abstain'"
+            :class="{ selected: selectedVote === '✌️ Abstain ✌️' }"
+            @click="selectedVote = '✌️ Abstain ✌️'"
           >
-            <span class="vote-icon">✌️</span>
             <span class="vote-text">Abstain</span>
           </button>
         </div>
@@ -70,15 +67,16 @@ import { ref, watch, onMounted, onUnmounted } from 'vue'
 interface VoteChangeModalProps {
   show: boolean
   proposalId: number
+  currentVote?: '👍 Aye 👍' | '👎 Nay 👎' | '✌️ Abstain ✌️' | null
 }
 
 const props = defineProps<VoteChangeModalProps>()
 const emit = defineEmits<{
   close: []
-  save: [{ vote: 'aye' | 'nay' | 'abstain'; reason: string }]
+  save: [{ vote: '👍 Aye 👍' | '👎 Nay 👎' | '✌️ Abstain ✌️'; reason: string }]
 }>()
 
-const selectedVote = ref<'aye' | 'nay' | 'abstain' | null>(null)
+const selectedVote = ref<'👍 Aye 👍' | '👎 Nay 👎' | '✌️ Abstain ✌️' | null>(null)
 const voteReason = ref('')
 
 const handleSave = () => {
@@ -109,7 +107,8 @@ onUnmounted(() => {
 // Reset form when modal opens
 watch(() => props.show, (newShow) => {
   if (newShow) {
-    selectedVote.value = null
+    // Pre-select current vote if available
+    selectedVote.value = props.currentVote || null
     voteReason.value = ''
   }
 })
@@ -188,23 +187,25 @@ watch(() => props.show, (newShow) => {
 
 .vote-options {
   display: flex;
+  flex-direction: column;
   gap: 12px;
   margin: 16px 0;
 }
 
 .vote-option {
-  flex: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  gap: 8px;
-  padding: 16px 12px;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 20px;
   border: 2px solid #e9ecef;
   border-radius: 8px;
   background: white;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.9rem;
+  font-size: 1rem;
+  text-align: center;
 }
 
 .vote-option:hover {

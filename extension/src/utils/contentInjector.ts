@@ -991,8 +991,9 @@ export class ContentInjector {
                     this.proposalCache.set(cacheKey, cachedData);
                 }
 
-                // Re-inject components to reflect the change
-                await this.handlePageChange();
+                // Get fresh proposal data and update UI immediately
+                const updatedProposalData = await this.getProposalData(proposalId, currentProposal.chain);
+                await this.updateExistingComponents(proposalId, updatedProposalData);
                 
                 console.log('✅ Suggested vote updated successfully in database');
             } else {
@@ -1095,7 +1096,7 @@ export class ContentInjector {
         const customEvent = event as CustomEvent;
         const { proposalId, vote, reason } = customEvent.detail;
         
-        console.log('🗳️ Vote change requested:', customEvent.detail);
+        console.log('🗳️ Final vote change requested:', customEvent.detail);
         
         try {
             // Get the current proposal to determine chain
@@ -1105,15 +1106,40 @@ export class ContentInjector {
                 return;
             }
 
-            // TODO: Implement vote change API call
-            console.log('Vote change would be processed for proposal', proposalId, 'on chain', currentProposal.chain);
-            console.log('Vote:', vote, 'Reason:', reason);
-            
-            // For now, just show a success message
-            console.log('✅ Vote updated successfully (placeholder)');
+            // Check if user is authenticated
+            if (!this.apiService.isAuthenticated()) {
+                console.error('User not authenticated for vote change');
+                alert('Please authenticate to change final votes');
+                return;
+            }
+
+            // Update final vote via API
+            const result = await this.apiService.updateFinalVote(
+                proposalId,
+                currentProposal.chain,
+                vote,
+                reason
+            );
+
+            if (result.success) {
+                console.log('✅ Final vote updated successfully');
+                
+                // Clear cache to ensure fresh data is fetched
+                const cacheKey = `${currentProposal.chain}-${proposalId}`;
+                this.proposalCache.delete(cacheKey);
+                
+                // Get fresh proposal data and update UI immediately
+                const updatedProposalData = await this.getProposalData(proposalId, currentProposal.chain);
+                await this.updateExistingComponents(proposalId, updatedProposalData);
+                
+            } else {
+                console.error('❌ Failed to update final vote:', result.error);
+                alert(`Failed to update final vote: ${result.error || 'Unknown error'}`);
+            }
             
         } catch (error) {
-            console.error('Failed to update vote:', error);
+            console.error('❌ Failed to update final vote:', error);
+            alert('Failed to update final vote. Please check your connection and try again.');
         }
     }
 

@@ -11,7 +11,6 @@
         >
           <span class="status-icon">{{ statusIcon }}</span>
           <span class="status-text">{{ status }}</span>
-          <span v-if="editable" class="edit-icon">✏️</span>
         </div>
       </div>
     </div>
@@ -64,6 +63,7 @@
     <VoteChangeModal 
       :show="showVoteModal"
       :proposal-id="proposalId"
+      :current-vote="suggestedVote"
       @close="closeVoteModal"
       @save="saveVoteChange"
     />
@@ -292,7 +292,7 @@ const closeVoteModal = () => {
   showVoteModal.value = false
 }
 
-const saveVoteChange = async (data: { vote: 'aye' | 'nay' | 'abstain'; reason: string }) => {
+const saveVoteChange = async (data: { vote: '👍 Aye 👍' | '👎 Nay 👎' | '✌️ Abstain ✌️'; reason: string }) => {
   try {
     const voteData = {
       proposalId: props.proposalId,
@@ -300,14 +300,14 @@ const saveVoteChange = async (data: { vote: 'aye' | 'nay' | 'abstain'; reason: s
       reason: data.reason
     }
     
-    console.log('Vote change requested:', voteData)
+    console.log('Suggested vote change requested:', voteData)
     closeVoteModal()
     
     // Emit custom event for parent to handle
-    window.dispatchEvent(new CustomEvent('voteChanged', { detail: voteData }))
+    window.dispatchEvent(new CustomEvent('suggestedVoteChanged', { detail: voteData }))
     
   } catch (error) {
-    console.error('Failed to update vote:', error)
+    console.error('Failed to update suggested vote:', error)
   }
 }
 

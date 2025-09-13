@@ -56,7 +56,7 @@ export type TimelineStatus =
     | 'TimedOut'
     | 'Rejected';
 
-export type SuggestedVote = 'Aye' | 'Nay' | 'Abstain';
+export type SuggestedVote = '👍 Aye 👍' | '👎 Nay 👎' | '✌️ Abstain ✌️';
 
 // New types for team collaboration
 export type TeamAction = 
