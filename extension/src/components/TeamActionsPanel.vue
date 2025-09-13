@@ -203,6 +203,25 @@
         </div>
       </div>
     </div>
+
+    <!-- Confirmation Modal -->
+    <ConfirmModal
+      :show="showConfirmModal"
+      :title="confirmModalData.title"
+      :message="confirmModalData.message"
+      :type="confirmModalData.type"
+      @confirm="confirmModalData.onConfirm(); showConfirmModal = false"
+      @cancel="showConfirmModal = false"
+    />
+
+    <!-- Alert Modal -->
+    <AlertModal
+      :show="showAlertModal"
+      :title="alertModalData.title"
+      :message="alertModalData.message"
+      :type="alertModalData.type"
+      @ok="showAlertModal = false"
+    />
   </div>
 </template>
 
@@ -210,6 +229,8 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ApiService } from '../utils/apiService'
 import { authStore } from '../stores/authStore'
+import ConfirmModal from './ConfirmModal.vue'
+import AlertModal from './AlertModal.vue'
 import type { TeamAction, ProposalAction, ProposalComment, AgreementSummary, SuggestedVote, TeamMember } from '../types'
 
 // Props
@@ -238,25 +259,56 @@ const newComment = ref('')
 const showVetoModal = ref(false)
 const vetoReason = ref('')
 
+// Modal states
+const showConfirmModal = ref(false)
+const showAlertModal = ref(false)
+const confirmModalData = ref({
+  title: '',
+  message: '',
+  type: 'default' as 'default' | 'danger' | 'warning',
+  onConfirm: () => {}
+})
+const alertModalData = ref({
+  title: '',
+  message: '',
+  type: 'info' as 'success' | 'error' | 'warning' | 'info'
+})
+
 // Computed
 const currentUserAddress = computed(() => authStore.state.user?.address)
 const currentUserName = computed(() => authStore.state.user?.name || 'Unknown User')
 
 const canTakeAction = computed(() => {
-  return authStore.state.isAuthenticated && !agreementSummary.value?.vetoed
+  return authStore.state.isAuthenticated
+  // Remove veto blocking - interactions should continue even after NO WAY
 })
 
 const canComment = computed(() => {
   return authStore.state.isAuthenticated
 })
 
+// Modal helper functions
+const showConfirm = (title: string, message: string, onConfirm: () => void, type: 'default' | 'danger' | 'warning' = 'default') => {
+  confirmModalData.value = { title, message, type, onConfirm }
+  showConfirmModal.value = true
+}
+
+const showAlert = (title: string, message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+  alertModalData.value = { title, message, type }
+  showAlertModal.value = true
+}
+
 // Show login prompt for actions
 const showLoginPrompt = (message: string) => {
-  const shouldConnect = confirm(`${message}\n\nWould you like to connect your wallet now?`)
-  if (shouldConnect) {
-    // Trigger wallet connection by dispatching an event
-    window.dispatchEvent(new CustomEvent('requestWalletConnection'))
-  }
+  showConfirm(
+    'Connect Wallet',
+    `${message}\n\nWould you like to connect your wallet now?`,
+    () => {
+      // Trigger wallet connection by dispatching an event
+      window.dispatchEvent(new CustomEvent('requestWalletConnection'))
+    },
+    'default'
+  )
 }
 
 const agreementPercentage = computed(() => {
@@ -342,10 +394,7 @@ const submitAction = async (action: TeamAction) => {
     return
   }
   
-  if (agreementSummary.value?.vetoed) {
-    alert('This proposal has been vetoed and no further actions can be taken.')
-    return
-  }
+  // Remove veto blocking - allow interactions even after NO WAY
   
   try {
     const result = await apiService.submitTeamAction(props.proposalId, props.chain, action)
@@ -353,11 +402,11 @@ const submitAction = async (action: TeamAction) => {
       currentUserAction.value = action
       await loadAgreementSummary()
     } else {
-      alert(`Failed to submit action: ${result.error}`)
+      showAlert('Action Failed', `Failed to submit action: ${result.error}`, 'error')
     }
   } catch (error) {
     console.error('Failed to submit action:', error)
-    alert('Failed to submit action. Please try again.')
+    showAlert('Action Failed', 'Failed to submit action. Please try again.', 'error')
   }
 }
 
@@ -372,11 +421,11 @@ const submitVeto = async () => {
       vetoReason.value = ''
       await loadAgreementSummary()
     } else {
-      alert(`Failed to veto proposal: ${result.error}`)
+      showAlert('Veto Failed', `Failed to veto proposal: ${result.error}`, 'error')
     }
   } catch (error) {
     console.error('Failed to veto proposal:', error)
-    alert('Failed to veto proposal. Please try again.')
+    showAlert('Veto Failed', 'Failed to veto proposal. Please try again.', 'error')
   }
 }
 
@@ -394,28 +443,34 @@ const addComment = async () => {
       newComment.value = ''
       await loadComments()
     } else {
-      alert(`Failed to add comment: ${result.error}`)
+      showAlert('Comment Failed', `Failed to add comment: ${result.error}`, 'error')
     }
   } catch (error) {
     console.error('Failed to add comment:', error)
-    alert('Failed to add comment. Please try again.')
+    showAlert('Comment Failed', 'Failed to add comment. Please try again.', 'error')
   }
 }
 
 const deleteComment = async (commentId: number) => {
-  if (!confirm('Are you sure you want to delete this comment?')) return
-  
-  try {
-    const result = await apiService.deleteComment(commentId)
-    if (result.success) {
-      await loadComments()
-    } else {
-      alert(`Failed to delete comment: ${result.error}`)
-    }
-  } catch (error) {
-    console.error('Failed to delete comment:', error)
-    alert('Failed to delete comment. Please try again.')
-  }
+  showConfirm(
+    'Delete Comment',
+    'Are you sure you want to delete this comment?',
+    async () => {
+      try {
+        const result = await apiService.deleteComment(commentId)
+        if (result.success) {
+          await loadComments()
+          showAlert('Success', 'Comment deleted successfully', 'success')
+        } else {
+          showAlert('Delete Failed', `Failed to delete comment: ${result.error}`, 'error')
+        }
+      } catch (error) {
+        console.error('Failed to delete comment:', error)
+        showAlert('Delete Failed', 'Failed to delete comment. Please try again.', 'error')
+      }
+    },
+    'danger'
+  )
 }
 
 // Helper methods

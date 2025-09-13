@@ -80,6 +80,16 @@
         />
       </div>
     </div>
+
+    <!-- Confirmation Modal -->
+    <ConfirmModal
+      :show="showConfirmModal"
+      :title="confirmModalData.title"
+      :message="confirmModalData.message"
+      type="warning"
+      @confirm="confirmModalData.onConfirm(); showConfirmModal = false"
+      @cancel="showConfirmModal = false"
+    />
   </div>
 </template>
 
@@ -91,6 +101,7 @@ import StatusChangeModal from './StatusChangeModal.vue'
 import AssignModal from './AssignModal.vue'
 import VoteChangeModal from './VoteChangeModal.vue'
 import TeamActionsPanel from './TeamActionsPanel.vue'
+import ConfirmModal from './ConfirmModal.vue'
 
 interface VotingControlsProps {
   status: InternalStatus
@@ -111,6 +122,12 @@ const showStatusModal = ref(false)
 const showAssignModal = ref(false)
 const showVoteModal = ref(false)
 const showTeamPanel = ref(false)
+const showConfirmModal = ref(false)
+const confirmModalData = ref({
+  title: '',
+  message: '',
+  onConfirm: () => {}
+})
 
 /**
  * Format wallet address to shortened display format (e.g., "1xf2..355ee")
@@ -295,25 +312,26 @@ const handleAssignToMe = () => {
 }
 
 const handleUnassign = async () => {
-  try {
-    const confirmUnassign = confirm('Are you sure you want to unassign yourself from this proposal?')
-    if (!confirmUnassign) {
-      return
+  confirmModalData.value = {
+    title: 'Unassign Proposal',
+    message: 'Are you sure you want to unassign yourself from this proposal?',
+    onConfirm: () => {
+      try {
+        const unassignData = {
+          proposalId: props.proposalId,
+          action: 'unassign'
+        }
+        
+        console.log('Unassignment requested:', unassignData)
+        
+        // Emit custom event for parent to handle
+        window.dispatchEvent(new CustomEvent('proposalUnassigned', { detail: unassignData }))
+      } catch (error) {
+        console.error('Failed to unassign proposal:', error)
+      }
     }
-    
-    const unassignData = {
-      proposalId: props.proposalId,
-      action: 'unassign'
-    }
-    
-    console.log('Unassignment requested:', unassignData)
-    
-    // Emit custom event for parent to handle
-    window.dispatchEvent(new CustomEvent('proposalUnassigned', { detail: unassignData }))
-    
-  } catch (error) {
-    console.error('Failed to unassign proposal:', error)
   }
+  showConfirmModal.value = true
 }
 
 const closeAssignModal = () => {
@@ -389,11 +407,15 @@ const handleTeamUpdate = () => {
 
 // Show login prompt with custom message
 const showLoginPrompt = (message: string) => {
-  const shouldConnect = confirm(`${message}\n\nWould you like to connect your wallet now?`)
-  if (shouldConnect) {
-    // Trigger wallet connection by dispatching an event
-    window.dispatchEvent(new CustomEvent('requestWalletConnection'))
+  confirmModalData.value = {
+    title: 'Connect Wallet',
+    message: `${message}\n\nWould you like to connect your wallet now?`,
+    onConfirm: () => {
+      // Trigger wallet connection by dispatching an event
+      window.dispatchEvent(new CustomEvent('requestWalletConnection'))
+    }
   }
+  showConfirmModal.value = true
 }
 </script>
 
