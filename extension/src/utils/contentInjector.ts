@@ -81,6 +81,7 @@ export class ContentInjector {
         
         // Listen for voting controls events
         window.addEventListener('proposalAssigned', this.handleProposalAssigned.bind(this) as EventListener);
+        window.addEventListener('proposalUnassigned', this.handleProposalUnassigned.bind(this) as EventListener);
         window.addEventListener('voteChanged', this.handleVoteChanged.bind(this) as EventListener);
         window.addEventListener('suggestedVoteChanged', this.handleSuggestedVoteChanged.bind(this) as EventListener);
         
@@ -758,7 +759,47 @@ export class ContentInjector {
         }
     }
 
+    /**
+     * Update existing components with fresh data without full re-injection
+     */
+    private async updateExistingComponents(proposalId: number, proposalData: ProposalData | null): Promise<void> {
+        try {
+            // Find the existing voting controls component
+            const existingContainer = document.querySelector(`[data-opengov-proposal="${proposalId}"]`);
+            if (existingContainer && this.injectedComponents.has(proposalId)) {
+                console.log(`🔄 Updating existing component for proposal ${proposalId}`);
+                
+                // Unmount the existing component
+                const existingApp = this.injectedComponents.get(proposalId);
+                if (existingApp) {
+                    existingApp.unmount();
+                }
+                
+                // Re-mount with updated data
+                const app = createApp(VotingControls, {
+                    status: proposalData?.internal_status || 'Not started',
+                    proposalId: proposalId,
+                    editable: this.apiService.isAuthenticated(),
+                    isAuthenticated: this.apiService.isAuthenticated(),
+                    suggestedVote: proposalData?.suggested_vote || null,
+                    assignedTo: proposalData?.assigned_to || null,
+                    chain: proposalData?.chain || 'Polkadot'
+                });
 
+                app.mount(existingContainer);
+                this.injectedComponents.set(proposalId, app);
+                
+                console.log('✅ Component updated successfully');
+            } else {
+                console.log('⚠️ No existing component found, falling back to full page change');
+                await this.handlePageChange();
+            }
+        } catch (error) {
+            console.error('❌ Error updating components:', error);
+            // Fallback to full page change
+            await this.handlePageChange();
+        }
+    }
 
     /**
      * Get proposal data from API with caching
@@ -828,8 +869,9 @@ export class ContentInjector {
                     this.proposalCache.set(cacheKey, cachedData);
                 }
 
-                // Re-inject components to reflect the change
-                await this.handlePageChange();
+                // Get fresh proposal data and update UI immediately
+                const updatedProposalData = await this.getProposalData(proposalId, currentProposal.chain);
+                await this.updateExistingComponents(proposalId, updatedProposalData);
                 
                 console.log('✅ Status updated successfully in database');
             } else {
@@ -896,8 +938,12 @@ export class ContentInjector {
                 const cacheKey = `${currentProposal.chain}-${proposalId}`;
                 this.proposalCache.delete(cacheKey);
                 
-                // Re-inject components to reflect the updated assignment
-                await this.handlePageChange();
+                // Get fresh proposal data and update UI immediately
+                const updatedProposalData = await this.getProposalData(proposalId, currentProposal.chain);
+                
+                // Update existing component props instead of full re-injection
+                await this.updateExistingComponents(proposalId, updatedProposalData);
+                
             } else {
                 console.error('❌ Failed to assign proposal:', result.error);
                 alert(`Failed to assign proposal: ${result.error || 'Unknown error'}`);
@@ -988,6 +1034,58 @@ export class ContentInjector {
         
         // Refresh all components to reflect the new authentication state
         await this.refreshAllComponents();
+    }
+
+    /**
+     * Handle proposal unassignment events from components
+     */
+    private async handleProposalUnassigned(event: Event): Promise<void> {
+        const customEvent = event as CustomEvent;
+        const { proposalId } = customEvent.detail;
+        
+        console.log('👤 Proposal unassignment requested:', customEvent.detail);
+        
+        try {
+            // Get the current proposal to determine chain
+            const currentProposal = this.detector.detectCurrentProposal();
+            if (!currentProposal) {
+                console.error('Could not determine current proposal for unassignment');
+                return;
+            }
+
+            // Check if user is authenticated
+            if (!this.apiService.isAuthenticated()) {
+                console.error('User not authenticated for unassignment');
+                alert('Please authenticate to unassign proposals');
+                return;
+            }
+
+            // Call the unassignment API (DELETE the responsible_person action)
+            const result = await this.apiService.deleteTeamAction(
+                proposalId, 
+                currentProposal.chain
+            );
+            
+            if (result.success) {
+                console.log('✅ Proposal unassigned successfully');
+                
+                // Clear cache to ensure fresh data is fetched
+                const cacheKey = `${currentProposal.chain}-${proposalId}`;
+                this.proposalCache.delete(cacheKey);
+                
+                // Get fresh proposal data and update UI immediately
+                const updatedProposalData = await this.getProposalData(proposalId, currentProposal.chain);
+                await this.updateExistingComponents(proposalId, updatedProposalData);
+                
+            } else {
+                console.error('❌ Failed to unassign proposal:', result.error);
+                alert(`Failed to unassign proposal: ${result.error || 'Unknown error'}`);
+            }
+            
+        } catch (error) {
+            console.error('❌ Failed to unassign proposal:', error);
+            alert('Failed to unassign proposal. Please check your connection and try again.');
+        }
     }
 
     /**
@@ -1097,6 +1195,7 @@ export class ContentInjector {
         
         window.removeEventListener('statusChanged', this.handleStatusChange.bind(this) as EventListener);
         window.removeEventListener('proposalAssigned', this.handleProposalAssigned.bind(this) as EventListener);
+        window.removeEventListener('proposalUnassigned', this.handleProposalUnassigned.bind(this) as EventListener);
         window.removeEventListener('voteChanged', this.handleVoteChanged.bind(this) as EventListener);
         window.removeEventListener('suggestedVoteChanged', this.handleSuggestedVoteChanged.bind(this) as EventListener);
         window.removeEventListener('authStateChanged', this.handleAuthStateChanged.bind(this) as EventListener);

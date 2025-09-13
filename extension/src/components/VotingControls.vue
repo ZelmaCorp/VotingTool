@@ -21,7 +21,7 @@
         id="voting-tool-assign"
         class="control-btn assign-btn"
         @click="handleAssignToMe"
-        :title="props.assignedTo ? `Assigned to: ${props.assignedTo}` : (authStore.state.isAuthenticated ? 'Assign this proposal to yourself' : 'Click to connect wallet and assign')"
+        :title="assignButtonTooltip"
       >
         <span class="btn-text">{{ assignButtonText }}</span>
       </button>
@@ -122,26 +122,63 @@ const formatAddress = (address: string): string => {
 
 /**
  * Computed property for assignment button text
- * Shows "Assign to Me" when unassigned, or "Assigned: [address]" when assigned
+ * Shows "Assign to Me" when unassigned, "Unassign" when current user is assigned, 
+ * or "Assigned: [address]" when someone else is assigned
  */
 const assignButtonText = computed(() => {
   if (props.assignedTo) {
-    return `Assigned: ${formatAddress(props.assignedTo)}`
+    const currentUserAddress = authStore.state.user?.address
+    if (currentUserAddress && props.assignedTo === currentUserAddress) {
+      return 'Unassign'
+    } else {
+      return `Assigned: ${formatAddress(props.assignedTo)}`
+    }
   }
   return 'Assign to Me'
 })
 
+/**
+ * Computed property for assignment button tooltip
+ */
+const assignButtonTooltip = computed(() => {
+  if (!authStore.state.isAuthenticated) {
+    return 'Click to connect wallet and assign'
+  }
+  
+  if (props.assignedTo) {
+    const currentUserAddress = authStore.state.user?.address
+    if (currentUserAddress && props.assignedTo === currentUserAddress) {
+      return 'Click to unassign yourself from this proposal'
+    } else {
+      return `Assigned to: ${props.assignedTo}`
+    }
+  }
+  
+  return 'Assign this proposal to yourself'
+})
+
+/**
+ * Computed property to determine if current user can unassign
+ */
+const canUnassign = computed(() => {
+  const currentUserAddress = authStore.state.user?.address
+  return authStore.state.isAuthenticated && 
+         props.assignedTo && 
+         currentUserAddress && 
+         props.assignedTo === currentUserAddress
+})
+
 const statusConfig = {
-  'Not started': { color: '#6c757d', icon: '⚪' },
-  'Considering': { color: '#ffc107', icon: '🤔' },
-  'Ready for approval': { color: '#17a2b8', icon: '📋' },
-  'Waiting for agreement': { color: '#fd7e14', icon: '⏳' },
-  'Ready to vote': { color: '#28a745', icon: '🗳️' },
-  'Reconsidering': { color: '#dc3545', icon: '🔄' },
-  'Voted 👍 Aye 👍': { color: '#198754', icon: '👍' },
-  'Voted 👎 Nay 👎': { color: '#dc3545', icon: '👎' },
-  'Voted ✌️ Abstain ✌️': { color: '#6f42c1', icon: '✌️' },
-  'Not Voted': { color: '#e9ecef', icon: '❌' }
+  'Not started': { color: '#6c757d', icon: '●' },
+  'Considering': { color: '#ffc107', icon: '●' },
+  'Ready for approval': { color: '#17a2b8', icon: '●' },
+  'Waiting for agreement': { color: '#fd7e14', icon: '●' },
+  'Ready to vote': { color: '#28a745', icon: '●' },
+  'Reconsidering': { color: '#dc3545', icon: '●' },
+  'Voted 👍 Aye 👍': { color: '#198754', icon: '●' },
+  'Voted 👎 Nay 👎': { color: '#dc3545', icon: '●' },
+  'Voted ✌️ Abstain ✌️': { color: '#6f42c1', icon: '●' },
+  'Not Voted': { color: '#e9ecef', icon: '●' }
 }
 
 const statusClass = computed(() => {
@@ -189,7 +226,35 @@ const handleAssignToMe = () => {
     showLoginPrompt('Please connect your wallet to assign proposals to yourself.')
     return
   }
-  showAssignModal.value = true
+  
+  // Check if this is an unassign action
+  if (canUnassign.value) {
+    handleUnassign()
+  } else {
+    showAssignModal.value = true
+  }
+}
+
+const handleUnassign = async () => {
+  try {
+    const confirmUnassign = confirm('Are you sure you want to unassign yourself from this proposal?')
+    if (!confirmUnassign) {
+      return
+    }
+    
+    const unassignData = {
+      proposalId: props.proposalId,
+      action: 'unassign'
+    }
+    
+    console.log('Unassignment requested:', unassignData)
+    
+    // Emit custom event for parent to handle
+    window.dispatchEvent(new CustomEvent('proposalUnassigned', { detail: unassignData }))
+    
+  } catch (error) {
+    console.error('Failed to unassign proposal:', error)
+  }
 }
 
 const closeAssignModal = () => {

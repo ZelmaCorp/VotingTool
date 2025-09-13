@@ -242,6 +242,21 @@ export class ApiService {
         }
     }
 
+    async deleteTeamAction(postId: number, chain: Chain): Promise<{ success: boolean; error?: string }> {
+        try {
+            const result = await this.request<{ success: boolean; error?: string }>(`/dao/referendum/${postId}/action`, {
+                method: 'DELETE',
+                body: JSON.stringify({
+                    chain
+                }),
+            });
+
+            return result;
+        } catch (error) {
+            return { success: false, error: error instanceof Error ? error.message : 'Failed to delete team action' };
+        }
+    }
+
     async getTeamActions(postId: number, chain: Chain): Promise<ProposalAction[]> {
         try {
             const result = await this.request<{ success: boolean; actions?: ProposalAction[]; error?: string }>(`/dao/referendum/${postId}/actions?chain=${chain}`);
