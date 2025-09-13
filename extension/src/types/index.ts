@@ -100,7 +100,7 @@ export interface ProposalData {
     internal_status: InternalStatus;
     referendum_timeline?: TimelineStatus;
     suggested_vote?: SuggestedVote;
-    suggested_vote_reason?: string;
+    reason_for_vote?: string;  // Changed from suggested_vote_reason to match backend
     final_vote?: SuggestedVote;
     assigned_to?: string;
     link?: string;

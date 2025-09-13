@@ -29,7 +29,7 @@
         id="voting-tool-change-vote"
         class="control-btn vote-btn"
         @click="handleChangeVote"
-        :title="authStore.state.isAuthenticated ? 'Change suggested vote' : 'Click to connect wallet and vote'"
+        :title="voteButtonTooltip"
       >
         <span class="btn-text">{{ suggestedVote || 'No Suggested Vote' }}</span>
       </button>
@@ -64,6 +64,7 @@
       :show="showVoteModal"
       :proposal-id="proposalId"
       :current-vote="suggestedVote"
+      :current-reason="reasonForVote"
       @close="closeVoteModal"
       @save="saveVoteChange"
     />
@@ -97,6 +98,7 @@ interface VotingControlsProps {
   editable?: boolean
   isAuthenticated?: boolean
   suggestedVote?: SuggestedVote
+  reasonForVote?: string
   assignedTo?: string | null
   chain: Chain
 }
@@ -166,6 +168,26 @@ const canUnassign = computed(() => {
          props.assignedTo && 
          currentUserAddress && 
          props.assignedTo === currentUserAddress
+})
+
+/**
+ * Computed property for vote button tooltip that includes reason
+ */
+const voteButtonTooltip = computed(() => {
+  if (!authStore.state.isAuthenticated) {
+    return 'Click to connect wallet and vote'
+  }
+  
+  if (props.suggestedVote) {
+    let tooltip = `Current vote: ${props.suggestedVote}`
+    if (props.reasonForVote) {
+      tooltip += `\nReason: ${props.reasonForVote}`
+    }
+    tooltip += '\n\nClick to change'
+    return tooltip
+  }
+  
+  return 'Change suggested vote'
 })
 
 const statusConfig = {

@@ -410,6 +410,7 @@ export class ContentInjector {
             editable: this.apiService.isAuthenticated(),
             isAuthenticated: this.apiService.isAuthenticated(),
             suggestedVote: proposalData?.suggested_vote || null,
+            reasonForVote: proposalData?.reason_for_vote || null,
             assignedTo: assignedTo,
             chain: proposal.chain
         });
@@ -782,6 +783,7 @@ export class ContentInjector {
                     editable: this.apiService.isAuthenticated(),
                     isAuthenticated: this.apiService.isAuthenticated(),
                     suggestedVote: proposalData?.suggested_vote || null,
+                    reasonForVote: proposalData?.reason_for_vote || null,
                     assignedTo: proposalData?.assigned_to || null,
                     chain: proposalData?.chain || 'Polkadot'
                 });
@@ -986,7 +988,7 @@ export class ContentInjector {
                 const cachedData = this.proposalCache.get(cacheKey);
                 if (cachedData) {
                     cachedData.suggested_vote = vote;
-                    cachedData.suggested_vote_reason = reason;
+                    cachedData.reason_for_vote = reason;
                     cachedData.updated_at = new Date().toISOString();
                     this.proposalCache.set(cacheKey, cachedData);
                 }

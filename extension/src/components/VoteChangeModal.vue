@@ -68,6 +68,7 @@ interface VoteChangeModalProps {
   show: boolean
   proposalId: number
   currentVote?: '👍 Aye 👍' | '👎 Nay 👎' | '✌️ Abstain ✌️' | null
+  currentReason?: string
 }
 
 const props = defineProps<VoteChangeModalProps>()
@@ -109,7 +110,7 @@ watch(() => props.show, (newShow) => {
   if (newShow) {
     // Pre-select current vote if available
     selectedVote.value = props.currentVote || null
-    voteReason.value = ''
+    voteReason.value = props.currentReason || ''
   }
 })
 </script>
