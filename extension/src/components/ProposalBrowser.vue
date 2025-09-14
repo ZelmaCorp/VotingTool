@@ -302,13 +302,6 @@ const filteredProposals = computed(() => {
   // Assignment filter
   if (selectedAssignment.value) {
     const currentUser = authStore.state.user?.address
-    console.log('🔍 Filtering by assignment:', { 
-      filter: selectedAssignment.value, 
-      currentUser,
-      totalProposals: filtered.length,
-      sampleAssignments: filtered.slice(0, 3).map(p => p.assigned_to)
-    })
-    
     switch (selectedAssignment.value) {
       case 'me':
         filtered = filtered.filter(p => p.assigned_to === currentUser)
@@ -320,14 +313,6 @@ const filteredProposals = computed(() => {
         filtered = filtered.filter(p => p.assigned_to && p.assigned_to !== currentUser)
         break
     }
-    
-    console.log('📊 After assignment filter:', {
-      remainingProposals: filtered.length,
-      sampleResults: filtered.slice(0, 3).map(p => ({
-        id: p.post_id,
-        assigned_to: p.assigned_to
-      }))
-    })
   }
 
   // Team action filter
@@ -370,23 +355,17 @@ const paginatedProposals = computed(() => {
 const apiService = ApiService.getInstance()
 
 const loadProposals = async () => {
-  console.log('🔄 Loading proposals...')
   loading.value = true
   try {
-    // Check if API service is authenticated
-    if (!apiService.isAuthenticated()) {
-      console.warn('⚠️ API Service not authenticated')
+    if (!authStore.state.isAuthenticated) {
+      console.warn('API Service not authenticated')
       return
     }
 
-    console.log('📡 Making API call to get all proposals...')
     const allProposals = await apiService.getAllProposals()
-    console.log('📦 Raw API response:', allProposals)
-    
     proposals.value = allProposals
-    console.log('✅ Loaded proposals:', allProposals.length)
   } catch (error) {
-    console.error('❌ Failed to load proposals:', error)
+    console.error('Failed to load proposals:', error)
   } finally {
     loading.value = false
   }
@@ -414,7 +393,7 @@ const openProposal = async (proposal: ProposalData) => {
     const url = `https://${proposal.chain}.polkassembly.io/referenda/${proposal.post_id}`
     window.open(url, '_blank')
   } catch (error) {
-    console.error('❌ Failed to open proposal:', error)
+    console.error('Failed to open proposal:', error)
   }
 }
 
@@ -422,20 +401,18 @@ const assignToMe = async (proposal: ProposalData, event: Event) => {
   event.stopPropagation() // Prevent opening the proposal
   
   try {
-    console.log('🎯 Attempting to assign proposal:', proposal.post_id);
     const result = await apiService.assignProposal(proposal.post_id, proposal.chain, 'responsible_person')
-    console.log('📝 Assignment result:', result);
     
     if (result.success) {
       // Refresh the proposal list to show updated assignment
       await loadProposals()
     } else {
-      console.error('❌ Failed to assign proposal:', result.error)
+      console.error('Failed to assign proposal:', result.error)
       // TODO: Show error to user
       alert(result.error || 'Failed to assign proposal. Please try again.')
     }
   } catch (error) {
-    console.error('❌ Failed to assign proposal:', error)
+    console.error('Failed to assign proposal:', error)
     alert('Failed to assign proposal. Please try again.')
   }
 }
@@ -458,7 +435,6 @@ const handleEscKey = (event: KeyboardEvent) => {
 
 // Watch for auth state changes
 watch(() => authStore.state.isAuthenticated, (isAuthenticated) => {
-  console.log('👤 Auth state changed:', isAuthenticated)
   if (isAuthenticated) {
     loadProposals()
   }
@@ -466,7 +442,6 @@ watch(() => authStore.state.isAuthenticated, (isAuthenticated) => {
 
 // Setup and cleanup
 onMounted(() => {
-  console.log('🔄 Component mounted, auth state:', authStore.state.isAuthenticated)
   if (authStore.state.isAuthenticated) {
     loadProposals()
   }

@@ -336,6 +336,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { ApiService } from '../utils/apiService'
 
 interface Props {
   show: boolean
@@ -411,8 +412,14 @@ const activityLog = ref<ActivityItem[]>([])
 
 // Methods
 const loadData = async () => {
-  // Load settings and data
-  console.log('Loading settings data...')
+  refreshing.value = true
+  try {
+    // Load settings data here when available
+  } catch (error) {
+    console.error('Failed to load settings:', error)
+  } finally {
+    refreshing.value = false
+  }
 }
 
 const addMember = () => {
@@ -424,8 +431,13 @@ const removeMember = (index: number) => {
 }
 
 const saveDAOConfig = async () => {
-  console.log('Saving DAO configuration:', daoConfig.value)
-  // Save to storage/API
+  try {
+    const apiService = ApiService.getInstance()
+    await apiService.updateDAOConfig(daoConfig.value)
+    // Success handled silently
+  } catch (error) {
+    console.error('Failed to save DAO configuration:', error)
+  }
 }
 
 const resetDAOConfig = () => {
@@ -437,26 +449,29 @@ const resetDAOConfig = () => {
 }
 
 const savePreferences = async () => {
-  console.log('Saving user preferences:', userPrefs.value)
-  // Save to storage
+  try {
+    // Save user preferences when implemented
+  } catch (error) {
+    console.error('Failed to save preferences:', error)
+  }
 }
 
 const manualRefresh = async () => {
-  refreshing.value = true
   try {
-    // Perform manual refresh
-    await new Promise(resolve => setTimeout(resolve, 2000)) // Simulate refresh
-    console.log('Manual refresh completed')
+    const apiService = ApiService.getInstance()
+    await apiService.refreshReferenda()
+    // Success handled silently
   } catch (error) {
     console.error('Refresh failed:', error)
-  } finally {
-    refreshing.value = false
   }
 }
 
 const clearCache = async () => {
-  console.log('Clearing cache...')
-  // Clear local storage/cache
+  try {
+    // Clear cache implementation when needed
+  } catch (error) {
+    console.error('Failed to clear cache:', error)
+  }
 }
 
 const openExternal = (url: string) => {

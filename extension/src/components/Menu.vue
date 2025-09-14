@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref } from 'vue'
 import { authStore } from '../stores/authStore'
 import WalletConnect from './WalletConnect.vue'
 import DAOConfigModal from './DAOConfigModal.vue'
@@ -108,25 +108,6 @@ const showProposalBrowser = ref(false)
 const showMyDashboard = ref(false)
 const showTeamWorkflow = ref(false)
 const showSettingsMore = ref(false)
-
-const handleEscKey = (event: KeyboardEvent) => {
-  if (event.key === 'Escape') {
-    if (showWalletConnect.value) showWalletConnect.value = false
-    else if (showProposalBrowser.value) showProposalBrowser.value = false
-    else if (showMyDashboard.value) showMyDashboard.value = false
-    else if (showTeamWorkflow.value) showTeamWorkflow.value = false
-    else if (showSettingsMore.value) showSettingsMore.value = false
-    else if (showDAOConfig.value) showDAOConfig.value = false
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('keydown', handleEscKey)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleEscKey)
-})
 
 const getUserInitials = () => {
   const name = authStore.state.user?.name
@@ -144,8 +125,6 @@ const handleLogout = async () => {
 }
 
 const handleAction = (action: string) => {
-  console.log(`Action clicked: ${action}`)
-  
   switch (action) {
     case 'browse-proposals':
       showProposalBrowser.value = true
@@ -163,7 +142,6 @@ const handleAction = (action: string) => {
 }
 
 const handleConfigSaved = () => {
-  console.log('DAO configuration saved successfully')
   showDAOConfig.value = false
 }
 </script>

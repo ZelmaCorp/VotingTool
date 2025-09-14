@@ -55,13 +55,13 @@ declare namespace browser {
       removeListener: (callback: (message: any, sender: any) => void) => void;
     };
   };
-
+  
   const tabs: {
     query: (queryInfo: { active: boolean; currentWindow: boolean }) => Promise<any[]>;
     sendMessage: (tabId: number, message: any) => Promise<any>;
     executeScript: (tabId: number, details: { file: string }) => Promise<any>;
   };
-
+  
   const scripting: {
     executeScript: (injection: {
       target: { tabId: number };
@@ -69,7 +69,7 @@ declare namespace browser {
       func?: () => void;
     }) => Promise<any>;
   };
-
+  
   const storage: {
     local: {
       get: (keys: string | string[] | null) => Promise<any>;

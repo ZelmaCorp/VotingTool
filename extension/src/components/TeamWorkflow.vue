@@ -142,20 +142,6 @@
                           <span v-if="getAgreedMembers(proposal).length === 0" class="no-members">None yet</span>
                         </div>
                       </div>
-                      
-                      <div class="status-section">
-                        <h5>Pending Members</h5>
-                        <div class="member-list">
-                          <span 
-                            v-for="member in getPendingMembers(proposal)" 
-                            :key="member.address"
-                            class="member-badge pending"
-                          >
-                            {{ member.name }}
-                          </span>
-                          <span v-if="getPendingMembers(proposal).length === 0" class="no-members">None</span>
-                        </div>
-                      </div>
                     </div>
 
                     <div class="proposal-meta">
@@ -361,6 +347,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import type { ProposalData, TeamMember } from '../types'
 import StatusBadge from './StatusBadge.vue'
 import { ApiService } from '../utils/apiService'
+import { decodeAddress, encodeAddress } from '@polkadot/util-crypto'
 
 interface Props {
   show: boolean
@@ -370,6 +357,30 @@ const props = defineProps<Props>()
 defineEmits<{
   close: []
 }>()
+
+// Address normalization helper
+const normalizeAddress = (address: string): string => {
+  try {
+    // Decode to public key, then encode to generic format (prefix 42)
+    const publicKey = decodeAddress(address)
+    return encodeAddress(publicKey, 42)
+  } catch (error) {
+    console.warn('Failed to normalize address:', address, error)
+    return address
+  }
+}
+
+// Find team member by address with SS58 format flexibility
+const findTeamMemberByAddress = (address: string): TeamMember | null => {
+  const normalizedSearchAddress = normalizeAddress(address)
+  
+  const member = teamMembers.value.find(tm => {
+    const normalizedMemberAddress = normalizeAddress(tm.address)
+    return normalizedMemberAddress === normalizedSearchAddress
+  })
+  
+  return member || null
+}
 
 // Data
 const proposals = ref<ProposalData[]>([])
@@ -389,66 +400,32 @@ const readyToVote = computed(() =>
 )
 
 const vetoedProposals = computed(() => {
-  console.log('🔍 Computing vetoed proposals...');
-  console.log('📦 All proposals:', proposals.value.length);
-  
   const vetoed = proposals.value.filter(p => {
     const hasNoWayAction = p.team_actions?.some(action => {
       // Case-insensitive comparison and handle both frontend and backend action types
       const actionType = action.role_type?.toLowerCase();
       const isNoWay = actionType === 'no_way' || actionType === 'no way' || actionType === 'noway' || actionType === 'NO WAY'.toLowerCase();
-      console.log(`🔍 Checking action in proposal ${p.post_id}:`, {
-        actionType,
-        rawActionType: action.role_type,
-        isNoWay,
-        action
-      });
       return isNoWay;
     });
-    
-    if (hasNoWayAction) {
-      console.log(`🚫 Found NO WAY proposal: #${p.post_id}`, {
-        title: p.title,
-        actions: p.team_actions
-      });
-    }
     
     return hasNoWayAction;
   });
 
-  console.log('🚫 Total NO WAY proposals:', vetoed.length);
   return vetoed;
 })
 
 const forDiscussion = computed(() => {
-  console.log('🔍 Computing discussion proposals...');
-  console.log('📦 All proposals:', proposals.value.length);
-  
   const discussions = proposals.value.filter(p => {
     const hasDiscussionAction = p.team_actions?.some(action => {
       // Case-insensitive comparison and handle both frontend and backend action types
       const actionType = action.role_type?.toLowerCase();
       const isDiscussion = actionType === 'to_be_discussed' || actionType === 'to be discussed' || actionType === 'tobediscussed' || actionType === 'To be discussed'.toLowerCase();
-      console.log(`🔍 Checking action in proposal ${p.post_id}:`, {
-        actionType,
-        rawActionType: action.role_type,
-        isDiscussion,
-        action
-      });
       return isDiscussion;
     });
-    
-    if (hasDiscussionAction) {
-      console.log(`💬 Found discussion proposal: #${p.post_id}`, {
-        title: p.title,
-        actions: p.team_actions
-      });
-    }
     
     return hasDiscussionAction;
   });
 
-  console.log('💬 Total discussion proposals:', discussions.length);
   return discussions;
 })
 
@@ -458,56 +435,42 @@ const loadData = async () => {
 
   loading.value = true
   error.value = null
-  console.log('🔄 Loading team workflow data...')
 
   try {
     const apiService = ApiService.getInstance()
     
     // Load proposals
-    console.log('📥 Fetching proposals...')
     const allProposals = await apiService.getAllProposals()
-    console.log('📦 Loaded proposals:', allProposals.length)
-    console.log('📊 Sample proposal:', allProposals[0])
 
     // Load team actions for each proposal
-    console.log('📥 Loading team actions for proposals...')
     const proposalsWithActions = await Promise.all(
       allProposals.map(async (proposal) => {
         try {
           const actions = await apiService.getTeamActions(proposal.post_id, proposal.chain)
-          console.log(`👥 Loaded actions for proposal ${proposal.post_id}:`, actions)
           return {
             ...proposal,
             team_actions: actions
           }
         } catch (err) {
-          console.error(`❌ Failed to load actions for proposal ${proposal.post_id}:`, err)
+          console.error(`Failed to load actions for proposal ${proposal.post_id}:`, err)
           return proposal
         }
       })
     )
 
-    // Log team actions summary
-    const proposalsWithTeamActions = proposalsWithActions.filter(p => p.team_actions && p.team_actions.length > 0)
-    console.log('👥 Proposals with team actions:', proposalsWithTeamActions.length)
-    console.log('📝 Team actions breakdown:', proposalsWithTeamActions.map(p => ({
-      id: p.post_id,
-      actions: p.team_actions?.map(a => a.role_type)
-    })))
-
     proposals.value = proposalsWithActions
 
     // Load team members
-    console.log('👥 Fetching team members...')
     const daoConfig = await apiService.getDAOConfig()
     if (daoConfig) {
-      console.log('👥 Loaded team members:', daoConfig.team_members.length)
       teamMembers.value = daoConfig.team_members
       requiredAgreements.value = daoConfig.required_agreements
+    } else {
+      console.error('Failed to load DAO config')
     }
 
   } catch (err) {
-    console.error('❌ Failed to load team workflow data:', err)
+    console.error('Error loading team workflow data:', err)
     error.value = 'Failed to load data. Please try again.'
   } finally {
     loading.value = false
@@ -537,119 +500,67 @@ const openProposal = (proposal: ProposalData) => {
   window.open(url, '_blank')
 }
 
-const getTeamMemberName = (address: string): string => {
-  // First check if we have a team member with this address
-  const teamMember = teamMembers.value.find(m => m.address === address);
-  if (teamMember) {
-    return teamMember.name;
-  }
-  // If not found in team members, return shortened address
-  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+const getVetoMembers = (proposal: ProposalData): TeamMember[] => {
+  const vetoActions = proposal.team_actions?.filter(action => {
+    const actionType = action.role_type?.toLowerCase();
+    const isNoWay = actionType === 'no_way' || actionType === 'no way' || actionType === 'noway';
+    return isNoWay;
+  }) || [];
+  
+  const members = vetoActions.map(action => {
+    // Find the team member by address using SS58-flexible matching
+    
+    const teamMember = findTeamMemberByAddress(action.wallet_address);
+    
+    const finalName = teamMember?.name || action.team_member_name || action.wallet_address.slice(0, 8);
+    
+    return {
+      address: action.wallet_address,
+      name: finalName
+    };
+  });
+  
+  return members;
 }
 
 const getAgreementCount = (proposal: ProposalData): number => {
-  console.log('🔢 Calculating agreement count for proposal:', {
-    id: proposal.post_id,
-    actions: proposal.team_actions
-  });
   const count = proposal.team_actions?.filter(action => {
     const actionType = action.role_type?.toLowerCase();
     const isAgree = actionType === 'agree';
-    if (isAgree) {
-      console.log('✅ Found agree action:', action);
-    }
     return isAgree;
   }).length || 0;
-  console.log(`📊 Agreement count: ${count}/${requiredAgreements.value}`);
   return count;
 }
 
 const getAgreedMembers = (proposal: ProposalData): TeamMember[] => {
-  console.log('🔍 Getting agreed members for proposal:', {
-    id: proposal.post_id,
-    actions: proposal.team_actions,
-    teamMembers: teamMembers.value
-  });
   const agreeActions = proposal.team_actions?.filter(action => {
     const actionType = action.role_type?.toLowerCase();
     const isAgree = actionType === 'agree';
-    if (isAgree) {
-      console.log('✅ Found agree action:', action);
-    }
     return isAgree;
   }) || [];
   
-  const members = agreeActions.map(action => ({
-    address: action.wallet_address,
-    name: getTeamMemberName(action.wallet_address)
-  }));
-  
-  console.log('👥 Agreed members:', members);
-  return members;
-}
-
-const getPendingMembers = (proposal: ProposalData): TeamMember[] => {
-  console.log('🔍 Getting pending members for proposal:', {
-    id: proposal.post_id,
-    actions: proposal.team_actions,
-    allTeamMembers: teamMembers.value
+  const members = agreeActions.map(action => {
+    // Find the team member by address using SS58-flexible matching
+    
+    const teamMember = findTeamMemberByAddress(action.wallet_address);
+    
+    const finalName = teamMember?.name || action.team_member_name || action.wallet_address.slice(0, 8);
+    
+    return {
+      address: action.wallet_address,
+      name: finalName
+    };
   });
   
-  // Get all addresses that have taken any action
-  const actionAddresses = new Set(proposal.team_actions?.map(action => action.wallet_address) || []);
-  
-  // Filter team members who haven't taken any action
-  const pending = teamMembers.value.filter(member => !actionAddresses.has(member.address));
-  console.log('⏳ Pending members:', pending);
-  return pending;
+  return members;
 }
 
 const getDiscussionMembers = (proposal: ProposalData): TeamMember[] => {
-  console.log('🔍 Getting discussion members for proposal:', {
-    id: proposal.post_id,
-    actions: proposal.team_actions,
-    teamMembers: teamMembers.value
-  });
-  const discussionActions = proposal.team_actions?.filter(action => {
-    const actionType = action.role_type?.toLowerCase();
-    const isDiscussion = actionType === 'to_be_discussed' || actionType === 'to be discussed' || actionType === 'tobediscussed';
-    if (isDiscussion) {
-      console.log('💬 Found discussion action:', action);
-    }
-    return isDiscussion;
-  }) || [];
-  
-  const members = discussionActions.map(action => ({
+  const discussionActions = proposal.team_actions?.filter(action => action.role_type === 'To be discussed') || []
+  return discussionActions.map(action => ({
     address: action.wallet_address,
-    name: getTeamMemberName(action.wallet_address)
-  }));
-  
-  console.log('👥 Discussion members:', members);
-  return members;
-}
-
-const getVetoMembers = (proposal: ProposalData): TeamMember[] => {
-  console.log('🔍 Getting veto members for proposal:', {
-    id: proposal.post_id,
-    actions: proposal.team_actions,
-    teamMembers: teamMembers.value
-  });
-  const vetoActions = proposal.team_actions?.filter(action => {
-    const actionType = action.role_type?.toLowerCase();
-    const isNoWay = actionType === 'no_way' || actionType === 'no way' || actionType === 'noway';
-    if (isNoWay) {
-      console.log('🚫 Found NO WAY action:', action);
-    }
-    return isNoWay;
-  }) || [];
-  
-  const members = vetoActions.map(action => ({
-    address: action.wallet_address,
-    name: getTeamMemberName(action.wallet_address)
-  }));
-  
-  console.log('👥 Veto members:', members);
-  return members;
+    name: action.team_member_name || action.wallet_address.slice(0, 8)
+  }))
 }
 
 const formatDate = (dateString: string) => {

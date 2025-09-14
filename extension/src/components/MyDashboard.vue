@@ -311,24 +311,16 @@ const activeTab = ref<'assignments' | 'actions' | 'evaluations' | 'activity'>('a
 // Computed
 const currentUser = computed(() => {
   const address = authStore.state.user?.address
-  console.log('👤 Current user address:', address)
   return address || null
 })
 
 const myAssignments = computed(() => {
-  const user = currentUser.value
-  const assignments = proposals.value.filter(p => p.assigned_to === user)
-  console.log('📊 My assignments:', {
-    total: proposals.value.length,
-    currentUser: user,
-    foundAssignments: assignments.length,
-    sampleAssignments: proposals.value.slice(0, 3).map(p => ({
-      id: p.post_id,
-      assigned_to: p.assigned_to,
-      matches: p.assigned_to === user
-    }))
-  })
-  return assignments
+  const address = authStore.state.user?.address
+  if (!address) return []
+  
+  return proposals.value.filter(proposal => 
+    proposal.assigned_to === address
+  )
 })
 
 const actionsNeeded = computed(() => 
@@ -367,57 +359,44 @@ const completedAssignments = computed(() =>
 
 // Methods
 const loadData = async () => {
-  console.log('🔄 Loading dashboard data...', {
-    isAuthenticated: authStore.state.isAuthenticated,
-    user: authStore.state.user,
-    token: !!localStorage.getItem('opengov-auth-token')
-  })
-  
-  if (!authStore.state.isAuthenticated || !authStore.state.user?.address) {
-    console.warn('⚠️ Not authenticated or no user address, skipping data load')
-    return
-  }
-
   loading.value = true
+  
   try {
-    // Load my assignments first
-    const myAssignedProposals = await apiService.getMyAssignments()
-    console.log('📦 Loaded my assignments:', {
-      count: myAssignedProposals.length,
-      sample: myAssignedProposals.slice(0, 1).map(p => ({
-        id: p.post_id,
-        assigned_to: p.assigned_to
-      }))
-    })
+    if (!authStore.state.isAuthenticated || !authStore.state.user?.address) {
+      console.warn('Not authenticated or no user address, skipping data load')
+      return
+    }
 
+    const apiService = ApiService.getInstance()
+    
+    // Load my assignments
+    const assignments = await apiService.getMyAssignments()
+    
     // Load proposals needing attention
     const needingAttention = await apiService.getProposalsNeedingAttention()
-    console.log('⚠️ Loaded proposals needing attention:', needingAttention.length)
-
-    // Merge and deduplicate proposals
-    const allProposals = [...myAssignedProposals]
-    needingAttention.forEach(proposal => {
-      if (!allProposals.some(p => p.post_id === proposal.post_id && p.chain === proposal.chain)) {
-        allProposals.push(proposal)
-      }
-    })
-
-    proposals.value = allProposals
-    console.log('📊 Total unique proposals:', proposals.value.length)
-
-    // Load recent activity
-    const recentProposals = await apiService.getRecentActivity()
-    console.log('📊 Recent activity:', recentProposals.length)
     
-    // Convert proposals to activity items
+    // Combine all proposals and remove duplicates
+    const allProposals = [...assignments, ...needingAttention]
+    const uniqueProposals = allProposals.filter((proposal, index, self) => 
+      index === self.findIndex(p => p.post_id === proposal.post_id && p.chain === proposal.chain)
+    )
+    
+    proposals.value = uniqueProposals
+    
+    // Get recent activity (last 10 proposals by update time)
+    const recentProposals = [...uniqueProposals]
+      .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
+      .slice(0, 10)
+    
     recentActivity.value = recentProposals.map(p => ({
       id: `${p.chain}-${p.post_id}`,
       type: p.suggested_vote ? 'evaluation' : 'assignment',
       description: `${p.suggested_vote ? 'Evaluated' : 'Assigned to'} proposal #${p.post_id}: ${p.title}`,
       timestamp: p.updated_at || p.created_at
     }))
+
   } catch (error) {
-    console.error('❌ Failed to load dashboard data:', error)
+    console.error('Failed to load dashboard data:', error)
   } finally {
     loading.value = false
   }
@@ -425,18 +404,19 @@ const loadData = async () => {
 
 const openProposal = async (proposal: ProposalData) => {
   try {
-    // First check if the proposal exists in our database
+    const apiService = ApiService.getInstance()
+    
+    // Check if proposal exists in database, if not refresh first
     const existingProposal = await apiService.getProposal(proposal.post_id, proposal.chain)
     if (!existingProposal) {
-      // If not found, trigger a refresh
       await apiService.refreshReferenda()
     }
     
-    // Open the proposal in a new tab
-    const url = `https://${proposal.chain}.polkassembly.io/referenda/${proposal.post_id}`
+    // Open Polkassembly URL
+    const url = `https://${proposal.chain.toLowerCase()}.polkassembly.io/referenda/${proposal.post_id}`
     window.open(url, '_blank')
   } catch (error) {
-    console.error('❌ Failed to open proposal:', error)
+    console.error('Failed to open proposal:', error)
   }
 }
 
@@ -483,7 +463,6 @@ const handleEscKey = (event: KeyboardEvent) => {
 
 // Watch for auth state changes
 watch(() => authStore.state.isAuthenticated, (isAuthenticated) => {
-  console.log('👤 Auth state changed:', isAuthenticated)
   if (isAuthenticated) {
     loadData()
   }
@@ -491,7 +470,6 @@ watch(() => authStore.state.isAuthenticated, (isAuthenticated) => {
 
 // Setup and cleanup
 onMounted(() => {
-  console.log('🔄 Component mounted, auth state:', authStore.state.isAuthenticated)
   if (authStore.state.isAuthenticated) {
     loadData()
   }

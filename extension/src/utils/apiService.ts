@@ -1,6 +1,6 @@
 // API Service for OpenGov VotingTool Extension
 
-import type { ProposalData, InternalStatus, SuggestedVote, Chain, TeamAction, ProposalAction, ProposalComment, AgreementSummary, DAOConfig } from '../types';
+import type { ProposalData, InternalStatus, SuggestedVote, Chain, TeamAction, ProposalAction, ProposalComment, AgreementSummary, DAOConfig, TeamMember } from '../types';
 
 export class ApiService {
     private static instance: ApiService;
@@ -76,29 +76,29 @@ export class ApiService {
                 }
                 
                             console.log('📡 Chrome message response:', response);
-            
-            if (response && response.success) {
+                
+                if (response && response.success) {
                 console.log('✅ API call successful, raw response:', response);
                 // Always use the data field from the response
-                resolve(response.data);
-            } else {
-                console.error('❌ API Service: API call failed, response:', response);
-                
-                // Handle 401 unauthorized
-                if (response?.debugInfo?.responseStatus === 401) {
+                    resolve(response.data);
+                } else {
+                    console.error('❌ API Service: API call failed, response:', response);
+                    
+                    // Handle 401 unauthorized
+                    if (response?.debugInfo?.responseStatus === 401) {
                     console.warn('⚠️ Unauthorized - clearing token');
-                    this.token = null;
-                    localStorage.removeItem('opengov-auth-token');
-                }
-                
-                const error = new Error(response?.error || 'API call failed');
-                // Attach additional details for better error handling
-                if (response?.debugInfo?.errorResponseBody?.details) {
-                    (error as any).details = response.debugInfo.errorResponseBody.details;
-                    (error as any).status = response?.debugInfo?.responseStatus;
-                }
+                        this.token = null;
+                        localStorage.removeItem('opengov-auth-token');
+                    }
+                    
+                    const error = new Error(response?.error || 'API call failed');
+                    // Attach additional details for better error handling
+                    if (response?.debugInfo?.errorResponseBody?.details) {
+                        (error as any).details = response.debugInfo.errorResponseBody.details;
+                        (error as any).status = response?.debugInfo?.responseStatus;
+                    }
                 console.error('❌ Rejecting with error:', error);
-                reject(error);
+                    reject(error);
                 }
             });
         });
@@ -345,10 +345,22 @@ export class ApiService {
     // DAO configuration methods
     async getDAOConfig(): Promise<DAOConfig | null> {
         try {
-            const result = await this.request<{ success: boolean; config?: DAOConfig; error?: string }>('/dao/config');
-            return result.config || null;
+            // Use /dao/members endpoint instead of /dao/config
+            const result = await this.request<{ success: boolean; members?: TeamMember[]; error?: string }>('/dao/members');
+            
+            if (result.success && result.members) {
+                const config: DAOConfig = {
+                    team_members: result.members,
+                    required_agreements: 4, // Default value, could be made configurable
+                    name: 'OpenGov Voting Tool' // Add name field
+                };
+                return config;
+            } else {
+                console.error('Failed to get DAO config:', result.error)
+                return null;
+            }
         } catch (error) {
-            console.error('Failed to fetch DAO config:', error);
+            console.error('Error getting DAO config:', error)
             return null;
         }
     }
