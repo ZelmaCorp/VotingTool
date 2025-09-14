@@ -877,20 +877,30 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
           WHERE referendum_id = ?
         `, [proposal.id]);
 
-        // Add team member names from multisig service using flexible address matching
-        proposal.team_actions = actions.map((action: any) => {
-          // Use flexible address matching like other endpoints
+        // Deduplicate actions by normalizing addresses and keeping the latest action per role_type per member
+        const actionMap = new Map<string, any>();
+        
+        actions.forEach((action: any) => {
+          // Use flexible address matching to find the canonical team member
           const member = multisigService.findMemberByAddress(teamMembers, action.team_member_id);
+          const canonicalAddress = member?.wallet_address || action.team_member_id;
+          const key = `${canonicalAddress}-${action.role_type}`;
           
-          return {
-            team_member_id: action.team_member_id,
-            wallet_address: action.team_member_id, // For frontend compatibility
-            role_type: action.role_type,
-            reason: action.reason,
-            created_at: action.created_at,
-            team_member_name: member?.team_member_name || 'Unknown Member'
-          };
+          // Keep the latest action if there are duplicates
+          if (!actionMap.has(key) || new Date(action.created_at) > new Date(actionMap.get(key).created_at)) {
+            actionMap.set(key, {
+              team_member_id: canonicalAddress,
+              wallet_address: canonicalAddress, // For frontend compatibility
+              role_type: action.role_type,
+              reason: action.reason,
+              created_at: action.created_at,
+              team_member_name: member?.team_member_name || 'Unknown Member'
+            });
+          }
         });
+
+        // Convert map back to array
+        proposal.team_actions = Array.from(actionMap.values());
       }
     };
 
@@ -901,6 +911,12 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
       addTeamActions(forDiscussion),
       addTeamActions(vetoedProposals)
     ]);
+
+    // For vetoed proposals, add proper veto_by_name using flexible address matching
+    vetoedProposals.forEach((proposal: any) => {
+      const member = multisigService.findMemberByAddress(teamMembers, proposal.veto_by);
+      proposal.veto_by_name = member?.team_member_name || 'Unknown Member';
+    });
 
     res.json({
       success: true,

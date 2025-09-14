@@ -258,31 +258,53 @@
               </div>
             </div>
             <div v-if="activeTab === 'vetoed'" class="content-area">
-              <h3>NO WAY ({{ filteredVetoedProposals.length }})</h3>
-              <div class="proposals-list">
-                <div v-for="proposal in filteredVetoedProposals" :key="proposal.id" class="proposal-card">
+              <div class="panel-header">
+                <h3>NO WAYed Proposals</h3>
+                <p>These proposals have been vetoed by team members.</p>
+              </div>
+              
+              <div v-if="filteredVetoedProposals.length === 0" class="empty-state">
+                <div class="empty-icon">🚫</div>
+                <h3>No vetoed proposals</h3>
+                <p>No proposals have been NO WAYed</p>
+              </div>
+              
+              <div v-else class="proposals-list">
+                <div 
+                  v-for="proposal in filteredVetoedProposals" 
+                  :key="`${proposal.chain}-${proposal.post_id}`"
+                  class="proposal-item vetoed-item"
+                  @click="openProposal(proposal)"
+                >
                   <div class="proposal-header">
-                    <h4>{{ proposal.title }}</h4>
+                    <span class="proposal-id">#{{ proposal.post_id }}</span>
+                    <StatusBadge 
+                      :status="proposal.internal_status" 
+                      :proposal-id="proposal.post_id"
+                      :editable="false" 
+                    />
                   </div>
-                  <div class="proposal-details">
-                    <div class="meta-section">
-                      <div class="meta-item">
-                        <strong>Post ID:</strong> #{{ proposal.post_id }}
-                      </div>
-                      <div class="meta-item">
-                        <strong>Chain:</strong> {{ proposal.chain }}
-                      </div>
+                  <h4 class="proposal-title">{{ proposal.title }}</h4>
+                  
+                  <div class="veto-info">
+                    <div class="veto-alert">
+                      <span class="alert-icon">🚫</span>
+                      <strong>NO WAYed by:</strong> {{ proposal.veto_by_name || getLocalTeamMemberName(proposal.veto_by) }}
                     </div>
-                    <div class="veto-section">
-                      <div class="veto-info">
-                        <strong>NO WAYed by:</strong> {{ getTeamMemberName(proposal.veto_by) }}
-                      </div>
-                      <div class="veto-reason" v-if="proposal.veto_reason">
-                        <strong>Reason:</strong> {{ proposal.veto_reason }}
-                      </div>
-                      <div class="veto-date" v-if="proposal.veto_date">
-                        <strong>NO WAYed on:</strong> {{ formatDate(proposal.veto_date) }}
-                      </div>
+                    <div class="veto-reason" v-if="proposal.veto_reason">
+                      <strong>Reason:</strong> {{ proposal.veto_reason }}
+                    </div>
+                    <div class="veto-date" v-if="proposal.veto_date">
+                      <strong>NO WAYed on:</strong> {{ formatDate(proposal.veto_date) }}
+                    </div>
+                  </div>
+
+                  <div class="proposal-meta">
+                    <div class="meta-item">
+                      <strong>Chain:</strong> {{ proposal.chain }}
+                    </div>
+                    <div class="meta-item">
+                      <strong>Updated:</strong> {{ formatDate(proposal.updated_at || proposal.created_at) }}
                     </div>
                   </div>
                 </div>
@@ -363,6 +385,13 @@ const findTeamMemberByAddress = (address: string): TeamMember | null => {
   return member || null
 }
 
+// Local version of getTeamMemberName that uses the local teamMembers data
+const getLocalTeamMemberName = (address: string | undefined): string => {
+  if (!address) return 'Unknown';
+  const member = findTeamMemberByAddress(address);
+  return member?.name || `${address.slice(0, 6)}...${address.slice(-6)}`;
+}
+
 // Data
 const workflowData = ref<{
   needsAgreement: Proposal[];
@@ -436,6 +465,7 @@ interface ProposalData {
 interface Proposal extends ProposalData {
   id: number;
   veto_by?: string;
+  veto_by_name?: string;
   veto_reason?: string;
   veto_date?: string;
 }
@@ -512,8 +542,12 @@ const loadData = async () => {
       vetoed: data.vetoedProposals as Proposal[]
     };
     
+    // Debug: Log vetoed proposals to see what data we're getting
+    console.log('🚫 Vetoed proposals data:', data.vetoedProposals);
+    
     if (daoConfig) {
       teamMembers.value = daoConfig.team_members;
+      console.log('👥 Team members loaded:', daoConfig.team_members);
       if (daoConfig.required_agreements) {
         requiredAgreements.value = daoConfig.required_agreements;
       }
@@ -560,7 +594,7 @@ const getVetoMembers = (proposal: Proposal): TeamMember[] => {
   }) || [];
   
   return vetoActions.map(action => ({
-    name: action.team_member_name || getTeamMemberName(action.wallet_address),
+    name: action.team_member_name || getLocalTeamMemberName(action.wallet_address),
     address: action.wallet_address
   }));
 }
@@ -581,7 +615,7 @@ const getAgreedMembers = (proposal: Proposal): TeamMember[] => {
   }) || [];
   
   return agreeActions.map(action => ({
-    name: action.team_member_name || getTeamMemberName(action.wallet_address),
+    name: action.team_member_name || getLocalTeamMemberName(action.wallet_address),
     address: action.wallet_address
   }));
 };
@@ -589,7 +623,7 @@ const getAgreedMembers = (proposal: Proposal): TeamMember[] => {
 const getDiscussionMembers = (proposal: Proposal): TeamMember[] => {
   const discussionActions = proposal.team_actions?.filter(action => action.role_type === 'To be discussed') || [];
   return discussionActions.map(action => ({
-    name: action.team_member_name || getTeamMemberName(action.wallet_address),
+    name: action.team_member_name || getLocalTeamMemberName(action.wallet_address),
     address: action.wallet_address
   }));
 };
