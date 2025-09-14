@@ -799,4 +799,118 @@ router.get("/my-assignments", requireTeamMember, async (req: Request, res: Respo
   }
 });
 
+/**
+ * GET /dao/workflow
+ * Get all workflow data in a single request
+ */
+router.get("/workflow", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    // Get team members from multisig service for counting
+    const teamMembers = await multisigService.getCachedTeamMembers();
+    const totalTeamMembers = teamMembers.length;
+
+    // Get proposals waiting for agreement
+    const needsAgreement = await db.all(`
+      SELECT 
+        r.*,
+        COUNT(CASE WHEN rtr.role_type = 'agree' THEN 1 END) as agreement_count
+      FROM referendums r
+      LEFT JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id
+      WHERE r.internal_status = 'Waiting for agreement'
+        AND NOT EXISTS (
+          SELECT 1 FROM referendum_team_roles rtr2 
+          WHERE rtr2.referendum_id = r.id 
+          AND rtr2.role_type = 'no_way'
+        )
+      GROUP BY r.id
+      HAVING agreement_count < ?
+    `, [totalTeamMembers]);
+
+    // Get proposals ready to vote
+    const readyToVote = await db.all(`
+      SELECT r.*
+      FROM referendums r
+      WHERE r.internal_status = 'Ready to vote'
+        AND NOT EXISTS (
+          SELECT 1 FROM referendum_team_roles rtr2 
+          WHERE rtr2.referendum_id = r.id 
+          AND rtr2.role_type = 'no_way'
+        )
+    `);
+
+    // Get proposals for discussion
+    const forDiscussion = await db.all(`
+      SELECT r.*
+      FROM referendums r
+      INNER JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id
+      WHERE rtr.role_type = 'to_be_discussed'
+        AND NOT EXISTS (
+          SELECT 1 FROM referendum_team_roles rtr2 
+          WHERE rtr2.referendum_id = r.id 
+          AND rtr2.role_type = 'no_way'
+        )
+      GROUP BY r.id
+    `);
+
+    // Get NO WAYed proposals
+    const vetoedProposals = await db.all(`
+      SELECT 
+        r.*,
+        rtr.team_member_id as veto_by,
+        rtr.created_at as veto_date
+      FROM referendums r
+      INNER JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id AND rtr.role_type = 'no_way'
+      GROUP BY r.id
+    `);
+
+    // For each proposal, get team actions separately
+    const addTeamActions = async (proposals: any[]) => {
+      for (const proposal of proposals) {
+        const actions = await db.all(`
+          SELECT 
+            team_member_id,
+            role_type,
+            created_at
+          FROM referendum_team_roles
+          WHERE referendum_id = ?
+        `, [proposal.id]);
+
+        // Add team member names from multisig service
+        proposal.team_actions = actions.map((action: any) => ({
+          team_member_id: action.team_member_id,
+          wallet_address: action.team_member_id, // For frontend compatibility
+          role_type: action.role_type,
+          created_at: action.created_at,
+          team_member_name: teamMembers.find(m => m.wallet_address === action.team_member_id)?.team_member_name || 'Unknown Member'
+        }));
+      }
+    };
+
+    // Add team actions to all proposal lists
+    await Promise.all([
+      addTeamActions(needsAgreement),
+      addTeamActions(readyToVote),
+      addTeamActions(forDiscussion),
+      addTeamActions(vetoedProposals)
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        needsAgreement,
+        readyToVote,
+        forDiscussion,
+        vetoedProposals
+      }
+    });
+
+  } catch (error) {
+    console.error('Failed to get workflow data:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get workflow data'
+    });
+  }
+});
+
 export default router; 

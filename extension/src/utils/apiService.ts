@@ -572,6 +572,40 @@ export class ApiService {
         }
     }
 
+    // Add new methods for team workflow
+    async getTeamWorkflowData(): Promise<{
+      needsAgreement: ProposalData[];
+      readyToVote: ProposalData[];
+      forDiscussion: ProposalData[];
+      vetoedProposals: ProposalData[];
+    }> {
+      try {
+        const result = await this.request<{
+          success: boolean;
+          data: {
+            needsAgreement: ProposalData[];
+            readyToVote: ProposalData[];
+            forDiscussion: ProposalData[];
+            vetoedProposals: ProposalData[];
+          };
+        }>('/dao/workflow');
+
+        if (result.success) {
+          return result.data;
+        }
+
+        throw new Error('Failed to fetch workflow data');
+      } catch (error) {
+        console.error('Failed to fetch team workflow data:', error);
+        return {
+          needsAgreement: [],
+          readyToVote: [],
+          forDiscussion: [],
+          vetoedProposals: []
+        };
+      }
+    }
+
     // Helper method to ensure referendum exists in database
     private async ensureReferendumExists(postId: number, chain: Chain): Promise<void> {
         try {

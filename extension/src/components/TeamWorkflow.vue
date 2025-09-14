@@ -31,7 +31,7 @@
                 @click="activeTab = 'agreement'"
                 :class="{ active: activeTab === 'agreement' }"
               >
-                <div class="stat-number">{{ needsAgreement.length }}</div>
+                <div class="stat-number">{{ filteredNeedsAgreement.length }}</div>
                 <div class="stat-label">Needs Agreement</div>
               </div>
               <div 
@@ -39,7 +39,7 @@
                 @click="activeTab = 'ready'"
                 :class="{ active: activeTab === 'ready' }"
               >
-                <div class="stat-number">{{ readyToVote.length }}</div>
+                <div class="stat-number">{{ filteredReadyToVote.length }}</div>
                 <div class="stat-label">Ready to Vote</div>
               </div>
               <div 
@@ -47,7 +47,7 @@
                 @click="activeTab = 'discussion'"
                 :class="{ active: activeTab === 'discussion' }"
               >
-                <div class="stat-number">{{ forDiscussion.length }}</div>
+                <div class="stat-number">{{ filteredForDiscussion.length }}</div>
                 <div class="stat-label">For Discussion</div>
               </div>
               <div 
@@ -55,7 +55,7 @@
                 @click="activeTab = 'vetoed'"
                 :class="{ active: activeTab === 'vetoed' }"
               >
-                <div class="stat-number">{{ vetoedProposals.length }}</div>
+                <div class="stat-number">{{ filteredVetoedProposals.length }}</div>
                 <div class="stat-label">NO WAYED</div>
               </div>
             </div>
@@ -69,7 +69,7 @@
                 <p>These proposals need {{ requiredAgreements }} team member agreements to proceed to voting.</p>
               </div>
               
-              <div v-if="needsAgreement.length === 0" class="empty-state">
+              <div v-if="filteredNeedsAgreement.length === 0" class="empty-state">
                 <div class="empty-icon">✅</div>
                 <h3>All caught up!</h3>
                 <p>No proposals are waiting for agreement</p>
@@ -77,7 +77,7 @@
               
               <div v-else class="proposals-list">
                 <div 
-                  v-for="proposal in needsAgreement" 
+                  v-for="proposal in filteredNeedsAgreement" 
                   :key="`${proposal.chain}-${proposal.post_id}`"
                   class="proposal-item agreement-item"
                   @click="openProposal(proposal)"
@@ -144,7 +144,7 @@
                 <p>These proposals have received sufficient team agreement and are ready for on-chain voting.</p>
                 <button 
                   @click="sendToMimir"
-                  :disabled="sendingToMimir || readyToVote.length === 0"
+                  :disabled="sendingToMimir || filteredReadyToVote.length === 0"
                   class="send-to-mimir-btn"
                 >
                   <span v-if="sendingToMimir" class="loading-spinner"></span>
@@ -152,7 +152,7 @@
                 </button>
               </div>
               
-              <div v-if="readyToVote.length === 0" class="empty-state">
+              <div v-if="filteredReadyToVote.length === 0" class="empty-state">
                 <div class="empty-icon">🗳️</div>
                 <h3>No proposals ready</h3>
                 <p>No proposals are currently ready for voting</p>
@@ -160,7 +160,7 @@
               
               <div v-else class="proposals-list">
                 <div 
-                  v-for="proposal in readyToVote" 
+                  v-for="proposal in filteredReadyToVote" 
                   :key="`${proposal.chain}-${proposal.post_id}`"
                   class="proposal-item ready-item"
                   @click="openProposal(proposal)"
@@ -205,7 +205,7 @@
                 <p>These proposals have been marked for team discussion before proceeding.</p>
               </div>
               
-              <div v-if="forDiscussion.length === 0" class="empty-state">
+              <div v-if="filteredForDiscussion.length === 0" class="empty-state">
                 <div class="empty-icon">💬</div>
                 <h3>No discussions needed</h3>
                 <p>No proposals are marked for discussion</p>
@@ -213,7 +213,7 @@
               
               <div v-else class="proposals-list">
                 <div 
-                  v-for="proposal in forDiscussion" 
+                  v-for="proposal in filteredForDiscussion" 
                   :key="`${proposal.chain}-${proposal.post_id}`"
                   class="proposal-item discussion-item"
                   @click="openProposal(proposal)"
@@ -258,32 +258,29 @@
               </div>
             </div>
             <div v-if="activeTab === 'vetoed'" class="content-area">
-              <h3>NO WAY ({{ vetoedProposals.length }})</h3>
+              <h3>NO WAY ({{ filteredVetoedProposals.length }})</h3>
               <div class="proposals-list">
-                <div v-for="proposal in vetoedProposals" :key="proposal.id" class="proposal-card">
+                <div v-for="proposal in filteredVetoedProposals" :key="proposal.id" class="proposal-card">
                   <div class="proposal-header">
                     <h4>{{ proposal.title }}</h4>
                   </div>
                   <div class="proposal-details">
                     <div class="meta-section">
                       <div class="meta-item">
-                        <strong>Post ID:</strong> {{ proposal.post_id }}
+                        <strong>Post ID:</strong> #{{ proposal.post_id }}
                       </div>
                       <div class="meta-item">
                         <strong>Chain:</strong> {{ proposal.chain }}
-                      </div>
-                      <div class="meta-item">
-                        <strong>Updated:</strong> {{ formatDate(proposal.updated_at || proposal.created_at) }}
                       </div>
                     </div>
                     <div class="veto-section">
                       <div class="veto-info">
                         <strong>NO WAYed by:</strong> {{ getTeamMemberName(proposal.veto_by) }}
                       </div>
-                      <div class="veto-reason">
-                        <strong>Reason:</strong> {{ proposal.veto_reason || 'No reason provided' }}
+                      <div class="veto-reason" v-if="proposal.veto_reason">
+                        <strong>Reason:</strong> {{ proposal.veto_reason }}
                       </div>
-                      <div class="veto-date">
+                      <div class="veto-date" v-if="proposal.veto_date">
                         <strong>NO WAYed on:</strong> {{ formatDate(proposal.veto_date) }}
                       </div>
                     </div>
@@ -367,35 +364,43 @@ const findTeamMemberByAddress = (address: string): TeamMember | null => {
 }
 
 // Data
-const proposals = ref<Proposal[]>([])
-const teamMembers = ref<TeamMember[]>([])
-const activeTab = ref<'agreement' | 'ready' | 'discussion' | 'vetoed'>('agreement')
-const requiredAgreements = ref(4) // This could come from DAO config
-const loading = ref(false)
-const error = ref<string | null>(null)
+const workflowData = ref<{
+  needsAgreement: Proposal[];
+  readyToVote: Proposal[];
+  forDiscussion: Proposal[];
+  vetoed: Proposal[];
+}>({
+  needsAgreement: [],
+  readyToVote: [],
+  forDiscussion: [],
+  vetoed: []
+});
+
+const teamMembers = ref<TeamMember[]>([]);
+const activeTab = ref<'agreement' | 'ready' | 'discussion' | 'vetoed'>('agreement');
+const loading = ref(false);
+const error = ref<string | null>(null);
+const requiredAgreements = ref(4); // Default value
 
 // Modal states
-const showAlertModal = ref(false)
+const showAlertModal = ref(false);
 const alertModalData = ref({
   title: '',
   message: '',
   type: 'info' as 'success' | 'error' | 'warning' | 'info'
-})
+});
 
 // Show alert helper
 const showAlert = (title: string, message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
-  alertModalData.value = { title, message, type }
-  showAlertModal.value = true
-}
+  alertModalData.value = { title, message, type };
+  showAlertModal.value = true;
+};
 
-// Computed
-const needsAgreement = computed(() => 
-  proposals.value.filter(p => p.internal_status === 'Waiting for agreement')
-)
-
-const readyToVote = computed(() => 
-  proposals.value.filter(p => p.internal_status === 'Ready to vote')
-)
+// Computed properties for display
+const filteredNeedsAgreement = computed(() => workflowData.value.needsAgreement);
+const filteredReadyToVote = computed(() => workflowData.value.readyToVote);
+const filteredForDiscussion = computed(() => workflowData.value.forDiscussion);
+const filteredVetoedProposals = computed(() => workflowData.value.vetoed);
 
 interface ProposalAction {
   id?: number;
@@ -437,21 +442,20 @@ interface Proposal extends ProposalData {
 
 // Update the component's data/props types
 const vetoedProposals = computed(() => {
-  const vetoed = proposals.value.filter(p => {
-    const hasNoWayAction = p.team_actions?.some(action => {
-      // Case-insensitive comparison and handle both frontend and backend action types
+  const vetoed = workflowData.value.vetoed.filter(p => {
+    const vetoAction = p.team_actions?.find(action => {
       const actionType = action.role_type?.toLowerCase();
-      const isNoWay = actionType === 'no_way' || actionType === 'no way' || actionType === 'noway' || actionType === 'NO WAY'.toLowerCase();
-      if (isNoWay) {
-        // Add veto information to the proposal
-        p.veto_by = action.wallet_address;
-        p.veto_reason = action.reason;
-        p.veto_date = action.timestamp;
-      }
-      return isNoWay;
+      return actionType === 'no_way' || actionType === 'no way' || actionType === 'noway';
     });
-    
-    return hasNoWayAction;
+
+    if (vetoAction) {
+      // Add veto information to the proposal
+      p.veto_by = vetoAction.team_member_id;
+      p.veto_reason = vetoAction.reason;
+      p.veto_date = vetoAction.created_at;
+      return true;
+    }
+    return false;
   });
 
   return vetoed;
@@ -470,7 +474,7 @@ const formatDate = (date: string | undefined): string => {
 };
 
 const forDiscussion = computed(() => {
-  const discussions = proposals.value.filter(p => {
+  const discussions = workflowData.value.forDiscussion.filter(p => {
     const hasDiscussionAction = p.team_actions?.some(action => {
       // Case-insensitive comparison and handle both frontend and backend action types
       const actionType = action.role_type?.toLowerCase();
@@ -486,69 +490,63 @@ const forDiscussion = computed(() => {
 
 // Methods
 const loadData = async () => {
-  if (!props.show) return
+  if (!props.show) return;
 
-  loading.value = true
-  error.value = null
+  loading.value = true;
+  error.value = null;
 
   try {
-    const apiService = ApiService.getInstance()
+    const apiService = ApiService.getInstance();
     
-    // Load proposals
-    const allProposals = await apiService.getAllProposals()
+    // Load all data in parallel
+    const [data, daoConfig] = await Promise.all([
+      apiService.getTeamWorkflowData(),
+      apiService.getDAOConfig()
+    ]);
 
-    // Load team actions for each proposal
-    const proposalsWithActions = await Promise.all(
-      allProposals.map(async (proposal) => {
-        try {
-          const actions = await apiService.getTeamActions(proposal.post_id, proposal.chain)
-          return {
-            ...proposal,
-            team_actions: actions
-          }
-        } catch (err) {
-          console.error(`Failed to load actions for proposal ${proposal.post_id}:`, err)
-          return proposal
-        }
-      })
-    )
-
-    proposals.value = proposalsWithActions
-
-    // Load team members
-    const daoConfig = await apiService.getDAOConfig()
+    // Update state
+    workflowData.value = {
+      needsAgreement: data.needsAgreement as Proposal[],
+      readyToVote: data.readyToVote as Proposal[],
+      forDiscussion: data.forDiscussion as Proposal[],
+      vetoed: data.vetoedProposals as Proposal[]
+    };
+    
     if (daoConfig) {
-      teamMembers.value = daoConfig.team_members
-      requiredAgreements.value = daoConfig.required_agreements
-    } else {
-      console.error('Failed to load DAO config')
+      teamMembers.value = daoConfig.team_members;
+      if (daoConfig.required_agreements) {
+        requiredAgreements.value = daoConfig.required_agreements;
+      }
     }
 
   } catch (err) {
-    console.error('Error loading team workflow data:', err)
-    error.value = 'Failed to load data. Please try again.'
+    console.error('Error loading team workflow data:', err);
+    error.value = 'Failed to load data. Please try again.';
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
+};
 
 // Watch for show prop changes to reload data
 watch(() => props.show, (newValue) => {
   if (newValue) {
-    console.log('🔄 TeamWorkflow modal shown, loading data...')
-    loadData()
+    console.log('🔄 TeamWorkflow modal shown, loading data...');
+    loadData();
   }
-})
+});
 
 // Watch for changes in filtered lists
-watch([needsAgreement, readyToVote, forDiscussion, vetoedProposals], ([needs, ready, discuss, vetoed]) => {
-  console.log('📊 Filtered lists updated:', {
-    needsAgreement: needs.length,
-    readyToVote: ready.length,
-    forDiscussion: discuss.length,
-    vetoedProposals: vetoed.length
-  })
-})
+watch(
+  [filteredNeedsAgreement, filteredReadyToVote, filteredForDiscussion, filteredVetoedProposals], 
+  ([needs, ready, discuss, vetoed]) => {
+    console.log('📊 Filtered lists updated:', {
+      needsAgreement: needs.length,
+      readyToVote: ready.length,
+      forDiscussion: discuss.length,
+      vetoedProposals: vetoed.length
+    });
+  }
+);
 
 const openProposal = (proposal: Proposal) => {
   const url = `https://${proposal.chain}.polkassembly.io/referenda/${proposal.post_id}`
@@ -1217,12 +1215,33 @@ h3 {
   100% { transform: rotate(360deg); }
 }
 
+.veto-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+.veto-info {
+  font-size: 1rem;
+  color: #e53e3e;
+  font-weight: 500;
+}
+
 .veto-reason {
-  background: #fff1f0;
-  padding: 0.75rem;
+  font-size: 1rem;
+  color: #2d3748;
+  background: #fff5f5;
+  padding: 1rem;
   border-radius: 0.5rem;
-  margin: 0.5rem 0;
-  border-left: 4px solid #ff4d4f;
+  border-left: 4px solid #e53e3e;
+  white-space: pre-wrap;
+}
+
+.veto-date {
+  font-size: 0.875rem;
+  color: #718096;
 }
 
 .proposal-card {
@@ -1266,22 +1285,24 @@ h3 {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  padding-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
 }
 
 .veto-info {
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: #e53e3e;
   font-weight: 500;
 }
 
 .veto-reason {
-  font-size: 0.875rem;
-  color: #4a5568;
+  font-size: 1rem;
+  color: #2d3748;
   background: #fff5f5;
-  padding: 0.75rem;
+  padding: 1rem;
   border-radius: 0.5rem;
   border-left: 4px solid #e53e3e;
+  white-space: pre-wrap;
 }
 
 .veto-date {
