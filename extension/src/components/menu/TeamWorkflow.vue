@@ -333,7 +333,7 @@ import StatusBadge from '../StatusBadge.vue'
 import AlertModal from '../modals/AlertModal.vue'
 import { ApiService } from '../../utils/apiService'
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto'
-import { type TeamMember, getTeamMemberName } from '../../utils/teamUtils'
+import { type TeamMember, getTeamMemberName, formatAddress } from '../../utils/teamUtils'
 
 interface Props {
   show: boolean
@@ -492,11 +492,6 @@ const vetoedProposals = computed(() => {
 });
 
 // Add the helper functions
-const formatAddress = (address: string): string => {
-  if (!address) return '';
-  if (address.length <= 13) return address;
-  return `${address.slice(0, 6)}...${address.slice(-6)}`;
-};
 
 const formatDate = (date: string | undefined): string => {
   if (!date) return '';

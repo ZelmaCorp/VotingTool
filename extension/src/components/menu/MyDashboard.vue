@@ -298,28 +298,44 @@ const loadData = async () => {
   
   try {
     if (!authStore.state.isAuthenticated || !authStore.state.user?.address) {
-      console.warn('Not authenticated or no user address, skipping data load')
       return
     }
 
     const apiService = ApiService.getInstance()
     
-    // Load my assignments
-    const assignments = await apiService.getMyAssignments()
-    
-    // Load proposals needing attention
-    const needingAttention = await apiService.getProposalsNeedingAttention()
-    
-    // Combine all proposals and remove duplicates
-    const allProposals = [...assignments, ...needingAttention]
-    const uniqueProposals = allProposals.filter((proposal, index, self) => 
-      index === self.findIndex(p => p.post_id === proposal.post_id && p.chain === proposal.chain)
-    )
-    
-    proposals.value = uniqueProposals
+    try {
+      // Try to load my assignments
+      const assignments = await apiService.getMyAssignments()
+      
+      // Try to load proposals needing attention  
+      const needingAttention = await apiService.getProposalsNeedingAttention()
+      
+      // Combine all proposals and remove duplicates
+      const allProposals = [...assignments, ...needingAttention]
+      const uniqueProposals = allProposals.filter((proposal, index, self) => 
+        index === self.findIndex(p => p.post_id === proposal.post_id && p.chain === proposal.chain)
+      )
+      
+      proposals.value = uniqueProposals
+      
+    } catch (apiError) {
+      console.warn('Specific API endpoints failed, falling back to general proposal list:', apiError)
+      
+      // Fallback: try to get all proposals and filter client-side
+      try {
+        // Fallback: use empty array if no general endpoint exists
+        console.warn('No fallback endpoint available, using empty proposals')
+        const relevantProposals: ProposalData[] = []
+        
+        proposals.value = relevantProposals
+      } catch (fallbackError) {
+        console.error('All API calls failed:', fallbackError)
+        proposals.value = []
+      }
+    }
     
     // Get recent activity (last 10 proposals by update time)
-    const recentProposals = [...uniqueProposals]
+    const recentProposals = [...proposals.value]
       .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
       .slice(0, 10)
     
@@ -332,6 +348,8 @@ const loadData = async () => {
 
   } catch (error) {
     console.error('Failed to load dashboard data:', error)
+    proposals.value = []
+    recentActivity.value = []
   } finally {
     loading.value = false
   }

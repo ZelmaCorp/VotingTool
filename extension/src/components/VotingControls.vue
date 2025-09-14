@@ -97,6 +97,7 @@
 import { ref, computed } from 'vue'
 import type { InternalStatus, SuggestedVote, Chain, TeamMember } from '../types'
 import { authStore } from '../stores/authStore'
+import { formatAddress } from '../utils/teamUtils'
 import StatusChangeModal from './modals/StatusChangeModal.vue'
 import AssignModal from './modals/AssignModal.vue'
 import VoteChangeModal from './modals/VoteChangeModal.vue'
@@ -129,17 +130,7 @@ const confirmModalData = ref({
   onConfirm: () => {}
 })
 
-/**
- * Format wallet address to shortened display format (e.g., "1xf2..355ee")
- * @param address - Full wallet address
- * @param forceShorten - Whether to force shortening even if there's space
- * @returns Shortened or full address format
- */
-const formatAddress = (address: string, forceShorten: boolean = true): string => {
-  if (!address) return ''
-  if (!forceShorten || address.length <= 10) return address
-  return `${address.substring(0, 4)}..${address.substring(address.length - 5)}`
-}
+
 
 /**
  * Normalize address for comparison by removing whitespace and converting to lowercase
@@ -221,7 +212,7 @@ const formatAssignmentDisplay = (address: string): string => {
     return name
   }
   // Show shortened address when no name is available for button display
-  return formatAddress(address, true)
+  return formatAddress(address, { forceShorten: true })
 }
 
 /**
@@ -256,7 +247,7 @@ const assignButtonTooltip = computed(() => {
     } else {
       const name = getTeamMemberName(props.assignedTo)
       if (name) {
-        return `Assigned to: ${name} (${formatAddress(props.assignedTo, true)})`
+        return `Assigned to: ${name} (${formatAddress(props.assignedTo, { forceShorten: true })})`
       } else {
         return `Assigned to: ${props.assignedTo}`
       }

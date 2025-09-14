@@ -219,7 +219,7 @@ import type { ProposalData, InternalStatus, TimelineStatus, TeamAction } from '.
 import { ApiService } from '../../utils/apiService'
 import { authStore } from '../../stores/authStore'
 import StatusBadge from '../StatusBadge.vue'
-import { findTeamMemberByAddress } from '../../utils/teamUtils';
+import { findTeamMemberByAddress, formatAddress, getTeamMemberName } from '../../utils/teamUtils';
 
 interface Props {
   show: boolean
@@ -426,17 +426,9 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString()
 }
 
-const formatAddress = (address: string | undefined) => {
-  if (!address) return '';
-  if (address.length <= 13) return address;
-  return `${address.slice(0, 6)}...${address.slice(-6)}`;
-};
 
-const getTeamMemberName = (address: string | undefined) => {
-  if (!address) return '';
-  const teamMember = findTeamMemberByAddress(address);
-  return teamMember?.name || '';
-};
+
+
 
 // Watch for filter changes to reset pagination
 watch([searchQuery, selectedInternalStatus, selectedTimelineStatus, selectedAssignment, selectedTeamAction], () => {
