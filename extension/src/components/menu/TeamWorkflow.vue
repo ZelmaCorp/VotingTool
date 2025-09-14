@@ -333,7 +333,7 @@ import StatusBadge from '../StatusBadge.vue'
 import AlertModal from '../modals/AlertModal.vue'
 import { ApiService } from '../../utils/apiService'
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto'
-import { type TeamMember, getTeamMemberName, formatAddress } from '../../utils/teamUtils'
+import { type TeamMember, getTeamMemberName, formatAddress, formatDate } from '../../utils/teamUtils'
 
 interface Props {
   show: boolean
@@ -492,11 +492,6 @@ const vetoedProposals = computed(() => {
 });
 
 // Add the helper functions
-
-const formatDate = (date: string | undefined): string => {
-  if (!date) return '';
-  return new Date(date).toLocaleDateString();
-};
 
 const forDiscussion = computed(() => {
   const discussions = workflowData.value.forDiscussion.filter(p => {

@@ -58,4 +58,9 @@ export const getTeamMemberName = (address: string | undefined): string => {
   if (!address) return 'Unassigned';
   const member = findTeamMemberByAddress(address);
   return member?.name || formatAddress(address);
+};
+
+export const formatDate = (dateString: string | undefined): string => {
+  if (!dateString) return '';
+  return new Date(dateString).toLocaleDateString();
 }; 

@@ -215,6 +215,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ApiService } from '../../utils/apiService'
 import { authStore } from '../../stores/authStore'
+import { formatDate } from '../../utils/teamUtils'
 import type { ProposalData } from '../../types'
 import StatusBadge from '../StatusBadge.vue'
 
@@ -401,10 +402,6 @@ const getActivityIcon = (type: string): string => {
     case 'vote': return '';
     default: return '';
   }
-}
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString()
 }
 
 // Handle ESC key

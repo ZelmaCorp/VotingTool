@@ -1,6 +1,5 @@
 import { reactive, readonly } from 'vue'
-import { AuthState, AuthenticatedUser, Web3AuthRequest, AuthResponse } from '../types'
-import { config } from '../config/environment'
+import { AuthState, AuthenticatedUser, Web3AuthRequest } from '../types'
 import { ApiService } from '../utils/apiService'
 
 // Create reactive state

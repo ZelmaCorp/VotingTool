@@ -381,42 +381,16 @@ export class ApiService {
     // List methods for different views
     async getMyAssignments(): Promise<ProposalData[]> {
         try {
-            // Check auth token
-            console.log('🔑 Auth check:', {
-                hasToken: !!this.token,
-                headers: this.getHeaders()
-            });
-
-            console.log('🔍 Fetching my assignments...');
             const result = await this.request<{ success: boolean; referendums: ProposalData[]; error?: string }>('/dao/my-assignments');
-            console.log('📦 Raw assignments response:', result);
             
             if (!result.success) {
-                console.warn('⚠️ API returned success: false', result.error);
+                console.warn('API returned success: false', result.error);
                 return [];
             }
 
-            const assignments = result.referendums || [];
-            console.log('✅ Found assignments:', {
-                count: assignments.length,
-                sample: assignments.slice(0, 2).map(p => ({
-                    id: p.post_id,
-                    title: p.title,
-                    assigned_to: p.assigned_to,
-                    hasTeamAssignments: 'team_assignments' in p
-                }))
-            });
-            
-            return assignments;
+            return result.referendums || [];
         } catch (error) {
-            console.error('❌ Failed to fetch assignments:', error);
-            if (error instanceof Error) {
-                console.error('Error details:', {
-                    message: error.message,
-                    details: (error as any).details,
-                    status: (error as any).status
-                });
-            }
+            console.error('Failed to fetch assignments:', error);
             return [];
         }
     }
@@ -542,16 +516,6 @@ export class ApiService {
         return mapped;
     }
 
-    async getUnassignedProposals(): Promise<ProposalData[]> {
-        try {
-            const result = await this.request<{ success: boolean; referendums?: ProposalData[]; error?: string }>('/dao/unassigned');
-            return result.referendums || [];
-        } catch (error) {
-            console.error('Failed to fetch unassigned proposals:', error);
-            return [];
-        }
-    }
-
     async getRecentActivity(): Promise<ProposalData[]> {
         try {
             const result = await this.request<{ success: boolean; referendums?: ProposalData[]; error?: string }>('/referendums?sort=updated_at&limit=50');
@@ -569,6 +533,154 @@ export class ApiService {
         } catch (error) {
             console.error('Failed to fetch proposals needing attention:', error);
             return [];
+        }
+    }
+
+    // Team workflow data method
+    async getTeamWorkflowData(): Promise<{
+        needsAgreement: ProposalData[];
+        readyToVote: ProposalData[];
+        forDiscussion: ProposalData[];
+        vetoedProposals: ProposalData[];
+    }> {
+        try {
+            // Try to get data from specific endpoint if it exists
+            try {
+                const result = await this.request<{
+                    success: boolean;
+                    data?: {
+                        needsAgreement: ProposalData[];
+                        readyToVote: ProposalData[];
+                        forDiscussion: ProposalData[];
+                        vetoedProposals: ProposalData[];
+                    };
+                    error?: string;
+                }>('/dao/workflow');
+                
+                if (result.success && result.data) {
+                    console.log('✅ Got team workflow data from backend endpoint:', result.data);
+                    return result.data;
+                }
+            } catch (endpointError) {
+                console.warn('Team workflow endpoint failed:', endpointError);
+            }
+
+            // Better fallback: try to get all proposals with team actions
+            let allProposals: ProposalData[] = [];
+            
+            try {
+                // Try to get all proposals instead of specific filtered ones
+                const allProposalsResult = await this.request<{ 
+                    success: boolean; 
+                    referendums?: ProposalData[]; 
+                    error?: string; 
+                }>('/dao/proposals');
+                
+                if (allProposalsResult.success && allProposalsResult.referendums) {
+                    allProposals = allProposalsResult.referendums;
+                    console.log('✅ Got all proposals from /dao/proposals:', allProposals.length);
+                }
+            } catch (error) {
+                console.warn('Could not get all proposals, trying individual methods');
+                
+                // Fallback: use only reliable methods and handle errors gracefully
+                const proposals: ProposalData[] = [];
+                
+                // Try each method individually and handle failures
+                try {
+                    const assignments = await this.getMyAssignments();
+                    proposals.push(...assignments);
+                } catch (error) {
+                    console.warn('getMyAssignments failed:', error);
+                }
+                
+                try {
+                    const needingAttention = await this.getProposalsNeedingAttention();
+                    proposals.push(...needingAttention);
+                } catch (error) {
+                    console.warn('getProposalsNeedingAttention failed:', error);
+                }
+                
+                allProposals = proposals;
+            }
+
+            // Deduplicate proposals
+            const uniqueProposals = allProposals.filter((proposal, index, self) => 
+                index === self.findIndex(p => p.post_id === proposal.post_id && p.chain === proposal.chain)
+            );
+
+            console.log('🔍 Team Workflow Debug - Total unique proposals:', uniqueProposals.length);
+            console.log('🔍 Sample proposal data:', uniqueProposals.slice(0, 3).map(p => ({
+                id: p.post_id,
+                status: p.internal_status,
+                agreement_count: p.agreement_count,
+                required_agreements: p.required_agreements,
+                team_actions: p.team_actions?.map(a => ({ role_type: a.role_type, member: a.team_member_name }))
+            })));
+            
+            console.log('🔍 ALL proposal IDs found:', uniqueProposals.map(p => `${p.post_id}-${p.chain}`));
+            console.log('🔍 ALL proposal statuses:', uniqueProposals.map(p => `${p.post_id}: ${p.internal_status}`));
+
+            // Categorize proposals based on their status and team actions
+            const needsAgreement = uniqueProposals.filter(p => {
+                // Proposals that need team agreement
+                const hasVeto = p.team_actions?.some(action => action.role_type === 'no_way');
+                const isInConsiderationPhase = ['Considering', 'Ready for approval', 'Waiting for agreement'].includes(p.internal_status);
+                
+                return !hasVeto && isInConsiderationPhase;
+            });
+            
+            const readyToVote = uniqueProposals.filter(p => {
+                // Proposals that are ready to vote
+                const hasVeto = p.team_actions?.some(action => action.role_type === 'no_way');
+                const isReadyStatus = p.internal_status === 'Ready to vote';
+                
+                return !hasVeto && isReadyStatus;
+            });
+            
+            const forDiscussion = uniqueProposals.filter(p => {
+                // Proposals marked for discussion or reconsidering
+                const markedForDiscussion = p.team_actions?.some(action => action.role_type === 'to_be_discussed');
+                const isReconsidering = p.internal_status === 'Reconsidering';
+                
+                return markedForDiscussion || isReconsidering;
+            });
+            
+            const vetoedProposals = uniqueProposals.filter(p => {
+                // Proposals that have been vetoed (NO WAY)
+                return p.team_actions?.some(action => action.role_type === 'no_way');
+            });
+
+            console.log('🔍 Categorization Results:', {
+                needsAgreement: needsAgreement.length,
+                readyToVote: readyToVote.length,
+                forDiscussion: forDiscussion.length,
+                vetoedProposals: vetoedProposals.length,
+                total: uniqueProposals.length
+            });
+            
+            console.log('🔍 Detailed breakdown:', {
+                needsAgreement: needsAgreement.map(p => `${p.post_id}: ${p.internal_status}`),
+                readyToVote: readyToVote.map(p => `${p.post_id}: ${p.internal_status}`),
+                forDiscussion: forDiscussion.map(p => `${p.post_id}: ${p.internal_status}`),
+                vetoedProposals: vetoedProposals.map(p => `${p.post_id}: ${p.internal_status}`)
+            });
+
+            return {
+                needsAgreement,
+                readyToVote,
+                forDiscussion,
+                vetoedProposals
+            };
+
+        } catch (error) {
+            console.error('Failed to fetch team workflow data:', error);
+            return {
+                needsAgreement: [],
+                readyToVote: [],
+                forDiscussion: [],
+                vetoedProposals: []
+            };
         }
     }
 

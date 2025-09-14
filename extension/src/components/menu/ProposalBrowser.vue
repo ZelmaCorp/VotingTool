@@ -219,7 +219,7 @@ import type { ProposalData, InternalStatus, TimelineStatus, TeamAction } from '.
 import { ApiService } from '../../utils/apiService'
 import { authStore } from '../../stores/authStore'
 import StatusBadge from '../StatusBadge.vue'
-import { findTeamMemberByAddress, formatAddress, getTeamMemberName } from '../../utils/teamUtils';
+import { findTeamMemberByAddress, formatAddress, getTeamMemberName, formatDate } from '../../utils/teamUtils';
 
 interface Props {
   show: boolean
@@ -421,13 +421,6 @@ const assignToMe = async (proposal: ProposalData, event: Event) => {
     alert('Failed to assign proposal. Please try again.')
   }
 }
-
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString()
-}
-
-
-
 
 
 // Watch for filter changes to reset pagination

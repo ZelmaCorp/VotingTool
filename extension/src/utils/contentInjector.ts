@@ -7,7 +7,7 @@ import VotingControls from '../components/VotingControls.vue';
 import { ProposalDetector, type DetectedProposal } from './proposalDetector';
 import { TabDetector, type ActiveTabInfo } from './tabDetector';
 import { ApiService } from './apiService';
-import type { ProposalData, InternalStatus } from '../types';
+import type { ProposalData } from '../types';
 import type { TeamMember } from '../types';
 
 export class ContentInjector {
@@ -157,14 +157,6 @@ export class ContentInjector {
             const tableRows = document.querySelectorAll('tr.border-b, tr[class*="border"]');
             console.log('📊 Found table rows:', tableRows.length);
             
-            // Debug: let's see what links are in these rows
-            tableRows.forEach((tr, index) => {
-                const links = tr.querySelectorAll('a[href*="/referendum/"], a[href*="/proposal/"], a[href*="/referenda/"]');
-                if (links.length > 0) {
-                    console.log(`TR ${index} has ${links.length} proposal links:`, Array.from(links).map(l => (l as HTMLAnchorElement).href));
-                }
-            });
-
             while (this.detector.isStillLoading()) {
                 // wait for 1 second
                 await sleep(1000);
@@ -190,17 +182,6 @@ export class ContentInjector {
                     this.cleanupExistingInjections();
                     this.currentProposalId = null;
                 }
-                // Debug: let's see what elements are actually on the page
-                const allTrs = document.querySelectorAll('tr');
-                console.log('🔍 All TR elements found:', allTrs.length);
-                const allLinks = document.querySelectorAll('a[href*="/referendum/"], a[href*="/proposal/"], a[href*="/referenda/"]');
-                console.log('🔍 All proposal links found:', allLinks.length);
-                
-                allLinks.forEach((link, index) => {
-                    if (index < 5) { // Log first 5 for debugging
-                        console.log(`Link ${index}:`, (link as HTMLAnchorElement).href);
-                    }
-                });
             }
         }
     }
@@ -320,26 +301,6 @@ export class ContentInjector {
             } else {
                 console.log(`❌ Attempt ${retryCount} failed, element not found`);
                 
-                // Log page state for debugging
-                console.log(`📊 Page state: readyState=${document.readyState}, title="${document.title}"`);
-                console.log(`📊 Body children count: ${document.body.children.length}`);
-                
-                // On every 3rd attempt, try a more thorough search
-                if (retryCount % 3 === 0) {
-                    console.log('🔍 Performing thorough DOM search...');
-                    const allElements = document.querySelectorAll('*');
-                    console.log(`📊 Total elements on page: ${allElements.length}`);
-                    
-                    // Look for any element that might be our target
-                    const potentialTargets = document.querySelectorAll('div, section, main, article');
-                    console.log(`📊 Potential target elements: ${potentialTargets.length}`);
-                    
-                    // Log first few potential targets
-                    for (let i = 0; i < Math.min(10, potentialTargets.length); i++) {
-                        const el = potentialTargets[i] as HTMLElement;
-                        console.log(`  Target ${i}: ${el.tagName}.${el.className} (${el.offsetWidth}x${el.offsetHeight})`);
-                    }
-                }
             }
         }
 
