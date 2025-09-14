@@ -857,6 +857,7 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
       SELECT 
         r.*,
         rtr.team_member_id as veto_by,
+        rtr.reason as veto_reason,
         rtr.created_at as veto_date
       FROM referendums r
       INNER JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id AND rtr.role_type = 'no_way'
@@ -870,19 +871,26 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
           SELECT 
             team_member_id,
             role_type,
+            reason,
             created_at
           FROM referendum_team_roles
           WHERE referendum_id = ?
         `, [proposal.id]);
 
-        // Add team member names from multisig service
-        proposal.team_actions = actions.map((action: any) => ({
-          team_member_id: action.team_member_id,
-          wallet_address: action.team_member_id, // For frontend compatibility
-          role_type: action.role_type,
-          created_at: action.created_at,
-          team_member_name: teamMembers.find(m => m.wallet_address === action.team_member_id)?.team_member_name || 'Unknown Member'
-        }));
+        // Add team member names from multisig service using flexible address matching
+        proposal.team_actions = actions.map((action: any) => {
+          // Use flexible address matching like other endpoints
+          const member = multisigService.findMemberByAddress(teamMembers, action.team_member_id);
+          
+          return {
+            team_member_id: action.team_member_id,
+            wallet_address: action.team_member_id, // For frontend compatibility
+            role_type: action.role_type,
+            reason: action.reason,
+            created_at: action.created_at,
+            team_member_name: member?.team_member_name || 'Unknown Member'
+          };
+        });
       }
     };
 

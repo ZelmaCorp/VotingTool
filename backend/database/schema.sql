@@ -98,6 +98,7 @@ CREATE TABLE referendum_team_roles (
     referendum_id INTEGER NOT NULL,
     team_member_id TEXT NOT NULL, -- Changed from INTEGER to TEXT to store wallet addresses
     role_type TEXT NOT NULL CHECK (role_type IN ('responsible_person', 'agree', 'no_way', 'recuse', 'to_be_discussed')),
+    reason TEXT,                  -- Optional reason for the action (especially important for no_way votes)
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     
     FOREIGN KEY (referendum_id) REFERENCES referendums(id) ON DELETE CASCADE,
