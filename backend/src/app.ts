@@ -6,7 +6,7 @@ dotenv.config();
 if (!process.env.REFRESH_INTERVAL)
   throw "Please specify REFRESH_INTERVAL in .env!";
 import { refreshReferendas } from "./refresh";
-import { READY_CHECK_INTERVAL, SUCCESS_PAGE } from "./utils/constants";
+import { READY_CHECK_INTERVAL } from "./utils/constants";
 
 import { checkForVotes } from "./mimir/checkForVotes";
 import { createSubsystemLogger } from "./config/logger";

@@ -10,10 +10,17 @@ const router = Router();
 router.get("/send-to-mimir", async (req: Request, res: Response) => {
   try {
     await sendReadyProposalsToMimir();
-    res.json({ message: "Successfully sent referendas to Mimir", timestamp: new Date().toISOString() });
+    res.json({ 
+      success: true,
+      message: "Successfully sent referendas to Mimir",
+      timestamp: new Date().toISOString()
+    });
   } catch (error) {
     logger.error({ error: (error as any).message }, "Error sending referendas to Mimir");
-    res.status(500).json({ error: "Error sending referendas to Mimir: " + (error as any).message });
+    res.status(500).json({ 
+      success: false,
+      error: "Error sending referendas to Mimir: " + (error as any).message 
+    });
   }
 });
 

@@ -164,6 +164,14 @@
                 <div class="panel-header">
                   <h3>Proposals Ready for Voting</h3>
                   <p>These proposals have received sufficient team agreement and are ready for on-chain voting.</p>
+                  <button 
+                    @click="sendToMimir"
+                    :disabled="sendingToMimir || readyToVote.length === 0"
+                    class="send-to-mimir-btn"
+                  >
+                    <span v-if="sendingToMimir" class="loading-spinner"></span>
+                    <span v-else>Send to Mimir</span>
+                  </button>
                 </div>
                 
                 <div v-if="readyToVote.length === 0" class="empty-state">
@@ -339,6 +347,15 @@
         </template>
       </div>
     </div>
+
+    <!-- Alert Modal for feedback -->
+    <AlertModal
+      :show="showAlertModal"
+      :title="alertModalData.title"
+      :message="alertModalData.message"
+      :type="alertModalData.type"
+      @ok="showAlertModal = false"
+    />
   </div>
 </template>
 
@@ -346,6 +363,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import type { ProposalData, TeamMember } from '../types'
 import StatusBadge from './StatusBadge.vue'
+import AlertModal from './AlertModal.vue'
 import { ApiService } from '../utils/apiService'
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto'
 
@@ -406,6 +424,20 @@ const activeTab = ref<'agreement' | 'ready' | 'discussion' | 'vetoed'>('agreemen
 const requiredAgreements = ref(4) // This could come from DAO config
 const loading = ref(false)
 const error = ref<string | null>(null)
+
+// Modal states
+const showAlertModal = ref(false)
+const alertModalData = ref({
+  title: '',
+  message: '',
+  type: 'info' as 'success' | 'error' | 'warning' | 'info'
+})
+
+// Show alert helper
+const showAlert = (title: string, message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+  alertModalData.value = { title, message, type }
+  showAlertModal.value = true
+}
 
 // Computed
 const needsAgreement = computed(() => 
@@ -582,6 +614,52 @@ const getDiscussionMembers = (proposal: ProposalData): TeamMember[] => {
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString()
+}
+
+// Send to Mimir functionality
+const sendingToMimir = ref(false)
+
+const sendToMimir = () => {
+  if (sendingToMimir.value) return
+  
+  sendingToMimir.value = true
+  
+  // Send message to background script to make the API call
+  chrome.runtime.sendMessage({
+    type: 'VOTING_TOOL_API_CALL',
+    messageId: Date.now().toString(),
+    endpoint: '/send-to-mimir',
+    method: 'GET',
+    data: undefined,
+    headers: {}
+  }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error('Error sending to Mimir:', chrome.runtime.lastError)
+      showAlert(
+        'Error',
+        'Failed to send proposals to Mimir. Please try again.',
+        'error'
+      )
+      sendingToMimir.value = false
+      return
+    }
+
+    if (!response?.success) {
+      console.error('Error sending to Mimir:', response?.error)
+      showAlert(
+        'Error',
+        'Failed to send proposals to Mimir. Please try again.',
+        'error'
+      )
+    } else {
+      showAlert(
+        'Success',
+        'Successfully sent proposals to Mimir!',
+        'success'
+      )
+    }
+    sendingToMimir.value = false
+  })
 }
 
 onMounted(() => {
@@ -1079,5 +1157,44 @@ onMounted(() => {
 
 .retry-btn:hover {
   background: #0056b3;
+}
+
+.send-to-mimir-btn {
+  background: #e6007a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  margin-top: 12px;
+  transition: background 0.3s, opacity 0.3s;
+}
+
+.send-to-mimir-btn:hover:not(:disabled) {
+  background: #c40069;
+}
+
+.send-to-mimir-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.loading-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ffffff;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style> 
