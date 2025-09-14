@@ -110,6 +110,19 @@
         </div>
       </div>
 
+      <!-- NO WAY Reason - Show only if proposal is vetoed -->
+      <div v-if="agreementSummary?.vetoed && agreementSummary?.veto_reason" class="veto-reason-section">
+        <h4>🚫 NO WAY Reason</h4>
+        <div class="veto-reason-content">
+          <div class="veto-by">
+            <strong>Vetoed by:</strong> {{ agreementSummary.veto_by || 'Unknown Member' }}
+          </div>
+          <div class="veto-reason-text">
+            <strong>Reason:</strong> {{ agreementSummary.veto_reason }}
+          </div>
+        </div>
+      </div>
+
       <!-- Internal Discussion - Enhanced with more space -->
       <div class="discussion-section">
         <h4>💬 Internal Team Discussion</h4>
@@ -1109,5 +1122,41 @@ watch(() => authStore.state.isAuthenticated, (isAuth) => {
 .veto-confirm-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* Veto Reason Section */
+.veto-reason-section {
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.veto-reason-section h4 {
+  margin: 0 0 12px 0;
+  color: #e53e3e;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.veto-reason-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.veto-by {
+  font-size: 0.9rem;
+  color: #e53e3e;
+}
+
+.veto-reason-text {
+  font-size: 0.9rem;
+  color: #2d3748;
+  background: white;
+  padding: 12px;
+  border-radius: 6px;
+  white-space: pre-wrap;
 }
 </style> 

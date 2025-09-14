@@ -214,7 +214,7 @@ router.get("/referendum/:referendumId/actions", async (req: Request, res: Respon
 router.post("/referendum/:referendumId/action", requireTeamMember, async (req: Request, res: Response) => {
   try {
     const { referendumId } = req.params;
-    const { action, chain } = req.body;
+    const { action, chain, reason } = req.body;
     
     // Validate action using the enum
     if (!action || !Object.values(ReferendumAction).includes(action)) {
@@ -287,8 +287,8 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
     if (existingAction) {
       // Update existing action
       await db.run(
-        "UPDATE referendum_team_roles SET role_type = ? WHERE id = ?",
-        [action, existingAction.id]
+        "UPDATE referendum_team_roles SET role_type = ?, reason = ? WHERE id = ?",
+        [action, reason || null, existingAction.id]
       );
       
       logger.info({ 
@@ -313,8 +313,8 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
     } else {
       // Create new action assignment
       const result = await db.run(
-        "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type) VALUES (?, ?, ?)",
-        [referendum.id, req.user.address, action]
+        "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type, reason) VALUES (?, ?, ?, ?)",
+        [referendum.id, req.user.address, action, reason || null]
       );
       
       logger.info({ 
@@ -378,7 +378,7 @@ router.get("/referendum/:referendumId/agreement-summary", async (req: Request, r
     
     // Get all team actions for this referendum
     const actions = await db.all(`
-      SELECT rtr.team_member_id as wallet_address, rtr.role_type, rtr.created_at
+      SELECT rtr.team_member_id as wallet_address, rtr.role_type, rtr.reason, rtr.created_at
       FROM referendum_team_roles rtr
       WHERE rtr.referendum_id = ?
       ORDER BY rtr.created_at DESC
@@ -408,6 +408,11 @@ router.get("/referendum/:referendumId/agreement-summary", async (req: Request, r
       actionMap.set(action.wallet_address, action);
     });
     
+    // Debug: Log actions for proposal 1752
+    if (referendumId === '1752') {
+      console.log('🔍 Debug proposal 1752 actions:', actions);
+    }
+    
     allMembers.forEach(member => {
       // Try to find action for this member with flexible address matching
       let action = actionMap.get(member.address);
@@ -418,6 +423,14 @@ router.get("/referendum/:referendumId/agreement-summary", async (req: Request, r
           const matchingMember = multisigService.findMemberByAddress(teamMembers, actionAddress, chain as "Polkadot" | "Kusama");
           if (matchingMember && matchingMember.wallet_address === member.address) {
             action = actionData;
+            // Debug: Log flexible matching for proposal 1752
+            if (referendumId === '1752') {
+              console.log('🔄 Flexible match found:', {
+                searchAddress: actionAddress,
+                foundMember: member.name,
+                actionData: actionData
+              });
+            }
             break;
           }
         }
@@ -434,7 +447,15 @@ router.get("/referendum/:referendumId/agreement-summary", async (req: Request, r
           case 'no_way':
             vetoed = true;
             veto_by = member.name;
-            // TODO: Get veto reason from a separate field or table
+            veto_reason = action.reason || null;
+            // Debug: Log veto details for proposal 1752
+            if (referendumId === '1752') {
+              console.log('🚫 Debug veto action:', {
+                member: member.name,
+                action_reason: action.reason,
+                veto_reason: veto_reason
+              });
+            }
             break;
           case 'recuse':
             recused_members.push(member);

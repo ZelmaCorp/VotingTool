@@ -1269,7 +1269,6 @@ h3 {
   background: #fff5f5;
   padding: 1rem;
   border-radius: 0.5rem;
-  border-left: 4px solid #e53e3e;
   white-space: pre-wrap;
 }
 
@@ -1335,7 +1334,6 @@ h3 {
   background: #fff5f5;
   padding: 1rem;
   border-radius: 0.5rem;
-  border-left: 4px solid #e53e3e;
   white-space: pre-wrap;
 }
 
