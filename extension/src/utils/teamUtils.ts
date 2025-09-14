@@ -34,7 +34,8 @@ export const findTeamMemberByAddress = (address: string): TeamMember | undefined
         if (member) break;
       }
     } catch (e) {
-      console.warn('Error converting address:', e);
+      // Silent error handling for address conversion issues
+      // Address conversion errors are not critical to the application flow
     }
   }
   

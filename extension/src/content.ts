@@ -44,8 +44,6 @@ let contentInjector: ContentInjector | null = null;
 
 async function initializeExtension() {
   try {
-    console.log('🚀 OpenGov VotingTool Extension - Starting initialization');
-    
     // Create container for our floating hamburger menu
     const extensionContainer = document.createElement('div');
     extensionContainer.id = 'opengov-voting-extension';
@@ -65,13 +63,11 @@ async function initializeExtension() {
     const pinia = createPinia();
     app.use(pinia);
     app.mount('#opengov-voting-extension');
-    console.log('✅ Mounted floating hamburger menu with Pinia store');
     
     // Initialize content injector for status badges
     contentInjector = ContentInjector.getInstance();
     await contentInjector.initialize();
     
-    console.log('✅ OpenGov VotingTool Extension - Initialization complete');
   } catch (error) {
     console.error('❌ OpenGov VotingTool Extension - Initialization failed:', error);
   }
@@ -134,45 +130,34 @@ setTimeout(() => {
 
 // Multiple initialization strategies to handle different loading scenarios
 function ensureInitialization() {
-  console.log('🔄 Ensuring extension initialization...');
-  
   // Strategy 1: If DOM is already loaded, initialize immediately
   if (document.readyState === 'complete') {
-    console.log('✅ DOM already complete, initializing immediately');
     initializeExtension();
     return;
   }
   
   // Strategy 2: Wait for DOM to be ready
   if (document.readyState === 'loading') {
-    console.log('⏳ DOM still loading, waiting for DOMContentLoaded...');
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('✅ DOMContentLoaded fired, initializing...');
       setTimeout(initializeExtension, 500); // Small delay after DOM ready
     });
   } else {
-    console.log('✅ DOM interactive, initializing with delay...');
     setTimeout(initializeExtension, 500);
   }
   
   // Strategy 3: Fallback with window.onload
   window.addEventListener('load', () => {
-    console.log('✅ Window load event fired, ensuring initialization...');
     setTimeout(() => {
       if (!contentInjector) {
-        console.log('🔄 No content injector found, initializing as fallback...');
         initializeExtension();
-      } else {
-        console.log('✅ Content injector already exists, skipping duplicate initialization...');
-        // Don't call initialize() again as it can cause unnecessary cleanup/re-injection
       }
+      // Don't call initialize() again as it can cause unnecessary cleanup/re-injection
     }, 1000);
   });
   
   // Strategy 4: Additional fallback after fixed delay
   setTimeout(() => {
     if (!contentInjector) {
-      console.log('🔄 Final fallback initialization...');
       initializeExtension();
     }
   }, 3000);

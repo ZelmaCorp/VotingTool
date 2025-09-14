@@ -81,9 +81,9 @@ const statusConfig = {
   'Waiting for agreement': { color: '#fd7e14', icon: '...' },
   'Ready to vote': { color: '#28a745', icon: '>' },
   'Reconsidering': { color: '#dc3545', icon: '↻' },
-  'Voted Aye': { color: '#198754', icon: '+' },
-  'Voted Nay': { color: '#dc3545', icon: '-' },
-  'Voted Abstain': { color: '#6f42c1', icon: '=' },
+  'Voted 👍 Aye 👍': { color: '#198754', icon: '+' },
+  'Voted 👎 Nay 👎': { color: '#dc3545', icon: '-' },
+  'Voted ✌️ Abstain ✌️': { color: '#6f42c1', icon: '=' },
   'Not Voted': { color: '#e9ecef', icon: 'x' }
 }
 
@@ -128,9 +128,6 @@ const saveStatusChange = async () => {
       newStatus: selectedStatus.value,
       reason: changeReason.value
     }
-    
-    // In a real implementation, this would make an API call
-    console.log('Status change requested:', changeData)
     
     // For now, just close the modal
     // The parent component should handle the actual status update
