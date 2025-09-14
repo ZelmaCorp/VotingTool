@@ -10,6 +10,7 @@ if (window.opengovVotingToolInitialized) {
 window.opengovVotingToolInitialized = true
 
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
 import App from './App.vue'
 import { ContentInjector } from './utils/contentInjector'
 
@@ -59,10 +60,12 @@ async function initializeExtension() {
     `;
     document.body.appendChild(extensionContainer);
 
-    // Mount our App.vue with the floating hamburger and menu
+    // Initialize Vue app with Pinia
     const app = createApp(App);
+    const pinia = createPinia();
+    app.use(pinia);
     app.mount('#opengov-voting-extension');
-    console.log('✅ Mounted floating hamburger menu');
+    console.log('✅ Mounted floating hamburger menu with Pinia store');
     
     // Initialize content injector for status badges
     contentInjector = ContentInjector.getInstance();

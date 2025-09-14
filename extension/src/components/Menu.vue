@@ -32,6 +32,7 @@
         @click="handleAction('browse-proposals')"
         title="All proposals with advanced filters"
       >
+        <span class="icon">📋</span>
         <span>Browse Proposals</span>
       </div>
       
@@ -40,6 +41,7 @@
         @click="handleAction('my-dashboard')"
         title="My assignments & actions needed"
       >
+        <span class="icon">👤</span>
         <span>My Dashboard</span>
       </div>
       
@@ -48,6 +50,7 @@
         @click="handleAction('team-workflow')"
         title="Team collaboration & approvals"
       >
+        <span class="icon">👥</span>
         <span>Team Workflow</span>
       </div>
       
@@ -56,6 +59,7 @@
         @click="handleAction('settings-more')"
         title="Configuration, history & help"
       >
+        <span class="icon">⚙️</span>
         <span>Settings & More</span>
       </div>
     </div>
@@ -275,6 +279,9 @@ const handleConfigSaved = () => {
   transition: all 0.2s ease;
   background: #ffffff;
   box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .menu-item:hover {
@@ -282,7 +289,13 @@ const handleConfigSaved = () => {
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
-.menu-item span {
+.menu-item .icon {
+  font-size: 1.25rem;
+  width: 1.5rem;
+  text-align: center;
+}
+
+.menu-item span:not(.icon) {
   font-size: 1rem;
   color: #2d3748;
   font-weight: 500;

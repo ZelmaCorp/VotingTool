@@ -258,53 +258,33 @@
               </div>
             </div>
             <div v-if="activeTab === 'vetoed'" class="content-area">
-              <div class="panel-header">
-                <h3>🚫 NO WAY ({{ vetoedProposals.length }})</h3>
-                <div class="proposals-list">
-                  <div v-for="proposal in vetoedProposals" :key="proposal.id" class="proposal-card">
-                    <div class="proposal-header">
-                      <h4>{{ proposal.title }}</h4>
-                      <div class="proposal-meta">
-                        <div class="meta-item">
-                          <strong>Vetoed by:</strong> {{ getTeamMemberName(proposal.veto_by) }}
-                        </div>
-                        <div class="meta-item veto-reason">
-                          <strong>Veto Reason:</strong> {{ proposal.veto_reason }}
-                        </div>
-                        <div class="meta-item">
-                          <strong>Vetoed at:</strong> {{ formatDate(proposal.veto_date) }}
-                        </div>
-                      </div>
-                    </div>
-                    <div class="proposal-header">
-                      <span class="proposal-id">#{{ proposal.post_id }}</span>
-                      <StatusBadge 
-                        :status="proposal.internal_status" 
-                        :proposal-id="proposal.post_id"
-                        :editable="false" 
-                      />
-                    </div>
-                    <h4 class="proposal-title">{{ proposal.title }}</h4>
-                    
-                    <div class="voting-info">
-                      <div class="vote-recommendation">
-                        <strong>Team Recommendation:</strong> 
-                        <span class="vote-badge">{{ proposal.suggested_vote || 'Not set' }}</span>
-                      </div>
-                      <div v-if="proposal.reason_for_vote" class="vote-reason">
-                        <strong>Reason:</strong> {{ proposal.reason_for_vote }}
-                      </div>
-                    </div>
-
-                    <div class="proposal-meta">
+              <h3>NO WAY ({{ vetoedProposals.length }})</h3>
+              <div class="proposals-list">
+                <div v-for="proposal in vetoedProposals" :key="proposal.id" class="proposal-card">
+                  <div class="proposal-header">
+                    <h4>{{ proposal.title }}</h4>
+                  </div>
+                  <div class="proposal-details">
+                    <div class="meta-section">
                       <div class="meta-item">
-                        <strong>Evaluator:</strong> {{ proposal.assigned_to || 'Unassigned' }}
+                        <strong>Post ID:</strong> {{ proposal.post_id }}
                       </div>
                       <div class="meta-item">
-                        <strong>Timeline:</strong> {{ proposal.referendum_timeline || 'Unknown' }}
+                        <strong>Chain:</strong> {{ proposal.chain }}
                       </div>
                       <div class="meta-item">
                         <strong>Updated:</strong> {{ formatDate(proposal.updated_at || proposal.created_at) }}
+                      </div>
+                    </div>
+                    <div class="veto-section">
+                      <div class="veto-info">
+                        <strong>NO WAYed by:</strong> {{ getTeamMemberName(proposal.veto_by) }}
+                      </div>
+                      <div class="veto-reason">
+                        <strong>Reason:</strong> {{ proposal.veto_reason || 'No reason provided' }}
+                      </div>
+                      <div class="veto-date">
+                        <strong>NO WAYed on:</strong> {{ formatDate(proposal.veto_date) }}
                       </div>
                     </div>
                   </div>
@@ -590,7 +570,7 @@ const getVetoMembers = (proposal: Proposal): TeamMember[] => {
 const getAgreementCount = (proposal: Proposal): number => {
   const count = proposal.team_actions?.filter(action => {
     const actionType = action.role_type?.toLowerCase();
-    return actionType === 'agree' || actionType === 'agreed';
+    return actionType === 'agree';  // Only count exact 'agree' matches
   })?.length || 0;
 
   return count;
@@ -599,7 +579,7 @@ const getAgreementCount = (proposal: Proposal): number => {
 const getAgreedMembers = (proposal: Proposal): TeamMember[] => {
   const agreeActions = proposal.team_actions?.filter(action => {
     const actionType = action.role_type?.toLowerCase();
-    return actionType === 'agree' || actionType === 'agreed';
+    return actionType === 'agree';  // Only match exact 'agree'
   }) || [];
   
   return agreeActions.map(action => ({
@@ -1243,5 +1223,69 @@ h3 {
   border-radius: 0.5rem;
   margin: 0.5rem 0;
   border-left: 4px solid #ff4d4f;
+}
+
+.proposal-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.proposal-header {
+  margin-bottom: 1rem;
+}
+
+.proposal-header h4 {
+  font-size: 1.1rem;
+  color: #2d3748;
+  margin: 0;
+}
+
+.proposal-details {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.meta-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.meta-item {
+  font-size: 0.875rem;
+  color: #4a5568;
+}
+
+.veto-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.veto-info {
+  font-size: 0.875rem;
+  color: #e53e3e;
+  font-weight: 500;
+}
+
+.veto-reason {
+  font-size: 0.875rem;
+  color: #4a5568;
+  background: #fff5f5;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  border-left: 4px solid #e53e3e;
+}
+
+.veto-date {
+  font-size: 0.875rem;
+  color: #718096;
 }
 </style> 

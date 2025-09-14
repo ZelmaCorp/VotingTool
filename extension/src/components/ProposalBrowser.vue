@@ -325,10 +325,14 @@ const filteredProposals = computed(() => {
       )
     } else {
       filtered = filtered.filter(p => 
-        p.team_actions?.some(action => 
-          action.wallet_address === currentUser && 
-          action.role_type === selectedTeamAction.value
-        )
+        p.team_actions?.some(action => {
+          const actionType = action.role_type?.toLowerCase();
+          const selectedType = selectedTeamAction.value.toLowerCase();
+          const normalizedType = selectedType.replace(' ', '_');
+          
+          return action.wallet_address === currentUser && 
+            (actionType === selectedType || actionType === normalizedType);
+        })
       )
     }
   }
