@@ -89,7 +89,6 @@
             </div>
           </div>
           <div v-if="activeTab === 'actions'" class="content-area">
-            <h3>⏰ Actions Needed ({{ actionsNeeded.length }})</h3>
             <div v-if="actionsNeeded.length === 0" class="empty-state">
               <div class="empty-icon">✅</div>
               <h3>All caught up!</h3>
@@ -126,7 +125,6 @@
             </div>
           </div>
           <div v-if="activeTab === 'evaluations'" class="content-area">
-            <h3>🎯 My Evaluations ({{ myEvaluations.length }})</h3>
             <div v-if="myEvaluations.length === 0" class="empty-state">
               <div class="empty-icon">🎯</div>
               <h3>No evaluations</h3>
@@ -168,7 +166,6 @@
             </div>
           </div>
           <div v-if="activeTab === 'activity'" class="content-area">
-            <h3>📊 My Activity</h3>
             <div class="activity-summary">
               <h3>Recent Activity Summary</h3>
               <div class="activity-stats">
@@ -380,11 +377,11 @@ const getAgreementStatus = (proposal: ProposalData): string => {
 
 const getActivityIcon = (type: string): string => {
   switch (type) {
-    case 'evaluation': return '🎯'
-    case 'team-action': return '👥'
-    case 'assignment': return '📝'
-    case 'vote': return '🗳️'
-    default: return '📋'
+    case 'evaluation': return '';
+    case 'team-action': return '';
+    case 'assignment': return '';
+    case 'vote': return '';
+    default: return '';
   }
 }
 
@@ -491,7 +488,7 @@ onUnmounted(() => {
 }
 
 .stats-section {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .stats-section-container {
@@ -536,12 +533,16 @@ onUnmounted(() => {
   margin-bottom: 0.5rem;
 }
 
+.content-section {
+  padding: 0 16px;
+}
+
 .content-area {
   background: #ffffff;
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  max-height: calc(100vh - 250px);
+  height: calc(100vh - 250px);
   overflow-y: auto;
 }
 

@@ -739,7 +739,7 @@ onMounted(() => {
 }
 
 .stats-section {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .stats-section-container {
@@ -798,15 +798,15 @@ onMounted(() => {
 }
 
 .content-section {
-  margin-top: 2rem;
+  padding: 0 16px;
 }
 
 .content-area {
   background: #ffffff;
   border-radius: 12px;
-  padding: 2rem;
+  padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  max-height: calc(100vh - 250px);
+  height: calc(100vh - 250px);
   overflow-y: auto;
 }
 
