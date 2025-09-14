@@ -335,7 +335,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { ApiService } from '../utils/apiService'
 
 interface Props {
@@ -377,10 +377,27 @@ interface ActivityItem {
   timestamp: string
 }
 
-defineProps<Props>()
-defineEmits<{
+const props = defineProps<Props>()
+const emit = defineEmits<{
   close: []
 }>()
+
+// Add ESC key handler
+const handleEscKey = (event: KeyboardEvent) => {
+  if (event.key === 'Escape' && props.show) {
+    emit('close')
+  }
+}
+
+// Add and remove event listener
+onMounted(() => {
+  window.addEventListener('keydown', handleEscKey)
+  loadData()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleEscKey)
+})
 
 // Data
 const activeSection = ref<'dao-config' | 'preferences' | 'voting-history' | 'activity-log' | 'data-sync' | 'help' | 'about'>('dao-config')
@@ -491,10 +508,6 @@ const getActivityIcon = (type: string): string => {
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString()
 }
-
-onMounted(() => {
-  loadData()
-})
 </script>
 
 <style scoped>

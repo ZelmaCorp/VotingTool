@@ -343,7 +343,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import type { ProposalData, TeamMember } from '../types'
 import StatusBadge from './StatusBadge.vue'
 import { ApiService } from '../utils/apiService'
@@ -354,9 +354,26 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-defineEmits<{
+const emit = defineEmits<{
   close: []
 }>()
+
+// Add ESC key handler
+const handleEscKey = (event: KeyboardEvent) => {
+  if (event.key === 'Escape' && props.show) {
+    emit('close')
+  }
+}
+
+// Add and remove event listener
+onMounted(() => {
+  window.addEventListener('keydown', handleEscKey)
+  loadData()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleEscKey)
+})
 
 // Address normalization helper
 const normalizeAddress = (address: string): string => {
