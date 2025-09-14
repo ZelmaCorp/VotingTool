@@ -6,7 +6,6 @@
       @click="handleClick"
       :title="editable ? 'Click to change status' : status"
     >
-      <span class="status-icon">{{ statusIcon }}</span>
       <span class="status-text">{{ status }}</span>
       <span v-if="editable" class="edit-icon">edit</span>
     </div>
