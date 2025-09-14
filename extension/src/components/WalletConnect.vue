@@ -140,6 +140,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { authStore } from '../stores/authStore'
+import { formatAddress } from '../utils/teamUtils'
 
 // Extend Window interface for Polkadot extension
 declare global {
@@ -438,9 +439,7 @@ const getAccountInitials = (name: string) => {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 }
 
-const formatAddress = (address: string) => {
-  return `${address.slice(0, 6)}...${address.slice(-4)}`
-}
+
 
 const clearError = () => {
   error.value = ''

@@ -6,10 +6,22 @@ export interface TeamMember {
   address: string;
 }
 
-const formatAddress = (address: string): string => {
+export const formatAddress = (address: string | undefined, options?: {
+  startChars?: number;
+  endChars?: number;
+  forceShorten?: boolean;
+}): string => {
   if (!address) return '';
-  if (address.length <= 13) return address;
-  return `${address.slice(0, 6)}...${address.slice(-6)}`;
+  
+  const {
+    startChars = 6,
+    endChars = 4,
+    forceShorten = true
+  } = options || {};
+  
+  if (!forceShorten && address.length <= 13) return address;
+  
+  return `${address.slice(0, startChars)}...${address.slice(-endChars)}`;
 };
 
 export const findTeamMemberByAddress = (address: string): TeamMember | undefined => {

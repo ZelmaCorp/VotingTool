@@ -56,7 +56,7 @@
               <div class="member-avatar">{{ getInitials(member.name) }}</div>
               <div class="member-details">
                 <div class="member-name">{{ member.name }}</div>
-                <div class="member-address">{{ formatAddress(member.address) }}</div>
+                <div class="member-address">{{ formatAddress(member.address, { forceShorten: false }) }}</div>
               </div>
             </div>
             <div class="member-action">
@@ -242,6 +242,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ApiService } from '../utils/apiService'
 import { authStore } from '../stores/authStore'
+import { formatAddress } from '../utils/teamUtils'
 import ConfirmModal from './modals/ConfirmModal.vue'
 import AlertModal from './modals/AlertModal.vue'
 import type { TeamAction, ProposalAction, ProposalComment, AgreementSummary, SuggestedVote, TeamMember } from '../types'
@@ -510,13 +511,7 @@ const getInitials = (name: string) => {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 }
 
-const formatAddress = (address: string, forceShorten: boolean = false) => {
-  if (forceShorten) {
-    return `${address.slice(0, 6)}...${address.slice(-4)}`
-  }
-  // Don't truncate by default - show full address when there's space
-  return address
-}
+
 
 const formatTime = (timestamp: string) => {
   return new Date(timestamp).toLocaleString()

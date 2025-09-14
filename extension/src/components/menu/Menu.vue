@@ -107,6 +107,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { authStore } from '../../stores/authStore'
+import { formatAddress } from '../../utils/teamUtils'
 import WalletConnect from '../WalletConnect.vue'
 import DAOConfigModal from '../modals/DAOConfigModal.vue'
 import ProposalBrowser from './ProposalBrowser.vue'
@@ -125,11 +126,6 @@ const getUserInitials = () => {
   const name = authStore.state.user?.name
   if (!name) return '?'
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
-}
-
-const formatAddress = (address?: string) => {
-  if (!address) return ''
-  return `${address.slice(0, 6)}...${address.slice(-4)}`
 }
 
 const handleLogout = async () => {
