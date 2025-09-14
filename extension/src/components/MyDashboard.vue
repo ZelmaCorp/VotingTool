@@ -17,211 +17,191 @@
         <div v-else>
           <!-- Quick Stats -->
           <div class="stats-section">
-          <div class="stat-card">
-            <div class="stat-number">{{ myAssignments.length }}</div>
-            <div class="stat-label">My Assignments</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number">{{ actionsNeeded.length }}</div>
-            <div class="stat-label">Actions Needed</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number">{{ myEvaluations.length }}</div>
-            <div class="stat-label">My Evaluations</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-number">{{ recentActivity.length }}</div>
-            <div class="stat-label">Recent Activity</div>
-          </div>
-        </div>
-
-        <!-- Tabs -->
-        <div class="tabs-section">
-          <div class="tab-buttons">
-            <button 
-              @click="activeTab = 'assignments'"
-              :class="{ active: activeTab === 'assignments' }"
-              class="tab-btn"
-            >
-              📝 My Assignments ({{ myAssignments.length }})
-            </button>
-            <button 
-              @click="activeTab = 'actions'"
-              :class="{ active: activeTab === 'actions' }"
-              class="tab-btn"
-            >
-              ⏰ Actions Needed ({{ actionsNeeded.length }})
-            </button>
-            <button 
-              @click="activeTab = 'evaluations'"
-              :class="{ active: activeTab === 'evaluations' }"
-              class="tab-btn"
-            >
-              🎯 My Evaluations ({{ myEvaluations.length }})
-            </button>
-            <button 
-              @click="activeTab = 'activity'"
-              :class="{ active: activeTab === 'activity' }"
-              class="tab-btn"
-            >
-              📊 My Activity
-            </button>
-          </div>
-
-          <!-- Tab Content -->
-          <div class="tab-content">
-            <!-- My Assignments Tab -->
-            <div v-if="activeTab === 'assignments'" class="tab-panel">
-              <div v-if="myAssignments.length === 0" class="empty-state">
-                <div class="empty-icon">📭</div>
-                <h3>No assignments</h3>
-                <p>You don't have any proposals assigned to you</p>
+            <div class="stats-section-container">
+              <div 
+                class="stat-card" 
+                @click="activeTab = 'assignments'"
+                :class="{ active: activeTab === 'assignments' }"
+              >
+                <div class="stat-number">{{ myAssignments.length }}</div>
+                <div class="stat-label">My Assignments</div>
               </div>
-              <div v-else class="proposals-list">
-                <div 
-                  v-for="proposal in myAssignments" 
-                  :key="`${proposal.chain}-${proposal.post_id}`"
-                  class="proposal-item"
-                  @click="openProposal(proposal)"
-                >
-                  <div class="proposal-header">
-                    <span class="proposal-id">#{{ proposal.post_id }}</span>
-                    <StatusBadge 
-                      :status="proposal.internal_status" 
-                      :proposal-id="proposal.post_id"
-                      :editable="false" 
-                    />
+              <div 
+                class="stat-card" 
+                @click="activeTab = 'actions'"
+                :class="{ active: activeTab === 'actions' }"
+              >
+                <div class="stat-number">{{ actionsNeeded.length }}</div>
+                <div class="stat-label">Actions Needed</div>
+              </div>
+              <div 
+                class="stat-card" 
+                @click="activeTab = 'evaluations'"
+                :class="{ active: activeTab === 'evaluations' }"
+              >
+                <div class="stat-number">{{ myEvaluations.length }}</div>
+                <div class="stat-label">My Evaluations</div>
+              </div>
+              <div 
+                class="stat-card" 
+                @click="activeTab = 'activity'"
+                :class="{ active: activeTab === 'activity' }"
+              >
+                <div class="stat-number">{{ activityCount }}</div>
+                <div class="stat-label">My Activity</div>
+              </div>
+            </div>
+          </div>
+
+        <!-- Content based on active tab -->
+        <div class="content-section">
+          <div v-if="activeTab === 'assignments'" class="content-area">
+            <div v-if="myAssignments.length === 0" class="empty-state">
+              <div class="empty-icon">📭</div>
+              <h3>No assignments</h3>
+              <p>You don't have any proposals assigned to you</p>
+            </div>
+            <div v-else class="proposals-list">
+              <div 
+                v-for="proposal in myAssignments" 
+                :key="`${proposal.chain}-${proposal.post_id}`"
+                class="proposal-item"
+                @click="openProposal(proposal)"
+              >
+                <div class="proposal-header">
+                  <span class="proposal-id">#{{ proposal.post_id }}</span>
+                  <StatusBadge 
+                    :status="proposal.internal_status" 
+                    :proposal-id="proposal.post_id"
+                    :editable="false" 
+                  />
+                </div>
+                <h4 class="proposal-title">{{ proposal.title }}</h4>
+                <div class="proposal-meta">
+                  <div class="meta-item">
+                    <strong>Timeline:</strong> {{ proposal.referendum_timeline || 'Unknown' }}
                   </div>
-                  <h4 class="proposal-title">{{ proposal.title }}</h4>
-                  <div class="proposal-meta">
-                    <div class="meta-item">
-                      <strong>Timeline:</strong> {{ proposal.referendum_timeline || 'Unknown' }}
-                    </div>
-                    <div class="meta-item">
-                      <strong>Updated:</strong> {{ formatDate(proposal.updated_at || proposal.created_at) }}
-                    </div>
+                  <div class="meta-item">
+                    <strong>Updated:</strong> {{ formatDate(proposal.updated_at || proposal.created_at) }}
                   </div>
                 </div>
               </div>
             </div>
-
-            <!-- Actions Needed Tab -->
-            <div v-if="activeTab === 'actions'" class="tab-panel">
-              <div v-if="actionsNeeded.length === 0" class="empty-state">
-                <div class="empty-icon">✅</div>
-                <h3>All caught up!</h3>
-                <p>You don't have any pending actions</p>
-              </div>
-              <div v-else class="proposals-list">
-                <div 
-                  v-for="proposal in actionsNeeded" 
-                  :key="`${proposal.chain}-${proposal.post_id}`"
-                  class="proposal-item urgent"
-                  @click="openProposal(proposal)"
-                >
-                  <div class="proposal-header">
-                    <span class="proposal-id">#{{ proposal.post_id }}</span>
-                    <StatusBadge 
-                      :status="proposal.internal_status" 
-                      :proposal-id="proposal.post_id"
-                      :editable="false" 
-                    />
+          </div>
+          <div v-if="activeTab === 'actions'" class="content-area">
+            <h3>⏰ Actions Needed ({{ actionsNeeded.length }})</h3>
+            <div v-if="actionsNeeded.length === 0" class="empty-state">
+              <div class="empty-icon">✅</div>
+              <h3>All caught up!</h3>
+              <p>You don't have any pending actions</p>
+            </div>
+            <div v-else class="proposals-list">
+              <div 
+                v-for="proposal in actionsNeeded" 
+                :key="`${proposal.chain}-${proposal.post_id}`"
+                class="proposal-item urgent"
+                @click="openProposal(proposal)"
+              >
+                <div class="proposal-header">
+                  <span class="proposal-id">#{{ proposal.post_id }}</span>
+                  <StatusBadge 
+                    :status="proposal.internal_status" 
+                    :proposal-id="proposal.post_id"
+                    :editable="false" 
+                  />
+                </div>
+                <h4 class="proposal-title">{{ proposal.title }}</h4>
+                <div class="action-required">
+                  <span class="action-badge">{{ getRequiredAction(proposal) }}</span>
+                </div>
+                <div class="proposal-meta">
+                  <div class="meta-item">
+                    <strong>Assigned:</strong> {{ proposal.assigned_to === currentUser ? 'You' : (proposal.assigned_to || 'Unassigned') }}
                   </div>
-                  <h4 class="proposal-title">{{ proposal.title }}</h4>
-                  <div class="action-required">
-                    <span class="action-badge">{{ getRequiredAction(proposal) }}</span>
-                  </div>
-                  <div class="proposal-meta">
-                    <div class="meta-item">
-                      <strong>Assigned:</strong> {{ proposal.assigned_to === currentUser ? 'You' : (proposal.assigned_to || 'Unassigned') }}
-                    </div>
-                    <div class="meta-item">
-                      <strong>Updated:</strong> {{ formatDate(proposal.updated_at || proposal.created_at) }}
-                    </div>
+                  <div class="meta-item">
+                    <strong>Updated:</strong> {{ formatDate(proposal.updated_at || proposal.created_at) }}
                   </div>
                 </div>
               </div>
             </div>
-
-            <!-- My Evaluations Tab -->
-            <div v-if="activeTab === 'evaluations'" class="tab-panel">
-              <div v-if="myEvaluations.length === 0" class="empty-state">
-                <div class="empty-icon">🎯</div>
-                <h3>No evaluations</h3>
-                <p>You're not evaluating any proposals</p>
-              </div>
-              <div v-else class="proposals-list">
-                <div 
-                  v-for="proposal in myEvaluations" 
-                  :key="`${proposal.chain}-${proposal.post_id}`"
-                  class="proposal-item"
-                  @click="openProposal(proposal)"
-                >
-                  <div class="proposal-header">
-                    <span class="proposal-id">#{{ proposal.post_id }}</span>
-                    <StatusBadge 
-                      :status="proposal.internal_status" 
-                      :proposal-id="proposal.post_id"
-                      :editable="false" 
-                    />
+          </div>
+          <div v-if="activeTab === 'evaluations'" class="content-area">
+            <h3>🎯 My Evaluations ({{ myEvaluations.length }})</h3>
+            <div v-if="myEvaluations.length === 0" class="empty-state">
+              <div class="empty-icon">🎯</div>
+              <h3>No evaluations</h3>
+              <p>You're not evaluating any proposals</p>
+            </div>
+            <div v-else class="proposals-list">
+              <div 
+                v-for="proposal in myEvaluations" 
+                :key="`${proposal.chain}-${proposal.post_id}`"
+                class="proposal-item"
+                @click="openProposal(proposal)"
+              >
+                <div class="proposal-header">
+                  <span class="proposal-id">#{{ proposal.post_id }}</span>
+                  <StatusBadge 
+                    :status="proposal.internal_status" 
+                    :proposal-id="proposal.post_id"
+                    :editable="false" 
+                  />
+                </div>
+                <h4 class="proposal-title">{{ proposal.title }}</h4>
+                <div class="evaluation-info">
+                  <div v-if="proposal.suggested_vote" class="suggested-vote">
+                    <strong>Suggested Vote:</strong> {{ proposal.suggested_vote }}
                   </div>
-                  <h4 class="proposal-title">{{ proposal.title }}</h4>
-                  <div class="evaluation-info">
-                    <div v-if="proposal.suggested_vote" class="suggested-vote">
-                      <strong>Suggested Vote:</strong> {{ proposal.suggested_vote }}
-                    </div>
-                    <div v-if="proposal.reason_for_vote" class="vote-reason">
-                      <strong>Reason:</strong> {{ proposal.reason_for_vote }}
-                    </div>
+                  <div v-if="proposal.reason_for_vote" class="vote-reason">
+                    <strong>Reason:</strong> {{ proposal.reason_for_vote }}
                   </div>
-                  <div class="proposal-meta">
-                    <div class="meta-item">
-                      <strong>Agreement:</strong> {{ getAgreementStatus(proposal) }}
-                    </div>
-                    <div class="meta-item">
-                      <strong>Updated:</strong> {{ formatDate(proposal.updated_at || proposal.created_at) }}
-                    </div>
+                </div>
+                <div class="proposal-meta">
+                  <div class="meta-item">
+                    <strong>Agreement:</strong> {{ getAgreementStatus(proposal) }}
+                  </div>
+                  <div class="meta-item">
+                    <strong>Updated:</strong> {{ formatDate(proposal.updated_at || proposal.created_at) }}
                   </div>
                 </div>
               </div>
             </div>
-
-            <!-- My Activity Tab -->
-            <div v-if="activeTab === 'activity'" class="tab-panel">
-              <div class="activity-summary">
-                <h3>Recent Activity Summary</h3>
-                <div class="activity-stats">
-                  <div class="activity-stat">
-                    <span class="stat-label">Proposals Evaluated:</span>
-                    <span class="stat-value">{{ myEvaluations.length }}</span>
-                  </div>
-                  <div class="activity-stat">
-                    <span class="stat-label">Team Actions Taken:</span>
-                    <span class="stat-value">{{ totalTeamActions }}</span>
-                  </div>
-                  <div class="activity-stat">
-                    <span class="stat-label">Assignments Completed:</span>
-                    <span class="stat-value">{{ completedAssignments }}</span>
-                  </div>
+          </div>
+          <div v-if="activeTab === 'activity'" class="content-area">
+            <h3>📊 My Activity</h3>
+            <div class="activity-summary">
+              <h3>Recent Activity Summary</h3>
+              <div class="activity-stats">
+                <div class="activity-stat">
+                  <span class="stat-label">Proposals Evaluated:</span>
+                  <span class="stat-value">{{ myEvaluations.length }}</span>
+                </div>
+                <div class="activity-stat">
+                  <span class="stat-label">Team Actions Taken:</span>
+                  <span class="stat-value">{{ totalTeamActions }}</span>
+                </div>
+                <div class="activity-stat">
+                  <span class="stat-label">Assignments Completed:</span>
+                  <span class="stat-value">{{ completedAssignments }}</span>
                 </div>
               </div>
+            </div>
 
-              <div class="recent-actions">
-                <h4>Recent Actions</h4>
-                <div v-if="recentActivity.length === 0" class="empty-state">
-                  <p>No recent activity</p>
-                </div>
-                <div v-else class="activity-list">
-                  <div 
-                    v-for="activity in recentActivity" 
-                    :key="activity.id"
-                    class="activity-item"
-                  >
-                    <div class="activity-icon">{{ getActivityIcon(activity.type) }}</div>
-                    <div class="activity-details">
-                      <div class="activity-description">{{ activity.description }}</div>
-                      <div class="activity-time">{{ formatDate(activity.timestamp) }}</div>
-                    </div>
+            <div class="recent-actions">
+              <h4>Recent Actions</h4>
+              <div v-if="recentActivity.length === 0" class="empty-state">
+                <p>No recent activity</p>
+              </div>
+              <div v-else class="activity-list">
+                <div 
+                  v-for="activity in recentActivity" 
+                  :key="activity.id"
+                  class="activity-item"
+                >
+                  <div class="activity-icon">{{ getActivityIcon(activity.type) }}</div>
+                  <div class="activity-details">
+                    <div class="activity-description">{{ activity.description }}</div>
+                    <div class="activity-time">{{ formatDate(activity.timestamp) }}</div>
                   </div>
                 </div>
               </div>
@@ -233,50 +213,6 @@
     </div>
   </div>
 </template>
-
-<style scoped>
-.auth-required {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 300px;
-  text-align: center;
-  padding: 20px;
-}
-
-.auth-icon {
-  font-size: 3rem;
-  margin-bottom: 16px;
-}
-
-.auth-required h3 {
-  margin: 0 0 8px 0;
-  color: #333;
-}
-
-.auth-required p {
-  margin: 0 0 20px 0;
-  color: #666;
-}
-
-.connect-btn {
-  background: linear-gradient(135deg, #e6007a, #ff1493);
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.connect-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);
-}
-</style>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
@@ -356,6 +292,8 @@ const completedAssignments = computed(() =>
     ['Ready to vote', 'Voted 👍 Aye 👍', 'Voted 👎 Nay 👎', 'Voted ✌️ Abstain ✌️'].includes(p.internal_status)
   ).length
 )
+
+const activityCount = computed(() => recentActivity.value.length)
 
 // Methods
 const loadData = async () => {
@@ -553,247 +491,182 @@ onUnmounted(() => {
 }
 
 .stats-section {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-  padding: 20px 24px;
-  background: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
+  margin-bottom: 2rem;
+}
+
+.stats-section-container {
+  margin: 16px;
+  display: flex;
+  gap: 1rem;
 }
 
 .stat-card {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  text-align: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  flex: 1;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  border: 2px solid transparent;
+  min-width: 150px;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.stat-card.active {
+  border-color: #6b46c1;
+  background: #f8f4ff;
 }
 
 .stat-number {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #007bff;
-  margin-bottom: 8px;
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #2d3748;
+  margin-bottom: 0.5rem;
 }
 
 .stat-label {
-  font-size: 0.9rem;
-  color: #666;
-  font-weight: 500;
+  font-size: 1rem;
+  color: #4a5568;
+  margin-bottom: 0.5rem;
 }
 
-.tabs-section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.tab-buttons {
-  display: flex;
-  border-bottom: 1px solid #e9ecef;
-  background: white;
-}
-
-.tab-btn {
-  padding: 16px 20px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #666;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s ease;
-}
-
-.tab-btn.active {
-  color: #007bff;
-  border-bottom-color: #007bff;
-  background: #f8f9fa;
-}
-
-.tab-btn:hover:not(.active) {
-  background: #f8f9fa;
-  color: #333;
-}
-
-.tab-content {
-  flex: 1;
-  overflow: hidden;
-}
-
-.tab-panel {
-  height: 100%;
+.content-area {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  max-height: calc(100vh - 250px);
   overflow-y: auto;
-  padding: 20px 24px;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
-  text-align: center;
-}
-
-.empty-icon {
-  font-size: 3rem;
-  margin-bottom: 16px;
-}
-
-.empty-state h3 {
-  margin: 0 0 8px 0;
-  color: #333;
-}
-
-.empty-state p {
-  margin: 0;
-  color: #666;
 }
 
 .proposals-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1rem;
 }
 
 .proposal-item {
-  background: white;
-  border: 1px solid #e9ecef;
+  background: #ffffff;
   border-radius: 8px;
-  padding: 20px;
+  padding: 1rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .proposal-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transform: translateY(-2px);
-}
-
-.proposal-item.urgent {
-  border-left: 4px solid #dc3545;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
 
 .proposal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 0.5rem;
 }
 
 .proposal-id {
+  font-size: 0.875rem;
+  color: #6b46c1;
   font-weight: 600;
-  color: #007bff;
 }
 
 .proposal-title {
-  margin: 0 0 12px 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.action-required {
-  margin: 8px 0;
-}
-
-.action-badge {
-  background: #dc3545;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.evaluation-info {
-  margin: 12px 0;
-  padding: 12px;
-  background: #f8f9fa;
-  border-radius: 6px;
-}
-
-.suggested-vote,
-.vote-reason {
-  font-size: 0.9rem;
-  margin-bottom: 8px;
-}
-
-.vote-reason:last-child {
-  margin-bottom: 0;
+  margin: 0.5rem 0;
+  font-size: 1rem;
+  color: #2d3748;
 }
 
 .proposal-meta {
   display: flex;
-  gap: 20px;
-  font-size: 0.9rem;
-  color: #666;
+  gap: 1rem;
+  font-size: 0.875rem;
+  color: #718096;
 }
 
 .meta-item {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.action-required {
+  margin-top: 0.5rem;
+}
+
+.action-badge {
+  background: #fed7d7;
+  color: #c53030;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: #718096;
+}
+
+.empty-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
 }
 
 .activity-summary {
-  margin-bottom: 24px;
-}
-
-.activity-summary h3 {
-  margin: 0 0 16px 0;
-  color: #333;
+  margin-bottom: 2rem;
 }
 
 .activity-stats {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
 }
 
 .activity-stat {
+  background: #f7fafc;
+  padding: 1rem;
+  border-radius: 8px;
   display: flex;
   justify-content: space-between;
-  padding: 12px 16px;
-  background: #f8f9fa;
-  border-radius: 6px;
-}
-
-.stat-label {
-  font-weight: 500;
-  color: #666;
+  align-items: center;
 }
 
 .stat-value {
   font-weight: 600;
-  color: #007bff;
+  color: #2d3748;
 }
 
-.recent-actions h4 {
-  margin: 0 0 16px 0;
-  color: #333;
+.recent-actions {
+  margin-top: 2rem;
 }
 
 .activity-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 0.5rem;
 }
 
 .activity-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: #f8f9fa;
-  border-radius: 6px;
+  gap: 1rem;
+  padding: 0.75rem;
+  background: #f7fafc;
+  border-radius: 8px;
 }
 
 .activity-icon {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
 }
 
 .activity-details {
@@ -801,59 +674,35 @@ onUnmounted(() => {
 }
 
 .activity-description {
-  font-size: 0.9rem;
-  color: #333;
-  margin-bottom: 2px;
+  font-size: 0.875rem;
+  color: #2d3748;
 }
 
 .activity-time {
-  font-size: 0.8rem;
-  color: #666;
+  font-size: 0.75rem;
+  color: #718096;
+  margin-top: 0.25rem;
 }
 
-.modal-content {
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: 20px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+.urgent {
+  border-left: 4px solid #e53e3e;
 }
 
-.section {
-  margin-bottom: 24px;
-  overflow-y: auto;
-  max-height: calc(80vh - 120px); /* Account for header and padding */
-}
-
-.activity-list {
-  overflow-y: auto;
-  max-height: 300px;
-  padding-right: 16px; /* Space for scrollbar */
-}
-
-/* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
+.evaluation-info {
+  margin: 0.5rem 0;
+  padding: 0.5rem;
+  background: #f7fafc;
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #888;
-  border-radius: 4px;
+.suggested-vote {
+  font-weight: 600;
+  color: #2d3748;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
-}
-
-/* Firefox scrollbar */
-* {
-  scrollbar-width: thin;
-  scrollbar-color: #888 #f1f1f1;
+.vote-reason {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: #718096;
 }
 </style> 
