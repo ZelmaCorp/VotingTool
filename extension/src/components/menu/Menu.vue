@@ -106,9 +106,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { authStore } from '../stores/authStore'
-import WalletConnect from './WalletConnect.vue'
-import DAOConfigModal from './DAOConfigModal.vue'
+import { authStore } from '../../stores/authStore'
+import WalletConnect from '../WalletConnect.vue'
+import DAOConfigModal from '../modals/DAOConfigModal.vue'
 import ProposalBrowser from './ProposalBrowser.vue'
 import MyDashboard from './MyDashboard.vue'
 import TeamWorkflow from './TeamWorkflow.vue'

@@ -215,11 +215,11 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import type { ProposalData, InternalStatus, TimelineStatus, TeamAction } from '../types'
-import { ApiService } from '../utils/apiService'
-import { authStore } from '../stores/authStore'
-import StatusBadge from './StatusBadge.vue'
-import { findTeamMemberByAddress } from '../utils/teamUtils';
+import type { ProposalData, InternalStatus, TimelineStatus, TeamAction } from '../../types'
+import { ApiService } from '../../utils/apiService'
+import { authStore } from '../../stores/authStore'
+import StatusBadge from '../StatusBadge.vue'
+import { findTeamMemberByAddress } from '../../utils/teamUtils';
 
 interface Props {
   show: boolean

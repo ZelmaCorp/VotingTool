@@ -336,7 +336,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { ApiService } from '../utils/apiService'
+import { ApiService } from '../../utils/apiService'
 
 interface Props {
   show: boolean

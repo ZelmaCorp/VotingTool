@@ -97,11 +97,11 @@
 import { ref, computed } from 'vue'
 import type { InternalStatus, SuggestedVote, Chain, TeamMember } from '../types'
 import { authStore } from '../stores/authStore'
-import StatusChangeModal from './StatusChangeModal.vue'
-import AssignModal from './AssignModal.vue'
-import VoteChangeModal from './VoteChangeModal.vue'
+import StatusChangeModal from './modals/StatusChangeModal.vue'
+import AssignModal from './modals/AssignModal.vue'
+import VoteChangeModal from './modals/VoteChangeModal.vue'
 import TeamActionsPanel from './TeamActionsPanel.vue'
-import ConfirmModal from './ConfirmModal.vue'
+import ConfirmModal from './modals/ConfirmModal.vue'
 
 interface VotingControlsProps {
   status: InternalStatus

@@ -328,12 +328,12 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { Chain, InternalStatus, TimelineStatus, TeamAction } from '../types'
-import StatusBadge from './StatusBadge.vue'
-import AlertModal from './AlertModal.vue'
-import { ApiService } from '../utils/apiService'
+import { Chain, InternalStatus, TimelineStatus, TeamAction } from '../../types'
+import StatusBadge from '../StatusBadge.vue'
+import AlertModal from '../modals/AlertModal.vue'
+import { ApiService } from '../../utils/apiService'
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto'
-import { type TeamMember, getTeamMemberName } from '../utils/teamUtils'
+import { type TeamMember, getTeamMemberName } from '../../utils/teamUtils'
 
 interface Props {
   show: boolean

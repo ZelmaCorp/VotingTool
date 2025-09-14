@@ -213,10 +213,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { ApiService } from '../utils/apiService'
-import { authStore } from '../stores/authStore'
-import type { ProposalData } from '../types'
-import StatusBadge from './StatusBadge.vue'
+import { ApiService } from '../../utils/apiService'
+import { authStore } from '../../stores/authStore'
+import type { ProposalData } from '../../types'
+import StatusBadge from '../StatusBadge.vue'
 
 interface Props {
   show: boolean

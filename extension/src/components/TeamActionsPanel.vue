@@ -242,8 +242,8 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ApiService } from '../utils/apiService'
 import { authStore } from '../stores/authStore'
-import ConfirmModal from './ConfirmModal.vue'
-import AlertModal from './AlertModal.vue'
+import ConfirmModal from './modals/ConfirmModal.vue'
+import AlertModal from './modals/AlertModal.vue'
 import type { TeamAction, ProposalAction, ProposalComment, AgreementSummary, SuggestedVote, TeamMember } from '../types'
 
 // Props

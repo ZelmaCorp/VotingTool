@@ -21,7 +21,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import Menu from './components/Menu.vue'
+import Menu from './components/menu/Menu.vue'
 
 const isMenuOpen = ref(false)
 
