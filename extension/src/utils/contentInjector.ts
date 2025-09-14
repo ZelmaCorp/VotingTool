@@ -608,6 +608,9 @@ export class ContentInjector {
      * Inject status badge component
      */
     private async injectStatusBadge(proposal: DetectedProposal, proposalData: ProposalData | null): Promise<void> {
+        // StatusBadges have been disabled due to rendering issues - September 2025
+        return;
+
         if (!proposal.headerElement) {
             console.warn('No header element found for proposal', proposal.postId);
             return;
