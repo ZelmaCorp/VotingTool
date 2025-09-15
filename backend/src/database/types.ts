@@ -54,6 +54,15 @@ export interface ReferendumWithDetails extends ReferendumRecord {
     
     // From team assignments (concatenated)
     team_roles?: string;                // "Alice:Lead,Bob:Reviewer"
+    
+    // Additional fields for API responses
+    assigned_to?: string | null;        // Wallet address of responsible person
+    team_assignments?: Array<{          // All team assignments
+        wallet_address: string;
+        role_type: string;
+        reason?: string;
+        created_at: string;
+    }>;
 }
 
 // Scoring criteria record
