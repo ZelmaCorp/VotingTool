@@ -3,9 +3,8 @@ import { Web3AuthRequest } from '../../src/types/auth';
 
 describe('Authentication Utils', () => {
   const mockUser = {
-    id: 1,
+    address: '15oF4uVJwmo4TdGW7V2Yzgb5nTRw4CqxQ7Fq6QZ6QZ6QZ6QZ6QZ6',
     name: 'Test User',
-    wallet_address: '15oF4uVJwmo4TdGW7V2Yzgb5nTRw4CqxQ7Fq6QZ6QZ6QZ6QZ6QZ6',
     network: 'Polkadot' as const
   };
 
@@ -18,8 +17,8 @@ describe('Authentication Utils', () => {
     });
 
     it('should generate different tokens for different users', () => {
-      const user1 = { ...mockUser, id: 1 };
-      const user2 = { ...mockUser, id: 2 };
+      const user1 = { ...mockUser, name: 'User 1' };
+      const user2 = { ...mockUser, name: 'User 2' };
       
       const token1 = generateAuthToken(user1);
       const token2 = generateAuthToken(user2);
@@ -34,9 +33,9 @@ describe('Authentication Utils', () => {
       const verified = verifyAuthToken(token);
       
       expect(verified).toBeDefined();
-      expect(verified?.id).toBe(mockUser.id);
+      expect(verified?.address).toBe(mockUser.address);
       expect(verified?.name).toBe(mockUser.name);
-      expect(verified?.wallet_address).toBe(mockUser.wallet_address);
+      expect(verified?.network).toBe(mockUser.network);
     });
 
     it('should return null for invalid token', () => {
