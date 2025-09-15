@@ -66,6 +66,26 @@ Object.defineProperty(window, 'location', {
   writable: true,
 })
 
+// Mock window event listeners
+Object.defineProperty(window, 'addEventListener', {
+  value: vi.fn(),
+  writable: true,
+})
+
+Object.defineProperty(window, 'removeEventListener', {
+  value: vi.fn(),
+  writable: true,
+})
+
+// Mock document.body
+Object.defineProperty(document, 'body', {
+  value: {
+    querySelector: vi.fn(),
+    querySelectorAll: vi.fn(),
+  },
+  writable: true,
+})
+
 // Mock console methods to reduce noise in tests
 global.console = {
   ...console,
