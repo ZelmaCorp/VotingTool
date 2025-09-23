@@ -41,16 +41,12 @@ services:
       retries: 3
       start_period: 40s
     volumes:
-      # Persist SQLite database using named volume
-      - voting_tool_data:/app/data
+      # Persist SQLite database
+      - ./data:/app/data
       # Optional: Mount logs directory if you want to persist logs
       - ./logs:/app/logs
     networks:
       - polkadot-voting-network
-
-volumes:
-  voting_tool_data:
-    driver: local
 
 networks:
   polkadot-voting-network:
