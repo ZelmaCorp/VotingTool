@@ -17,7 +17,6 @@ RUN npm ci
 # Copy TypeScript source code
 COPY backend/src ./src
 COPY backend/tsconfig.json ./
-COPY backend/jest.config.js ./
 
 # Build TypeScript to JavaScript
 RUN npm run build
