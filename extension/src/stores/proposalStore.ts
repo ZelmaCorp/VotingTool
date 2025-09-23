@@ -1,105 +1,191 @@
-import { ref, computed, reactive } from 'vue'
-import type { Proposal, FilterOptions } from '../types'
+import { computed, reactive } from 'vue'
+import type { ProposalData, FilterOptions } from '../types'
+import { authStore } from './authStore'
+import { ApiService } from '../utils/apiService'
 
-// Simple reactive store using Vue 3 composition API
-export const useProposalStore = () => {
-  const proposals = ref<Proposal[]>([])
-  const currentProposal = ref<Proposal | null>(null)
-  const filters = reactive<FilterOptions>({})
-  const loading = ref(false)
-  const error = ref<string | null>(null)
+// Create reactive state
+const state = reactive({
+  proposals: [] as ProposalData[],
+  currentProposal: null as ProposalData | null,
+  filters: {} as FilterOptions,
+  loading: false,
+  error: null as string | null
+})
 
+// Computed properties
   const filteredProposals = computed(() => {
-    let filtered = proposals.value
+  let filtered = state.proposals
 
-    if (filters.status) {
-      filtered = filtered.filter((p: Proposal) => p.status === filters.status)
+  if (state.filters.status) {
+    filtered = filtered.filter((p: ProposalData) => p.internal_status === state.filters.status)
     }
 
-    if (filters.chain) {
-      filtered = filtered.filter((p: Proposal) => p.chain === filters.chain)
+  if (state.filters.chain) {
+    filtered = filtered.filter((p: ProposalData) => p.chain === state.filters.chain)
     }
 
-    if (filters.assignedTo) {
-      filtered = filtered.filter((p: Proposal) => p.assignedTo === filters.assignedTo)
+  if (state.filters.assignedTo) {
+    filtered = filtered.filter((p: ProposalData) => p.assigned_to === state.filters.assignedTo)
     }
 
-    if (filters.suggestedVote) {
-      filtered = filtered.filter((p: Proposal) => p.suggestedVote === filters.suggestedVote)
+  if (state.filters.suggestedVote) {
+    filtered = filtered.filter((p: ProposalData) => p.suggested_vote === state.filters.suggestedVote)
     }
 
     return filtered
   })
 
   const proposalsByStatus = computed(() => {
-    return proposals.value.reduce((acc: Record<string, Proposal[]>, proposal: Proposal) => {
-      const status = proposal.status
+  return state.proposals.reduce((acc: Record<string, ProposalData[]>, proposal: ProposalData) => {
+    const status = proposal.internal_status
       if (!acc[status]) {
         acc[status] = []
       }
       acc[status].push(proposal)
       return acc
-    }, {} as Record<string, Proposal[]>)
+  }, {} as Record<string, ProposalData[]>)
   })
 
   const myAssignments = computed(() => {
-    // Get current user from wallet
-    const currentUser = 'current-user-address'
-    return proposals.value.filter((p: Proposal) => p.assignedTo === currentUser)
+  const currentUser = authStore.state.user?.address
+  if (!currentUser) return []
+  return state.proposals.filter((p: ProposalData) => p.assigned_to === currentUser)
+})
+
+const actionsNeeded = computed(() => {
+  const currentUser = authStore.state.user?.address
+  if (!currentUser) return []
+  
+  return state.proposals.filter(p => {
+    // Proposals where user needs to take action
+    const hasNoTeamAction = !p.team_actions?.some(action => action.wallet_address === currentUser)
+    const isAssignedToMe = p.assigned_to === currentUser
+    const needsEvaluation = isAssignedToMe && !p.suggested_vote
+    const inActionableStatus = ['Considering', 'Ready for approval', 'Waiting for agreement'].includes(p.internal_status)
+    
+    return (hasNoTeamAction && inActionableStatus) || needsEvaluation
+  })
   })
 
-  const fetchProposals = async () => {
-    loading.value = true
+const myEvaluations = computed(() => {
+  const currentUser = authStore.state.user?.address
+  if (!currentUser) return []
+  return state.proposals.filter(p => p.assigned_to === currentUser && p.suggested_vote)
+})
+
+// Store object
+export const proposalStore = {
+  // State (readonly to prevent direct mutation)
+  get state() {
+    return {
+      proposals: state.proposals,
+      currentProposal: state.currentProposal,
+      filters: state.filters,
+      loading: state.loading,
+      error: state.error
+    }
+  },
+
+  // Getters
+  get filteredProposals() {
+    return filteredProposals.value
+  },
+  
+  get proposalsByStatus() {
+    return proposalsByStatus.value
+  },
+  
+  get myAssignments() {
+    return myAssignments.value
+  },
+
+  get actionsNeeded() {
+    return actionsNeeded.value
+  },
+
+  get myEvaluations() {
+    return myEvaluations.value
+  },
+
+  // Actions
+  async fetchProposals(): Promise<void> {
+    state.loading = true
+    state.error = null
+    console.log('🔄 ProposalStore: Starting fetchProposals...')
+    
     try {
-      // Implement actual API call
-      proposals.value = []
-      error.value = null
+      if (!authStore.state.isAuthenticated) {
+        console.warn('⚠️ ProposalStore: Not authenticated, cannot fetch proposals')
+        return
+      }
+
+      console.log('📡 ProposalStore: Calling ApiService.getAllProposals()...')
+      const apiService = ApiService.getInstance()
+      const allProposals = await apiService.getAllProposals()
+      
+      console.log('📦 ProposalStore: Received proposals from API:', {
+        count: allProposals.length,
+        proposalIds: allProposals.map(p => p.post_id).slice(0, 10), // First 10 IDs
+        sampleProposal: allProposals[0] ? {
+          id: allProposals[0].post_id,
+          title: allProposals[0].title,
+          status: allProposals[0].internal_status
+        } : null
+      })
+      
+      state.proposals = allProposals
+      state.error = null
+      
+      console.log('✅ ProposalStore: State updated with', state.proposals.length, 'proposals')
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to fetch proposals'
+      state.error = err instanceof Error ? err.message : 'Failed to fetch proposals'
+      console.error('❌ ProposalStore: Failed to fetch proposals:', err)
     } finally {
-      loading.value = false
+      state.loading = false
     }
-  }
+  },
 
-  const updateProposal = async (proposalId: string, updates: Partial<Proposal>) => {
-    const index = proposals.value.findIndex((p: Proposal) => p.id === proposalId)
+  setProposals(proposals: ProposalData[]): void {
+    state.proposals = proposals
+  },
+
+  async updateProposal(proposalId: string, updates: Partial<ProposalData>): Promise<void> {
+    const index = state.proposals.findIndex((p: ProposalData) => p.post_id.toString() === proposalId)
     if (index !== -1) {
-      proposals.value[index] = { ...proposals.value[index], ...updates, updatedAt: new Date().toISOString() }
+      state.proposals[index] = { ...state.proposals[index], ...updates, updated_at: new Date().toISOString() }
+    }
+  },
+
+  setFilters(newFilters: FilterOptions): void {
+    Object.assign(state.filters, newFilters)
+  },
+
+  clearFilters(): void {
+    Object.keys(state.filters).forEach(key => {
+      delete state.filters[key as keyof FilterOptions]
+    })
+  },
+
+  setCurrentProposal(proposal: ProposalData | null): void {
+    state.currentProposal = proposal
+  },
+
+  // Initialize proposals if authenticated
+  async initialize(): Promise<void> {
+    if (authStore.state.isAuthenticated && state.proposals.length === 0) {
+      await this.fetchProposals()
     }
   }
+}
 
-  const setFilters = (newFilters: FilterOptions) => {
-    Object.assign(filters, newFilters)
+// Auto-initialize when auth state changes
+window.addEventListener('authStateChanged', (event: any) => {
+  if (event.detail.isAuthenticated) {
+    proposalStore.initialize()
+  } else {
+    // Clear proposals when logged out
+    state.proposals = []
+    state.currentProposal = null
+    state.error = null
   }
-
-  const clearFilters = () => {
-    Object.keys(filters).forEach(key => {
-      delete filters[key as keyof FilterOptions]
-    })
-  }
-
-  const setCurrentProposal = (proposal: Proposal | null) => {
-    currentProposal.value = proposal
-  }
-
-  return {
-    // State
-    proposals,
-    currentProposal,
-    filters,
-    loading,
-    error,
-    
-    // Getters
-    filteredProposals,
-    proposalsByStatus,
-    myAssignments,
-    
-    // Actions
-    fetchProposals,
-    updateProposal,
-    setFilters,
-    clearFilters,
-    setCurrentProposal
-  }
-} 
+}) 

@@ -335,17 +335,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { ApiService } from '../../utils/apiService'
+import { teamStore } from '../../stores/teamStore'
 
 interface Props {
   show: boolean
-}
-
-interface DAOConfig {
-  name: string
-  requiredAgreements: number
-  teamMembers: Array<{ name: string; address: string }>
 }
 
 interface UserPreferences {
@@ -404,17 +399,16 @@ const activeSection = ref<'dao-config' | 'preferences' | 'voting-history' | 'act
 const extensionVersion = ref('1.0.0')
 const refreshing = ref(false)
 
-const daoConfig = ref<DAOConfig>({
-  name: '',
-  requiredAgreements: 4,
-  teamMembers: []
-})
-
-const userPrefs = ref<UserPreferences>({
-  notifications: true,
-  autoSync: true,
-  defaultView: 'list',
-  theme: 'light'
+// Use team store for DAO config
+const daoConfig = computed({
+  get: () => ({
+    name: teamStore.daoConfig?.name || '',
+    requiredAgreements: teamStore.daoConfig?.required_agreements || 4,
+    teamMembers: teamStore.teamMembers
+  }),
+  set: () => {
+    // This will be handled by the save method
+  }
 })
 
 const votingStats = ref<VotingStats>({
@@ -439,18 +433,15 @@ const loadData = async () => {
   }
 }
 
-const addMember = () => {
-  daoConfig.value.teamMembers.push({ name: '', address: '' })
-}
-
-const removeMember = (index: number) => {
-  daoConfig.value.teamMembers.splice(index, 1)
-}
+// addMember and removeMember functions removed as team members are managed by multisig
 
 const saveDAOConfig = async () => {
   try {
-    const apiService = ApiService.getInstance()
-    await apiService.updateDAOConfig(daoConfig.value)
+    await teamStore.updateDAOConfig({
+      name: daoConfig.value.name,
+      required_agreements: daoConfig.value.requiredAgreements,
+      team_members: daoConfig.value.teamMembers
+    })
     // Success handled silently
   } catch (error) {
     console.error('Failed to save DAO configuration:', error)
@@ -465,13 +456,7 @@ const resetDAOConfig = () => {
   }
 }
 
-const savePreferences = async () => {
-  try {
-    // Save user preferences when implemented
-  } catch (error) {
-    console.error('Failed to save preferences:', error)
-  }
-}
+// savePreferences function removed - not currently implemented
 
 const manualRefresh = async () => {
   try {
@@ -483,13 +468,7 @@ const manualRefresh = async () => {
   }
 }
 
-const clearCache = async () => {
-  try {
-    // Clear cache implementation when needed
-  } catch (error) {
-    console.error('Failed to clear cache:', error)
-  }
-}
+// clearCache function removed - not currently implemented
 
 const openExternal = (url: string) => {
   window.open(url, '_blank')

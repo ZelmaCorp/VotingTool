@@ -328,12 +328,13 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { Chain, InternalStatus, TimelineStatus, TeamAction } from '../../types'
+import { Chain, InternalStatus, TimelineStatus } from '../../types'
 import StatusBadge from '../StatusBadge.vue'
 import AlertModal from '../modals/AlertModal.vue'
 import { ApiService } from '../../utils/apiService'
 import { decodeAddress, encodeAddress } from '@polkadot/util-crypto'
-import { type TeamMember, getTeamMemberName, formatAddress, formatDate } from '../../utils/teamUtils'
+import { type TeamMember, formatDate } from '../../utils/teamUtils'
+import { teamStore } from '../../stores/teamStore'
 
 interface Props {
   show: boolean
@@ -373,11 +374,11 @@ const normalizeAddress = (address: string): string => {
   }
 }
 
-// Find team member by address with SS58 format flexibility
+// Use teamStore methods with address normalization
 const findTeamMemberByAddress = (address: string): TeamMember | null => {
   const normalizedSearchAddress = normalizeAddress(address)
   
-  const member = teamMembers.value.find(tm => {
+  const member = teamStore.teamMembers.find(tm => {
     const normalizedMemberAddress = normalizeAddress(tm.address)
     return normalizedMemberAddress === normalizedSearchAddress
   })
@@ -385,7 +386,7 @@ const findTeamMemberByAddress = (address: string): TeamMember | null => {
   return member || null
 }
 
-// Local version of getTeamMemberName that uses the local teamMembers data
+// Local version of getTeamMemberName that uses teamStore
 const getLocalTeamMemberName = (address: string | undefined): string => {
   if (!address) return 'Unknown';
   const member = findTeamMemberByAddress(address);
@@ -405,11 +406,13 @@ const workflowData = ref<{
   vetoed: []
 });
 
-const teamMembers = ref<TeamMember[]>([]);
 const activeTab = ref<'agreement' | 'ready' | 'discussion' | 'vetoed'>('agreement');
 const loading = ref(false);
 const error = ref<string | null>(null);
-const requiredAgreements = ref(4); // Default value
+
+// Use team store
+const teamMembers = computed(() => teamStore.teamMembers);
+const requiredAgreements = computed(() => teamStore.daoConfig?.required_agreements || 4);
 
 // Modal states
 const showAlertModal = ref(false);
@@ -471,42 +474,7 @@ interface Proposal extends ProposalData {
 }
 
 // Update the component's data/props types
-const vetoedProposals = computed(() => {
-  const vetoed = workflowData.value.vetoed.filter(p => {
-    const vetoAction = p.team_actions?.find(action => {
-      const actionType = action.role_type?.toLowerCase();
-      return actionType === 'no_way' || actionType === 'no way' || actionType === 'noway';
-    });
-
-    if (vetoAction) {
-      // Add veto information to the proposal
-      p.veto_by = vetoAction.team_member_id;
-      p.veto_reason = vetoAction.reason;
-      p.veto_date = vetoAction.created_at;
-      return true;
-    }
-    return false;
-  });
-
-  return vetoed;
-});
-
-// Add the helper functions
-
-const forDiscussion = computed(() => {
-  const discussions = workflowData.value.forDiscussion.filter(p => {
-    const hasDiscussionAction = p.team_actions?.some(action => {
-      // Case-insensitive comparison and handle both frontend and backend action types
-      const actionType = action.role_type?.toLowerCase();
-      const isDiscussion = actionType === 'to_be_discussed' || actionType === 'to be discussed' || actionType === 'tobediscussed' || actionType === 'To be discussed'.toLowerCase();
-      return isDiscussion;
-    });
-    
-    return hasDiscussionAction;
-  });
-
-  return discussions;
-})
+// Unused computed properties removed - data is accessed directly from workflowData
 
 // Methods
 const loadData = async () => {
@@ -536,11 +504,9 @@ const loadData = async () => {
     console.log('🚫 Vetoed proposals data:', data.vetoedProposals);
     
     if (daoConfig) {
-      teamMembers.value = daoConfig.team_members;
+      // Update team store with the loaded data
+      teamStore.setTeamMembers(daoConfig.team_members);
       console.log('👥 Team members loaded:', daoConfig.team_members);
-      if (daoConfig.required_agreements) {
-        requiredAgreements.value = daoConfig.required_agreements;
-      }
     }
 
   } catch (err) {
@@ -577,17 +543,7 @@ const openProposal = (proposal: Proposal) => {
   window.open(url, '_blank')
 }
 
-const getVetoMembers = (proposal: Proposal): TeamMember[] => {
-  const vetoActions = proposal.team_actions?.filter(action => {
-    const actionType = action.role_type?.toLowerCase();
-    return actionType === 'no_way' || actionType === 'no way' || actionType === 'noway';
-  }) || [];
-  
-  return vetoActions.map(action => ({
-    name: action.team_member_name || getLocalTeamMemberName(action.wallet_address),
-    address: action.wallet_address
-  }));
-}
+// getVetoMembers function removed as it's not used in the template
 
 const getAgreementCount = (proposal: Proposal): number => {
   const count = proposal.team_actions?.filter(action => {

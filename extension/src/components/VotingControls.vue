@@ -97,6 +97,7 @@
 import { ref, computed } from 'vue'
 import type { InternalStatus, SuggestedVote, Chain, TeamMember } from '../types'
 import { authStore } from '../stores/authStore'
+import { teamStore } from '../stores/teamStore'
 import { formatAddress } from '../utils/teamUtils'
 import StatusChangeModal from './modals/StatusChangeModal.vue'
 import AssignModal from './modals/AssignModal.vue'
@@ -191,8 +192,8 @@ const addressesMatch = (addr1?: string | null, addr2?: string | null): boolean =
  * @returns Team member name if found, otherwise null
  */
 const getTeamMemberName = (address: string): string | null => {
-  if (!props.teamMembers || !address) return null
-  const member = props.teamMembers.find(m => addressesMatch(m.address, address))
+  if (!address) return null
+  const member = teamStore.findTeamMemberByAddress(address)
   return member?.name || null
 }
 
@@ -300,7 +301,6 @@ const statusConfig = {
 }
 
 const statusClass = computed(() => {
-  const config = statusConfig[props.status]
   return {
     'status-clickable': props.editable,
     [`status-${props.status.toLowerCase().replace(/[^a-z0-9]/g, '-')}`]: true

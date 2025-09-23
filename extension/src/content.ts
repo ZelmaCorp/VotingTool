@@ -10,9 +10,9 @@ if (window.opengovVotingToolInitialized) {
 window.opengovVotingToolInitialized = true
 
 import { createApp } from 'vue'
-import { createPinia } from 'pinia'
 import App from './App.vue'
 import { ContentInjector } from './utils/contentInjector'
+import { proposalStore, teamStore } from './stores'
 
 // Extend Window interface
 declare global {
@@ -58,15 +58,17 @@ async function initializeExtension() {
     `;
     document.body.appendChild(extensionContainer);
 
-    // Initialize Vue app with Pinia
+    // Initialize Vue app
     const app = createApp(App);
-    const pinia = createPinia();
-    app.use(pinia);
     app.mount('#opengov-voting-extension');
     
     // Initialize content injector for status badges
     contentInjector = ContentInjector.getInstance();
     await contentInjector.initialize();
+    
+    // Initialize stores if authenticated
+    await proposalStore.initialize();
+    await teamStore.initialize();
     
   } catch (error) {
     console.error('❌ OpenGov VotingTool Extension - Initialization failed:', error);
@@ -111,11 +113,14 @@ window.addEventListener('message', function(event) {
 // Test background script connection
 setTimeout(() => {
   try {
-    chrome.runtime.sendMessage({ type: 'PING' }, (response) => {
+    chrome.runtime.sendMessage(
+      { type: 'VOTING_TOOL_CONTENT_SCRIPT_READY' },
+      () => {
       if (chrome.runtime.lastError) {
-        console.error('❌ Background script connection failed:', chrome.runtime.lastError);
+          console.warn('Background script not available:', chrome.runtime.lastError.message)
+        }
       }
-    });
+    )
   } catch (error) {
     console.error('❌ Error testing background script connection:', error);
   }

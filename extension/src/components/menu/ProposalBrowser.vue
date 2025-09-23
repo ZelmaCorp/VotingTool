@@ -111,7 +111,7 @@
             </div>
 
             <div class="results-info">
-              {{ filteredProposals.length }} of {{ proposals.length }} proposals
+              {{ filteredProposals.length }} of {{ proposalStore.state.proposals.length }} proposals
             </div>
           </div>
 
@@ -173,7 +173,7 @@
                   <h4 class="card-title">{{ proposal.title }}</h4>
                   <div class="card-meta">
                     <div class="meta-item">
-                      <strong>Assigned:</strong> {{ getTeamMemberName(proposal.assigned_to) || formatAddress(proposal.assigned_to) || 'Unassigned' }}
+                      <strong>Assigned:</strong> {{ teamStore.getTeamMemberName(proposal.assigned_to) || formatAddress(proposal.assigned_to) || 'Unassigned' }}
                     </div>
                     <div class="meta-item">
                       <strong>Updated:</strong> {{ formatDate(proposal.updated_at || proposal.created_at) }}
@@ -218,21 +218,22 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import type { ProposalData, InternalStatus, TimelineStatus, TeamAction } from '../../types'
 import { ApiService } from '../../utils/apiService'
 import { authStore } from '../../stores/authStore'
+import { proposalStore } from '../../stores/proposalStore'
 import StatusBadge from '../StatusBadge.vue'
-import { findTeamMemberByAddress, formatAddress, getTeamMemberName, formatDate } from '../../utils/teamUtils';
+import { formatAddress, formatDate } from '../../utils/teamUtils';
+import { teamStore } from '../../stores/teamStore';
 
 interface Props {
   show: boolean
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 const emit = defineEmits<{
   close: []
 }>()
 
-// Data
-const proposals = ref<ProposalData[]>([])
-const loading = ref(false)
+// Use store state instead of local refs
+const loading = computed(() => proposalStore.state.loading)
 
 // Filters
 const searchQuery = ref('')
@@ -279,7 +280,7 @@ const timelineStatuses: TimelineStatus[] = [
 
 // Computed
 const filteredProposals = computed(() => {
-  let filtered = [...proposals.value]
+  let filtered = [...proposalStore.state.proposals]
 
   // Search filter
   if (searchQuery.value) {
@@ -360,20 +361,20 @@ const paginatedProposals = computed(() => {
 const apiService = ApiService.getInstance()
 
 const loadProposals = async () => {
-  loading.value = true
-  try {
-    if (!authStore.state.isAuthenticated) {
-      console.warn('API Service not authenticated')
-      return
-    }
-
-    const allProposals = await apiService.getAllProposals()
-    proposals.value = allProposals
-  } catch (error) {
-    console.error('Failed to load proposals:', error)
-  } finally {
-    loading.value = false
-  }
+  console.log('🔄 ProposalBrowser: Loading proposals...')
+  console.log('📊 Current store state:', {
+    proposalCount: proposalStore.state.proposals.length,
+    loading: proposalStore.state.loading,
+    error: proposalStore.state.error
+  })
+  
+  await proposalStore.fetchProposals()
+  
+  console.log('✅ ProposalBrowser: Proposals loaded:', {
+    totalProposals: proposalStore.state.proposals.length,
+    proposalIds: proposalStore.state.proposals.map(p => p.post_id).slice(0, 10), // First 10 IDs
+    error: proposalStore.state.error
+  })
 }
 
 const clearFilters = () => {
@@ -438,6 +439,13 @@ const handleEscKey = (event: KeyboardEvent) => {
 // Watch for auth state changes
 watch(() => authStore.state.isAuthenticated, (isAuthenticated) => {
   if (isAuthenticated) {
+    loadProposals()
+  }
+})
+
+// Watch for modal show/hide to reload data when opened
+watch(() => props.show, (isShown) => {
+  if (isShown && authStore.state.isAuthenticated) {
     loadProposals()
   }
 })
@@ -782,6 +790,7 @@ onUnmounted(() => {
   color: #333;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }

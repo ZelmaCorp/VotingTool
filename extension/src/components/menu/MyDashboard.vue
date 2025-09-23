@@ -215,6 +215,7 @@
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ApiService } from '../../utils/apiService'
 import { authStore } from '../../stores/authStore'
+import { proposalStore } from '../../stores/proposalStore'
 import { formatDate } from '../../utils/teamUtils'
 import type { ProposalData } from '../../types'
 import StatusBadge from '../StatusBadge.vue'
@@ -230,17 +231,18 @@ interface ActivityItem {
   timestamp: string
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 const emit = defineEmits<{
   close: []
 }>()
 
 // Data
-const apiService = ApiService.getInstance()
 const loading = ref(false)
-const proposals = ref<ProposalData[]>([])
 const recentActivity = ref<ActivityItem[]>([])
 const activeTab = ref<'assignments' | 'actions' | 'evaluations' | 'activity'>('assignments')
+
+// Local data for dashboard-specific views (don't override global store)
+const dashboardProposals = ref<ProposalData[]>([])
 
 // Computed
 const currentUser = computed(() => {
@@ -248,36 +250,38 @@ const currentUser = computed(() => {
   return address || null
 })
 
+// Use dashboard-specific data instead of global store for dashboard views
 const myAssignments = computed(() => {
-  const address = authStore.state.user?.address
-  if (!address) return []
-  
-  return proposals.value.filter(proposal => 
-    proposal.assigned_to === address
-  )
+  const currentUser = authStore.state.user?.address
+  if (!currentUser) return []
+  return dashboardProposals.value.filter(p => p.assigned_to === currentUser)
 })
 
-const actionsNeeded = computed(() => 
-  proposals.value.filter(p => {
-    const user = currentUser.value
+const actionsNeeded = computed(() => {
+  const currentUser = authStore.state.user?.address
+  if (!currentUser) return []
+  
+  return dashboardProposals.value.filter(p => {
     // Proposals where user needs to take action
-    const hasNoTeamAction = !p.team_actions?.some(action => action.wallet_address === user)
-    const isAssignedToMe = p.assigned_to === user
+    const hasNoTeamAction = !p.team_actions?.some(action => action.wallet_address === currentUser)
+    const isAssignedToMe = p.assigned_to === currentUser
     const needsEvaluation = isAssignedToMe && !p.suggested_vote
     const inActionableStatus = ['Considering', 'Ready for approval', 'Waiting for agreement'].includes(p.internal_status)
     
     return (hasNoTeamAction && inActionableStatus) || needsEvaluation
   })
-)
+})
 
-const myEvaluations = computed(() => 
-  proposals.value.filter(p => p.assigned_to === currentUser.value && p.suggested_vote)
-)
+const myEvaluations = computed(() => {
+  const currentUser = authStore.state.user?.address
+  if (!currentUser) return []
+  return dashboardProposals.value.filter(p => p.assigned_to === currentUser && p.suggested_vote)
+})
 
 const totalTeamActions = computed(() => {
   const user = currentUser.value
   let count = 0
-  proposals.value.forEach(p => {
+  dashboardProposals.value.forEach(p => {
     if (p.team_actions?.some(action => action.wallet_address === user)) {
       count++
     }
@@ -317,7 +321,8 @@ const loadData = async () => {
         index === self.findIndex(p => p.post_id === proposal.post_id && p.chain === proposal.chain)
       )
       
-      proposals.value = uniqueProposals
+      // Set dashboard-specific proposals (don't override global store)
+      dashboardProposals.value = uniqueProposals
       
     } catch (apiError) {
       console.warn('Specific API endpoints failed, falling back to general proposal list:', apiError)
@@ -328,15 +333,15 @@ const loadData = async () => {
         console.warn('No fallback endpoint available, using empty proposals')
         const relevantProposals: ProposalData[] = []
         
-        proposals.value = relevantProposals
+        dashboardProposals.value = relevantProposals
       } catch (fallbackError) {
         console.error('All API calls failed:', fallbackError)
-        proposals.value = []
+        dashboardProposals.value = []
       }
     }
     
     // Get recent activity (last 10 proposals by update time)
-    const recentProposals = [...proposals.value]
+    const recentProposals = [...dashboardProposals.value]
       .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
       .slice(0, 10)
     
@@ -349,7 +354,7 @@ const loadData = async () => {
 
   } catch (error) {
     console.error('Failed to load dashboard data:', error)
-    proposals.value = []
+    proposalStore.setProposals([])
     recentActivity.value = []
   } finally {
     loading.value = false
