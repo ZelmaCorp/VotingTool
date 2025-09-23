@@ -81,7 +81,7 @@ export class DatabaseConnection {
         const statements = schema
             .split(';')
             .map(stmt => stmt.trim())
-            .filter(stmt => stmt.length > 0 && !stmt.startsWith('--') && !stmt.startsWith('PRAGMA'));
+            .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
 
         for (const statement of statements) {
             if (statement.length > 0) {
