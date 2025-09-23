@@ -77,11 +77,17 @@ export class DatabaseConnection {
 
         const schema = fs.readFileSync(schemaPath, 'utf8');
         
-        // Split by semicolon and execute each statement
-        const statements = schema
+        // Remove comments and split by semicolon
+        const cleanedSchema = schema
+            .split('\n')
+            .map(line => line.replace(/--.*$/, '').trim()) // Remove inline comments
+            .filter(line => line.length > 0) // Remove empty lines
+            .join('\n');
+        
+        const statements = cleanedSchema
             .split(';')
             .map(stmt => stmt.trim())
-            .filter(stmt => stmt.length > 0 && !stmt.startsWith('--'));
+            .filter(stmt => stmt.length > 0);
 
         for (const statement of statements) {
             if (statement.length > 0) {
