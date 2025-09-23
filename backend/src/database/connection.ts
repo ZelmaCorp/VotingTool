@@ -86,8 +86,11 @@ export class DatabaseConnection {
         for (const statement of statements) {
             if (statement.length > 0) {
                 try {
+                    console.log('Executing SQL:', statement.substring(0, 100) + '...');
                     await this.run(statement + ';');
-                } catch (error) {
+                } catch (error: any) {
+                    console.error('SQL Error:', error.message);
+                    console.error('Query:', statement.substring(0, 100) + '...');
                     console.error('Error executing schema statement:', statement.substring(0, 100) + '...');
                     throw error;
                 }
