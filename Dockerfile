@@ -40,7 +40,7 @@ RUN mkdir -p /app/data && chown nodejs:nodejs /app/data
 COPY backend/package*.json ./
 
 # Install only production dependencies (including native modules)
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
