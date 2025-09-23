@@ -66,7 +66,7 @@ export class DatabaseConnection {
     }
 
     /**
-     * Create the database schema by reading the schema file
+     * Create the database schema by executing the schema file with sqlite3
      */
     private async createSchema(): Promise<void> {
         const schemaPath = path.join(__dirname, '../../database/schema.sql');
@@ -75,35 +75,40 @@ export class DatabaseConnection {
             throw new Error(`Schema file not found at ${schemaPath}`);
         }
 
-        const schema = fs.readFileSync(schemaPath, 'utf8');
-        
-        // Remove comments and split by semicolon
-        const cleanedSchema = schema
-            .split('\n')
-            .map(line => line.replace(/--.*$/, '').trim()) // Remove inline comments
-            .filter(line => line.length > 0) // Remove empty lines
-            .join('\n');
-        
-        const statements = cleanedSchema
-            .split(';')
-            .map(stmt => stmt.trim())
-            .filter(stmt => stmt.length > 0);
-
-        for (const statement of statements) {
-            if (statement.length > 0) {
-                try {
-                    console.log('Executing SQL:', statement.substring(0, 100) + '...');
-                    await this.run(statement + ';');
-                } catch (error: any) {
-                    console.error('SQL Error:', error.message);
-                    console.error('Query:', statement.substring(0, 100) + '...');
-                    console.error('Error executing schema statement:', statement.substring(0, 100) + '...');
-                    throw error;
-                }
-            }
+        // Close the current database connection temporarily
+        if (this.db) {
+            await new Promise<void>((resolve, reject) => {
+                this.db!.close((err) => {
+                    if (err) reject(err);
+                    else resolve();
+                });
+            });
         }
 
-        console.log('Database schema created successfully');
+        // Execute the schema file using sqlite3 command
+        const { exec } = require('child_process');
+        const command = `sqlite3 "${this.dbPath}" < "${schemaPath}"`;
+        
+        await new Promise<void>((resolve, reject) => {
+            exec(command, (error: any, stdout: any, stderr: any) => {
+                if (error) {
+                    console.error('Error executing schema:', error.message);
+                    console.error('stderr:', stderr);
+                    reject(error);
+                } else {
+                    console.log('Database schema created successfully');
+                    resolve();
+                }
+            });
+        });
+
+        // Reconnect to the database
+        await new Promise<void>((resolve, reject) => {
+            this.db = new sqlite.Database(this.dbPath, (err) => {
+                if (err) reject(err);
+                else resolve();
+            });
+        });
     }
 
     /**
