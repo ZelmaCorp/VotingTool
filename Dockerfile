@@ -12,7 +12,7 @@ WORKDIR /app
 COPY backend/package*.json ./
 
 # Install dependencies (including devDependencies for building)
-RUN npm ci
+RUN npm install
 
 # Copy TypeScript source code
 COPY backend/src ./src
@@ -25,8 +25,7 @@ RUN npm run build
 FROM node:20-alpine AS production
 
 # Install dumb-init for proper signal handling and sqlite3 runtime dependencies
-# Also install build dependencies needed for native modules
-RUN apk add --no-cache dumb-init sqlite python3 make g++
+RUN apk add --no-cache dumb-init sqlite
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
@@ -37,17 +36,10 @@ WORKDIR /app
 # Create data directory for SQLite database
 RUN mkdir -p /app/data && chown nodejs:nodejs /app/data
 
-# Copy package files
-COPY backend/package*.json ./
-
-# Install only production dependencies (including native modules)
-RUN npm ci --omit=dev && npm cache clean --force
-
-# Remove build dependencies to keep image small
-RUN apk del python3 make g++
-
-# Copy built application from builder stage
+# Copy built application and node_modules from builder stage
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
 
 # Copy other necessary files
 COPY backend/public ./public
