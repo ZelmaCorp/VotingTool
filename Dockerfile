@@ -27,14 +27,11 @@ FROM node:20-alpine AS production
 # Install dumb-init for proper signal handling and sqlite3 runtime dependencies
 RUN apk add --no-cache dumb-init sqlite
 
-# Create non-root user
-RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
-
 # Set working directory
 WORKDIR /app
 
 # Create data directory for SQLite database
-RUN mkdir -p /app/data && chown nodejs:nodejs /app/data
+RUN mkdir -p /app/data
 
 # Copy built application and node_modules from builder stage
 COPY --from=builder /app/dist ./dist
@@ -43,10 +40,6 @@ COPY --from=builder /app/package*.json ./
 
 # Copy other necessary files
 COPY backend/public ./public
-
-# Change ownership to nodejs user
-RUN chown -R nodejs:nodejs /app
-USER nodejs
 
 # Expose port
 EXPOSE 3000
