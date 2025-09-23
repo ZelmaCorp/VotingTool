@@ -121,7 +121,7 @@ The Dockerfile uses a multi-stage build process:
 2. **Production Stage:** Creates a minimal runtime image with SQLite support
 
 ### Image Features:
-- Based on Node.js 18 Alpine (lightweight)
+- Based on Node.js 20 Alpine (lightweight)
 - SQLite3 native module support
 - Non-root user for security
 - Health checks included

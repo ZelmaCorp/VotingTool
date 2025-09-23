@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile for Polkadot Voting Tool
 # Stage 1: Build stage
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 # Install build dependencies for native modules (sqlite3)
 RUN apk add --no-cache python3 make g++
@@ -23,7 +23,7 @@ COPY backend/jest.config.js ./
 RUN npm run build
 
 # Stage 2: Production stage
-FROM node:18-alpine AS production
+FROM node:20-alpine AS production
 
 # Install dumb-init for proper signal handling and sqlite3 runtime dependencies
 RUN apk add --no-cache dumb-init sqlite
