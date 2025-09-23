@@ -1,65 +1,57 @@
-# Node modules
-node_modules
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+# Node modules (will be installed in container)
+backend/node_modules/
+extension/node_modules/
 
-# Environment files
-.env
-.env.local
-.env.production
-.env.test
+# Database files (will be mounted as volume)
+backend/voting_tool.db
+backend/database.db
+*.db
+*.db-journal
 
-# Build outputs
-backend/dist
-backend/build
+# Build outputs (will be generated in container)
+backend/dist/
+extension/dist-chrome/
+extension/dist-firefox/
+
+# Development files
+backend/.env
+backend/.env.*
+*.log
+logs/
 
 # Git
-.git
+.git/
 .gitignore
-.gitattributes
 
 # IDE files
-.vscode
-.idea
+.vscode/
+.idea/
 *.swp
 *.swo
-*~
 
 # OS files
 .DS_Store
 Thumbs.db
 
-# Logs
-logs
-*.log
+# Test files
+backend/tests/
+backend/coverage/
+backend/jest.config.js
 
-# Testing
-coverage
-*.lcov
+# Documentation (not needed in container)
+*.md
+docs/
+
+# Extension files (not needed for backend container)
+extension/
+
+# Development scripts
+backend/scripts/
+
+# Backup files
+*.backup
+backup/
 
 # Temporary files
-*.tmp
-*.temp
-
-# Documentation
-*.md
-!README.md
-
-# CI/CD
-.github
-
-# Vercel
-.vercel
-
-# Cache directories
-.npm
-.yarn
-.cache
-
-# Test files
-backend/tests
-backend/__tests__
-
-# Other build artifacts
-backend/node_modules 
+tmp/
+temp/ 
