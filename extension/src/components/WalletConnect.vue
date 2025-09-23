@@ -22,7 +22,7 @@
               :disabled="isConnecting"
             >
               <div class="wallet-icon">
-                {{ wallet.key === 'polkadot-js' ? '🔗' : '🦅' }}
+                {{ getWalletIcon(wallet.key) }}
               </div>
               <div class="wallet-info">
                 <div class="wallet-name">{{ wallet.name }}</div>
@@ -204,7 +204,7 @@ const availableWallets = computed(() => {
   return window.opengovVotingToolResult?.availableWallets || []
 })
 
-let checkInterval: number | null = null
+let checkInterval: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
   // Start checking for the extension
@@ -439,7 +439,19 @@ const getAccountInitials = (name: string) => {
   return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
 }
 
-
+const getWalletIcon = (walletKey: string) => {
+  // Placeholder icons - replace with actual wallet icons later
+  switch (walletKey) {
+    case 'polkadot-js':
+      return '🔘' // Placeholder for Polkadot Extension
+    case 'talisman':
+      return '🔘' // Placeholder for Talisman
+    case 'subwallet':
+      return '🔘' // Placeholder for SubWallet
+    default:
+      return '🔘' // Generic placeholder
+  }
+}
 
 const clearError = () => {
   error.value = ''
