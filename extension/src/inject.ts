@@ -4,56 +4,51 @@
 
 // Global object to store results
 ;(window as any).opengovVotingTool = {
-  // Check if wallet extensions are available
-  checkWalletExtension: function() {
-    const availableWallets = []
-    
-    // Check if injectedWeb3 exists at all
-    if (!(window as any).injectedWeb3) {
+      // Check if wallet extensions are available
+    checkWalletExtension: function() {
+      const injectedWeb3 = (window as any).injectedWeb3
+      const availableWallets = []
+      
+      if (injectedWeb3) {
+        // Check for Polkadot Developer Signer (formerly polkadot-js)
+        if (injectedWeb3['polkadot-js']) {
+          availableWallets.push({
+            name: 'Polkadot Developer Signer',
+            key: 'polkadot-js'
+          })
+        }
+        
+        // Check for Talisman
+        if (injectedWeb3.talisman) {
+          availableWallets.push({
+            name: 'Talisman',
+            key: 'talisman'
+          })
+        }
+        
+        // Check for SubWallet (multiple possible keys)
+        if (injectedWeb3.subwallet || injectedWeb3['subwallet-js'] || injectedWeb3.SubWallet) {
+          availableWallets.push({
+            name: 'SubWallet',
+            key: injectedWeb3['subwallet-js'] ? 'subwallet-js' : (injectedWeb3.SubWallet ? 'SubWallet' : 'subwallet')
+          })
+        }
+        
+        // Check for Nova Wallet
+        if (injectedWeb3['nova-wallet']) {
+          availableWallets.push({
+            name: 'Nova Wallet',
+            key: 'nova-wallet'
+          })
+        }
+      }
+      
       return {
-        hasPolkadotExtension: false,
-        availableWallets: [],
+        hasPolkadotExtension: availableWallets.length > 0,
+        availableWallets: availableWallets,
         timestamp: Date.now(),
-        debug: 'window.injectedWeb3 not found'
+        debug: `Found ${availableWallets.length} installed Tier 1 wallets`
       }
-    }
-    
-    const injectedWeb3 = (window as any).injectedWeb3
-    
-    // Check Polkadot Extension
-    if (injectedWeb3['polkadot-js']) {
-      availableWallets.push({
-        name: 'Polkadot Extension',
-        key: 'polkadot-js'
-      })
-    }
-    
-    // Check Talisman
-    if (injectedWeb3.talisman) {
-      availableWallets.push({
-        name: 'Talisman',
-        key: 'talisman'
-      })
-    }
-    
-    // Check Subwallet (multiple possible keys)
-    const subwalletKeys = ['subwallet-js', 'SubWallet', 'subwallet']
-    for (const key of subwalletKeys) {
-      if (injectedWeb3[key]) {
-        availableWallets.push({
-          name: 'SubWallet',
-          key: key
-        })
-        break // Only add once even if multiple keys exist
-      }
-    }
-    
-    return {
-      hasPolkadotExtension: availableWallets.length > 0,
-      availableWallets: availableWallets,
-      timestamp: Date.now(),
-      debug: `Found ${availableWallets.length} wallets from keys: ${Object.keys(injectedWeb3).join(', ')}`
-    }
   },
   
   // Get accounts from a specific wallet
@@ -103,7 +98,14 @@
     try {
       // We need to re-enable the wallet for signing since we don't store the enabled state
       // Let's try all available wallets to see which one has this address
-      const wallets = ['polkadot-js', 'talisman', 'subwallet', 'subwallet-js', 'SubWallet']
+      const wallets = [
+        'polkadot-js', 
+        'talisman', 
+        'subwallet', 
+        'subwallet-js', 
+        'SubWallet',
+        'nova-wallet'
+      ]
       const injectedWeb3 = (window as any).injectedWeb3
       
       for (const walletKey of wallets) {

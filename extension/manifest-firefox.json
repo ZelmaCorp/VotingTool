@@ -26,6 +26,14 @@
       "css": ["design-system.css", "overlay.css"]
     }
   ],
+  "web_accessible_resources": [
+    "inject.js",
+    "icons/wallet-polkadot-js.svg",
+    "icons/wallet-talisman.svg",
+    "icons/wallet-subwallet.svg",
+    "icons/wallet-nova.svg",
+    "icons/wallet-default.svg"
+  ],
   "browser_action": {
     "default_popup": "popup.html",
     "default_title": "OpenGov VotingTool"

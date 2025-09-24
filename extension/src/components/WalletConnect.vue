@@ -22,7 +22,13 @@
               :disabled="isConnecting"
             >
               <div class="wallet-icon">
-                {{ getWalletIcon(wallet.key) }}
+                <img 
+                  :src="getWalletIcon(wallet.key)" 
+                  :alt="wallet.name" 
+                  @error="handleIconError"
+                  :onerror="`this.style.display='none'; this.nextElementSibling.style.display='block'`"
+                />
+                <span class="wallet-icon-fallback" style="display: none;">{{ getWalletEmoji(wallet.key) }}</span>
               </div>
               <div class="wallet-info">
                 <div class="wallet-name">{{ wallet.name }}</div>
@@ -440,17 +446,39 @@ const getAccountInitials = (name: string) => {
 }
 
 const getWalletIcon = (walletKey: string) => {
-  // Placeholder icons - replace with actual wallet icons later
+  // Return the path to the wallet icon SVG using chrome.runtime.getURL
+  const getIconPath = (iconName: string) => {
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.getURL) {
+      return chrome.runtime.getURL(`icons/${iconName}`)
+    }
+    return `/icons/${iconName}` // Fallback
+  }
+  
   switch (walletKey) {
     case 'polkadot-js':
-      return '🔘' // Placeholder for Polkadot Extension
+      return getIconPath('wallet-polkadot-js.svg')
     case 'talisman':
-      return '🔘' // Placeholder for Talisman
+      return getIconPath('wallet-talisman.svg')
     case 'subwallet':
-      return '🔘' // Placeholder for SubWallet
+    case 'subwallet-js':
+    case 'SubWallet':
+      return getIconPath('wallet-subwallet.svg')
+    case 'nova-wallet':
+      return getIconPath('wallet-nova.svg')
     default:
-      return '🔘' // Generic placeholder
+      return getIconPath('wallet-default.svg')
   }
+}
+
+const getWalletEmoji = (walletKey: string) => {
+  // Fallback emoji icon when SVG fails to load - same for all wallets
+  return '💼' // Generic wallet icon for all wallets
+}
+
+const handleIconError = (event: Event) => {
+  // This function is called when an image fails to load
+  // The onerror inline handler will handle the fallback display
+  console.log('Wallet icon failed to load, falling back to emoji')
 }
 
 const clearError = () => {
@@ -570,8 +598,26 @@ Your address: ${address}${configuredMultisigs}
 }
 
 .wallet-icon {
-  font-size: 24px;
+  width: 32px;
+  height: 32px;
   margin-right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.wallet-icon img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.wallet-icon-fallback {
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .wallet-info {

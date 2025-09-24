@@ -140,6 +140,8 @@ describe('inject script', () => {
       mockInjectedWeb3['polkadot-js'] = { enable: vi.fn() }
       mockInjectedWeb3.talisman = { enable: vi.fn() }
       mockInjectedWeb3['subwallet-js'] = { enable: vi.fn() }
+      mockInjectedWeb3['fearless-wallet'] = { enable: vi.fn() }
+      mockInjectedWeb3.enkrypt = { enable: vi.fn() }
       
       const availableWallets = []
       
@@ -170,11 +172,29 @@ describe('inject script', () => {
           break
         }
       }
+      
+      // Check Fearless Wallet
+      if (mockInjectedWeb3['fearless-wallet']) {
+        availableWallets.push({
+          name: 'Fearless Wallet',
+          key: 'fearless-wallet'
+        })
+      }
+      
+      // Check Enkrypt
+      if (mockInjectedWeb3.enkrypt) {
+        availableWallets.push({
+          name: 'Enkrypt',
+          key: 'enkrypt'
+        })
+      }
 
-      expect(availableWallets).toHaveLength(3)
+      expect(availableWallets).toHaveLength(5)
       expect(availableWallets.map(w => w.name)).toContain('Polkadot Extension')
       expect(availableWallets.map(w => w.name)).toContain('Talisman')
       expect(availableWallets.map(w => w.name)).toContain('SubWallet')
+      expect(availableWallets.map(w => w.name)).toContain('Fearless Wallet')
+      expect(availableWallets.map(w => w.name)).toContain('Enkrypt')
     })
   })
 

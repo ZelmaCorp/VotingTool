@@ -18,7 +18,14 @@
     "https://api.votingtool.zelmacorp.io/*"
   ],
   "web_accessible_resources": [{
-    "resources": ["inject.js"],
+    "resources": [
+      "inject.js",
+      "icons/wallet-polkadot-js.svg",
+      "icons/wallet-talisman.svg",
+      "icons/wallet-subwallet.svg",
+      "icons/wallet-nova.svg",
+      "icons/wallet-default.svg"
+    ],
     "matches": [
       "https://polkadot.polkassembly.io/*",
       "https://kusama.polkassembly.io/*",
