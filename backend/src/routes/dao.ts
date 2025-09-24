@@ -6,6 +6,7 @@ import { multisigService } from "../services/multisig";
 import { createSubsystemLogger } from "../config/logger";
 import { Subsystem } from "../types/logging";
 import { Referendum } from "../database/models/referendum";
+import { refreshReferendas } from "../refresh";
 
 const router = Router();
 const logger = createSubsystemLogger(Subsystem.APP);
@@ -954,6 +955,64 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
     res.status(500).json({
       success: false,
       error: 'Failed to get workflow data'
+    });
+  }
+});
+
+/**
+ * POST /dao/sync
+ * Trigger data synchronization with Polkassembly
+ * Supports both normal sync (limit=30) and deep sync (limit=100+)
+ */
+router.post("/sync", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { type = 'normal' } = req.body;
+    
+    // Validate sync type
+    if (type !== 'normal' && type !== 'deep') {
+      return res.status(400).json({
+        success: false,
+        error: "Sync type must be 'normal' or 'deep'"
+      });
+    }
+    
+    // Set limit based on sync type
+    const limit = type === 'deep' ? 100 : 30;
+    
+    logger.info({ 
+      syncType: type, 
+      limit,
+      requestedBy: req.user?.address 
+    }, `Starting ${type} sync operation`);
+    
+    // Start refresh in background (don't await to return immediately)
+    refreshReferendas(limit).catch(error => {
+      logger.error({ 
+        error: error.message, 
+        syncType: type, 
+        limit,
+        requestedBy: req.user?.address 
+      }, `${type} sync failed`);
+    });
+    
+    // Return immediately
+    res.json({
+      success: true,
+      message: `${type === 'deep' ? 'Deep' : 'Normal'} sync started successfully`,
+      type: type,
+      limit: limit,
+      timestamp: new Date().toISOString(),
+      status: "started"
+    });
+    
+  } catch (error) {
+    logger.error({ 
+      error, 
+      requestedBy: req.user?.address 
+    }, "Error starting sync operation");
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
     });
   }
 });
