@@ -100,14 +100,14 @@ export default {
     const currentUser = computed(() => {
       const user = web3AuthService.getCurrentUser();
       return user || { name: '', address: '' };
-                                                                                                                                                                                        });
-                                                                                                                                                                                        const currentAccount = computed(() => web3AuthService.getCurrentAccount());
+    });
+    const currentAccount = computed(() => web3AuthService.getCurrentAccount());
 
-                                                                                                                                                                                        // Methods
-                                                                                                                                                                                        const enableWallet = async () => {
-                                                                                                                                                                                          try {
-                                                                                                                                                                                            enabling.value = true;
-                                                                                                                                                                                            error.value = '';
+    // Methods
+    const enableWallet = async () => {
+      try {
+        enabling.value = true;
+        error.value = '';
         
         // Check if wallet is available
         const walletStatus = await web3AuthService.checkWalletAvailability();
