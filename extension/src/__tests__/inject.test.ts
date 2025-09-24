@@ -172,7 +172,7 @@ describe('inject script', () => {
           break
         }
       }
-      
+
       // Check Fearless Wallet
       if (mockInjectedWeb3['fearless-wallet']) {
         availableWallets.push({

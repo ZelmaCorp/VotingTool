@@ -23,6 +23,7 @@
               @click="activeSection = 'preferences'"
               :class="{ active: activeSection === 'preferences' }"
               class="nav-item"
+              disabled
             >
               <span class="nav-icon">🎛️</span>
               User Preferences
@@ -88,35 +89,41 @@
             </div>
             
             <div class="config-form">
-              <div class="form-group">
-                <label>DAO Name</label>
-                <input v-model="daoConfig.name" type="text" class="form-input" />
-              </div>
               
               <div class="form-group">
                 <label>Required Agreements</label>
-                <input v-model="daoConfig.requiredAgreements" type="number" min="1" max="10" class="form-input" />
-                <small>Number of team members required to agree before voting</small>
+                <div class="readonly-field">
+                  <input v-model="daoConfig.requiredAgreements" type="number" class="form-input" readonly />
+                  <span class="multisig-badge">🔒 Controlled by Multisig</span>
+                </div>
+                <small>Number of team members required to agree before voting (managed by multisig)</small>
               </div>
               
               <div class="form-group">
                 <label>Team Members</label>
-                <p class="form-note">Team members are managed by the multisig. Names can be edited for display purposes.</p>
+                <div class="readonly-field-header">
+                  <span class="multisig-badge">🔒 Controlled by Multisig</span>
+                </div>
+                <p class="form-note">Team members are automatically synced from the multisig configuration.</p>
                 <div class="team-members-list">
-                  <div v-for="(member, index) in daoConfig.teamMembers" :key="index" class="member-item">
-                    <input v-model="member.name" placeholder="Display Name" class="member-name" />
-                    <input v-model="member.address" placeholder="Wallet Address" class="member-address" readonly />
+                  <div v-for="(member, index) in daoConfig.teamMembers" :key="index" class="member-item readonly">
+                    <div class="member-display-name">{{ member.name || 'Team Member ' + (index + 1) }}</div>
+                    <div class="member-address">{{ member.address }}</div>
                     <span class="member-info">From multisig</span>
                   </div>
                   <div v-if="daoConfig.teamMembers.length === 0" class="no-members">
-                    No team members found. Connect to multisig to load members.
+                    <div class="empty-state">
+                      <span class="empty-icon">👥</span>
+                      <p>No team members found</p>
+                      <small>Connect to your multisig to automatically load team members</small>
+                    </div>
                   </div>
                 </div>
               </div>
               
-              <div class="form-actions">
-                <button @click="saveDAOConfig" class="save-btn">Save Configuration</button>
-                <button @click="resetDAOConfig" class="reset-btn">Reset to Default</button>
+              <div class="form-note">
+                <p><strong>💡 DAO Configuration:</strong></p>
+                <p>All settings are automatically managed by the multisig configuration. Team members and required agreements are synced from the blockchain.</p>
               </div>
             </div>
           </div>
@@ -250,7 +257,6 @@
                 <h4>Getting Started</h4>
                 <ul>
                   <li>Connect your wallet to authenticate</li>
-                  <li>Configure your DAO settings</li>
                   <li>Browse and filter proposals</li>
                   <li>Assign proposals to team members</li>
                   <li>Participate in team discussions</li>
@@ -262,7 +268,7 @@
                 <ul>
                   <li><strong>Agree:</strong> Support the proposal evaluation</li>
                   <li><strong>To be discussed:</strong> Mark for team discussion</li>
-                  <li><strong>NO WAY (Veto):</strong> Block the proposal</li>
+                  <li><strong>NO WAY (Veto):</strong> Forces Nay (needs reasoning)</li>
                   <li><strong>Recuse:</strong> Abstain due to conflict of interest</li>
                 </ul>
               </div>
@@ -279,10 +285,10 @@
               </div>
               
               <div class="help-links">
-                <a href="#" @click="openExternal('https://github.com/your-repo')" class="help-link">
+                <a href="#" @click="openExternal('https://github.com/ZelmaCorp/VotingTool')" class="help-link">
                   📚 Full Documentation
                 </a>
-                <a href="#" @click="openExternal('https://github.com/your-repo/issues')" class="help-link">
+                <a href="#" @click="openExternal('https://github.com/ZelmaCorp/VotingTool/issues')" class="help-link">
                   🐛 Report Issues
                 </a>
               </div>
@@ -319,11 +325,8 @@
               </div>
               
               <div class="about-links">
-                <a href="#" @click="openExternal('https://github.com/your-repo')" class="about-link">
+                <a href="#" @click="openExternal('https://github.com/ZelmaCorp/VotingTool/')" class="about-link">
                   🔗 Source Code
-                </a>
-                <a href="#" @click="openExternal('https://your-website.com')" class="about-link">
-                  🌐 Website
                 </a>
               </div>
             </div>
@@ -435,26 +438,8 @@ const loadData = async () => {
 
 // addMember and removeMember functions removed as team members are managed by multisig
 
-const saveDAOConfig = async () => {
-  try {
-    await teamStore.updateDAOConfig({
-      name: daoConfig.value.name,
-      required_agreements: daoConfig.value.requiredAgreements,
-      team_members: daoConfig.value.teamMembers
-    })
-    // Success handled silently
-  } catch (error) {
-    console.error('Failed to save DAO configuration:', error)
-  }
-}
-
-const resetDAOConfig = () => {
-  daoConfig.value = {
-    name: '',
-    requiredAgreements: 4,
-    teamMembers: []
-  }
-}
+// DAO configuration is now read-only and fetched from on-chain identity
+// No save/reset functions needed as the name comes from blockchain identity
 
 // savePreferences function removed - not currently implemented
 
@@ -596,8 +581,19 @@ const formatDate = (dateString: string) => {
   color: #333;
 }
 
-.nav-item:hover {
+.nav-item:hover:not(:disabled) {
   background: #e9ecef;
+}
+
+.nav-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  color: #999;
+}
+
+.nav-item:disabled:hover {
+  background: transparent;
+  color: #999;
 }
 
 .nav-item.active {
@@ -730,6 +726,85 @@ const formatDate = (dateString: string) => {
   color: #666;
   font-style: italic;
   padding: 20px;
+}
+
+.readonly-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.readonly-field input[readonly] {
+  background: #f8f9fa;
+  color: #6c757d;
+  cursor: not-allowed;
+  flex: 1;
+}
+
+.readonly-field-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.multisig-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #ffc107;
+  color: #212529;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.member-item.readonly {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  margin-bottom: 8px;
+}
+
+.member-display-name {
+  font-weight: 500;
+  color: #333;
+  font-size: 0.9rem;
+}
+
+.member-address {
+  font-family: monospace;
+  color: #6c757d;
+  font-size: 0.8rem;
+  word-break: break-all;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #6c757d;
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.empty-state p {
+  margin: 0 0 8px 0;
+  font-weight: 500;
+  color: #495057;
+}
+
+.empty-state small {
+  color: #6c757d;
 }
 
 .remove-btn {
@@ -1130,5 +1205,29 @@ const formatDate = (dateString: string) => {
 * {
   scrollbar-width: thin;
   scrollbar-color: #888 #f1f1f1;
+}
+
+.form-note {
+  margin-top: 24px;
+  padding: 16px;
+  background: #f8f9ff;
+  border: 1px solid #e1e5f2;
+  border-radius: 8px;
+}
+
+.form-note p {
+  margin: 0 0 12px 0;
+  color: #333;
+  font-weight: 500;
+}
+
+.form-note ol {
+  margin: 0;
+  padding-left: 20px;
+  color: #666;
+}
+
+.form-note ol li {
+  margin-bottom: 4px;
 }
 </style> 

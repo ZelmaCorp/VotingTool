@@ -4,34 +4,34 @@
 
 // Global object to store results
 ;(window as any).opengovVotingTool = {
-      // Check if wallet extensions are available
-    checkWalletExtension: function() {
+  // Check if wallet extensions are available
+  checkWalletExtension: function() {
       const injectedWeb3 = (window as any).injectedWeb3
-      const availableWallets = []
-      
+    const availableWallets = []
+    
       if (injectedWeb3) {
         // Check for Polkadot Developer Signer (formerly polkadot-js)
-        if (injectedWeb3['polkadot-js']) {
-          availableWallets.push({
+    if (injectedWeb3['polkadot-js']) {
+      availableWallets.push({
             name: 'Polkadot Developer Signer',
-            key: 'polkadot-js'
-          })
-        }
-        
+        key: 'polkadot-js'
+      })
+    }
+    
         // Check for Talisman
-        if (injectedWeb3.talisman) {
-          availableWallets.push({
-            name: 'Talisman',
-            key: 'talisman'
-          })
-        }
-        
+    if (injectedWeb3.talisman) {
+      availableWallets.push({
+        name: 'Talisman',
+        key: 'talisman'
+      })
+    }
+    
         // Check for SubWallet (multiple possible keys)
         if (injectedWeb3.subwallet || injectedWeb3['subwallet-js'] || injectedWeb3.SubWallet) {
-          availableWallets.push({
-            name: 'SubWallet',
+        availableWallets.push({
+          name: 'SubWallet',
             key: injectedWeb3['subwallet-js'] ? 'subwallet-js' : (injectedWeb3.SubWallet ? 'SubWallet' : 'subwallet')
-          })
+        })
         }
         
         // Check for Nova Wallet
@@ -40,15 +40,15 @@
             name: 'Nova Wallet',
             key: 'nova-wallet'
           })
-        }
       }
-      
-      return {
-        hasPolkadotExtension: availableWallets.length > 0,
-        availableWallets: availableWallets,
-        timestamp: Date.now(),
+    }
+    
+    return {
+      hasPolkadotExtension: availableWallets.length > 0,
+      availableWallets: availableWallets,
+      timestamp: Date.now(),
         debug: `Found ${availableWallets.length} installed Tier 1 wallets`
-      }
+    }
   },
   
   // Get accounts from a specific wallet

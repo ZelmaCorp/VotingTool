@@ -352,7 +352,7 @@ export class ApiService {
                 const config: DAOConfig = {
                     team_members: result.members,
                     required_agreements: 4, // Default value, could be made configurable
-                    name: 'OpenGov Voting Tool' // Add name field
+                    name: 'OpenGov Voting Tool' // Simple static name
                 };
                 return config;
             } else {
@@ -377,6 +377,8 @@ export class ApiService {
             return { success: false, error: error instanceof Error ? error.message : 'Failed to update DAO config' };
         }
     }
+
+
 
     // List methods for different views
     async getMyAssignments(): Promise<ProposalData[]> {
