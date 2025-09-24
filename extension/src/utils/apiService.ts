@@ -378,6 +378,34 @@ export class ApiService {
         }
     }
 
+    async triggerSync(type: 'normal' | 'deep' = 'normal'): Promise<{ success: boolean; message?: string; error?: string }> {
+        try {
+            const result = await this.request<{ 
+                success: boolean; 
+                message?: string; 
+                type?: string;
+                limit?: number;
+                timestamp?: string;
+                status?: string;
+                error?: string 
+            }>('/dao/sync', {
+                method: 'POST',
+                body: JSON.stringify({ type })
+            });
+
+            return {
+                success: result.success,
+                message: result.message,
+                error: result.error
+            };
+        } catch (error) {
+            return { 
+                success: false, 
+                error: error instanceof Error ? error.message : 'Failed to trigger sync' 
+            };
+        }
+    }
+
 
 
     // List methods for different views

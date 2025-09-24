@@ -233,14 +233,25 @@
               <p>Manage data sync with Polkassembly and backend (under review)</p>
             </div>
             
-            <div class="under-review">
-              <div class="under-review-icon">🤔</div>
-              <h4>Feature Under Review</h4>
-              <p>We're evaluating whether automatic data synchronization is needed, or if manual refresh is sufficient.</p>
-              <div class="temp-actions">
-                <button @click="manualRefresh" :disabled="refreshing" class="refresh-btn">
-                  {{ refreshing ? 'Refreshing...' : 'Manual Refresh' }}
+            <div class="sync-section">
+              <div class="sync-description">
+                <p>Manually trigger data synchronization with Polkassembly to get the latest referendum information.</p>
+              </div>
+              <div class="sync-actions">
+                <button @click="normalSync" class="sync-btn" :disabled="syncing">
+                  {{ syncing ? '🔄 Syncing...' : '🔄 Normal Sync' }}
                 </button>
+                <button @click="deepSync" class="sync-btn deep" :disabled="syncing">
+                  {{ syncing ? '🔄 Syncing...' : '⚡ Deep Sync' }}
+                </button>
+              </div>
+              <div class="sync-info">
+                <div class="sync-type">
+                  <strong>Normal Sync:</strong> Fetches the last 30 proposals (recommended for regular updates)
+                </div>
+                <div class="sync-type">
+                  <strong>Deep Sync:</strong> Fetches the last 100 proposals (use when you need comprehensive data)
+                </div>
               </div>
             </div>
           </div>
@@ -401,6 +412,7 @@ onUnmounted(() => {
 const activeSection = ref<'dao-config' | 'preferences' | 'voting-history' | 'activity-log' | 'data-sync' | 'help' | 'about'>('dao-config')
 const extensionVersion = ref('1.0.0')
 const refreshing = ref(false)
+const syncing = ref(false)
 
 // Use team store for DAO config
 const daoConfig = computed({
@@ -442,6 +454,40 @@ const loadData = async () => {
 // No save/reset functions needed as the name comes from blockchain identity
 
 // savePreferences function removed - not currently implemented
+
+const normalSync = async () => {
+  syncing.value = true
+  try {
+    const apiService = ApiService.getInstance()
+    const result = await apiService.triggerSync('normal')
+    if (result.success) {
+      console.log('Normal sync started:', result.message)
+    } else {
+      console.error('Normal sync failed:', result.error)
+    }
+  } catch (error) {
+    console.error('Normal sync failed:', error)
+  } finally {
+    syncing.value = false
+  }
+}
+
+const deepSync = async () => {
+  syncing.value = true
+  try {
+    const apiService = ApiService.getInstance()
+    const result = await apiService.triggerSync('deep')
+    if (result.success) {
+      console.log('Deep sync started:', result.message)
+    } else {
+      console.error('Deep sync failed:', result.error)
+    }
+  } catch (error) {
+    console.error('Deep sync failed:', error)
+  } finally {
+    syncing.value = false
+  }
+}
 
 const manualRefresh = async () => {
   try {
@@ -1229,5 +1275,72 @@ const formatDate = (dateString: string) => {
 
 .form-note ol li {
   margin-bottom: 4px;
+}
+
+.sync-section {
+  background: #f8f9fa;
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.sync-description {
+  margin-bottom: 20px;
+}
+
+.sync-description p {
+  margin: 0;
+  color: #666;
+  line-height: 1.5;
+}
+
+.sync-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.sync-btn {
+  padding: 10px 20px;
+  border: 1px solid #007bff;
+  border-radius: 6px;
+  background: white;
+  color: #007bff;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.sync-btn:hover:not(:disabled) {
+  background: #007bff;
+  color: white;
+}
+
+.sync-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sync-btn.deep {
+  border-color: #28a745;
+  color: #28a745;
+}
+
+.sync-btn.deep:hover:not(:disabled) {
+  background: #28a745;
+  color: white;
+}
+
+.sync-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sync-type {
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.4;
 }
 </style> 
