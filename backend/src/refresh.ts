@@ -33,7 +33,7 @@ async function createReferendumFromPolkassembly(referenda: any, exchangeRate: nu
     const referendumData: ReferendumRecord = {
         post_id: referenda.post_id,
         chain: network,
-        title: referenda.title,
+        title: referenda.title || `Referendum #${referenda.post_id}`,
         description: contentResp.content || referenda.description,
         requested_amount_usd: requestedAmountUsd,
         origin: getValidatedOrigin(referenda.origin),
@@ -56,7 +56,7 @@ async function updateReferendumFromPolkassembly(referenda: any, exchangeRate: nu
     const requestedAmountUsd = calculateReward(contentResp, exchangeRate, network);
 
     const updates: Partial<ReferendumRecord> = {
-        title: contentResp.title || referenda.title, // Use detail API title (updated) over list API title (cached)
+        title: contentResp.title || referenda.title || `Referendum #${referenda.post_id}`, // Use detail API title (updated) over list API title (cached)
         description: contentResp.content || referenda.description,
         requested_amount_usd: requestedAmountUsd,
         referendum_timeline: getValidatedStatus(referenda.status)
