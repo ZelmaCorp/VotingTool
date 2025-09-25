@@ -6,8 +6,8 @@
   "scripts": {
     "build": "tsc",
     "build:versioned": "APP_VERSION=$(node -p \"require('./package.json').version\") tsc",
-    "start": "node dist/app.js",
-    "start:versioned": "APP_VERSION=$(node -p \"require('./package.json').version\") node dist/app.js",
+    "start": "node dist/src/app.js",
+    "start:versioned": "APP_VERSION=$(node -p \"require('./package.json').version\") node dist/src/app.js",
     "test": "jest",
     "test:unit": "jest tests/unit",
     "test:integration": "jest tests/integration",
