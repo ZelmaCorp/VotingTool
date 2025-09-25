@@ -66,7 +66,8 @@ describe('Polkassembly Content Integration Tests', () => {
       console.log(`✅ Processed ${rewardProposals} proposals with reward info - all formats recognized`);
     });
 
-    it('should verify multiple beneficiaries logic works with real data', async () => {
+    // this won't always work, because the data is not always available
+    it.skip('should verify multiple beneficiaries logic works with real data', async () => {
       // This test ensures the multiple beneficiaries loop is working correctly
       const result = await fetchDataFromAPI(25, Chain.Polkadot); // Get more proposals
       
