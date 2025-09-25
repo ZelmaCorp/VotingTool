@@ -1,0 +1,115 @@
+
+.backend-config[data-v-8791d9f1] {
+  padding: 20px;
+  max-width: 400px;
+}
+h3[data-v-8791d9f1] {
+  margin: 0 0 8px 0;
+  color: #333;
+}
+p[data-v-8791d9f1] {
+  margin: 0 0 20px 0;
+  color: #666;
+  font-size: 14px;
+}
+.form-group[data-v-8791d9f1] {
+  margin-bottom: 20px;
+}
+label[data-v-8791d9f1] {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  color: #333;
+}
+input[data-v-8791d9f1] {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+input[data-v-8791d9f1]:focus {
+  outline: none;
+  border-color: #e6007a;
+  box-shadow: 0 0 0 2px rgba(230, 0, 122, 0.1);
+}
+.error-message[data-v-8791d9f1] {
+  color: #dc3545;
+  font-size: 12px;
+  margin-top: 4px;
+}
+.actions[data-v-8791d9f1] {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+button[data-v-8791d9f1] {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.test-btn[data-v-8791d9f1] {
+  background: #f8f9fa;
+  color: #495057;
+  border: 1px solid #dee2e6;
+}
+.test-btn[data-v-8791d9f1]:hover:not(:disabled) {
+  background: #e9ecef;
+}
+.save-btn[data-v-8791d9f1] {
+  background: #e6007a;
+  color: white;
+}
+.save-btn[data-v-8791d9f1]:hover:not(:disabled) {
+  background: #c5006a;
+}
+button[data-v-8791d9f1]:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.status[data-v-8791d9f1] {
+  padding: 12px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+.status.success[data-v-8791d9f1] {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+.status.error[data-v-8791d9f1] {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+.status.info[data-v-8791d9f1] {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+.help-text[data-v-8791d9f1] {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+.help-text p[data-v-8791d9f1] {
+  margin: 0 0 12px 0;
+  font-weight: 500;
+}
+.help-text ol[data-v-8791d9f1] {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.help-text li[data-v-8791d9f1] {
+  margin-bottom: 4px;
+}

@@ -8,10 +8,10 @@ lerna-debug.log*
 
 # Build outputs
 dist/
-dist-chrome/
-dist-firefox/
 build/
 *.tsbuildinfo
+
+# Note: dist-chrome/ and dist-firefox/ are committed for easy extension installation
 
 # Environment variables
 .env

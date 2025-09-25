@@ -44,8 +44,8 @@ cp env.example .env
 4. Configure your environment variables in the `.env` file.
 
 5. **(Optional)** Install the browser extension:
-   - Download [`opengov-voting-extension-chrome.zip`](extension/opengov-voting-extension-chrome.zip) for Chrome
-   - Download [`opengov-voting-extension-firefox.zip`](extension/opengov-voting-extension-firefox.zip) for Firefox
+   - Use the pre-built `extension/dist-chrome/` folder for Chrome/Chromium
+   - Use the pre-built `extension/dist-firefox/` folder for Firefox
    - **Note**: You'll need ngrok or a public URL for the extension to connect (see [CORS Configuration](#cors-configuration))
    - See [Browser Extension Installation](#browser-extension-installation) for detailed setup instructions
 
@@ -81,33 +81,51 @@ The application will start on port 3000 by default (configurable via `PORT` envi
 
 The OpenGov Voting Tool includes a browser extension that provides an overlay interface on Polkassembly pages for streamlined voting workflows.
 
-### Pre-built Extension Downloads
+### Pre-built Extension Packages
 
-Download the pre-built extension packages:
+The extension is pre-built and ready to install:
 
-- **Chrome/Chromium**: [`opengov-voting-extension-chrome.zip`](extension/opengov-voting-extension-chrome.zip)
-- **Firefox**: [`opengov-voting-extension-firefox.zip`](extension/opengov-voting-extension-firefox.zip)
+- **Chrome/Chromium**: Use the [`extension/dist-chrome/`](extension/dist-chrome/) folder
+- **Firefox**: Use the [`extension/dist-firefox/`](extension/dist-firefox/) folder
 
 ### Installation Instructions
 
 #### Chrome/Chromium Installation
 
-1. Download and extract `opengov-voting-extension-chrome.zip`
+1. Clone or download this repository:
+   ```bash
+   git clone https://github.com/ZelmaCorp/VotingTool.git
+   ```
 2. Open Chrome and navigate to `chrome://extensions/`
 3. Enable "Developer mode" (toggle in top-right corner)
 4. Click "Load unpacked" button
-5. Select the extracted `dist-chrome/` folder
+5. Navigate to and select the `extension/dist-chrome/` folder
 6. The extension should now appear in your extensions list
 
 #### Firefox Installation
 
-1. Download and extract `opengov-voting-extension-firefox.zip`
+1. Clone or download this repository:
+   ```bash
+   git clone https://github.com/ZelmaCorp/VotingTool.git
+   ```
 2. Open Firefox and navigate to `about:debugging`
 3. Click "This Firefox" in the left sidebar
 4. Click "Load Temporary Add-on"
-5. Navigate to the extracted `dist-firefox/` folder
+5. Navigate to the `extension/dist-firefox/` folder
 6. Select the `manifest.json` file
 7. The extension should now appear in your temporary extensions
+
+### Building from Source (Optional)
+
+If you want to modify the extension or build it yourself:
+
+```bash
+cd extension
+npm install
+npm run build
+```
+
+This will update the `dist-chrome/` and `dist-firefox/` directories with your changes.
 
 ### Extension Configuration
 
@@ -155,18 +173,6 @@ The extension activates on the following Polkassembly URLs:
 - **Team Workflow**: Displays team member assignments and voting status
 - **Real-time Updates**: Syncs with the backend for current referendum status
 - **Secure Authentication**: Uses Web3 signature-based authentication
-
-### Building Extension from Source
-
-If you prefer to build the extension yourself:
-
-```bash
-cd extension
-npm install
-npm run build
-```
-
-This creates both `dist-chrome/` and `dist-firefox/` directories with the built extension files.
 
 ### Troubleshooting Extension
 
