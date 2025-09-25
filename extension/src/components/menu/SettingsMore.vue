@@ -90,6 +90,41 @@
             
             <div class="config-form">
               
+              <!-- Backend Configuration -->
+              <div class="form-group">
+                <label>Backend API Endpoint</label>
+                <div class="backend-config">
+                  <input 
+                    v-model="backendUrl" 
+                    type="url" 
+                    class="form-input" 
+                    placeholder="https://api.yourdao.com"
+                    @blur="validateBackendUrl"
+                  />
+                  <div class="backend-actions">
+                    <button 
+                      @click="testBackendConnection" 
+                      class="test-btn"
+                      :disabled="testingConnection || !backendUrl"
+                    >
+                      {{ testingConnection ? 'Testing...' : 'Test' }}
+                    </button>
+                    <button 
+                      @click="saveBackendUrl" 
+                      class="save-backend-btn"
+                      :disabled="savingBackend || !backendUrl"
+                    >
+                      {{ savingBackend ? 'Saving...' : 'Save' }}
+                    </button>
+                  </div>
+                </div>
+                <div v-if="backendStatus.message" 
+                     :class="['backend-status', backendStatus.type]">
+                  {{ backendStatus.message }}
+                </div>
+                <small>Enter the URL of your DAO's VotingTool backend server. Click "Save" first to grant permissions, then "Test" to verify connection.</small>
+              </div>
+              
               <div class="form-group">
                 <label>Required Agreements</label>
                 <div class="readonly-field">
@@ -239,10 +274,10 @@
               </div>
               <div class="sync-actions">
                 <button @click="normalSync" class="sync-btn" :disabled="syncing">
-                  {{ syncing ? '🔄 Syncing...' : '🔄 Normal Sync' }}
+                  {{ syncing ? 'Syncing...' : 'Normal Sync' }}
                 </button>
                 <button @click="deepSync" class="sync-btn deep" :disabled="syncing">
-                  {{ syncing ? '🔄 Syncing...' : '⚡ Deep Sync' }}
+                  {{ syncing ? 'Syncing...' : 'Deep Sync' }}
                 </button>
               </div>
               <div class="sync-info">
@@ -414,6 +449,12 @@ const extensionVersion = ref('1.0.0')
 const refreshing = ref(false)
 const syncing = ref(false)
 
+// Backend configuration
+const backendUrl = ref('')
+const testingConnection = ref(false)
+const savingBackend = ref(false)
+const backendStatus = ref<{ message: string; type: 'success' | 'error' | 'info' }>({ message: '', type: 'info' })
+
 // Use team store for DAO config
 const daoConfig = computed({
   get: () => ({
@@ -440,11 +481,174 @@ const activityLog = ref<ActivityItem[]>([])
 const loadData = async () => {
   refreshing.value = true
   try {
-    // Load settings data here when available
+    // Load backend URL from storage
+    const result = await chrome.storage.sync.get(['backendUrl'])
+    if (result.backendUrl) {
+      backendUrl.value = result.backendUrl
+    }
   } catch (error) {
     console.error('Failed to load settings:', error)
   } finally {
     refreshing.value = false
+  }
+}
+
+// Backend configuration methods
+const validateBackendUrl = () => {
+  if (!backendUrl.value) return
+  
+  try {
+    new URL(backendUrl.value)
+    backendStatus.value = { message: '', type: 'info' }
+  } catch {
+    backendStatus.value = { 
+      message: 'Please enter a valid URL (e.g., https://api.yourdao.com)', 
+      type: 'error' 
+    }
+  }
+}
+
+const testBackendConnection = async () => {
+  if (!backendUrl.value) return
+  
+  testingConnection.value = true
+  backendStatus.value = { message: '', type: 'info' }
+  
+  try {
+    // Check if we have permission for this URL
+    const url = new URL(backendUrl.value)
+    const normalizedUrl = url.origin
+    
+    try {
+      const permissionResponse = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({
+          type: 'CHECK_PERMISSION',
+          origin: normalizedUrl
+        }, (response) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message))
+            return
+          }
+          resolve(response)
+        })
+      })
+      
+      if (permissionResponse && (permissionResponse as any).success && !(permissionResponse as any).hasPermission) {
+        backendStatus.value = { 
+          message: 'No permission for this URL. Please click "Save" first to grant permission.', 
+          type: 'error' 
+        }
+        return
+      }
+    } catch (permError) {
+      // Permission check failed, continue anyway (might be Firefox)
+    }
+
+    // Test the backend connection
+    const response = await new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error('Connection timeout'))
+      }, 10000)
+      
+      chrome.runtime.sendMessage({
+        type: 'VOTING_TOOL_API_CALL',
+        messageId: Date.now().toString(),
+        endpoint: '/health',
+        method: 'GET',
+        data: undefined,
+        headers: {},
+        testUrl: backendUrl.value
+      }, (response) => {
+        clearTimeout(timeout)
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message))
+          return
+        }
+        resolve(response)
+      })
+    })
+
+    if (response && (response as any).success) {
+      backendStatus.value = { 
+        message: 'Connection successful! Backend is reachable.', 
+        type: 'success' 
+      }
+    } else {
+      const errorMsg = (response as any)?.error || 'Unknown error'
+      backendStatus.value = { 
+        message: `Connection failed: ${errorMsg}`, 
+        type: 'error' 
+      }
+    }
+  } catch (error) {
+    backendStatus.value = { 
+      message: `Connection failed: ${error instanceof Error ? error.message : 'Unable to reach the backend server'}`, 
+      type: 'error' 
+    }
+  } finally {
+    testingConnection.value = false
+  }
+}
+
+const saveBackendUrl = async () => {
+  if (!backendUrl.value) return
+  
+  savingBackend.value = true
+  backendStatus.value = { message: '', type: 'info' }
+  
+  try {
+    // Validate URL format
+    const url = new URL(backendUrl.value)
+    const normalizedUrl = url.origin
+    
+    // Request permissions for Chrome (user gesture required)
+    try {
+      const permissionResponse = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({
+          type: 'REQUEST_PERMISSION',
+          origin: normalizedUrl
+        }, (response) => {
+          if (chrome.runtime.lastError) {
+            reject(new Error(chrome.runtime.lastError.message))
+            return
+          }
+          resolve(response)
+        })
+      })
+      
+      if (permissionResponse && (permissionResponse as any).success) {
+        if (!(permissionResponse as any).granted) {
+          backendStatus.value = { 
+            message: 'Permission denied. Please allow access to this backend URL.', 
+            type: 'error' 
+          }
+          return
+        }
+      }
+    } catch (permError) {
+      // Firefox or permission API not available - continue anyway
+    }
+    
+    // Save to storage
+    await chrome.storage.sync.set({ backendUrl: normalizedUrl })
+    
+    backendStatus.value = { 
+      message: 'Backend URL saved successfully! You can now test the connection.', 
+      type: 'success' 
+    }
+    
+    // Update the API service with new URL
+    window.dispatchEvent(new CustomEvent('backend-url-changed', { 
+      detail: { url: normalizedUrl } 
+    }))
+    
+  } catch (error) {
+    backendStatus.value = { 
+      message: `Failed to save: ${error instanceof Error ? error.message : 'Unknown error'}`, 
+      type: 'error' 
+    }
+  } finally {
+    savingBackend.value = false
   }
 }
 
@@ -1342,5 +1546,78 @@ const formatDate = (dateString: string) => {
   font-size: 0.9rem;
   color: #666;
   line-height: 1.4;
+}
+
+/* Backend Configuration Styles */
+.backend-config {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.backend-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.test-btn,
+.save-backend-btn {
+  padding: 8px 16px;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  background: white;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.test-btn:hover:not(:disabled),
+.save-backend-btn:hover:not(:disabled) {
+  background: #007bff;
+  color: white;
+}
+
+.save-backend-btn {
+  border-color: #28a745;
+  color: #28a745;
+}
+
+.save-backend-btn:hover:not(:disabled) {
+  background: #28a745;
+  color: white;
+}
+
+.test-btn:disabled,
+.save-backend-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.backend-status {
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin-top: 8px;
+}
+
+.backend-status.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.backend-status.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.backend-status.info {
+  background: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
 }
 </style> 
