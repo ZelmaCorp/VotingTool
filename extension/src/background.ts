@@ -7,23 +7,44 @@ const BUILD_ID = 'v1.1.0-' + Date.now()
 // Message counter for debugging
 let messageCounter = 0
 
-// API configuration
-const API_CONFIG = {
-  // For development, you can use ngrok: ngrok http 3000
-  // baseURL: 'https://abc123.ngrok.io',
-  baseURL: 'https://api.votingtool.zelmacorp.io',
+// API configuration - now loaded dynamically from storage
+let API_CONFIG = {
+  baseURL: 'http://localhost:3000', // Default fallback
   timeout: 10000
 }
 
+// Load API configuration from storage
+async function loadApiConfig() {
+  try {
+    const result = await chrome.storage.sync.get(['backendUrl'])
+    if (result.backendUrl) {
+      API_CONFIG.baseURL = result.backendUrl
+    }
+  } catch (error) {
+    console.warn('Failed to load API config, using defaults:', error)
+  }
+}
+
+// Initialize API config on startup
+loadApiConfig()
+
+// Listen for config changes
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'sync' && changes.backendUrl) {
+    API_CONFIG.baseURL = changes.backendUrl.newValue
+  }
+})
+
 // Function to make API calls from background script context (bypasses CSP)
-async function makeApiCall(endpoint: string, method: string, data?: any, headers?: any) {
+async function makeApiCall(endpoint: string, method: string, data?: any, headers?: any, testUrl?: string) {
   const debugInfo: any = {
     step: 'starting',
     timestamp: Date.now(),
     endpoint,
     method,
     data,
-    headers
+    headers,
+    testUrl
   }
   
   try {
@@ -41,8 +62,12 @@ async function makeApiCall(endpoint: string, method: string, data?: any, headers
     }
     
     debugInfo.step = 'url_construction'
-    const url = `${API_CONFIG.baseURL}${endpoint}`
+    // Use testUrl if provided (for connection testing), otherwise use configured baseURL
+    const baseUrl = testUrl || API_CONFIG.baseURL
+    const url = `${baseUrl}${endpoint}`
     debugInfo.fullUrl = url
+    debugInfo.baseUrl = baseUrl
+    debugInfo.usingTestUrl = !!testUrl
     
     // Test if we can construct a URL
     try {
@@ -181,11 +206,34 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       })
       return false // Synchronous response
     }
+
+    if (message?.type === 'REQUEST_PERMISSION') {
+      chrome.permissions.request({
+        origins: [message.origin + '/*']
+      }).then(granted => {
+        sendResponse({ success: true, granted })
+      }).catch(error => {
+        sendResponse({ success: false, error: error.message })
+      })
+      
+      return true // Asynchronous response
+    }
+
+    if (message?.type === 'CHECK_PERMISSION') {
+      chrome.permissions.contains({
+        origins: [message.origin + '/*']
+      }).then(hasPermission => {
+        sendResponse({ success: true, hasPermission })
+      }).catch(error => {
+        sendResponse({ success: false, error: error.message })
+      })
+      
+      return true // Asynchronous response
+    }
     
     if (message?.type === 'VOTING_TOOL_API_CALL') {
-      
       // Handle API calls from content script asynchronously
-      makeApiCall(message.endpoint, message.method, message.data, message.headers)
+      makeApiCall(message.endpoint, message.method, message.data, message.headers, message.testUrl)
         .then(result => {
           try {
             sendResponse({
