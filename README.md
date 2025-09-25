@@ -13,7 +13,7 @@ The tool provides:
 
 ## Prerequisites
 
-- Node.js (v18 or higher)
+- Node.js (v22 or higher)
 - npm or yarn
 - Docker (optional, for containerized deployment)
 - Polkadot/Kusama multisig wallets
@@ -30,7 +30,7 @@ git clone https://github.com/ZelmaCorp/VotingTool.git
 cd VotingTool
 ```
 
-2. Install dependencies:
+2. Install backend dependencies:
 ```bash
 cd backend
 npm install
@@ -42,6 +42,12 @@ cp env.example .env
 ```
 
 4. Configure your environment variables in the `.env` file.
+
+5. **(Optional)** Install the browser extension:
+   - Download [`opengov-voting-extension-chrome.zip`](extension/opengov-voting-extension-chrome.zip) for Chrome
+   - Download [`opengov-voting-extension-firefox.zip`](extension/opengov-voting-extension-firefox.zip) for Firefox
+   - **Note**: You'll need ngrok or a public URL for the extension to connect (see [CORS Configuration](#cors-configuration))
+   - See [Browser Extension Installation](#browser-extension-installation) for detailed setup instructions
 
 ### Running the Application
 
@@ -70,6 +76,107 @@ npm run start:versioned
 ```
 
 The application will start on port 3000 by default (configurable via `PORT` environment variable).
+
+## Browser Extension Installation
+
+The OpenGov Voting Tool includes a browser extension that provides an overlay interface on Polkassembly pages for streamlined voting workflows.
+
+### Pre-built Extension Downloads
+
+Download the pre-built extension packages:
+
+- **Chrome/Chromium**: [`opengov-voting-extension-chrome.zip`](extension/opengov-voting-extension-chrome.zip)
+- **Firefox**: [`opengov-voting-extension-firefox.zip`](extension/opengov-voting-extension-firefox.zip)
+
+### Installation Instructions
+
+#### Chrome/Chromium Installation
+
+1. Download and extract `opengov-voting-extension-chrome.zip`
+2. Open Chrome and navigate to `chrome://extensions/`
+3. Enable "Developer mode" (toggle in top-right corner)
+4. Click "Load unpacked" button
+5. Select the extracted `dist-chrome/` folder
+6. The extension should now appear in your extensions list
+
+#### Firefox Installation
+
+1. Download and extract `opengov-voting-extension-firefox.zip`
+2. Open Firefox and navigate to `about:debugging`
+3. Click "This Firefox" in the left sidebar
+4. Click "Load Temporary Add-on"
+5. Navigate to the extracted `dist-firefox/` folder
+6. Select the `manifest.json` file
+7. The extension should now appear in your temporary extensions
+
+### Extension Configuration
+
+After installing the extension, you need to configure it to connect to your backend:
+
+1. **Click the extension icon** in your browser toolbar
+2. **Configure DAO Settings**: In the popup, you'll see a "DAO Configuration" section
+3. **Backend API Endpoint**: Configure your backend URL (see CORS section below)
+4. **Authentication**: The extension will prompt for Web3 wallet authentication when accessing Polkassembly
+
+#### CORS Configuration
+
+⚠️ **Important**: Browser extensions cannot directly connect to `localhost` due to CORS restrictions. You have two options:
+
+**Option 1: Using ngrok (Recommended for Development)**
+
+1. Install ngrok: https://ngrok.com/download
+2. Start your backend server:
+   ```bash
+   cd backend
+   npm start
+   ```
+3. In a new terminal, create a tunnel to your backend:
+   ```bash
+   ngrok http 3000
+   ```
+4. Copy the HTTPS URL from ngrok (e.g., `https://abc123.ngrok.io`)
+5. In the extension popup, set **Backend API Endpoint** to your ngrok URL
+
+**Option 2: Production Deployment**
+
+Deploy your backend to a cloud service (Heroku, DigitalOcean, AWS, etc.) and use the production URL in the extension configuration.
+
+#### Supported URLs
+
+The extension activates on the following Polkassembly URLs:
+
+- `https://polkadot.polkassembly.io/referenda/*` - Polkadot referenda pages
+- `https://kusama.polkassembly.io/referenda/*` - Kusama referenda pages
+
+### Extension Features
+
+- **Overlay Interface**: Adds voting controls directly to Polkassembly referendum pages
+- **Web3 Integration**: Connects with Polkadot.js, SubWallet, Talisman, and Nova wallets
+- **Team Workflow**: Displays team member assignments and voting status
+- **Real-time Updates**: Syncs with the backend for current referendum status
+- **Secure Authentication**: Uses Web3 signature-based authentication
+
+### Building Extension from Source
+
+If you prefer to build the extension yourself:
+
+```bash
+cd extension
+npm install
+npm run build
+```
+
+This creates both `dist-chrome/` and `dist-firefox/` directories with the built extension files.
+
+### Troubleshooting Extension
+
+- **CORS errors**: Don't use `localhost` - use ngrok or deploy to a public URL
+- **Extension not loading**: Ensure the backend is running and accessible via your configured URL
+- **Authentication fails**: Check that your Web3 wallet is unlocked and connected
+- **No overlay appears**: Verify you're on a supported Polkassembly URL
+- **API errors**: Confirm the backend API endpoint is correctly configured in the extension
+- **ngrok connection issues**: Ensure ngrok is running and the tunnel is active
+- **HTTPS required**: Most browser security features require HTTPS (ngrok provides this automatically)
 
 ## Configuration
 
