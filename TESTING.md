@@ -44,11 +44,14 @@ npm run test:all
 ### Specific Test Categories
 
 ```bash
-# Rate limiting tests
+# Rate limiting tests (unit)
 npm run test:unit:rate-limit
 
-# Utility function tests
+# Utility function tests (unit)  
 npm run test:unit:utils
+
+# Fetch referendas tests (unit)
+npm run test:unit:fetch
 
 # Polkassembly integration tests
 npm run test:integration:polkassembly
@@ -58,6 +61,9 @@ npm run test:integration:rate-limit
 
 # CoinGecko integration tests
 npm run test:integration:coingecko
+
+# Fetch referendas tests (integration)
+npm run test:integration:fetch
 ```
 
 ### Test Modes
@@ -84,7 +90,7 @@ Generates a detailed coverage report showing which lines are tested.
 
 ### Required Environment Variables
 
-For integration tests to work properly, you need to set up test-specific environment variables. These are already included in the main `backend/.env.example` file.
+For integration tests to work properly, you need to set up test-specific environment variables. These are already included in the main `env.example` file.
 
 #### Test Sandbox Configuration
 ```bash
@@ -100,8 +106,8 @@ SANDBOX_POLKADOT_MULTISIG=test_polkadot_multisig_here
 
 1. **Copy environment variables:**
    ```bash
-   cd backend
-   cp .env.example .env
+   # From project root
+   cp env.example .env
    ```
 
 2. **Configure test variables:**
@@ -163,6 +169,13 @@ The extension tests are located in:
 - `extension/src/__tests__/` - Main test files
   - `inject.test.ts` - Tests for content script injection functionality
   - `background.test.ts` - Tests for background script functionality
+- `extension/src/stores/__tests__/` - Store test files
+  - `teamStore.test.ts` - Tests for team store functionality
+  - `proposalStore.test.ts` - Tests for proposal store functionality
+  - `authStore.test.ts` - Tests for authentication store functionality
+- `extension/src/utils/__tests__/` - Utility test files
+  - `teamUtils.test.ts` - Tests for team utility functions
+  - `browser.test.ts` - Tests for browser utility functions
 - `extension/src/test/setup.ts` - Test configuration and setup
 
 ### Frontend Test Environment
