@@ -14,8 +14,11 @@
     "https://kusama.polkassembly.io/*",
     "https://polkadot.subsquare.io/*",
     "https://kusama.subsquare.io/*",
-    "http://localhost:3000/*",
-    "https://api.votingtool.zelmacorp.io/*"
+    "http://localhost:3000/*"
+  ],
+  "optional_host_permissions": [
+    "https://*/*",
+    "http://*/*"
   ],
   "web_accessible_resources": [{
     "resources": [
