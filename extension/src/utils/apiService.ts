@@ -8,12 +8,35 @@ export class ApiService {
     private token: string | null = null;
 
     constructor() {
-        // Default to localhost, but this could be configurable
+        // Default to localhost, will be updated from storage
         this.baseUrl = 'http://localhost:3000';
         this.loadToken();
-        console.log('🔧 ApiService initialized:', {
-            baseUrl: this.baseUrl,
-            hasToken: !!this.token
+        this.loadApiConfig();
+        this.setupConfigListener();
+    }
+
+    private async loadApiConfig() {
+        try {
+            const result = await chrome.storage.sync.get(['backendUrl']);
+            if (result.backendUrl) {
+                this.baseUrl = result.backendUrl;
+            }
+        } catch (error) {
+            console.warn('ApiService: Failed to load API config, using default:', error);
+        }
+    }
+
+    private setupConfigListener() {
+        chrome.storage.onChanged.addListener((changes, namespace) => {
+            if (namespace === 'sync' && changes.backendUrl) {
+                this.baseUrl = changes.backendUrl.newValue;
+            }
+        });
+
+        // Also listen for custom events from the UI
+        window.addEventListener('backend-url-changed', (event: Event) => {
+            const customEvent = event as CustomEvent;
+            this.baseUrl = customEvent.detail.url;
         });
     }
 

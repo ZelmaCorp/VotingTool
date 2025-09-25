@@ -274,10 +274,10 @@
               </div>
               <div class="sync-actions">
                 <button @click="normalSync" class="sync-btn" :disabled="syncing">
-                  {{ syncing ? 'Syncing...' : 'Normal Sync' }}
+                  {{ syncing ? '🔄 Syncing...' : '🔄 Normal Sync' }}
                 </button>
                 <button @click="deepSync" class="sync-btn deep" :disabled="syncing">
-                  {{ syncing ? 'Syncing...' : 'Deep Sync' }}
+                  {{ syncing ? '🔄 Syncing...' : '⚡ Deep Sync' }}
                 </button>
               </div>
               <div class="sync-info">
