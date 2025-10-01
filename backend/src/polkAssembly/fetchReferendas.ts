@@ -6,7 +6,7 @@ import { Subsystem, ErrorType } from "../types/logging";
 
 const logger = createSubsystemLogger(Subsystem.POLKASSEMBLY);
 
-const TIMEOUT_MS = 10000; // 10 second timeout
+const TIMEOUT_MS = 30000; // 30 second timeout
 
 /** Function to fetch data from Polkassembly API 
  *  network: the network to fetch data from (Polkadot or Kusama)
