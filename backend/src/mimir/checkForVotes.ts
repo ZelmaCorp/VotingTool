@@ -20,7 +20,7 @@ interface ExtrinsicVoteData {
   actualVote: SuggestedVote | null;
 }
 import axios from "axios";
-import { createSubsystemLogger, logError } from "../config/logger";
+import { createSubsystemLogger, logError, formatError } from "../config/logger";
 import { Subsystem, ErrorType } from "../types/logging";
 import { Referendum } from "../database/models/referendum";
 import { VotingDecision } from "../database/models/votingDecision";
@@ -140,7 +140,7 @@ export async function checkForVotes(): Promise<void> {
       }, `Database updated with actual vote status and Mimir transaction marked as executed`);
     }
   } catch (error) {
-    logger.error({ error }, "Error checking vote statuses (checkForVotes)");
+    logger.error({ error: formatError(error) }, "Error checking vote statuses (checkForVotes)");
   } finally {
     isCheckingVotes = false;
   }
@@ -213,7 +213,7 @@ async function fetchActiveVotes(
     await api.disconnect();
     return voteMap;
   } catch (error) {
-    logger.error({ error, account, network }, `Error checking vote for account`);
+    logger.error({ error: formatError(error), account, network }, `Error checking vote for account`);
     throw error;
   }
 }
@@ -271,7 +271,7 @@ export async function checkSubscan(votedList: ReferendumId[]): Promise<Record<nu
       if (polkadotError.response?.status === 429) {
         logger.warn("Polkadot Subscan API rate limit exceeded, continuing with empty results");
       } else {
-        logger.error({ error: polkadotError.message }, "Error fetching Polkadot extrinsics from Subscan");
+        logger.error({ error: formatError(polkadotError) }, "Error fetching Polkadot extrinsics from Subscan");
       }
     }
 
@@ -293,7 +293,7 @@ export async function checkSubscan(votedList: ReferendumId[]): Promise<Record<nu
       if (kusamaError.response?.status === 429) {
         logger.warn("Kusama Subscan API rate limit exceeded, continuing with empty results");
       } else {
-        logger.error({ error: kusamaError.message }, "Error fetching Kusama extrinsics from Subscan");
+        logger.error({ error: formatError(kusamaError) }, "Error fetching Kusama extrinsics from Subscan");
       }
     }
 
@@ -325,7 +325,7 @@ export async function checkSubscan(votedList: ReferendumId[]): Promise<Record<nu
     return extrinsicVoteMap;
     
   } catch (error) {
-    logger.error({ error: (error as Error).message }, "Error in checkSubscan");
+    logger.error({ error: formatError(error) }, "Error in checkSubscan");
     return {};
   }
 }

@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyAuthToken, extractTokenFromHeader } from "../utils/auth";
-import { createSubsystemLogger } from "../config/logger";
+import { createSubsystemLogger, formatError } from "../config/logger";
 import { Subsystem } from "../types/logging";
 
 const logger = createSubsystemLogger(Subsystem.APP);
@@ -41,7 +41,7 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
     
     next();
   } catch (error) {
-    logger.error({ error }, "Error in authentication middleware");
+    logger.error({ error: formatError(error) }, "Error in authentication middleware");
     req.isAuthenticated = false;
     next();
   }

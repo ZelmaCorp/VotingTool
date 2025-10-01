@@ -1,7 +1,7 @@
 import { Chain } from "./types/properties";
 import { fetchDataFromAPI, fetchReferendumContent } from "./polkAssembly/fetchReferendas";
 import { fetchDotToUsdRate, fetchKusToUsdRate, calculateReward, getValidatedOrigin, getValidatedStatus } from "./utils/utils";
-import { createSubsystemLogger } from "./config/logger";
+import { createSubsystemLogger, formatError } from "./config/logger";
 import { Subsystem } from "./types/logging";
 import { Referendum } from "./database/models/referendum";
 import { ReferendumRecord } from "./database/types";
@@ -111,19 +111,19 @@ export async function refreshReferendas(limit: number = 30) {
                 try {
                     await updateReferendumFromPolkassembly(referenda, exchangeRate, referenda.network);
                 } catch (error) {
-                    logger.error({ postId: referenda.post_id, error: (error as any).message }, "Error updating referendum");
+                    logger.error({ postId: referenda.post_id, error: formatError(error), network: referenda.network }, "Error updating referendum");
                 }
             } else {
                 logger.info({ postId: referenda.post_id, network: referenda.network }, `Referendum not in database, creating new record`);
                 try {
                     await createReferendumFromPolkassembly(referenda, exchangeRate, referenda.network);
                 } catch (error) {
-                    logger.error({ postId: referenda.post_id, error: (error as any).message }, "Error creating referendum");
+                    logger.error({ postId: referenda.post_id, error: formatError(error), network: referenda.network }, "Error creating referendum");
                 }
             }
         }
     } catch (error) {
-        logger.error({ error: (error as any).message }, "Error while refreshing Referendas");
+        logger.error({ error: formatError(error) }, "Error while refreshing Referendas");
     } finally {
         isRefreshing = false;
     }

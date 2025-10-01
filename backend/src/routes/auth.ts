@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { verifyWeb3Signature, findTeamMemberByAddress, generateAuthToken } from "../utils/auth";
 import { Web3AuthRequest } from "../types/auth";
-import { createSubsystemLogger } from "../config/logger";
+import { createSubsystemLogger, formatError } from "../config/logger";
 import { Subsystem } from "../types/logging";
 import { requireAuth } from "../middleware/auth";
 
@@ -69,7 +69,7 @@ router.post("/web3-login", async (req: Request, res: Response) => {
     });
     
   } catch (error) {
-    logger.error({ error }, "Error in Web3 login");
+    logger.error({ error: formatError(error) }, "Error in Web3 login");
     res.status(500).json({
       success: false,
       error: "Internal server error"
@@ -89,7 +89,7 @@ router.post("/logout", requireAuth, (req: Request, res: Response) => {
       message: "Logged out successfully"
     });
   } catch (error) {
-    logger.error({ error }, "Error in logout");
+    logger.error({ error: formatError(error) }, "Error in logout");
     res.status(500).json({
       success: false,
       error: "Internal server error"
@@ -120,7 +120,7 @@ router.get("/profile", requireAuth, (req: Request, res: Response) => {
     });
     
   } catch (error) {
-    logger.error({ error }, "Error getting user profile");
+    logger.error({ error: formatError(error) }, "Error getting user profile");
     res.status(500).json({
       success: false,
       error: "Internal server error"
@@ -144,7 +144,7 @@ router.get("/verify", requireAuth, (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    logger.error({ error }, "Error verifying token");
+    logger.error({ error: formatError(error) }, "Error verifying token");
     res.status(500).json({
       success: false,
       error: "Internal server error"

@@ -1,6 +1,6 @@
 import { Chain, Origin, TimelineStatus } from "../types/properties";
 import { priceCache } from './priceCache';
-import { createSubsystemLogger, logError } from '../config/logger';
+import { createSubsystemLogger, logError, formatError } from '../config/logger';
 import { Subsystem, ErrorType } from '../types/logging';
 
 const logger = createSubsystemLogger(Subsystem.UTILS);
@@ -57,6 +57,7 @@ export async function fetchDotToUsdRate(): Promise<number> {
         
         // Invalid rate received, fallback to cache
         logger.error({ 
+            error: `Invalid rate: ${data?.polkadot?.usd}`,
             data,
             rate: data?.polkadot?.usd 
         }, 'Invalid DOT/USD rate received from CoinGecko, using cached value');
@@ -70,7 +71,7 @@ export async function fetchDotToUsdRate(): Promise<number> {
         
     } catch (error) {
         if (!(error instanceof Error && error.message.startsWith('Error fetching DOT/USD rate:'))) {
-             logger.error({ error: (error as any).message }, 'Error fetching DOT/USD rate');
+             logger.error({ error: formatError(error) }, 'Error fetching DOT/USD rate');
         }
         
         const cachedRate = priceCache.getPrice(Chain.Polkadot);
@@ -103,6 +104,7 @@ export async function fetchKusToUsdRate(): Promise<number> {
         
         // Invalid rate received, fallback to cache
         logger.error({ 
+            error: `Invalid rate: ${data?.kusama?.usd}`,
             data,
             rate: data?.kusama?.usd 
         }, 'Invalid KSM/USD rate received from CoinGecko, using cached value');
@@ -116,7 +118,7 @@ export async function fetchKusToUsdRate(): Promise<number> {
         
     } catch (error) {
         if (!(error instanceof Error && error.message.startsWith('Error fetching KSM/USD rate:'))) {
-            logger.error({ error: (error as any).message }, 'Error fetching KSM/USD rate');
+            logger.error({ error: formatError(error) }, 'Error fetching KSM/USD rate');
         }
         
         const cachedRate = priceCache.getPrice(Chain.Kusama);

@@ -9,7 +9,7 @@ import { refreshReferendas } from "./refresh";
 import { READY_CHECK_INTERVAL } from "./utils/constants";
 
 import { checkForVotes } from "./mimir/checkForVotes";
-import { createSubsystemLogger } from "./config/logger";
+import { createSubsystemLogger, formatError } from "./config/logger";
 import { Subsystem } from "./types/logging";
 import { db } from "./database/connection";
 import { authenticateToken } from "./middleware/auth";
@@ -107,7 +107,7 @@ async function main() {
     });
 
   } catch (error) {
-    logger.error({ error }, "Fatal error in main()");
+    logger.error({ error: formatError(error) }, "Fatal error in main()");
     await gracefulShutdown();
     process.exit(1);
   }
@@ -124,7 +124,7 @@ async function gracefulShutdown(): Promise<void> {
     logger.info('Shutdown complete');
     process.exit(0);
   } catch (error) {
-    logger.error({ error }, 'Error during graceful shutdown');
+    logger.error({ error: formatError(error) }, 'Error during graceful shutdown');
     process.exit(1);
   }
 }

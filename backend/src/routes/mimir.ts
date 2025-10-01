@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { sendReadyProposalsToMimir } from '../mimir/refreshEndpoint';
-import { createSubsystemLogger } from '../config/logger';
+import { createSubsystemLogger, formatError } from '../config/logger';
 import { Subsystem } from '../types/logging';
 
 const logger = createSubsystemLogger(Subsystem.MIMIR);
@@ -16,7 +16,7 @@ router.get("/send-to-mimir", async (req: Request, res: Response) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    logger.error({ error: (error as any).message }, "Error sending referendas to Mimir");
+    logger.error({ error: formatError(error) }, "Error sending referendas to Mimir");
     res.status(500).json({ 
       success: false,
       error: "Error sending referendas to Mimir: " + (error as any).message 

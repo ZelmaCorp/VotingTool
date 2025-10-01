@@ -1,6 +1,6 @@
 import { Web3AuthRequest, AuthenticatedUser, AuthToken } from "../types/auth";
 import { multisigService } from "../services/multisig";
-import { createSubsystemLogger } from "../config/logger";
+import { createSubsystemLogger, formatError } from "../config/logger";
 import { Subsystem } from "../types/logging";
 import jwt from "jsonwebtoken";
 import { signatureVerify } from '@polkadot/util-crypto';
@@ -49,11 +49,11 @@ export async function verifyWeb3Signature(authRequest: Web3AuthRequest): Promise
       logger.debug({ address }, "Signature verification successful");
       return true;
     } catch (sigError) {
-      logger.error({ error: sigError, address }, "Error during signature verification");
+      logger.error({ error: formatError(sigError), address }, "Error during signature verification");
       return false;
     }
   } catch (error) {
-    logger.error({ error }, "Error verifying Web3 signature");
+    logger.error({ error: formatError(error) }, "Error verifying Web3 signature");
     return false;
   }
 }
@@ -113,7 +113,7 @@ export async function findTeamMemberByAddress(walletAddress: string): Promise<Au
       network: network
     };
   } catch (error) {
-    logger.error({ error, walletAddress }, "Error finding multisig member by address");
+    logger.error({ error: formatError(error), walletAddress }, "Error finding multisig member by address");
     return null;
   }
 }
@@ -146,7 +146,7 @@ export function verifyAuthToken(token: string): AuthenticatedUser | null {
       network: decoded.network
     };
   } catch (error) {
-    logger.error({ error }, "Error verifying auth token");
+    logger.error({ error: formatError(error) }, "Error verifying auth token");
     return null;
   }
 }

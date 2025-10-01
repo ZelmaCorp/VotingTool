@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { createSubsystemLogger } from '../config/logger';
+import { createSubsystemLogger, formatError } from '../config/logger';
 import { Subsystem } from '../types/logging';
 import { decodeAddress, encodeAddress } from '@polkadot/keyring';
 
@@ -127,7 +127,7 @@ export class MultisigService {
       };
       
     } catch (error) {
-      logger.error({ error, network, multisigAddress }, 'Error checking if address is proxy');
+      logger.error({ error: formatError(error), network, multisigAddress }, 'Error checking if address is proxy');
       return {
         isProxy: false,
         currentAddress: multisigAddress,
@@ -211,7 +211,7 @@ export class MultisigService {
       }
 
     } catch (error) {
-      logger.error({ error, network, multisigAddress }, 'Error fetching multisig members');
+      logger.error({ error: formatError(error), network, multisigAddress }, 'Error fetching multisig members');
       return [];
     }
   }

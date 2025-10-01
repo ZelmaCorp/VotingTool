@@ -2,7 +2,7 @@ import { Request, Response, Router } from 'express';
 import { Referendum } from '../database/models/referendum';
 import { VotingDecision } from '../database/models/votingDecision';
 import { Chain } from '../types/properties';
-import { createSubsystemLogger } from '../config/logger';
+import { createSubsystemLogger, formatError } from '../config/logger';
 import { Subsystem } from '../types/logging';
 import { db } from '../database/connection';
 
@@ -18,10 +18,10 @@ router.get("/", async (req: Request, res: Response) => {
       referendums
     });
   } catch (error) {
-    logger.error({ error: (error as any).message }, "Error fetching referendums from database");
+    logger.error({ error: formatError(error) }, "Error fetching referendums from database");
     res.status(500).json({ 
       success: false,
-      error: "Error fetching referendums: " + (error as any).message 
+      error: "Error fetching referendums: " + formatError(error)
     });
   }
 });
@@ -62,10 +62,10 @@ router.get("/:postId", async (req: Request, res: Response) => {
       referendum 
     });
   } catch (error) {
-    logger.error({ error: (error as any).message }, "Error fetching referendum from database");
+    logger.error({ error: formatError(error) }, "Error fetching referendum from database");
     res.status(500).json({ 
       success: false, 
-      error: "Error fetching referendum: " + (error as any).message 
+      error: "Error fetching referendum: " + formatError(error)
     });
   }
 });
@@ -159,8 +159,8 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
     const updatedReferendum = await Referendum.findByPostIdAndChain(postId, chain);
     res.json(updatedReferendum);
   } catch (error) {
-    logger.error({ error: (error as any).message }, "Error updating referendum");
-    res.status(500).json({ error: "Error updating referendum: " + (error as any).message });
+    logger.error({ error: formatError(error) }, "Error updating referendum");
+    res.status(500).json({ error: "Error updating referendum: " + formatError(error) });
   }
 });
 

@@ -58,7 +58,30 @@ export const logError = (
   errorType?: ErrorType
 ) => {
   const logContext = errorType ? { ...context, type: errorType } : context;
+  
+  // Ensure 'error' field always exists for Grafana
+  if (!logContext.error) {
+    logContext.error = message;
+  }
+  
   subsystemLogger.error(logContext, message);
+};
+
+/**
+ * Helper to format error objects for logging
+ * Ensures the 'error' field is always a string for Grafana compatibility
+ */
+export const formatError = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String((error as any).message);
+  }
+  return String(error);
 };
 
 // Export the base logger and convenience logger

@@ -1,7 +1,7 @@
 import axios from "axios";
 import { FetchReferendaReturnType, PolkassemblyReferenda, PostType } from "../types/polkassemly";
 import { Chain } from "../types/properties";
-import { createSubsystemLogger, logError } from "../config/logger";
+import { createSubsystemLogger, logError, formatError } from "../config/logger";
 import { Subsystem, ErrorType } from "../types/logging";
 
 const logger = createSubsystemLogger(Subsystem.POLKASSEMBLY);
@@ -47,7 +47,7 @@ export async function fetchDataFromAPI(limit: number = 200, network: Chain): Pro
           discussions.push(post);
         }
       } catch (postError) {
-        logger.error({ postError, post, network }, "Error processing post");
+        logger.error({ error: formatError(postError), post, network }, "Error processing post");
         // Continue processing other posts
       }
     }
@@ -63,18 +63,19 @@ export async function fetchDataFromAPI(limit: number = 200, network: Chain): Pro
         logError(logger, { network, timeout: TIMEOUT_MS }, "Timeout fetching data from Polkassembly API", ErrorType.TIMEOUT);
       } else if (error.response) {
         logger.error({ 
+          error: `HTTP ${error.response.status}: ${error.response.statusText}`,
           network, 
           status: error.response.status, 
           statusText: error.response.statusText,
           data: error.response.data 
         }, "Error response from Polkassembly API");
       } else if (error.request) {
-        logger.error({ network, request: error.request }, "No response received from Polkassembly API");
+        logger.error({ error: "No response received", network, request: error.request }, "No response received from Polkassembly API");
       } else {
-        logger.error({ network, message: error.message }, "Error setting up request to Polkassembly API");
+        logger.error({ error: error.message, network }, "Error setting up request to Polkassembly API");
       }
     } else {
-      logger.error({ network, error: (error as Error).message }, "Unexpected error fetching data from Polkassembly API");
+      logger.error({ network, error: formatError(error) }, "Unexpected error fetching data from Polkassembly API");
     }
     // Throw the error instead of returning empty arrays to abort the entire refresh cycle
     throw error;
@@ -105,21 +106,22 @@ export async function fetchReferendumContent(postId: number, network: Chain) {
   } catch (error) {
     if (axios.isAxiosError(error)) {
       if (error.code === 'ECONNABORTED') {
-        logger.error({ postId, network, timeout: TIMEOUT_MS }, "Timeout fetching referendum content");
+        logger.error({ error: `Timeout after ${TIMEOUT_MS}ms`, postId, network, timeout: TIMEOUT_MS }, "Timeout fetching referendum content");
       } else if (error.response) {
         logger.error({ 
+          error: `HTTP ${error.response.status}: ${error.response.statusText}`,
           postId, 
           network, 
           status: error.response.status, 
           statusText: error.response.statusText 
         }, "Error response fetching referendum content");
       } else if (error.request) {
-        logger.error({ postId, network }, "No response received when fetching referendum content");
+        logger.error({ error: "No response received", postId, network }, "No response received when fetching referendum content");
       } else {
-        logger.error({ postId, network, message: error.message }, "Error setting up request for referendum content");
+        logger.error({ error: error.message, postId, network }, "Error setting up request for referendum content");
       }
     } else {
-      logger.error({ postId, network, error: (error as Error).message }, 'Unexpected error fetching referendum content');
+      logger.error({ postId, network, error: formatError(error) }, 'Unexpected error fetching referendum content');
     }
     // Throw the error instead of returning fallback content
     throw error;

@@ -3,7 +3,7 @@ import { db } from "../database/connection";
 import { requireTeamMember, authenticateToken } from "../middleware/auth";
 import { ReferendumAction } from "../types/auth";
 import { multisigService } from "../services/multisig";
-import { createSubsystemLogger } from "../config/logger";
+import { createSubsystemLogger, formatError } from "../config/logger";
 import { Subsystem } from "../types/logging";
 import { Referendum } from "../database/models/referendum";
 import { refreshReferendas } from "../refresh";
@@ -29,7 +29,7 @@ router.get("/members", authenticateToken, async (req: Request, res: Response) =>
     });
     
   } catch (error) {
-    logger.error({ error }, "Error fetching multisig members");
+    logger.error({ error: formatError(error) }, "Error fetching multisig members");
     res.status(500).json({
       success: false,
       error: "Internal server error"
@@ -51,7 +51,7 @@ router.get("/parent", authenticateToken, async (req: Request, res: Response) => 
     });
     
   } catch (error) {
-    logger.error({ error }, "Error fetching parent address");
+    logger.error({ error: formatError(error) }, "Error fetching parent address");
     res.status(500).json({
       success: false,
       error: "Internal server error"
@@ -132,7 +132,7 @@ router.get("/referendum/:referendumId", async (req: Request, res: Response) => {
     });
     
   } catch (error) {
-    logger.error({ error, referendumId: req.params.referendumId }, "Error fetching referendum");
+    logger.error({ error: formatError(error), referendumId: req.params.referendumId }, "Error fetching referendum");
     res.status(500).json({
       success: false,
       error: "Internal server error"
@@ -200,7 +200,7 @@ router.get("/referendum/:referendumId/actions", async (req: Request, res: Respon
       actions: enrichedActions
     });
   } catch (error) {
-    logger.error({ error, referendumId: req.params.referendumId }, "Error retrieving governance actions for referendum");
+    logger.error({ error: formatError(error), referendumId: req.params.referendumId }, "Error retrieving governance actions for referendum");
     res.status(500).json({
       success: false,
       error: "Internal server error"
@@ -339,7 +339,7 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
     }
     
   } catch (error) {
-    logger.error({ error, referendumId: req.params.referendumId }, "Error assigning user governance action for referendum");
+    logger.error({ error: formatError(error), referendumId: req.params.referendumId }, "Error assigning user governance action for referendum");
     res.status(500).json({
       success: false,
       error: "Internal server error"
@@ -494,7 +494,7 @@ router.get("/referendum/:referendumId/agreement-summary", async (req: Request, r
     });
     
   } catch (error) {
-    logger.error({ error, referendumId: req.params.referendumId }, "Error fetching agreement summary");
+    logger.error({ error: formatError(error), referendumId: req.params.referendumId }, "Error fetching agreement summary");
     res.status(500).json({
       success: false,
       error: "Internal server error"
@@ -564,7 +564,7 @@ router.get("/referendum/:referendumId/comments", async (req: Request, res: Respo
     });
     
   } catch (error) {
-    logger.error({ error, referendumId: req.params.referendumId }, "Error fetching comments");
+    logger.error({ error: formatError(error), referendumId: req.params.referendumId }, "Error fetching comments");
     res.status(500).json({
       success: false,
       error: "Internal server error"
@@ -642,7 +642,7 @@ router.post("/referendum/:referendumId/comments", requireTeamMember, async (req:
     });
     
   } catch (error) {
-    logger.error({ error, referendumId: req.params.referendumId }, "Error adding comment");
+    logger.error({ error: formatError(error), referendumId: req.params.referendumId }, "Error adding comment");
     res.status(500).json({
       success: false,
       error: "Internal server error"
@@ -712,7 +712,7 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
     });
     
   } catch (error) {
-    logger.error({ error, referendumId: req.params.referendumId }, "Error removing user governance action from referendum");
+    logger.error({ error: formatError(error), referendumId: req.params.referendumId }, "Error removing user governance action from referendum");
     res.status(500).json({
       success: false,
       error: "Internal server error"
@@ -780,7 +780,7 @@ router.delete("/comments/:commentId", requireTeamMember, async (req: Request, re
     });
     
   } catch (error) {
-    logger.error({ error, commentId: req.params.commentId }, "Error deleting comment");
+    logger.error({ error: formatError(error), commentId: req.params.commentId }, "Error deleting comment");
     res.status(500).json({
       success: false,
       error: "Internal server error"
@@ -813,7 +813,7 @@ router.get("/my-assignments", requireTeamMember, async (req: Request, res: Respo
       referendums
     });
   } catch (error) {
-    logger.error({ error }, "Error retrieving user's assigned referendums");
+    logger.error({ error: formatError(error) }, "Error retrieving user's assigned referendums");
     res.status(500).json({
       success: false,
       error: "Internal server error"
@@ -988,7 +988,7 @@ router.post("/sync", authenticateToken, async (req: Request, res: Response) => {
     // Start refresh in background (don't await to return immediately)
     refreshReferendas(limit).catch(error => {
       logger.error({ 
-        error: error.message, 
+        error: formatError(error), 
         syncType: type, 
         limit,
         requestedBy: req.user?.address 
@@ -1007,7 +1007,7 @@ router.post("/sync", authenticateToken, async (req: Request, res: Response) => {
     
   } catch (error) {
     logger.error({ 
-      error, 
+      error: formatError(error), 
       requestedBy: req.user?.address 
     }, "Error starting sync operation");
     res.status(500).json({

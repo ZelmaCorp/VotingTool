@@ -1,7 +1,7 @@
 import { handleReferendaVote } from "./handleReferenda";
 import { Referendum } from "../database/models/referendum";
 import { MimirTransaction } from "../database/models/mimirTransaction";
-import { createSubsystemLogger } from "../config/logger";
+import { createSubsystemLogger, formatError } from "../config/logger";
 import { Subsystem } from "../types/logging";
 
 const logger = createSubsystemLogger(Subsystem.MIMIR);
@@ -41,7 +41,7 @@ export async function sendReadyProposalsToMimir(): Promise<void> {
     let successCount = 0;
     results.forEach((result, index) => {
       if (result.status === "rejected") {
-        logger.error({ index, error: result.reason }, "Promise failed (rejected)");
+        logger.error({ index, error: formatError(result.reason) }, "Promise failed (rejected)");
       } else {
         const ready = result.value;
         if (ready) {
@@ -55,7 +55,7 @@ export async function sendReadyProposalsToMimir(): Promise<void> {
 
     logger.info({ successCount, totalProcessed: results.length }, "Successfully processed ready proposals");
   } catch (error) {
-    logger.error({ error: (error as any).message }, "Error while sending ReadyToVote proposals to Mimir");
+    logger.error({ error: formatError(error) }, "Error while sending ReadyToVote proposals to Mimir");
     throw error;
   }
 }

@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { refreshReferendas } from '../refresh';
-import { createSubsystemLogger } from '../config/logger';
+import { createSubsystemLogger, formatError } from '../config/logger';
 import { Subsystem } from '../types/logging';
 
 const logger = createSubsystemLogger(Subsystem.REFRESH);
@@ -13,7 +13,7 @@ router.get('/refresh-referendas', async (req: Request, res: Response) => {
     
     // Start refresh in background (don't await)
     refreshReferendas(limit).catch(error => {
-      logger.error({ error: error.message, limit }, 'Background refresh failed');
+      logger.error({ error: formatError(error), limit }, 'Background refresh failed');
     });
     
     // Return immediately
