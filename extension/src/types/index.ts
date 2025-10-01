@@ -53,8 +53,13 @@ export type TimelineStatus =
     | 'ConfirmStarted'
     | 'Enactment'
     | 'Executed'
+    | 'ExecutionFailed'
     | 'TimedOut'
-    | 'Rejected';
+    | 'Rejected'
+    | 'Cancelled'
+    | 'Canceled'
+    | 'Killed'
+    | 'Confirmed';
 
 export type SuggestedVote = '👍 Aye 👍' | '👎 Nay 👎' | '✌️ Abstain ✌️';
 

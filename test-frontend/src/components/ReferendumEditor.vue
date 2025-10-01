@@ -146,10 +146,15 @@
               <option value="Deciding">Deciding</option>
               <option value="Confirmation">Confirmation</option>
               <option value="ConfirmStarted">Confirm Started</option>
+              <option value="Confirmed">Confirmed</option>
               <option value="Enactment">Enactment</option>
               <option value="Executed">Executed</option>
+              <option value="ExecutionFailed">Execution Failed</option>
               <option value="TimedOut">Timed Out</option>
               <option value="Rejected">Rejected</option>
+              <option value="Cancelled">Cancelled</option>
+              <option value="Canceled">Canceled</option>
+              <option value="Killed">Killed</option>
             </select>
           </div>
         </div>
