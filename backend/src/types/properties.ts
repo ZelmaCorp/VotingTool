@@ -12,9 +12,13 @@ export enum TimelineStatus {
     Enactment = "Enactment",
     TimedOut = "TimedOut",
     Executed = "Executed",
+    ExecutionFailed = "ExecutionFailed",
     ConfirmStarted = "ConfirmStarted",
     Confirmed = "Confirmed",
-    Rejected = "Rejected"
+    Rejected = "Rejected",
+    Cancelled = "Cancelled",
+    Canceled = "Canceled",
+    Killed = "Killed"
 }
 
 export enum InternalStatus {
@@ -59,8 +63,8 @@ export enum Origin {
     MediumSpender = "MediumSpender",
     BigTipper = "BigTipper",
     NoOriginInformationAvailable = "No origin information available",
-    BigSpender = "BigSpender", // Added
-    ReferendumCanceller = "ReferendumCanceller", // Added
+    BigSpender = "BigSpender",
+    ReferendumCanceller = "ReferendumCanceller",
     SmallSpender = "SmallSpender",
     WishForChange = "WishForChange",
     SmallTipper = "SmallTipper",
@@ -68,7 +72,11 @@ export enum Origin {
     Root = "Root",
     WhitelistedCaller = "WhitelistedCaller",
     Treasurer = "Treasurer",
-    ReferendumKiller = "ReferendumKiller"
+    ReferendumKiller = "ReferendumKiller",
+    StakingAdmin = "StakingAdmin",
+    LeaseAdmin = "LeaseAdmin",
+    AuctionAdmin = "AuctionAdmin",
+    GeneralAdmin = "GeneralAdmin"
 }
 
 
