@@ -377,7 +377,7 @@ const handleSignMessage = async () => {
     
     // Wait for the signature result
     let attempts = 0
-    const maxAttempts = 20 // Wait up to 10 seconds
+    const maxAttempts = 160 // Wait up to 80 seconds (1min 20s)
     
     console.log('⏳ Waiting for signature result...')
     
