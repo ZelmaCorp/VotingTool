@@ -24,15 +24,6 @@ declare namespace chrome {
     };
   };
   
-  const tabs: {
-    query(queryInfo: any): Promise<any[]>;
-    sendMessage(tabId: number, message: any): Promise<any>;
-  };
-  
-  const scripting: {
-    executeScript(injection: any): Promise<any>;
-  };
-  
   const runtime: {
     id: string;
     sendMessage(message: any): Promise<any>;
@@ -54,20 +45,6 @@ declare namespace browser {
       addListener: (callback: (message: any, sender: any) => void) => void;
       removeListener: (callback: (message: any, sender: any) => void) => void;
     };
-  };
-  
-  const tabs: {
-    query: (queryInfo: { active: boolean; currentWindow: boolean }) => Promise<any[]>;
-    sendMessage: (tabId: number, message: any) => Promise<any>;
-    executeScript: (tabId: number, details: { file: string }) => Promise<any>;
-  };
-  
-  const scripting: {
-    executeScript: (injection: {
-      target: { tabId: number };
-      files?: string[];
-      func?: () => void;
-    }) => Promise<any>;
   };
   
   const storage: {

@@ -27,28 +27,6 @@ const getRuntimeAPI = () => {
   }
 };
 
-// Get the appropriate tabs API
-const getTabsAPI = () => {
-  if (isFirefox) {
-    return (window as any).browser.tabs;
-  } else if (isChrome) {
-    return chrome.tabs;
-  } else {
-    throw new Error('No supported browser tabs API found');
-  }
-};
-
-// Get the appropriate scripting API
-const getScriptingAPI = () => {
-  if (isFirefox) {
-    return (window as any).browser.scripting;
-  } else if (isChrome) {
-    return chrome.scripting;
-  } else {
-    throw new Error('No supported browser scripting API found');
-  }
-};
-
 export const messaging = {
   // Send message to background script
   async sendMessage(message: Message): Promise<MessageResponse> {
@@ -78,42 +56,6 @@ export const messaging = {
       runtimeAPI.onMessage.removeListener(callback);
     } catch (error) {
       console.error('Remove message listener error:', error);
-    }
-  },
-
-  // Query tabs
-  async queryTabs(queryInfo: any): Promise<any[]> {
-    try {
-      const tabsAPI = getTabsAPI();
-      return await tabsAPI.query(queryInfo);
-    } catch (error) {
-      console.error('Query tabs error:', error);
-      return [];
-    }
-  },
-
-  // Send message to specific tab
-  async sendMessageToTab(tabId: number, message: Message): Promise<any> {
-    try {
-      const tabsAPI = getTabsAPI();
-      return await tabsAPI.sendMessage(tabId, message);
-    } catch (error) {
-      console.error('Send message to tab error:', error);
-      return null;
-    }
-  },
-
-  // Execute script in tab
-  async executeScript(tabId: number, func: Function): Promise<any> {
-    try {
-      const scriptingAPI = getScriptingAPI();
-      return await scriptingAPI.executeScript({
-        target: { tabId },
-        func: func.toString()
-      });
-    } catch (error) {
-      console.error('Execute script error:', error);
-      return null;
     }
   }
 }; 

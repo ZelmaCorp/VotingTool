@@ -4,10 +4,8 @@
   "version": "1.0.0",
   "description": "A browser extension that overlays on Polkassembly and Subsquare to help you vote on OpenGov proposals",
   "permissions": [
-    "activeTab",
     "scripting",
-    "storage",
-    "tabs"
+    "storage"
   ],
   "host_permissions": [
     "https://polkadot.polkassembly.io/*",

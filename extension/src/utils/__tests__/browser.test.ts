@@ -17,13 +17,6 @@ const mockFirefoxBrowser = {
       set: vi.fn(),
       remove: vi.fn()
     }
-  },
-  tabs: {
-    query: vi.fn(),
-    sendMessage: vi.fn()
-  },
-  scripting: {
-    executeScript: vi.fn()
   }
 }
 
@@ -42,13 +35,6 @@ const mockChromeBrowser = {
       set: vi.fn(),
       remove: vi.fn()
     }
-  },
-  tabs: {
-    query: vi.fn(),
-    sendMessage: vi.fn()
-  },
-  scripting: {
-    executeScript: vi.fn()
   }
 }
 
@@ -163,8 +149,6 @@ describe('browser utilities', () => {
       expect(api).toBe(mockFirefoxBrowser)
       expect(api.runtime.id).toBe('firefox-extension-id')
       expect(typeof api.storage.local.get).toBe('function')
-      expect(typeof api.tabs.query).toBe('function')
-      expect(typeof api.scripting.executeScript).toBe('function')
     })
 
     it('should return Chrome API when available', () => {
@@ -176,8 +160,6 @@ describe('browser utilities', () => {
       expect(api).toBe(mockChromeBrowser)
       expect(api.runtime.id).toBe('chrome-extension-id')
       expect(typeof api.storage.local.get).toBe('function')
-      expect(typeof api.tabs.query).toBe('function')
-      expect(typeof api.scripting.executeScript).toBe('function')
     })
 
     it('should throw error for unsupported browsers', () => {
@@ -214,15 +196,6 @@ describe('browser utilities', () => {
       expect(typeof api.storage.local.set).toBe('function')
       expect(typeof api.storage.local.remove).toBe('function')
       
-      // Check tabs API
-      expect(api.tabs).toBeDefined()
-      expect(typeof api.tabs.query).toBe('function')
-      expect(typeof api.tabs.sendMessage).toBe('function')
-      
-      // Check scripting API
-      expect(api.scripting).toBeDefined()
-      expect(typeof api.scripting.executeScript).toBe('function')
-      
       // Check runtime API
       expect(api.runtime).toBeDefined()
       expect(typeof api.runtime.id).toBe('string')
@@ -243,15 +216,6 @@ describe('browser utilities', () => {
       expect(typeof api.storage.local.get).toBe('function')
       expect(typeof api.storage.local.set).toBe('function')
       expect(typeof api.storage.local.remove).toBe('function')
-      
-      // Check tabs API
-      expect(api.tabs).toBeDefined()
-      expect(typeof api.tabs.query).toBe('function')
-      expect(typeof api.tabs.sendMessage).toBe('function')
-      
-      // Check scripting API
-      expect(api.scripting).toBeDefined()
-      expect(typeof api.scripting.executeScript).toBe('function')
       
       // Check runtime API
       expect(api.runtime).toBeDefined()
@@ -376,9 +340,6 @@ describe('browser utilities', () => {
         'storage.local.get',
         'storage.local.set', 
         'storage.local.remove',
-        'tabs.query',
-        'tabs.sendMessage',
-        'scripting.executeScript',
         'runtime.sendMessage',
         'runtime.onMessage.addListener',
         'runtime.onMessage.removeListener'
@@ -451,9 +412,6 @@ describe('browser utilities', () => {
       expect(typeof api.storage.local.get).toBe('function')
       expect(typeof api.storage.local.set).toBe('function')
       expect(typeof api.storage.local.remove).toBe('function')
-      expect(typeof api.tabs.query).toBe('function')
-      expect(typeof api.tabs.sendMessage).toBe('function')
-      expect(typeof api.scripting.executeScript).toBe('function')
       expect(typeof api.runtime.sendMessage).toBe('function')
       expect(typeof api.runtime.onMessage.addListener).toBe('function')
       expect(typeof api.runtime.onMessage.removeListener).toBe('function')
@@ -469,8 +427,6 @@ describe('browser utilities', () => {
       const firefoxStructure = {
         hasStorage: !!firefoxAPI.storage,
         hasStorageLocal: !!firefoxAPI.storage?.local,
-        hasTabs: !!firefoxAPI.tabs,
-        hasScripting: !!firefoxAPI.scripting,
         hasRuntime: !!firefoxAPI.runtime,
         hasOnMessage: !!firefoxAPI.runtime?.onMessage
       }
@@ -483,8 +439,6 @@ describe('browser utilities', () => {
       const chromeStructure = {
         hasStorage: !!chromeAPI.storage,
         hasStorageLocal: !!chromeAPI.storage?.local,
-        hasTabs: !!chromeAPI.tabs,
-        hasScripting: !!chromeAPI.scripting,
         hasRuntime: !!chromeAPI.runtime,
         hasOnMessage: !!chromeAPI.runtime?.onMessage
       }

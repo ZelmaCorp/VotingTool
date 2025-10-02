@@ -8,13 +8,6 @@ export interface BrowserAPI {
       remove(keys: string[]): Promise<void>;
     };
   };
-  tabs: {
-    query(queryInfo: any): Promise<any[]>;
-    sendMessage(tabId: number, message: any): Promise<any>;
-  };
-  scripting: {
-    executeScript(injection: any): Promise<any>;
-  };
   runtime: {
     id: string;
     sendMessage(message: any): Promise<any>;

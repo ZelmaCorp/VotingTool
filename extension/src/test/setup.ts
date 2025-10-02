@@ -18,13 +18,6 @@ global.chrome = {
     },
     lastError: null,
   },
-  tabs: {
-    query: vi.fn(),
-    sendMessage: vi.fn(),
-  },
-  scripting: {
-    executeScript: vi.fn(),
-  },
 } as any
 
 // Mock Firefox browser APIs
@@ -45,13 +38,6 @@ global.window = {
         addListener: vi.fn(),
         removeListener: vi.fn(),
       },
-    },
-    tabs: {
-      query: vi.fn(),
-      sendMessage: vi.fn(),
-    },
-    scripting: {
-      executeScript: vi.fn(),
     },
   },
 } as any

@@ -256,52 +256,7 @@ describe('messaging utilities', () => {
       })
     })
 
-    it('should handle tab access errors', () => {
-      const tabErrors = [
-        'Cannot access contents of the page',
-        'No tab with id: 999',
-        'Tab not found',
-        'Tabs permission denied'
-      ]
 
-      tabErrors.forEach(errorMessage => {
-        const handleTabError = (error: Error) => {
-          console.error('Tab error:', error)
-          return null
-        }
-
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-        const result = handleTabError(new Error(errorMessage))
-
-        expect(result).toBeNull()
-        expect(consoleSpy).toHaveBeenCalledWith('Tab error:', expect.any(Error))
-
-        consoleSpy.mockRestore()
-      })
-    })
-
-    it('should handle script execution errors', () => {
-      const scriptErrors = [
-        'Script execution failed',
-        'Cannot access contents of the page',
-        'Invalid script target'
-      ]
-
-      scriptErrors.forEach(errorMessage => {
-        const handleScriptError = (error: Error) => {
-          console.error('Script execution error:', error)
-          return null
-        }
-
-        const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
-        const result = handleScriptError(new Error(errorMessage))
-
-        expect(result).toBeNull()
-        expect(consoleSpy).toHaveBeenCalledWith('Script execution error:', expect.any(Error))
-
-        consoleSpy.mockRestore()
-      })
-    })
 
     it('should handle non-Error exceptions', () => {
       const createErrorResponse = (error: any): MessageResponse => {
@@ -641,10 +596,7 @@ describe('messaging utilities', () => {
         const requiredMethods = [
           'runtime.sendMessage',
           'runtime.onMessage.addListener',
-          'runtime.onMessage.removeListener',
-          'tabs.query',
-          'tabs.sendMessage',
-          'scripting.executeScript'
+          'runtime.onMessage.removeListener'
         ]
 
         return requiredMethods.every(method => {
@@ -668,13 +620,6 @@ describe('messaging utilities', () => {
             addListener: vi.fn(),
             removeListener: vi.fn()
           }
-        },
-        tabs: {
-          query: vi.fn(),
-          sendMessage: vi.fn()
-        },
-        scripting: {
-          executeScript: vi.fn()
         }
       }
       expect(checkAPIAvailability(completeAPI)).toBe(true)
@@ -696,10 +641,7 @@ describe('messaging utilities', () => {
         return {
           sendMessage: api?.runtime?.sendMessage,
           addListener: api?.runtime?.onMessage?.addListener,
-          removeListener: api?.runtime?.onMessage?.removeListener,
-          queryTabs: api?.tabs?.query,
-          sendMessageToTab: api?.tabs?.sendMessage,
-          executeScript: api?.scripting?.executeScript
+          removeListener: api?.runtime?.onMessage?.removeListener
         }
       }
 
@@ -707,16 +649,14 @@ describe('messaging utilities', () => {
         runtime: { 
           sendMessage: vi.fn(), 
           onMessage: { addListener: vi.fn(), removeListener: vi.fn() } 
-        },
-        tabs: { query: vi.fn(), sendMessage: vi.fn() },
-        scripting: { executeScript: vi.fn() }
+        }
       }
 
       const unifiedAPI = createUnifiedAPI(firefoxAPI, null)
 
       expect(typeof unifiedAPI.sendMessage).toBe('function')
       expect(typeof unifiedAPI.addListener).toBe('function')
-      expect(typeof unifiedAPI.queryTabs).toBe('function')
+      expect(typeof unifiedAPI.removeListener).toBe('function')
     })
   })
 }) 
