@@ -19,12 +19,13 @@ var __spreadValues = (a, b) => {
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 (function() {
   "use strict";
-  const BUILD_ID = "v1.1.0-" + Date.now();
+  const BUILD_ID = "v1.0.1-" + Date.now();
   let messageCounter = 0;
   let API_CONFIG = {
     baseURL: "http://localhost:3000",
     // Default fallback
-    timeout: 1e4
+    timeout: 6e4
+    // 60 seconds timeout for API calls
   };
   async function loadApiConfig() {
     try {

@@ -2,7 +2,7 @@
 // This will be the main entry point for the extension
 
 // Build identifier for debugging
-const BUILD_ID = 'v1.1.0-' + Date.now()
+const BUILD_ID = 'v1.0.1-' + Date.now()
 
 // Message counter for debugging
 let messageCounter = 0
@@ -10,7 +10,7 @@ let messageCounter = 0
 // API configuration - now loaded dynamically from storage
 let API_CONFIG = {
   baseURL: 'http://localhost:3000', // Default fallback
-  timeout: 10000
+  timeout: 60000 // 60 seconds timeout for API calls
 }
 
 // Load API configuration from storage
