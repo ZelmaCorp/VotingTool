@@ -2,6 +2,7 @@ import { Router, Request, Response } from "express";
 import { db } from "../database/connection";
 import { requireTeamMember, authenticateToken } from "../middleware/auth";
 import { ReferendumAction } from "../types/auth";
+import { InternalStatus } from "../types/properties";
 import { multisigService } from "../services/multisig";
 import { createSubsystemLogger, formatError } from "../config/logger";
 import { Subsystem } from "../types/logging";
@@ -104,18 +105,18 @@ router.get("/referendum/:referendumId", async (req: Request, res: Response) => {
     const assignmentsSql = `
       SELECT rtr.*, 
              CASE 
-               WHEN rtr.role_type = 'responsible_person' THEN rtr.team_member_id
+               WHEN rtr.role_type = ? THEN rtr.team_member_id
                ELSE NULL 
-             END as assigned_to
+             END as assigned_to)
       FROM referendum_team_roles rtr
       WHERE rtr.referendum_id = ?
       ORDER BY rtr.created_at DESC
     `;
     
-    const assignments = await db.all(assignmentsSql, [referendum.id]);
+    const assignments = await db.all(assignmentsSql, [ReferendumAction.RESPONSIBLE_PERSON, referendum.id]);
     
     // Find who is assigned as responsible person
-    const responsiblePerson = assignments.find(a => a.role_type === 'responsible_person');
+    const responsiblePerson = assignments.find(a => a.role_type === ReferendumAction.RESPONSIBLE_PERSON);
     
     // Add assignment information to referendum data
     const enrichedReferendum = {
@@ -269,11 +270,11 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
     );
     
     // Special handling for responsible_person assignment
-    if (action === 'responsible_person') {
+    if (action === ReferendumAction.RESPONSIBLE_PERSON) {
       // Check if someone else is already assigned as responsible person
       const currentResponsible = await db.get(
-        "SELECT team_member_id FROM referendum_team_roles WHERE referendum_id = ? AND role_type = 'responsible_person'",
-        [referendum.id]
+        "SELECT team_member_id FROM referendum_team_roles WHERE referendum_id = ? AND role_type = ?",
+        [referendum.id, ReferendumAction.RESPONSIBLE_PERSON]
       );
       
       if (currentResponsible && currentResponsible.team_member_id !== req.user.address) {
@@ -336,6 +337,52 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
           team_member_id: req.user.address
         }
       });
+    }
+    
+    // Check if we need to auto-transition status to "Ready to vote"
+    // This happens when enough team members agree and status is "Waiting for agreement"
+    if (action === ReferendumAction.AGREE) {
+      try {
+        const currentRef = await db.get(
+          "SELECT internal_status FROM referendums WHERE id = ?",
+          [referendum.id]
+        );
+        
+        if (currentRef && currentRef.internal_status === InternalStatus.WaitingForAgreement) {
+          const teamMembers = await multisigService.getCachedTeamMembers();
+          const totalTeamMembers = teamMembers.length;
+          
+          // Count total agreements
+          const agreementCount = await db.get(
+            "SELECT COUNT(DISTINCT team_member_id) as count FROM referendum_team_roles WHERE referendum_id = ? AND role_type = ?",
+            [referendum.id, ReferendumAction.AGREE]
+          );
+          
+          // Check if NO WAY exists
+          const noWay = await db.get(
+            "SELECT id FROM referendum_team_roles WHERE referendum_id = ? AND role_type = ? LIMIT 1",
+            [referendum.id, ReferendumAction.NO_WAY]
+          );
+          
+          if (!noWay && agreementCount && agreementCount.count >= totalTeamMembers) {
+            // All team members have agreed, transition to "Ready to vote"
+            await db.run(
+              "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
+              [InternalStatus.ReadyToVote, referendum.id]
+            );
+            
+            logger.info({
+              referendumId: referendum.id,
+              postId: referendumId,
+              chain,
+              agreementCount: agreementCount.count,
+              requiredAgreements: totalTeamMembers
+            }, "Auto-transitioned to 'Ready to vote' after reaching agreement threshold");
+          }
+        }
+      } catch (transitionError) {
+        logger.warn({ transitionError, referendumId }, "Failed to check/transition status to Ready to vote");
+      }
     }
     
   } catch (error) {
@@ -442,10 +489,10 @@ router.get("/referendum/:referendumId/agreement-summary", async (req: Request, r
         pending_members.push(member);
       } else {
         switch (action.role_type) {
-          case 'agree':
+          case ReferendumAction.AGREE:
             agreed_members.push(member);
             break;
-          case 'no_way':
+          case ReferendumAction.NO_WAY:
             vetoed = true;
             veto_by = member.name;
             veto_reason = action.reason || null;
@@ -458,13 +505,13 @@ router.get("/referendum/:referendumId/agreement-summary", async (req: Request, r
               });
             }
             break;
-          case 'recuse':
+          case ReferendumAction.RECUSE:
             recused_members.push(member);
             break;
-          case 'to_be_discussed':
+          case ReferendumAction.TO_BE_DISCUSSED:
             to_be_discussed_members.push(member);
             break;
-          case 'responsible_person':
+          case ReferendumAction.RESPONSIBLE_PERSON:
             // Responsible person doesn't count as agreement by default
             pending_members.push(member);
             break;
@@ -835,44 +882,45 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
     const needsAgreement = await db.all(`
       SELECT 
         r.*,
-        COUNT(CASE WHEN rtr.role_type = 'agree' THEN 1 END) as agreement_count
+        COUNT(DISTINCT CASE WHEN rtr.role_type = ? THEN rtr.team_member_id END) as agreement_count,
+        ? as required_agreements
       FROM referendums r
       LEFT JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id
-      WHERE r.internal_status = 'Waiting for agreement'
+      WHERE r.internal_status = ?
         AND NOT EXISTS (
           SELECT 1 FROM referendum_team_roles rtr2 
           WHERE rtr2.referendum_id = r.id 
-          AND rtr2.role_type = 'no_way'
+          AND rtr2.role_type = ?
         )
       GROUP BY r.id
       HAVING agreement_count < ?
-    `, [totalTeamMembers]);
+    `, [ReferendumAction.AGREE, totalTeamMembers, InternalStatus.WaitingForAgreement, ReferendumAction.NO_WAY, totalTeamMembers]);
 
     // Get proposals ready to vote
     const readyToVote = await db.all(`
       SELECT r.*
       FROM referendums r
-      WHERE r.internal_status = 'Ready to vote'
+      WHERE r.internal_status = ?
         AND NOT EXISTS (
           SELECT 1 FROM referendum_team_roles rtr2 
           WHERE rtr2.referendum_id = r.id 
-          AND rtr2.role_type = 'no_way'
+          AND rtr2.role_type = ?
         )
-    `);
+    `, [InternalStatus.ReadyToVote, ReferendumAction.NO_WAY]);
 
     // Get proposals for discussion
     const forDiscussion = await db.all(`
       SELECT r.*
       FROM referendums r
       INNER JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id
-      WHERE rtr.role_type = 'to_be_discussed'
+      WHERE rtr.role_type = ?
         AND NOT EXISTS (
           SELECT 1 FROM referendum_team_roles rtr2 
           WHERE rtr2.referendum_id = r.id 
-          AND rtr2.role_type = 'no_way'
+          AND rtr2.role_type = ?
         )
       GROUP BY r.id
-    `);
+    `, [ReferendumAction.TO_BE_DISCUSSED, ReferendumAction.NO_WAY]);
 
     // Get NO WAYed proposals
     const vetoedProposals = await db.all(`
@@ -882,9 +930,9 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
         rtr.reason as veto_reason,
         rtr.created_at as veto_date
       FROM referendums r
-      INNER JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id AND rtr.role_type = 'no_way'
+      INNER JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id AND rtr.role_type = ?
       GROUP BY r.id
-    `);
+    `, [ReferendumAction.NO_WAY]);
 
     // For each proposal, get team actions separately
     const addTeamActions = async (proposals: any[]) => {

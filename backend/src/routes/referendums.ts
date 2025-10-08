@@ -1,10 +1,11 @@
 import { Request, Response, Router } from 'express';
 import { Referendum } from '../database/models/referendum';
 import { VotingDecision } from '../database/models/votingDecision';
-import { Chain } from '../types/properties';
+import { Chain, InternalStatus } from '../types/properties';
 import { createSubsystemLogger, formatError } from '../config/logger';
 import { Subsystem } from '../types/logging';
 import { db } from '../database/connection';
+import { ReferendumAction } from '../types/auth';
 
 const logger = createSubsystemLogger(Subsystem.APP);
 const router = Router();
@@ -131,26 +132,73 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
         try {
           // Check if user is assigned as responsible person for this referendum
           const existingAssignment = await db.get(
-            "SELECT role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = 'responsible_person'",
-            [referendum.id, req.user.address]
+            "SELECT role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
+            [referendum.id, req.user.address, ReferendumAction.RESPONSIBLE_PERSON]
           );
           
           if (existingAssignment) {
-            // Auto-set to agree when evaluator changes suggested vote
-            await db.run(
-              "INSERT OR REPLACE INTO referendum_team_roles (referendum_id, team_member_id, role_type) VALUES (?, ?, 'agree')",
-              [referendum.id, req.user.address]
+            // Check if user already has an agree action
+            const existingAgree = await db.get(
+              "SELECT id FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
+              [referendum.id, req.user.address, ReferendumAction.AGREE]
             );
             
-            logger.info({ 
-              walletAddress: req.user.address, 
-              postId, 
-              chain,
-              suggestedVote: votingFields.suggested_vote 
-            }, "Auto-set evaluator to 'agree' after changing suggested vote");
+            if (!existingAgree) {
+              // Auto-set to agree when evaluator changes suggested vote
+              await db.run(
+                "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type) VALUES (?, ?, ?)",
+                [referendum.id, req.user.address, ReferendumAction.AGREE]
+              );
+              
+              logger.info({ 
+                walletAddress: req.user.address, 
+                postId, 
+                chain,
+                suggestedVote: votingFields.suggested_vote 
+              }, "Auto-set evaluator to 'Agree' after changing suggested vote");
+            }
           }
         } catch (autoAgreeError) {
           logger.warn({ autoAgreeError, walletAddress: req.user.address, postId }, "Failed to auto-set evaluator to agree");
+        }
+      }
+      
+      // Check if we need to auto-transition status to "Ready to vote"
+      if (votingFields.suggested_vote && referendum.internal_status === InternalStatus.WaitingForAgreement) {
+        try {
+          const { multisigService } = await import('../services/multisig');
+          const teamMembers = await multisigService.getCachedTeamMembers();
+          const totalTeamMembers = teamMembers.length;
+          
+          // Count total agreements
+          const agreementCount = await db.get(
+            "SELECT COUNT(DISTINCT team_member_id) as count FROM referendum_team_roles WHERE referendum_id = ? AND role_type = ?",
+            [referendum.id, ReferendumAction.AGREE]
+          );
+          
+          // Check if NO WAY exists
+          const noWay = await db.get(
+            "SELECT id FROM referendum_team_roles WHERE referendum_id = ? AND role_type = ? LIMIT 1",
+            [referendum.id, ReferendumAction.NO_WAY]
+          );
+          
+          if (!noWay && agreementCount && agreementCount.count >= totalTeamMembers) {
+            // All team members have agreed, transition to "Ready to vote"
+            await db.run(
+              "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
+              [InternalStatus.ReadyToVote, referendum.id]
+            );
+            
+            logger.info({
+              referendumId: referendum.id,
+              postId,
+              chain,
+              agreementCount: agreementCount.count,
+              requiredAgreements: totalTeamMembers
+            }, "Auto-transitioned to 'Ready to vote' after reaching agreement threshold");
+          }
+        } catch (transitionError) {
+          logger.warn({ transitionError, postId }, "Failed to check/transition status to Ready to vote");
         }
       }
     }
