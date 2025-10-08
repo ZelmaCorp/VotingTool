@@ -126,7 +126,7 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
     if (Object.keys(votingFields).length > 0) {
       await VotingDecision.upsert(referendum.id!, votingFields);
       
-      // If suggested_vote is being updated, automatically set the user to "agree"
+      // If suggested_vote is being updated, automatically update the user's action state
       // This assumes the person changing suggested vote is the evaluator/responsible person
       if (votingFields.suggested_vote && req.user?.address) {
         try {
@@ -151,10 +151,10 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
               );
             }
 
-            // Set to agree when evaluator changes suggested vote
+            // When setting any suggested vote, the user automatically agrees with their decision
             await db.run(
-              "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type) VALUES (?, ?, ?)",
-              [referendum.id, req.user.address, ReferendumAction.AGREE]
+              "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type, reason) VALUES (?, ?, ?, ?)",
+              [referendum.id, req.user.address, ReferendumAction.AGREE, votingFields.reason_for_vote || null]
             );
             
             logger.info({ 
@@ -163,10 +163,10 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
               chain,
               suggestedVote: votingFields.suggested_vote,
               removedActions: existingActions.map(a => a.role_type)
-            }, "Auto-set evaluator to 'Agree' after changing suggested vote");
+            }, "Auto-set evaluator to 'Agree' after setting suggested vote");
           }
         } catch (autoAgreeError) {
-          logger.warn({ autoAgreeError, walletAddress: req.user.address, postId }, "Failed to auto-set evaluator to agree");
+          logger.warn({ autoAgreeError, walletAddress: req.user.address, postId }, "Failed to auto-update evaluator action state");
         }
       }
       
