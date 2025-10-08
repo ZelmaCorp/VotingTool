@@ -137,26 +137,33 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
           );
           
           if (existingAssignment) {
-            // Check if user already has an agree action
-            const existingAgree = await db.get(
-              "SELECT id FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
+            // Get all current action states for this user
+            const existingActions = await db.all(
+              "SELECT id, role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ?",
+              [referendum.id, req.user.address, ReferendumAction.RESPONSIBLE_PERSON]
+            );
+
+            // Delete all existing action states (but keep RESPONSIBLE_PERSON)
+            if (existingActions.length > 0) {
+              const actionIds = existingActions.map(a => a.id).join(',');
+              await db.run(
+                `DELETE FROM referendum_team_roles WHERE id IN (${actionIds})`
+              );
+            }
+
+            // Set to agree when evaluator changes suggested vote
+            await db.run(
+              "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type) VALUES (?, ?, ?)",
               [referendum.id, req.user.address, ReferendumAction.AGREE]
             );
             
-            if (!existingAgree) {
-              // Auto-set to agree when evaluator changes suggested vote
-              await db.run(
-                "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type) VALUES (?, ?, ?)",
-                [referendum.id, req.user.address, ReferendumAction.AGREE]
-              );
-              
-              logger.info({ 
-                walletAddress: req.user.address, 
-                postId, 
-                chain,
-                suggestedVote: votingFields.suggested_vote 
-              }, "Auto-set evaluator to 'Agree' after changing suggested vote");
-            }
+            logger.info({ 
+              walletAddress: req.user.address, 
+              postId, 
+              chain,
+              suggestedVote: votingFields.suggested_vote,
+              removedActions: existingActions.map(a => a.role_type)
+            }, "Auto-set evaluator to 'Agree' after changing suggested vote");
           }
         } catch (autoAgreeError) {
           logger.warn({ autoAgreeError, walletAddress: req.user.address, postId }, "Failed to auto-set evaluator to agree");
