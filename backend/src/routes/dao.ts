@@ -451,9 +451,12 @@ router.get("/referendum/:referendumId/agreement-summary", async (req: Request, r
     }));
     
     // Process actions with flexible address matching
-    const actionMap = new Map();
+    // Group actions by member address (members can have multiple role types)
+    const actionsByMember = new Map<string, any[]>();
     actions.forEach(action => {
-      actionMap.set(action.wallet_address, action);
+      const existing = actionsByMember.get(action.wallet_address) || [];
+      existing.push(action);
+      actionsByMember.set(action.wallet_address, existing);
     });
     
     // Debug: Log actions for proposal 1752
@@ -462,21 +465,21 @@ router.get("/referendum/:referendumId/agreement-summary", async (req: Request, r
     }
     
     allMembers.forEach(member => {
-      // Try to find action for this member with flexible address matching
-      let action = actionMap.get(member.address);
+      // Try to find actions for this member with flexible address matching
+      let memberActions = actionsByMember.get(member.address);
       
       // If no direct match, try to find by flexible address matching
-      if (!action) {
-        for (const [actionAddress, actionData] of actionMap.entries()) {
+      if (!memberActions) {
+        for (const [actionAddress, actionsData] of actionsByMember.entries()) {
           const matchingMember = multisigService.findMemberByAddress(teamMembers, actionAddress, chain as "Polkadot" | "Kusama");
           if (matchingMember && matchingMember.wallet_address === member.address) {
-            action = actionData;
+            memberActions = actionsData;
             // Debug: Log flexible matching for proposal 1752
             if (referendumId === '1752') {
               console.log('🔄 Flexible match found:', {
                 searchAddress: actionAddress,
                 foundMember: member.name,
-                actionData: actionData
+                actionsData: actionsData
               });
             }
             break;
@@ -484,39 +487,38 @@ router.get("/referendum/:referendumId/agreement-summary", async (req: Request, r
         }
       }
       
-      if (!action) {
+      if (!memberActions || memberActions.length === 0) {
         // No action taken - pending
         pending_members.push(member);
       } else {
-        switch (action.role_type) {
-          case ReferendumAction.AGREE:
-            agreed_members.push(member);
-            break;
-          case ReferendumAction.NO_WAY:
-            vetoed = true;
-            veto_by = member.name;
-            veto_reason = action.reason || null;
-            // Debug: Log veto details for proposal 1752
-            if (referendumId === '1752') {
-              console.log('🚫 Debug veto action:', {
-                member: member.name,
-                action_reason: action.reason,
-                veto_reason: veto_reason
-              });
-            }
-            break;
-          case ReferendumAction.RECUSE:
-            recused_members.push(member);
-            break;
-          case ReferendumAction.TO_BE_DISCUSSED:
-            to_be_discussed_members.push(member);
-            break;
-          case ReferendumAction.RESPONSIBLE_PERSON:
-            // Responsible person doesn't count as agreement by default
-            pending_members.push(member);
-            break;
-          default:
-            pending_members.push(member);
+        // Check actions in priority order: NO_WAY > AGREE > RECUSE > TO_BE_DISCUSSED > RESPONSIBLE_PERSON
+        const hasNoWay = memberActions.some(a => a.role_type === ReferendumAction.NO_WAY);
+        const hasAgree = memberActions.some(a => a.role_type === ReferendumAction.AGREE);
+        const hasRecuse = memberActions.some(a => a.role_type === ReferendumAction.RECUSE);
+        const hasToBeDiscussed = memberActions.some(a => a.role_type === ReferendumAction.TO_BE_DISCUSSED);
+        
+        if (hasNoWay) {
+          const noWayAction = memberActions.find(a => a.role_type === ReferendumAction.NO_WAY);
+          vetoed = true;
+          veto_by = member.name;
+          veto_reason = noWayAction?.reason || null;
+          // Debug: Log veto details for proposal 1752
+          if (referendumId === '1752') {
+            console.log('🚫 Debug veto action:', {
+              member: member.name,
+              action_reason: noWayAction?.reason,
+              veto_reason: veto_reason
+            });
+          }
+        } else if (hasAgree) {
+          agreed_members.push(member);
+        } else if (hasRecuse) {
+          recused_members.push(member);
+        } else if (hasToBeDiscussed) {
+          to_be_discussed_members.push(member);
+        } else {
+          // Only responsible_person or other - counts as pending
+          pending_members.push(member);
         }
       }
     });
