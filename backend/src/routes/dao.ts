@@ -262,11 +262,11 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
       });
     }
     
-    // Check if user already has an action for this referendum
-    // Use wallet address directly as team_member_id and the internal referendum.id
+    // Check if user already has THIS SPECIFIC action for this referendum
+    // Users can have multiple role types (e.g., responsible_person AND agree)
     const existingAction = await db.get(
-      "SELECT id, role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ?",
-      [referendum.id, req.user.address]
+      "SELECT id, role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
+      [referendum.id, req.user.address, action]
     );
     
     // Special handling for responsible_person assignment
