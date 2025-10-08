@@ -339,84 +339,69 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
         has_role: !!existingRole
       }
     });
-    }
-    
-    try {
-      // Check if we need to auto-transition status to "Ready to vote"
-      // This happens when enough team members agree and status is "Waiting for agreement"
-      let referendum;
-      let currentRef;
 
-      // Get the internal referendum ID first
-      referendum = await db.get(
-        "SELECT id FROM referendums WHERE post_id = ? AND chain = ?",
-        [req.params.referendumId, req.body.chain]
+    // Check if we need to auto-transition status to "Ready to vote"
+    // This happens when enough team members agree and status is "Waiting for agreement"
+    const currentRef = await db.get(
+      "SELECT id, internal_status FROM referendums WHERE id = ?",
+      [referendum.id]
+    );
+
+    if (currentRef && currentRef.internal_status === InternalStatus.WaitingForAgreement) {
+      const teamMembers = await multisigService.getCachedTeamMembers();
+      const totalTeamMembers = teamMembers.length;
+      
+      // Get all actions for this referendum
+      const allActions = await db.all(
+        "SELECT team_member_id, role_type FROM referendum_team_roles WHERE referendum_id = ?",
+        [currentRef.id]
       );
-
-      if (!referendum) {
-        throw new Error(`Referendum ${req.params.referendumId} not found`);
-      }
-
-      currentRef = await db.get(
-        "SELECT id, internal_status FROM referendums WHERE id = ?",
-        [referendum.id]
-      );
-
-      if (currentRef && currentRef.internal_status === InternalStatus.WaitingForAgreement) {
-        const teamMembers = await multisigService.getCachedTeamMembers();
-        const totalTeamMembers = teamMembers.length;
-        
-        // Get all actions for this referendum
-        const allActions = await db.all(
-          "SELECT team_member_id, role_type FROM referendum_team_roles WHERE referendum_id = ?",
-          [currentRef.id]
+      
+      // Group actions by member, separating role from action state
+      const memberStates = new Map<string, string>();
+      allActions.forEach(actionItem => {
+        if (actionItem.role_type !== ReferendumAction.RESPONSIBLE_PERSON) {
+          // For action states, always take the latest one (which is what we want since
+          // our SET logic ensures only one action state exists per user)
+          memberStates.set(actionItem.team_member_id, actionItem.role_type);
+        }
+      });
+      
+      // Count agreements and check for vetoes
+      let agreementCount = 0;
+      let hasNoWay = false;
+      
+      memberStates.forEach((actionState, memberId) => {
+        if (actionState === ReferendumAction.NO_WAY) {
+          hasNoWay = true;
+        } else if (actionState === ReferendumAction.AGREE) {
+          agreementCount++;
+        }
+      });
+      
+      if (!hasNoWay && agreementCount >= totalTeamMembers) {
+        // All team members have agreed, transition to "Ready to vote"
+        await db.run(
+          "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
+          [InternalStatus.ReadyToVote, currentRef.id]
         );
         
-        // Group actions by member, separating role from action state
-        const memberStates = new Map<string, string>();
-        allActions.forEach(actionItem => {
-          if (actionItem.role_type !== ReferendumAction.RESPONSIBLE_PERSON) {
-            // For action states, always take the latest one (which is what we want since
-            // our SET logic ensures only one action state exists per user)
-            memberStates.set(actionItem.team_member_id, actionItem.role_type);
-          }
-        });
-        
-        // Count agreements and check for vetoes
-        let agreementCount = 0;
-        let hasNoWay = false;
-        
-        memberStates.forEach((actionState, memberId) => {
-          if (actionState === ReferendumAction.NO_WAY) {
-            hasNoWay = true;
-          } else if (actionState === ReferendumAction.AGREE) {
-            agreementCount++;
-          }
-        });
-        
-        if (!hasNoWay && agreementCount >= totalTeamMembers) {
-          // All team members have agreed, transition to "Ready to vote"
-          await db.run(
-            "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
-            [InternalStatus.ReadyToVote, currentRef.id]
-          );
-          
-          logger.info({
-            referendumId: currentRef.id,
-            postId: req.params.referendumId,
-            chain: req.body.chain,
-            agreementCount,
-            requiredAgreements: totalTeamMembers
-          }, "Auto-transitioned to 'Ready to vote' after reaching agreement threshold");
-        }
+        logger.info({
+          referendumId: currentRef.id,
+          postId: req.params.referendumId,
+          chain: req.body.chain,
+          agreementCount,
+          requiredAgreements: totalTeamMembers
+        }, "Auto-transitioned to 'Ready to vote' after reaching agreement threshold");
       }
-    } catch (error) {
-      logger.error({ error: formatError(error), referendumId: req.params.referendumId }, "Error assigning user governance action for referendum");
-      res.status(500).json({
-        success: false,
-        error: "Internal server error"
-      });
     }
+  } catch (error) {
+    logger.error({ error: formatError(error), referendumId: req.params.referendumId }, "Error assigning user governance action for referendum");
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
 });
 
 /**
