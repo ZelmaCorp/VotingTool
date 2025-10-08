@@ -107,7 +107,7 @@ router.get("/referendum/:referendumId", async (req: Request, res: Response) => {
              CASE 
                WHEN rtr.role_type = ? THEN rtr.team_member_id
                ELSE NULL 
-             END as assigned_to)
+             END as assigned_to
       FROM referendum_team_roles rtr
       WHERE rtr.referendum_id = ?
       ORDER BY rtr.created_at DESC
