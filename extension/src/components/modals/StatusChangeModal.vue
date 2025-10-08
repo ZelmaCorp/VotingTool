@@ -53,7 +53,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue'
-import type { InternalStatus } from '../types'
+import type { InternalStatus } from '../../types'
 
 interface StatusChangeModalProps {
   show: boolean
