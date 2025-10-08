@@ -567,7 +567,7 @@ const getAgreedMembers = (proposal: Proposal): TeamMember[] => {
 };
 
 const getDiscussionMembers = (proposal: Proposal): TeamMember[] => {
-  const discussionActions = proposal.team_actions?.filter(action => action.role_type === 'To be discussed') || [];
+  const discussionActions = proposal.team_actions?.filter(action => action.role_type === 'to_be_discussed') || [];
   return discussionActions.map(action => ({
     name: action.team_member_name || getLocalTeamMemberName(action.wallet_address),
     address: action.wallet_address
