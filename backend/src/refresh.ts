@@ -7,15 +7,9 @@ import { Referendum } from "./database/models/referendum";
 import { ReferendumRecord } from "./database/types";
 import { InternalStatus } from "./types/properties";
 
-// Read version from package.json with fallback
-let APP_VERSION = "1.2.0-fallback";
-try {
-  const packageJson = require("../package.json");
-  APP_VERSION = packageJson.version;
-} catch (error) {
-  // Fallback version if package.json can't be read
-  console.warn("Could not read package.json, using fallback version");
-}
+// Version will be injected by build script
+// Fallback version for development
+let APP_VERSION = "2.0.0-fallback";
 
 const logger = createSubsystemLogger(Subsystem.REFRESH);
 

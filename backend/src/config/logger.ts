@@ -2,14 +2,9 @@ import pino from 'pino';
 import { hostname } from 'os';
 import { Subsystem, ErrorType } from '../types/logging';
 
-// Read version from package.json with fallback
-let APP_VERSION = "1.2.0-fallback";
-try {
-  const packageJson = require("../../package.json");
-  APP_VERSION = packageJson.version;
-} catch (error) {
-  console.warn("Could not read package.json in logger, using fallback version");
-}
+// Version will be injected by build script
+// Fallback version for development
+let APP_VERSION = "2.0.0-fallback";
 
 // Detect if running under PM2 or in an environment that needs JSON logs
 const isProduction = process.env.NODE_ENV === 'production';
