@@ -1,14 +1,33 @@
 <template>
   <div v-if="show" class="modal-overlay" @click="$emit('close')">
-    <div class="assign-modal" @click.stop>
+    <div class="unassign-modal" @click.stop>
       <div class="modal-header">
-        <h3>Assign Proposal</h3>
+        <h3>Unassign Proposal</h3>
         <button class="close-btn" @click="$emit('close')">×</button>
       </div>
       
       <div class="modal-content">
         <p><strong>Proposal:</strong> #{{ proposalId }}</p>
-        <p>This will assign the proposal to you for review and voting.</p>
+        <p>This will remove your assignment from this proposal and reset its status.</p>
+        
+        <div class="form-group">
+          <label for="unassignNote">Unassign Note (optional):</label>
+          <textarea 
+            id="unassignNote"
+            v-model="note"
+            placeholder="Add a note explaining why you're unassigning..."
+            rows="3"
+            class="form-control"
+          ></textarea>
+        </div>
+
+        <div class="current-values" v-if="currentValues">
+          <p><strong>Current Values to be Reset:</strong></p>
+          <ul>
+            <li>Internal Status: {{ currentValues.internalStatus }}</li>
+            <li>Suggested Vote: {{ currentValues.suggestedVote || 'None' }}</li>
+          </ul>
+        </div>
         
         <div v-if="error" class="error-message">
           {{ error }}
@@ -18,10 +37,10 @@
           <button class="btn btn-secondary" @click="$emit('close')">Cancel</button>
           <button 
             class="btn btn-primary" 
-            @click="handleAssign"
+            @click="handleUnassign"
             :disabled="loading"
           >
-            {{ loading ? 'Assigning...' : 'Assign to Me' }}
+            {{ loading ? 'Unassigning...' : 'Confirm Unassign' }}
           </button>
         </div>
       </div>
@@ -35,44 +54,70 @@ import { proposalStore } from '../../stores/proposalStore'
 import { authStore } from '../../stores/authStore'
 import type { ProposalData } from '../../types'
 
-interface AssignModalProps {
+interface UnassignModalProps {
   show: boolean
   proposalId: number
 }
 
-const props = defineProps<AssignModalProps>()
+const props = defineProps<UnassignModalProps>()
 const emit = defineEmits<{
   close: []
-  confirm: []
+  confirm: [note: string]
 }>()
 
 const loading = ref(false)
 const error = ref('')
-// Stores are imported directly
+const note = ref('')
+const currentValues = ref<{
+  internalStatus: string
+  suggestedVote: string | null
+} | null>(null)
 
-const handleAssign = async () => {
+// Load current values
+onMounted(async () => {
+  try {
+    const proposal = proposalStore.state.proposals.find(
+      (p: ProposalData) => p.post_id === props.proposalId
+    )
+    if (proposal) {
+      currentValues.value = {
+        internalStatus: proposal.internal_status,
+        suggestedVote: proposal.suggested_vote
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load current values:', err)
+  }
+})
+
+const handleUnassign = async () => {
   loading.value = true
   error.value = ''
   
   try {
-    // Check if proposal is already assigned
-    const proposal = proposalStore.state.proposals.find((p: ProposalData) => p.post_id === props.proposalId)
-    if (!proposal) {
-      throw new Error('Proposal not found')
-    }
-    
-    if (proposal.assigned_to && proposal.assigned_to !== authStore.state.user?.address) {
-      throw new Error('This proposal is already assigned to another team member')
-    }
-    
-    // Emit confirm event - parent component will handle the actual assignment
-    emit('confirm')
+    // Format the unassign message
+    const unassignMessage = formatUnassignMessage(note.value, currentValues.value)
+    emit('confirm', unassignMessage)
     emit('close')
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Failed to assign proposal'
+    error.value = err instanceof Error ? err.message : 'Failed to unassign proposal'
   } finally {
     loading.value = false
   }
+}
+
+const formatUnassignMessage = (userNote: string, values: typeof currentValues.value) => {
+  const parts = ['[UNASSIGN MESSAGE]']
+  
+  if (values?.suggestedVote) {
+    parts.push(`Previous vote: ${values.suggestedVote}`)
+  }
+  
+  if (userNote.trim()) {
+    parts.push(`Note: ${userNote.trim()}`)
+  }
+  
+  return parts.join('\n')
 }
 
 // ESC key handler
@@ -108,7 +153,7 @@ onUnmounted(() => {
   backdrop-filter: blur(2px);
 }
 
-.assign-modal {
+.unassign-modal {
   background: white;
   border-radius: 12px;
   width: 90%;
@@ -163,6 +208,57 @@ onUnmounted(() => {
   color: #495057;
 }
 
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #495057;
+  font-weight: 500;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  transition: border-color 0.2s ease;
+  resize: vertical;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #e6007a;
+  box-shadow: 0 0 0 2px rgba(230, 0, 122, 0.1);
+}
+
+.current-values {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.current-values ul {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  color: #6c757d;
+}
+
+.error-message {
+  background-color: #fff2f0;
+  border: 1px solid #ffccc7;
+  color: #ff4d4f;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
 .modal-actions {
   display: flex;
   justify-content: flex-end;
@@ -212,14 +308,4 @@ onUnmounted(() => {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
 }
-
-.error-message {
-  background-color: #fff2f0;
-  border: 1px solid #ffccc7;
-  color: #ff4d4f;
-  padding: 12px;
-  border-radius: 8px;
-  margin-bottom: 16px;
-  font-size: 0.9rem;
-}
-</style> 
+</style>

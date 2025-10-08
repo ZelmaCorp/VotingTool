@@ -60,6 +60,13 @@
       @confirm="confirmAssign"
     />
 
+    <UnassignModal
+      :show="showUnassignModal"
+      :proposal-id="proposalId"
+      @close="closeUnassignModal"
+      @confirm="confirmUnassign"
+    />
+
     <VoteChangeModal 
       :show="showVoteModal"
       :proposal-id="proposalId"
@@ -101,6 +108,7 @@ import { teamStore } from '../stores/teamStore'
 import { formatAddress } from '../utils/teamUtils'
 import StatusChangeModal from './modals/StatusChangeModal.vue'
 import AssignModal from './modals/AssignModal.vue'
+import UnassignModal from './modals/UnassignModal.vue'
 import VoteChangeModal from './modals/VoteChangeModal.vue'
 import TeamActionsPanel from './TeamActionsPanel.vue'
 import ConfirmModal from './modals/ConfirmModal.vue'
@@ -122,6 +130,7 @@ const props = defineProps<VotingControlsProps>()
 // Modal states
 const showStatusModal = ref(false)
 const showAssignModal = ref(false)
+const showUnassignModal = ref(false)
 const showVoteModal = ref(false)
 const showTeamPanel = ref(false)
 const showConfirmModal = ref(false)
@@ -353,27 +362,34 @@ const handleAssignToMe = () => {
   }
 }
 
-const handleUnassign = async () => {
-  confirmModalData.value = {
-    title: 'Unassign Proposal',
-    message: 'Are you sure you want to unassign yourself from this proposal?',
-    onConfirm: () => {
-      try {
-        const unassignData = {
-          proposalId: props.proposalId,
-          action: 'unassign'
-        }
-        
-        console.log('Unassignment requested:', unassignData)
-        
-        // Emit custom event for parent to handle
-        window.dispatchEvent(new CustomEvent('proposalUnassigned', { detail: unassignData }))
-      } catch (error) {
-        console.error('Failed to unassign proposal:', error)
+const handleUnassign = () => {
+  showUnassignModal.value = true
+}
+
+const closeUnassignModal = () => {
+  showUnassignModal.value = false
+}
+
+const confirmUnassign = async (unassignNote: string) => {
+  try {
+    const unassignData = {
+      proposalId: props.proposalId,
+      action: 'unassign',
+      note: unassignNote,
+      resetValues: {
+        internalStatus: 'Not started',
+        suggestedVote: null
       }
     }
+    
+    console.log('Unassignment requested:', unassignData)
+    closeUnassignModal()
+    
+    // Emit custom event for parent to handle
+    window.dispatchEvent(new CustomEvent('proposalUnassigned', { detail: unassignData }))
+  } catch (error) {
+    console.error('Failed to unassign proposal:', error)
   }
-  showConfirmModal.value = true
 }
 
 const closeAssignModal = () => {
