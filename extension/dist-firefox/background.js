@@ -19,7 +19,11 @@ var __spreadValues = (a, b) => {
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 (function() {
   "use strict";
-  const BUILD_ID = "v1.0.1-" + Date.now();
+  const version = "1.0.3";
+  const packageJson = {
+    version
+  };
+  const BUILD_ID = "v" + packageJson.version + "-" + Date.now();
   let messageCounter = 0;
   let API_CONFIG = {
     baseURL: "http://localhost:3000",

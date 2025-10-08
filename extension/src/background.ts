@@ -1,8 +1,10 @@
 // OpenGov VotingTool Extension - Background Script
 // This will be the main entry point for the extension
 
-// Build identifier for debugging
-const BUILD_ID = 'v1.0.1-' + Date.now()
+import packageJson from '../package.json'
+
+// Build identifier for debugging (version from package.json)
+const BUILD_ID = 'v' + packageJson.version + '-' + Date.now()
 
 // Message counter for debugging
 let messageCounter = 0

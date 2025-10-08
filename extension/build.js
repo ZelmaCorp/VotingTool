@@ -5,6 +5,12 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Read version from package.json (single source of truth)
+const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf-8'));
+const APP_VERSION = packageJson.version;
+
+console.log(`📦 Using version ${APP_VERSION} from package.json`);
+
 // Build configuration
 const BUILD_CONFIG = {
   chrome: {
@@ -84,12 +90,21 @@ function buildForBrowser(browser) {
     console.log('⚠️  Warning: dist-temp/ directory not found');
   }
   
-  // Copy the appropriate manifest file as manifest.json
+  // Copy and inject version into the appropriate manifest file
   const manifestSource = config.manifestFile;
   const manifestDest = path.join(config.distDir, 'manifest.json');
   
-  if (copyFile(manifestSource, manifestDest)) {
-    console.log(`✅ Copied ${manifestSource} → ${config.distDir}/manifest.json`);
+  if (fs.existsSync(manifestSource)) {
+    const manifestContent = fs.readFileSync(manifestSource, 'utf-8');
+    const manifest = JSON.parse(manifestContent);
+    
+    // Inject version from package.json
+    manifest.version = APP_VERSION;
+    
+    fs.writeFileSync(manifestDest, JSON.stringify(manifest, null, 2));
+    console.log(`✅ Copied ${manifestSource} → ${config.distDir}/manifest.json (version: ${APP_VERSION})`);
+  } else {
+    console.log(`❌ Error: ${manifestSource} not found`);
   }
   
   // Copy CSS files

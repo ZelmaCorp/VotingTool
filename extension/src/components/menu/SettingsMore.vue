@@ -445,7 +445,8 @@ onUnmounted(() => {
 
 // Data
 const activeSection = ref<'dao-config' | 'preferences' | 'voting-history' | 'activity-log' | 'data-sync' | 'help' | 'about'>('dao-config')
-const extensionVersion = ref('1.0.0')
+// Read version from manifest at runtime (single source of truth from package.json)
+const extensionVersion = ref(chrome.runtime.getManifest().version)
 const refreshing = ref(false)
 const syncing = ref(false)
 
