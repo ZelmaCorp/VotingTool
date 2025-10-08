@@ -268,8 +268,9 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
       [referendum.id, req.user.address]
     );
 
-    // Check if user already has THIS SPECIFIC action
-    const existingAction = userActions.find(a => a.role_type === action);
+    // Split existing actions into role assignment and action state
+    const existingRole = userActions.find(a => a.role_type === ReferendumAction.RESPONSIBLE_PERSON);
+    const existingActionStates = userActions.filter(a => a.role_type !== ReferendumAction.RESPONSIBLE_PERSON);
     
     // Special handling for responsible_person assignment
     if (action === ReferendumAction.RESPONSIBLE_PERSON) {
@@ -286,141 +287,136 @@ router.post("/referendum/:referendumId/action", requireTeamMember, async (req: R
           current_assignee: currentResponsible.team_member_id
         });
       }
-    } else {
-      // For action states (non-RESPONSIBLE_PERSON), prevent mixing with RESPONSIBLE_PERSON
-      const hasResponsiblePerson = userActions.some(a => a.role_type === ReferendumAction.RESPONSIBLE_PERSON);
-      if (hasResponsiblePerson) {
-        return res.status(400).json({
-          success: false,
-          error: "Cannot assign action states to the responsible person. Please unassign from responsible person role first.",
-          current_role: ReferendumAction.RESPONSIBLE_PERSON
-        });
+
+      // Update or create RESPONSIBLE_PERSON role
+      if (existingRole) {
+        // Update existing role
+        await db.run(
+          "UPDATE referendum_team_roles SET reason = ? WHERE id = ?",
+          [reason || null, existingRole.id]
+        );
+      } else {
+        // Create new role
+        await db.run(
+          "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type, reason) VALUES (?, ?, ?, ?)",
+          [referendum.id, req.user.address, action, reason || null]
+        );
       }
-    }
-    
-    if (existingAction) {
-      // Update existing action
-      await db.run(
-        "UPDATE referendum_team_roles SET role_type = ?, reason = ? WHERE id = ?",
-        [action, reason || null, existingAction.id]
-      );
-      
-      logger.info({ 
-        walletAddress: req.user.address, 
-        referendumId, 
-        oldAction: existingAction.role_type,
-        newAction: action 
-      }, "User governance action updated for referendum");
-      
-      res.json({
-        success: true,
-        message: "Governance action updated successfully",
-        action: {
-          id: existingAction.id,
-          action,
-          referendum_id: referendum.id,
-          post_id: referendumId,
-          chain: chain,
-          team_member_id: req.user.address
-        }
-      });
     } else {
-      // Create new action assignment
-      const result = await db.run(
+      // For action states (non-RESPONSIBLE_PERSON)
+      // Delete all existing action states (but keep RESPONSIBLE_PERSON if it exists)
+      if (existingActionStates.length > 0) {
+        const actionIds = existingActionStates.map(a => a.id).join(',');
+        await db.run(
+          `DELETE FROM referendum_team_roles WHERE id IN (${actionIds})`
+        );
+      }
+      
+      // Create new action state
+      await db.run(
         "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type, reason) VALUES (?, ?, ?, ?)",
         [referendum.id, req.user.address, action, reason || null]
       );
-      
-      logger.info({ 
-        walletAddress: req.user.address, 
-        referendumId, 
-        action 
-      }, "User assigned governance action for referendum");
-      
-      res.status(201).json({
-        success: true,
-        message: "Governance action assigned successfully",
-        action: {
-          id: result.lastID,
-          action,
-          referendum_id: referendum.id,
-          post_id: referendumId,
-          chain: chain,
-          team_member_id: req.user.address
-        }
-      });
     }
     
-    // Check if we need to auto-transition status to "Ready to vote"
-    // This happens when enough team members agree and status is "Waiting for agreement"
-    if (action === ReferendumAction.AGREE) {
-      try {
-        const currentRef = await db.get(
-          "SELECT internal_status FROM referendums WHERE id = ?",
-          [referendum.id]
+    logger.info({ 
+      walletAddress: req.user.address, 
+      referendumId, 
+      action,
+      hadExistingActionStates: existingActionStates.length > 0,
+      hasRole: !!existingRole
+    }, "User governance action updated for referendum");
+    
+    res.json({
+      success: true,
+      message: "Governance action updated successfully",
+      action: {
+        action,
+        referendum_id: referendum.id,
+        post_id: referendumId,
+        chain: chain,
+        team_member_id: req.user.address,
+        has_role: !!existingRole
+      }
+    });
+    }
+    
+    try {
+      // Check if we need to auto-transition status to "Ready to vote"
+      // This happens when enough team members agree and status is "Waiting for agreement"
+      let referendum;
+      let currentRef;
+
+      // Get the internal referendum ID first
+      referendum = await db.get(
+        "SELECT id FROM referendums WHERE post_id = ? AND chain = ?",
+        [req.params.referendumId, req.body.chain]
+      );
+
+      if (!referendum) {
+        throw new Error(`Referendum ${req.params.referendumId} not found`);
+      }
+
+      currentRef = await db.get(
+        "SELECT id, internal_status FROM referendums WHERE id = ?",
+        [referendum.id]
+      );
+
+      if (currentRef && currentRef.internal_status === InternalStatus.WaitingForAgreement) {
+        const teamMembers = await multisigService.getCachedTeamMembers();
+        const totalTeamMembers = teamMembers.length;
+        
+        // Get all actions for this referendum
+        const allActions = await db.all(
+          "SELECT team_member_id, role_type FROM referendum_team_roles WHERE referendum_id = ?",
+          [currentRef.id]
         );
         
-        if (currentRef && currentRef.internal_status === InternalStatus.WaitingForAgreement) {
-          const teamMembers = await multisigService.getCachedTeamMembers();
-          const totalTeamMembers = teamMembers.length;
-          
-          // Get all actions for this referendum
-          const allActions = await db.all(
-            "SELECT DISTINCT team_member_id, role_type FROM referendum_team_roles WHERE referendum_id = ?",
-            [referendum.id]
+        // Group actions by member, separating role from action state
+        const memberStates = new Map<string, string>();
+        allActions.forEach(actionItem => {
+          if (actionItem.role_type !== ReferendumAction.RESPONSIBLE_PERSON) {
+            // For action states, always take the latest one (which is what we want since
+            // our SET logic ensures only one action state exists per user)
+            memberStates.set(actionItem.team_member_id, actionItem.role_type);
+          }
+        });
+        
+        // Count agreements and check for vetoes
+        let agreementCount = 0;
+        let hasNoWay = false;
+        
+        memberStates.forEach((actionState, memberId) => {
+          if (actionState === ReferendumAction.NO_WAY) {
+            hasNoWay = true;
+          } else if (actionState === ReferendumAction.AGREE) {
+            agreementCount++;
+          }
+        });
+        
+        if (!hasNoWay && agreementCount >= totalTeamMembers) {
+          // All team members have agreed, transition to "Ready to vote"
+          await db.run(
+            "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
+            [InternalStatus.ReadyToVote, currentRef.id]
           );
           
-          // Group actions by member to handle multiple role types
-          const memberActions = new Map<string, Set<string>>();
-          allActions.forEach(action => {
-            const actions = memberActions.get(action.team_member_id) || new Set();
-            actions.add(action.role_type);
-            memberActions.set(action.team_member_id, actions);
-          });
-          
-          // Count agreements, excluding RESPONSIBLE_PERSON from action state counting
-          let agreementCount = 0;
-          let hasNoWay = false;
-          
-          memberActions.forEach((actions, memberId) => {
-            // Check for NO_WAY first as it takes precedence
-            if (actions.has(ReferendumAction.NO_WAY)) {
-              hasNoWay = true;
-            }
-            // Only count AGREE if it's an actual action state (not just RESPONSIBLE_PERSON)
-            else if (actions.has(ReferendumAction.AGREE)) {
-              agreementCount++;
-            }
-          });
-          
-          if (!hasNoWay && agreementCount >= totalTeamMembers) {
-            // All team members have agreed, transition to "Ready to vote"
-            await db.run(
-              "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
-              [InternalStatus.ReadyToVote, referendum.id]
-            );
-            
-            logger.info({
-              referendumId: referendum.id,
-              postId: referendumId,
-              chain,
-              agreementCount,
-              requiredAgreements: totalTeamMembers
-            }, "Auto-transitioned to 'Ready to vote' after reaching agreement threshold");
-          }
+          logger.info({
+            referendumId: currentRef.id,
+            postId: req.params.referendumId,
+            chain: req.body.chain,
+            agreementCount,
+            requiredAgreements: totalTeamMembers
+          }, "Auto-transitioned to 'Ready to vote' after reaching agreement threshold");
         }
-      } catch (transitionError) {
-        logger.warn({ transitionError, referendumId }, "Failed to check/transition status to Ready to vote");
       }
+    } catch (error) {
+      logger.error({ error: formatError(error), referendumId: req.params.referendumId }, "Error assigning user governance action for referendum");
+      res.status(500).json({
+        success: false,
+        error: "Internal server error"
+      });
     }
-    
-  } catch (error) {
-    logger.error({ error: formatError(error), referendumId: req.params.referendumId }, "Error assigning user governance action for referendum");
-    res.status(500).json({
-      success: false,
-      error: "Internal server error"
-    });
-  }
 });
 
 /**
@@ -985,11 +981,13 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
         const roleAssignments = new Map<string, any>();
         const actionStates = new Map<string, any>();
         
+        // First pass: collect all actions with timestamps
+        const memberActions = new Map<string, { action: any, timestamp: Date }[]>();
+        
         actions.forEach((action: any) => {
           // Use flexible address matching to find the canonical team member
           const member = multisigService.findMemberByAddress(teamMembers, action.team_member_id);
           const canonicalAddress = member?.wallet_address || action.team_member_id;
-          const key = `${canonicalAddress}-${action.role_type}`;
           
           const actionData = {
             team_member_id: canonicalAddress,
@@ -1000,19 +998,29 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
             team_member_name: member?.team_member_name || 'Unknown Member'
           };
           
-          // Separate into role assignments and action states
-          if (action.role_type === ReferendumAction.RESPONSIBLE_PERSON) {
-            // For roles, keep the latest assignment
-            if (!roleAssignments.has(canonicalAddress) || 
-                new Date(action.created_at) > new Date(roleAssignments.get(canonicalAddress).created_at)) {
-              roleAssignments.set(canonicalAddress, actionData);
-            }
-          } else {
-            // For action states, keep the latest action per type
-            if (!actionStates.has(key) || 
-                new Date(action.created_at) > new Date(actionStates.get(key).created_at)) {
-              actionStates.set(key, actionData);
-            }
+          const existing = memberActions.get(canonicalAddress) || [];
+          existing.push({
+            action: actionData,
+            timestamp: new Date(action.created_at)
+          });
+          memberActions.set(canonicalAddress, existing);
+        });
+        
+        // Second pass: process each member's actions
+        memberActions.forEach((memberActionList, canonicalAddress) => {
+          // Sort actions by timestamp, newest first
+          memberActionList.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+          
+          // Find role assignment (RESPONSIBLE_PERSON) if it exists
+          const roleAction = memberActionList.find(a => a.action.role_type === ReferendumAction.RESPONSIBLE_PERSON);
+          if (roleAction) {
+            roleAssignments.set(canonicalAddress, roleAction.action);
+          }
+          
+          // Find the latest non-RESPONSIBLE_PERSON action (there should only be one after our SET changes)
+          const latestActionState = memberActionList.find(a => a.action.role_type !== ReferendumAction.RESPONSIBLE_PERSON);
+          if (latestActionState) {
+            actionStates.set(canonicalAddress, latestActionState.action);
           }
         });
 
