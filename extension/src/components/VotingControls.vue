@@ -374,6 +374,7 @@ const confirmUnassign = async (unassignNote: string) => {
   try {
     const unassignData = {
       proposalId: props.proposalId,
+      chain: props.chain,
       action: 'unassign',
       note: unassignNote,
       resetValues: {

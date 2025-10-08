@@ -719,7 +719,7 @@ router.post("/referendum/:referendumId/comments", requireTeamMember, async (req:
 router.delete("/referendum/:referendumId/action", requireTeamMember, async (req: Request, res: Response) => {
   try {
     const { referendumId } = req.params;
-    const { chain } = req.body;
+    const { chain, unassignNote } = req.body;
     
     if (!req.user?.address) {
       return res.status(400).json({
@@ -738,7 +738,7 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
     
     // Get the internal referendum ID first
     const referendum = await db.get(
-      "SELECT id FROM referendums WHERE post_id = ? AND chain = ?",
+      "SELECT id, suggested_vote FROM referendums WHERE post_id = ? AND chain = ?",
       [referendumId, chain]
     );
     
@@ -749,29 +749,57 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
       });
     }
     
-    // Remove user's action for this referendum
-    // Use wallet address directly as team_member_id and the internal referendum.id
-    const result = await db.run(
-      "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ?",
-      [referendum.id, req.user.address]
-    );
+    // Start a transaction to handle all changes atomically
+    await db.run('BEGIN TRANSACTION');
     
-    if (result.changes === 0) {
-      return res.status(404).json({
-        success: false,
-        error: "No governance action found for this user and referendum"
+    try {
+      // Reset proposal values
+      await db.run(
+        `UPDATE referendums SET internal_status = '${InternalStatus.NotStarted}', suggested_vote = NULL WHERE id = ?`,
+        [referendum.id]
+      );
+      
+      // Add unassign note as a comment if provided
+      if (unassignNote) {
+        await db.run(
+          "INSERT INTO referendum_comments (referendum_id, team_member_id, content) VALUES (?, ?, ?)",
+          [referendum.id, req.user.address, unassignNote]
+        );
+      }
+      
+      // Remove user's action for this referendum
+      const result = await db.run(
+        "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ?",
+        [referendum.id, req.user.address]
+      );
+      
+      if (result.changes === 0) {
+        await db.run('ROLLBACK');
+        return res.status(404).json({
+          success: false,
+          error: "No governance action found for this user and referendum"
+        });
+      }
+      
+      // Commit all changes
+      await db.run('COMMIT');
+      
+      logger.info({ 
+        walletAddress: req.user.address, 
+        referendumId,
+        hadNote: !!unassignNote,
+        previousVote: referendum.suggested_vote
+      }, "User governance action removed and values reset");
+      
+      res.json({
+        success: true,
+        message: "Governance action removed and values reset successfully"
       });
+      
+    } catch (transactionError) {
+      await db.run('ROLLBACK');
+      throw transactionError;
     }
-    
-    logger.info({ 
-      walletAddress: req.user.address, 
-      referendumId 
-    }, "User governance action removed from referendum");
-    
-    res.json({
-      success: true,
-      message: "Governance action removed successfully"
-    });
     
   } catch (error) {
     logger.error({ error: formatError(error), referendumId: req.params.referendumId }, "Error removing user governance action from referendum");

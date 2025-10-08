@@ -292,17 +292,24 @@ export class ApiService {
         }
     }
 
-    async deleteTeamAction(postId: number, chain: Chain): Promise<{ success: boolean; error?: string }> {
+    async deleteTeamAction(postId: number, chain: Chain, unassignNote?: string): Promise<{ success: boolean; error?: string }> {
         try {
+            // Delete the team action and reset values
             const result = await this.request<{ success: boolean; error?: string }>(`/dao/referendum/${postId}/action`, {
                 method: 'DELETE',
                 body: JSON.stringify({
-                    chain
+                    chain,
+                    unassignNote
                 }),
             });
 
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to delete team action');
+            }
+
             return result;
         } catch (error) {
+            console.error('❌ Failed to delete team action:', error);
             return { success: false, error: error instanceof Error ? error.message : 'Failed to delete team action' };
         }
     }

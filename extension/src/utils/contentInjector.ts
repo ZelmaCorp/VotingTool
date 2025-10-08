@@ -1050,18 +1050,11 @@ export class ContentInjector {
      */
     private async handleProposalUnassigned(event: Event): Promise<void> {
         const customEvent = event as CustomEvent;
-        const { proposalId } = customEvent.detail;
+        const { proposalId, chain, note } = customEvent.detail;
         
         console.log('👤 Proposal unassignment requested:', customEvent.detail);
         
         try {
-            // Get the current proposal to determine chain
-            const currentProposal = this.detector.detectCurrentProposal();
-            if (!currentProposal) {
-                console.error('Could not determine current proposal for unassignment');
-                return;
-            }
-
             // Check if user is authenticated
             if (!this.apiService.isAuthenticated()) {
                 console.error('User not authenticated for unassignment');
@@ -1069,21 +1062,35 @@ export class ContentInjector {
                 return;
             }
 
-            // Call the unassignment API (DELETE the responsible_person action)
+            // Format the unassign note if provided
+            let unassignNote = '';
+            if (note) {
+                const parts = ['[UNASSIGN MESSAGE]'];
+                // Get current proposal to include vote info
+                const currentProposal = await this.apiService.getProposal(proposalId, chain);
+                if (currentProposal?.suggested_vote) {
+                    parts.push(`Previous vote: ${currentProposal.suggested_vote}`);
+                }
+                parts.push(`Note: ${note}`);
+                unassignNote = parts.join('\n');
+            }
+
+            // Call the unassignment API with the note
             const result = await this.apiService.deleteTeamAction(
                 proposalId, 
-                currentProposal.chain
+                chain,
+                unassignNote
             );
             
             if (result.success) {
                 console.log('✅ Proposal unassigned successfully');
                 
                 // Clear cache to ensure fresh data is fetched
-                const cacheKey = `${currentProposal.chain}-${proposalId}`;
+                const cacheKey = `${chain}-${proposalId}`;
                 this.proposalCache.delete(cacheKey);
                 
                 // Get fresh proposal data and update UI immediately
-                const updatedProposalData = await this.getProposalData(proposalId, currentProposal.chain);
+                const updatedProposalData = await this.getProposalData(proposalId, chain);
                 await this.updateExistingComponents(proposalId, updatedProposalData);
                 
             } else {
