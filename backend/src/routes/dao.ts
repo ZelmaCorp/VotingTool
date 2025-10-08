@@ -901,7 +901,7 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
         ? as required_agreements
       FROM referendums r
       LEFT JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id
-      WHERE r.internal_status = ?
+      WHERE (r.internal_status = ? OR r.internal_status = ?)
         AND NOT EXISTS (
           SELECT 1 FROM referendum_team_roles rtr2 
           WHERE rtr2.referendum_id = r.id 
@@ -909,7 +909,7 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
         )
       GROUP BY r.id
       HAVING agreement_count < ?
-    `, [ReferendumAction.AGREE, totalTeamMembers, InternalStatus.WaitingForAgreement, ReferendumAction.NO_WAY, totalTeamMembers]);
+    `, [ReferendumAction.AGREE, totalTeamMembers, InternalStatus.WaitingForAgreement, InternalStatus.ReadyForApproval, ReferendumAction.NO_WAY, totalTeamMembers]);
 
     // Get proposals ready to vote
     const readyToVote = await db.all(`
