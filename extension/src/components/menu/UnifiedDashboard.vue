@@ -656,7 +656,11 @@ const actionsNeeded = computed(() => {
 const myEvaluations = computed(() => {
   const currentUser = authStore.state.user?.address
   if (!currentUser) return []
-  return dashboardProposals.value.filter(p => p.assigned_to === currentUser && p.suggested_vote)
+  return dashboardProposals.value.filter(p => 
+    p.assigned_to === currentUser && 
+    p.suggested_vote &&
+    ['Voted 👍 Aye 👍', 'Voted 👎 Nay 👎', 'Voted ✌️ Abstain ✌️', 'Not Voted'].includes(p.internal_status)
+  )
 })
 
 const totalTeamActions = computed(() => {
@@ -751,16 +755,23 @@ const loadDashboardData = async () => {
       }
     }
     
-    const recentProposals = [...dashboardProposals.value]
-      .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
-      .slice(0, 10)
-    
-    recentActivity.value = recentProposals.map(p => ({
-      id: `${p.chain}-${p.post_id}`,
-      type: p.suggested_vote ? 'evaluation' : 'assignment',
-      description: `${p.suggested_vote ? 'Evaluated' : 'Assigned to'} proposal #${p.post_id}: ${p.title}`,
-      timestamp: p.updated_at || p.created_at
-    }))
+    // Get user's recent activity
+    try {
+      const apiService = ApiService.getInstance();
+      const result = await apiService.request<{ success: boolean; actions: any[] }>('/dao/my-activity');
+      
+      if (result.success && result.actions) {
+        recentActivity.value = result.actions.map(a => ({
+          id: a.id,
+          type: a.action_type,
+          description: `${a.action_type} on proposal #${a.proposal_id}: ${a.title}`,
+          timestamp: a.created_at
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch activity:', error);
+      recentActivity.value = [];
+    }
 
   } catch (error) {
     console.error('Failed to load dashboard data:', error)
