@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { db } from "../database/connection";
+import { VotingDecision } from "../database/models/votingDecision";
 import { requireTeamMember, authenticateToken } from "../middleware/auth";
 import { ReferendumAction } from "../types/auth";
 import { InternalStatus } from "../types/properties";
@@ -749,9 +750,6 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
       });
     }
     
-    // Start a transaction to handle all changes atomically
-    await db.run('BEGIN TRANSACTION');
-    
     try {
       // First check if the user has any actions to remove
       const existingActions = await db.all(
@@ -760,65 +758,129 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
       );
 
       if (existingActions.length === 0) {
-        await db.run('ROLLBACK');
         return res.status(404).json({
           success: false,
           error: "No governance action found for this user and referendum"
         });
       }
 
-      // Reset internal status
-      await db.run(
-        "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
-        [InternalStatus.NotStarted, referendum.id]
-      );
+      // Check if user is the responsible person
+      const isResponsible = existingActions.some(action => action.role_type === ReferendumAction.RESPONSIBLE_PERSON);
+
+      // Start a transaction to handle all changes atomically
+      await db.run('BEGIN TRANSACTION');
       
-      // Reset suggested vote
-      await db.run(
-        "UPDATE voting_decisions SET suggested_vote = NULL, updated_at = datetime('now') WHERE referendum_id = ?",
-        [referendum.id]
-      );
-      
-      // Remove team actions (except No Way)
-      await db.run(
-        "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ?",
-        [referendum.id, req.user.address, ReferendumAction.NO_WAY]
-      );
-      
-      // Add unassign note as a comment if provided
-      if (unassignNote) {
+      try {
+        // First remove team actions (except No Way)
         await db.run(
-          "INSERT INTO referendum_comments (referendum_id, team_member_id, content) VALUES (?, ?, ?)",
-          [referendum.id, req.user.address, unassignNote]
+          "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ?",
+          [referendum.id, req.user.address, ReferendumAction.NO_WAY]
         );
+        
+        if (isResponsible) {
+          // Get current voting decision
+          const votingDecision = await VotingDecision.getByReferendumId(referendum.id);
+          
+          // If there was a suggested vote, save it for the unassign note
+          const previousVote = votingDecision?.suggested_vote;
+          
+          // Reset suggested vote if it exists
+          if (votingDecision) {
+            await VotingDecision.upsert(referendum.id, {
+              suggested_vote: undefined,
+              referendum_id: referendum.id
+            });
+          }
+          
+          // Reset internal status
+          await db.run(
+            "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
+            [InternalStatus.NotStarted, referendum.id]
+          );
+          
+          // Add unassign note with previous vote if provided
+          if (unassignNote || previousVote) {
+            const noteLines = ['[UNASSIGN MESSAGE]'];
+            if (previousVote) {
+              noteLines.push(`Previous vote: ${previousVote}`);
+            }
+            if (unassignNote) {
+              noteLines.push(`Note: ${unassignNote}`);
+            }
+            
+            await db.run(
+              "INSERT INTO referendum_comments (referendum_id, team_member_id, content) VALUES (?, ?, ?)",
+              [referendum.id, req.user.address, noteLines.join('\n')]
+            );
+          }
+        }
+      
+        await db.run('COMMIT');
+        
+        logger.info({ 
+          walletAddress: req.user.address, 
+          referendumId,
+          hadNote: !!unassignNote,
+          previousVote: (await VotingDecision.getByReferendumId(referendum.id))?.suggested_vote || null,
+          wasResponsible: isResponsible
+        }, "User governance action removed and values reset");
+        
+        return res.json({
+          success: true,
+          message: "Governance action removed and values reset successfully"
+        });
+      } catch (transactionError) {
+        await db.run('ROLLBACK');
+        throw transactionError;
       }
-      
-      // Commit all changes
-      await db.run('COMMIT');
-      
-      logger.info({ 
-        walletAddress: req.user.address, 
-        referendumId,
-        hadNote: !!unassignNote,
-        previousVote: referendum.suggested_vote
-      }, "User governance action removed and values reset");
-      
-      return res.json({
-        success: true,
-        message: "Governance action removed and values reset successfully"
-      });
-      
-    } catch (transactionError) {
-      await db.run('ROLLBACK');
+    } catch (error) {
       logger.error({ 
-        error: formatError(transactionError), 
+        error: formatError(error), 
         referendumId: req.params.referendumId,
         chain: req.body.chain,
         walletAddress: req.user?.address,
-        step: 'transaction'
-      }, "Transaction error while removing user governance action");
-      throw transactionError;
+        body: req.body,
+        step: 'outer'
+      }, "Error removing user governance action from referendum");
+      
+      if (error instanceof Error && error.message.includes('SQLITE_CONSTRAINT')) {
+        res.status(409).json({
+          success: false,
+          error: "Database constraint violation. Please try again."
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: error instanceof Error ? error.message : "Internal server error"
+        });
+      }
     }
+  } catch (error) {
+    logger.error({ error: formatError(error) }, "Error deleting comment");
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
+});
+
+/**
+ * DELETE /dao/comments/:commentId
+ * Delete a specific comment (only by the author)
+ */
+router.delete("/comments/:commentId", requireTeamMember, async (req: Request, res: Response) => {
+  try {
+    if (!req.user?.address) {
+      return res.status(400).json({
+        success: false,
+        error: "User wallet address not found"
+      });
+    }
+    // Check if comment exists and belongs to the current user
+    const comment = await db.get(
+      "SELECT id, team_member_id FROM referendum_comments WHERE id = ?",
+      [req.params.commentId]
+    );
     
   } catch (error) {
     logger.error({ 
