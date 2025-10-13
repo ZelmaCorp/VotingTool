@@ -14,9 +14,11 @@ COPY backend/package*.json ./
 # Install dependencies (including devDependencies for building)
 RUN npm install
 
-# Copy TypeScript source code
+# Copy TypeScript source code and build scripts
 COPY backend/src ./src
 COPY backend/tsconfig.json ./
+COPY backend/build-version.js ./
+COPY backend/check-version.js ./
 
 # Build TypeScript to JavaScript
 RUN npm run build
