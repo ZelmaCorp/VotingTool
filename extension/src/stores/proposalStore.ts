@@ -1,5 +1,5 @@
 import { computed, reactive } from 'vue'
-import type { ProposalData, FilterOptions } from '../types'
+import type { ProposalData, FilterOptions, Chain } from '../types'
 import { authStore } from './authStore'
 import { ApiService } from '../utils/apiService'
 
@@ -149,33 +149,55 @@ export const proposalStore = {
     state.proposals = proposals
   },
 
-  updateProposal(updatedProposal: ProposalData): void {
-    const index = state.proposals.findIndex(p => 
-      p.post_id === updatedProposal.post_id && p.chain === updatedProposal.chain
-    );
-    
-    if (index !== -1) {
-      // Create a new array to trigger reactivity
-      state.proposals = [
-        ...state.proposals.slice(0, index),
-        updatedProposal,
-        ...state.proposals.slice(index + 1)
-      ];
+  async updateProposal(proposalId: number, chain: Chain, updates?: Partial<ProposalData>): Promise<void> {
+    try {
+      // First get fresh data from API
+      const apiService = ApiService.getInstance();
+      const freshData = await apiService.getProposal(proposalId, chain);
       
-      // Also update currentProposal if it matches
-      if (state.currentProposal?.post_id === updatedProposal.post_id && 
-          state.currentProposal?.chain === updatedProposal.chain) {
-        state.currentProposal = updatedProposal;
+      if (!freshData) {
+        throw new Error('Failed to fetch updated proposal data');
       }
-    } else {
-      console.warn('Proposal not found in store:', updatedProposal.post_id);
-    }
-  },
 
-  async updateProposal(proposalId: string, updates: Partial<ProposalData>): Promise<void> {
-    const index = state.proposals.findIndex((p: ProposalData) => p.post_id.toString() === proposalId)
-    if (index !== -1) {
-      state.proposals[index] = { ...state.proposals[index], ...updates, updated_at: new Date().toISOString() }
+      // Find the proposal in our store
+      const index = state.proposals.findIndex(p => 
+        p.post_id === proposalId && p.chain === chain
+      );
+
+      if (index !== -1) {
+        // Merge fresh data with any additional updates
+        const updatedProposal = {
+          ...freshData,
+          ...updates,
+          updated_at: new Date().toISOString()
+        };
+
+        // Create a new array to trigger reactivity
+        state.proposals = [
+          ...state.proposals.slice(0, index),
+          updatedProposal,
+          ...state.proposals.slice(index + 1)
+        ];
+
+        // Also update currentProposal if it matches
+        if (state.currentProposal?.post_id === proposalId && 
+            state.currentProposal?.chain === chain) {
+          state.currentProposal = updatedProposal;
+        }
+
+        console.log('Updated proposal in store:', {
+          id: proposalId,
+          chain,
+          status: updatedProposal.internal_status,
+          suggestedVote: updatedProposal.suggested_vote,
+          assignedTo: updatedProposal.assigned_to
+        });
+      } else {
+        console.warn('Proposal not found in store:', proposalId);
+      }
+    } catch (error) {
+      console.error('Failed to update proposal:', error);
+      throw error;
     }
   },
 

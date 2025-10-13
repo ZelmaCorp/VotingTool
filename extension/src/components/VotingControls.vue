@@ -409,11 +409,11 @@ const confirmUnassign = async (unassignNote: string | undefined) => {
     }
     
     // Update store and emit events
-    proposalStore.updateProposal(updatedProposal);
+    await proposalStore.updateProposal(props.proposalId, props.chain);
     
     // Emit events to update parent state
     emit('update:status', updatedProposal.internal_status as InternalStatus);
-    emit('update:suggestedVote', updatedProposal.suggested_vote as SuggestedVote | undefined);
+    emit('update:suggestedVote', undefined);
     emit('update:assignedTo', null);
   } catch (error) {
     console.error('Failed to unassign proposal:', error);
@@ -474,7 +474,7 @@ const saveVoteChange = async (data: { vote: '👍 Aye 👍' | '👎 Nay 👎' | 
     }
 
     // Update store and emit events
-    proposalStore.updateProposal(updatedProposal);
+    await proposalStore.updateProposal(props.proposalId, props.chain);
     
     // Emit events to update parent state
     emit('update:suggestedVote', updatedProposal.suggested_vote as SuggestedVote | undefined);

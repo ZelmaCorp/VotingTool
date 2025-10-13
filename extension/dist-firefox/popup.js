@@ -11798,6 +11798,24 @@ Your address: ${address}${configuredMultisigs}
     setProposals(proposals) {
       state.proposals = proposals;
     },
+    updateProposal(updatedProposal) {
+      var _a, _b;
+      const index = state.proposals.findIndex(
+        (p2) => p2.post_id === updatedProposal.post_id && p2.chain === updatedProposal.chain
+      );
+      if (index !== -1) {
+        state.proposals = [
+          ...state.proposals.slice(0, index),
+          updatedProposal,
+          ...state.proposals.slice(index + 1)
+        ];
+        if (((_a = state.currentProposal) == null ? void 0 : _a.post_id) === updatedProposal.post_id && ((_b = state.currentProposal) == null ? void 0 : _b.chain) === updatedProposal.chain) {
+          state.currentProposal = updatedProposal;
+        }
+      } else {
+        console.warn("Proposal not found in store:", updatedProposal.post_id);
+      }
+    },
     async updateProposal(proposalId, updates) {
       const index = state.proposals.findIndex((p2) => p2.post_id.toString() === proposalId);
       if (index !== -1) {
