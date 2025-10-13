@@ -292,14 +292,26 @@ export class ApiService {
         }
     }
 
-    async deleteTeamAction(postId: number, chain: Chain, unassignNote?: string): Promise<{ success: boolean; error?: string }> {
+    async deleteTeamAction(postId: number, chain: Chain, action: TeamAction): Promise<{ success: boolean; error?: string }> {
         try {
-            // Delete the team action and reset values
+            // Map frontend action names to backend enum values
+            const actionMap: Record<TeamAction, string> = {
+                'Agree': 'agree',
+                'To be discussed': 'to_be_discussed',
+                'NO WAY': 'no_way',
+                'Recuse': 'recuse'
+            };
+            
+            const backendAction = actionMap[action];
+            if (!backendAction) {
+                return { success: false, error: `Unknown action: ${action}` };
+            }
+
             const result = await this.request<{ success: boolean; error?: string }>(`/dao/referendum/${postId}/action`, {
                 method: 'DELETE',
                 body: JSON.stringify({
                     chain,
-                    unassignNote
+                    action: backendAction
                 }),
             });
 
@@ -311,6 +323,27 @@ export class ApiService {
         } catch (error) {
             console.error('❌ Failed to delete team action:', error);
             return { success: false, error: error instanceof Error ? error.message : 'Failed to delete team action' };
+        }
+    }
+
+    async unassignFromReferendum(postId: number, chain: Chain, unassignNote?: string): Promise<{ success: boolean; error?: string }> {
+        try {
+            const result = await this.request<{ success: boolean; error?: string }>(`/dao/referendum/${postId}/unassign`, {
+                method: 'POST',
+                body: JSON.stringify({
+                    chain,
+                    unassignNote
+                }),
+            });
+
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to unassign from referendum');
+            }
+
+            return result;
+        } catch (error) {
+            console.error('❌ Failed to unassign from referendum:', error);
+            return { success: false, error: error instanceof Error ? error.message : 'Failed to unassign from referendum' };
         }
     }
 

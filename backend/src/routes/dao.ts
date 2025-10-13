@@ -717,7 +717,103 @@ router.post("/referendum/:referendumId/comments", requireTeamMember, async (req:
  * DELETE /dao/referendum/:referendumId/action
  * Remove current user's governance action from a referendum
  */
+/**
+ * DELETE /dao/referendum/:referendumId/action
+ * Remove a specific team action (Agree, NoWay, Recuse, Discuss) from a referendum
+ */
 router.delete("/referendum/:referendumId/action", requireTeamMember, async (req: Request, res: Response) => {
+  try {
+    const { referendumId } = req.params;
+    const { chain, action } = req.body;
+    
+    if (!req.user?.address) {
+      return res.status(400).json({
+        success: false,
+        error: "User wallet address not found"
+      });
+    }
+    
+    // Validate chain parameter
+    if (!chain) {
+      return res.status(400).json({
+        success: false,
+        error: "Chain parameter is required"
+      });
+    }
+
+    // Validate action parameter
+    if (!action || ![ReferendumAction.AGREE, ReferendumAction.NO_WAY, ReferendumAction.RECUSE, ReferendumAction.TO_BE_DISCUSSED].includes(action)) {
+      return res.status(400).json({
+        success: false,
+        error: "Valid action type is required"
+      });
+    }
+    
+    // Get the internal referendum ID first
+    const referendum = await db.get(
+      "SELECT id FROM referendums WHERE post_id = ? AND chain = ?",
+      [referendumId, chain]
+    );
+    
+    if (!referendum) {
+      return res.status(404).json({
+        success: false,
+        error: `Referendum ${referendumId} not found on ${chain} network`
+      });
+    }
+    
+    try {
+      // Remove specific team action
+      const result = await db.run(
+        "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
+        [referendum.id, req.user.address, action]
+      );
+
+      if (result.changes === 0) {
+        return res.status(404).json({
+          success: false,
+          error: `No ${action} action found for this user and referendum`
+        });
+      }
+
+      logger.info({ 
+        walletAddress: req.user.address, 
+        referendumId,
+        action
+      }, "Team action removed successfully");
+      
+      return res.json({
+        success: true,
+        message: "Team action removed successfully"
+      });
+    } catch (error) {
+      logger.error({ 
+        error: formatError(error), 
+        referendumId,
+        chain,
+        action,
+        walletAddress: req.user.address
+      }, "Error removing team action from referendum");
+      
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Internal server error"
+      });
+    }
+  } catch (error) {
+    logger.error({ error: formatError(error) }, "Error in delete action endpoint");
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
+});
+
+/**
+ * POST /dao/referendum/:referendumId/unassign
+ * Unassign the responsible person from a referendum and reset its state
+ */
+router.post("/referendum/:referendumId/unassign", requireTeamMember, async (req: Request, res: Response) => {
   try {
     const { referendumId } = req.params;
     const { chain, unassignNote } = req.body;
@@ -739,7 +835,7 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
     
     // Get the internal referendum ID first
     const referendum = await db.get(
-      "SELECT id, suggested_vote FROM referendums WHERE post_id = ? AND chain = ?",
+      "SELECT id FROM referendums WHERE post_id = ? AND chain = ?",
       [referendumId, chain]
     );
     
@@ -751,68 +847,61 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
     }
     
     try {
-      // First check if the user has any actions to remove
-      const existingActions = await db.all(
-        "SELECT id, role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ?",
-        [referendum.id, req.user.address]
+      // Check if user is the responsible person
+      const responsibleRole = await db.get(
+        "SELECT id FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
+        [referendum.id, req.user.address, ReferendumAction.RESPONSIBLE_PERSON]
       );
 
-      if (existingActions.length === 0) {
-        return res.status(404).json({
+      if (!responsibleRole) {
+        return res.status(403).json({
           success: false,
-          error: "No governance action found for this user and referendum"
+          error: "Only the responsible person can unassign themselves"
         });
       }
-
-      // Check if user is the responsible person
-      const isResponsible = existingActions.some(action => action.role_type === ReferendumAction.RESPONSIBLE_PERSON);
 
       // Start a transaction to handle all changes atomically
       await db.run('BEGIN TRANSACTION');
       
       try {
-        // First remove team actions (except No Way)
+        // Get current voting decision before removing role
+        const votingDecision = await VotingDecision.getByReferendumId(referendum.id);
+        const previousVote = votingDecision?.suggested_vote;
+        
+        // Remove responsible person role
         await db.run(
-          "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ?",
-          [referendum.id, req.user.address, ReferendumAction.NO_WAY]
+          "DELETE FROM referendum_team_roles WHERE id = ?",
+          [responsibleRole.id]
         );
         
-        if (isResponsible) {
-          // Get current voting decision
-          const votingDecision = await VotingDecision.getByReferendumId(referendum.id);
-          
-          // If there was a suggested vote, save it for the unassign note
-          const previousVote = votingDecision?.suggested_vote;
-          
-          // Reset suggested vote if it exists
-          if (votingDecision) {
-            await VotingDecision.upsert(referendum.id, {
-              suggested_vote: undefined,
-              referendum_id: referendum.id
-            });
+        // Reset suggested vote if it exists
+        if (votingDecision) {
+          await VotingDecision.upsert(referendum.id, {
+            suggested_vote: undefined,
+            referendum_id: referendum.id
+          });
+        }
+        
+        // Reset internal status
+        await db.run(
+          "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
+          [InternalStatus.NotStarted, referendum.id]
+        );
+        
+        // Add unassign note with previous vote if provided
+        if (unassignNote || previousVote) {
+          const noteLines = ['[UNASSIGN MESSAGE]'];
+          if (previousVote) {
+            noteLines.push(`Previous vote: ${previousVote}`);
+          }
+          if (unassignNote) {
+            noteLines.push(`Note: ${unassignNote}`);
           }
           
-          // Reset internal status
           await db.run(
-            "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
-            [InternalStatus.NotStarted, referendum.id]
+            "INSERT INTO referendum_comments (referendum_id, team_member_id, content) VALUES (?, ?, ?)",
+            [referendum.id, req.user.address, noteLines.join('\n')]
           );
-          
-          // Add unassign note with previous vote if provided
-          if (unassignNote || previousVote) {
-            const noteLines = ['[UNASSIGN MESSAGE]'];
-            if (previousVote) {
-              noteLines.push(`Previous vote: ${previousVote}`);
-            }
-            if (unassignNote) {
-              noteLines.push(`Note: ${unassignNote}`);
-            }
-            
-            await db.run(
-              "INSERT INTO referendum_comments (referendum_id, team_member_id, content) VALUES (?, ?, ?)",
-              [referendum.id, req.user.address, noteLines.join('\n')]
-            );
-          }
         }
       
         await db.run('COMMIT');
@@ -821,13 +910,12 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
           walletAddress: req.user.address, 
           referendumId,
           hadNote: !!unassignNote,
-          previousVote: (await VotingDecision.getByReferendumId(referendum.id))?.suggested_vote || null,
-          wasResponsible: isResponsible
-        }, "User governance action removed and values reset");
+          previousVote
+        }, "Responsible person unassigned and values reset");
         
         return res.json({
           success: true,
-          message: "Governance action removed and values reset successfully"
+          message: "Unassigned successfully"
         });
       } catch (transactionError) {
         await db.run('ROLLBACK');
@@ -836,27 +924,18 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
     } catch (error) {
       logger.error({ 
         error: formatError(error), 
-        referendumId: req.params.referendumId,
-        chain: req.body.chain,
-        walletAddress: req.user?.address,
-        body: req.body,
-        step: 'outer'
-      }, "Error removing user governance action from referendum");
+        referendumId,
+        chain,
+        walletAddress: req.user.address
+      }, "Error unassigning responsible person");
       
-      if (error instanceof Error && error.message.includes('SQLITE_CONSTRAINT')) {
-        res.status(409).json({
-          success: false,
-          error: "Database constraint violation. Please try again."
-        });
-      } else {
-        res.status(500).json({
-          success: false,
-          error: error instanceof Error ? error.message : "Internal server error"
-        });
-      }
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Internal server error"
+      });
     }
   } catch (error) {
-    logger.error({ error: formatError(error) }, "Error deleting comment");
+    logger.error({ error: formatError(error) }, "Error in unassign endpoint");
     res.status(500).json({
       success: false,
       error: "Internal server error"
