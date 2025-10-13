@@ -874,13 +874,11 @@ router.post("/referendum/:referendumId/unassign", requireTeamMember, async (req:
           [responsibleRole.id]
         );
         
-        // Reset suggested vote if it exists
-        if (votingDecision) {
-          await VotingDecision.upsert(referendum.id, {
-            suggested_vote: undefined,
-            referendum_id: referendum.id
-          });
-        }
+        // Always reset suggested vote
+        await VotingDecision.upsert(referendum.id, {
+          suggested_vote: undefined,
+          referendum_id: referendum.id
+        });
         
         // Reset internal status
         await db.run(
@@ -888,21 +886,19 @@ router.post("/referendum/:referendumId/unassign", requireTeamMember, async (req:
           [InternalStatus.NotStarted, referendum.id]
         );
         
-        // Add unassign note with previous vote if provided
-        if (unassignNote || previousVote) {
-          const noteLines = ['[UNASSIGN MESSAGE]'];
-          if (previousVote) {
-            noteLines.push(`Previous vote: ${previousVote}`);
-          }
-          if (unassignNote) {
-            noteLines.push(`Note: ${unassignNote}`);
-          }
-          
-          await db.run(
-            "INSERT INTO referendum_comments (referendum_id, team_member_id, content) VALUES (?, ?, ?)",
-            [referendum.id, req.user.address, noteLines.join('\n')]
-          );
+        // Always add an unassign message, optionally with note and previous vote
+        const noteLines = ['[UNASSIGN MESSAGE]'];
+        if (previousVote) {
+          noteLines.push(`Previous vote: ${previousVote}`);
         }
+        if (unassignNote?.trim()) {
+          noteLines.push(`Note: ${unassignNote.trim()}`);
+        }
+        
+        await db.run(
+          "INSERT INTO referendum_comments (referendum_id, team_member_id, content) VALUES (?, ?, ?)",
+          [referendum.id, req.user.address, noteLines.join('\n')]
+        );
       
         await db.run('COMMIT');
         

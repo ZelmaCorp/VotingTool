@@ -6536,12 +6536,12 @@ var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "
             // Store reason in referendums table
           })
         });
-        if (result && result.id) {
-          return { success: true };
-        } else {
-          return { success: false, error: "No referendum data returned" };
+        if (!result.success) {
+          throw new Error(result.error || "Failed to update suggested vote");
         }
+        return { success: true };
       } catch (error) {
+        console.error("Failed to update suggested vote:", error);
         return { success: false, error: error instanceof Error ? error.message : "Failed to update suggested vote" };
       }
     }
@@ -6594,13 +6594,23 @@ var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "
         return { success: false, error: error instanceof Error ? error.message : "Failed to submit team action" };
       }
     }
-    async deleteTeamAction(postId, chain2, unassignNote) {
+    async deleteTeamAction(postId, chain2, action) {
       try {
+        const actionMap = {
+          "Agree": "agree",
+          "To be discussed": "to_be_discussed",
+          "NO WAY": "no_way",
+          "Recuse": "recuse"
+        };
+        const backendAction = actionMap[action];
+        if (!backendAction) {
+          return { success: false, error: `Unknown action: ${action}` };
+        }
         const result = await this.request(`/dao/referendum/${postId}/action`, {
           method: "DELETE",
           body: JSON.stringify({
             chain: chain2,
-            unassignNote
+            action: backendAction
           })
         });
         if (!result.success) {
@@ -6610,6 +6620,24 @@ var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "
       } catch (error) {
         console.error("❌ Failed to delete team action:", error);
         return { success: false, error: error instanceof Error ? error.message : "Failed to delete team action" };
+      }
+    }
+    async unassignFromReferendum(postId, chain2, unassignNote) {
+      try {
+        const result = await this.request(`/dao/referendum/${postId}/unassign`, {
+          method: "POST",
+          body: JSON.stringify({
+            chain: chain2,
+            unassignNote
+          })
+        });
+        if (!result.success) {
+          throw new Error(result.error || "Failed to unassign from referendum");
+        }
+        return result;
+      } catch (error) {
+        console.error("❌ Failed to unassign from referendum:", error);
+        return { success: false, error: error instanceof Error ? error.message : "Failed to unassign from referendum" };
       }
     }
     async getTeamActions(postId, chain2) {

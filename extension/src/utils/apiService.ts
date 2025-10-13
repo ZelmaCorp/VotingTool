@@ -215,7 +215,7 @@ export class ApiService {
 
     async updateSuggestedVote(postId: number, chain: Chain, vote: SuggestedVote, reason?: string): Promise<{ success: boolean; error?: string }> {
         try {
-            const result = await this.request<any>(`/referendums/${postId}/${chain}`, {
+            const result = await this.request<{ success: boolean; error?: string }>(`/referendums/${postId}/${chain}`, {
                 method: 'PUT',
                 body: JSON.stringify({
                     suggested_vote: vote,
@@ -223,14 +223,13 @@ export class ApiService {
                 }),
             });
 
-            // The endpoint returns the updated referendum object, not { success: boolean }
-            // If we get a referendum object back, it means success
-            if (result && result.id) {
-                return { success: true };
-            } else {
-                return { success: false, error: 'No referendum data returned' };
+            if (!result.success) {
+                throw new Error(result.error || 'Failed to update suggested vote');
             }
+
+            return { success: true };
         } catch (error) {
+            console.error('Failed to update suggested vote:', error);
             return { success: false, error: error instanceof Error ? error.message : 'Failed to update suggested vote' };
         }
     }

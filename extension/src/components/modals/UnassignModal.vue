@@ -51,8 +51,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import { proposalStore } from '../../stores/proposalStore'
-import { authStore } from '../../stores/authStore'
-import type { ProposalData } from '../../types'
+import type { ProposalData, SuggestedVote } from '../../types'
 
 interface UnassignModalProps {
   show: boolean
@@ -62,7 +61,7 @@ interface UnassignModalProps {
 const props = defineProps<UnassignModalProps>()
 const emit = defineEmits<{
   close: []
-  confirm: [note: string]
+  confirm: [note: string | undefined]
 }>()
 
 const loading = ref(false)
@@ -70,7 +69,7 @@ const error = ref('')
 const note = ref('')
 const currentValues = ref<{
   internalStatus: string
-  suggestedVote: string | null
+  suggestedVote: SuggestedVote | null
 } | null>(null)
 
 // Load current values
@@ -82,7 +81,7 @@ onMounted(async () => {
     if (proposal) {
       currentValues.value = {
         internalStatus: proposal.internal_status,
-        suggestedVote: proposal.suggested_vote
+        suggestedVote: proposal.suggested_vote || null
       }
     }
   } catch (err) {
@@ -95,29 +94,14 @@ const handleUnassign = async () => {
   error.value = ''
   
   try {
-    // Format the unassign message
-    const unassignMessage = formatUnassignMessage(note.value, currentValues.value)
-    emit('confirm', unassignMessage)
+    // Pass the note only if it's not empty, otherwise pass undefined
+    emit('confirm', note.value.trim() || undefined)
     emit('close')
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Failed to unassign proposal'
   } finally {
     loading.value = false
   }
-}
-
-const formatUnassignMessage = (userNote: string, values: typeof currentValues.value) => {
-  const parts = ['[UNASSIGN MESSAGE]']
-  
-  if (values?.suggestedVote) {
-    parts.push(`Previous vote: ${values.suggestedVote}`)
-  }
-  
-  if (userNote.trim()) {
-    parts.push(`Note: ${userNote.trim()}`)
-  }
-  
-  return parts.join('\n')
 }
 
 // ESC key handler

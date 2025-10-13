@@ -106,6 +106,9 @@ import type { InternalStatus, SuggestedVote, Chain, TeamMember } from '../types'
 import { authStore } from '../stores/authStore'
 import { teamStore } from '../stores/teamStore'
 import { formatAddress } from '../utils/teamUtils'
+import { ApiService } from '../utils/apiService'
+
+const apiService = ApiService.getInstance()
 import StatusChangeModal from './modals/StatusChangeModal.vue'
 import AssignModal from './modals/AssignModal.vue'
 import UnassignModal from './modals/UnassignModal.vue'
@@ -370,26 +373,29 @@ const closeUnassignModal = () => {
   showUnassignModal.value = false
 }
 
-const confirmUnassign = async (unassignNote: string) => {
+const confirmUnassign = async (unassignNote: string | undefined) => {
   try {
-    const unassignData = {
-      proposalId: props.proposalId,
-      chain: props.chain,
-      action: 'unassign',
-      note: unassignNote,
-      resetValues: {
-        internalStatus: 'Not started',
-        suggestedVote: null
-      }
+    console.log('Unassigning proposal with note:', unassignNote);
+    const result = await apiService.unassignFromReferendum(props.proposalId, props.chain, unassignNote);
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to unassign proposal');
     }
     
-    console.log('Unassignment requested:', unassignData)
-    closeUnassignModal()
+    console.log('Successfully unassigned from proposal');
+    closeUnassignModal();
     
     // Emit custom event for parent to handle
-    window.dispatchEvent(new CustomEvent('proposalUnassigned', { detail: unassignData }))
+    window.dispatchEvent(new CustomEvent('proposalUnassigned', { 
+      detail: {
+        proposalId: props.proposalId,
+        chain: props.chain
+      }
+    }));
   } catch (error) {
-    console.error('Failed to unassign proposal:', error)
+    console.error('Failed to unassign proposal:', error);
+    // TODO: Show error to user in UI
+    alert(error instanceof Error ? error.message : 'Failed to unassign proposal');
   }
 }
 
