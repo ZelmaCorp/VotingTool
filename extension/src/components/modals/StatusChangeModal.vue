@@ -83,7 +83,26 @@ const statusConfig = {
   'Not Voted': { color: '#e9ecef', icon: '❌' }
 }
 
-const statusOptions = Object.keys(statusConfig).map(status => ({
+// Only show allowed transitions based on current status
+const getAllowedTransitions = (currentStatus: InternalStatus): InternalStatus[] => {
+  const allowedTransitions: Record<InternalStatus, InternalStatus[]> = {
+    'Not started': [],  // Can't manually change from Not started
+    'Considering': ['Ready for approval'],  // Can only move to Ready for approval
+    'Ready for approval': ['Waiting for agreement', 'Considering'],  // Can move back to Considering or forward to Waiting
+    'Waiting for agreement': ['Ready for approval'],  // Can move back to Ready for approval
+    'Ready to vote': [],  // Automatic based on agreements
+    'Reconsidering': ['Ready for approval'],  // Can move back to Ready for approval
+    'Voted 👍 Aye 👍': [],  // Final states - can't change
+    'Voted 👎 Nay 👎': [],  // Final states - can't change
+    'Voted ✌️ Abstain ✌️': [],  // Final states - can't change
+    'Not Voted': []  // Final state - can't change
+  };
+  
+  return allowedTransitions[currentStatus] || [];
+};
+
+// Only show allowed status options
+const statusOptions = getAllowedTransitions(props.currentStatus).map(status => ({
   value: status as InternalStatus,
   icon: statusConfig[status as InternalStatus].icon,
   color: statusConfig[status as InternalStatus].color
@@ -91,6 +110,13 @@ const statusOptions = Object.keys(statusConfig).map(status => ({
 
 const handleSave = () => {
   if (!selectedStatus.value || selectedStatus.value === props.currentStatus) return
+  
+  // Validate the transition is allowed
+  const allowedTransitions = getAllowedTransitions(props.currentStatus);
+  if (!allowedTransitions.includes(selectedStatus.value)) {
+    alert('This status transition is not allowed');
+    return;
+  }
   
   emit('save', {
     newStatus: selectedStatus.value,

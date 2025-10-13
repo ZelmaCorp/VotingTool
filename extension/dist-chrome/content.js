@@ -29,7 +29,7 @@ var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "
   "use strict";
   var _bridge, _createWasm, _heap, _wbg, _cachegetInt32, _cachegetUint8, _heapNext, _wasm, _wasmError, _wasmPromise, _type;
   var __vite_style__ = document.createElement("style");
-  __vite_style__.textContent = "\n.wallet-connect[data-v-4f7ca26e] {\n  min-width: 400px;\n  max-width: 500px;\n}\n.connect-header[data-v-4f7ca26e] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 24px;\n  padding-bottom: 16px;\n  border-bottom: 1px solid #e1e5e9;\n}\n.connect-header h3[data-v-4f7ca26e] {\n  margin: 0;\n  color: #333;\n  font-size: 18px;\n}\n.close-btn[data-v-4f7ca26e] {\n  background: none;\n  border: none;\n  font-size: 20px;\n  cursor: pointer;\n  color: #666;\n  padding: 4px;\n  border-radius: 4px;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-4f7ca26e]:hover {\n  background-color: #f0f0f0;\n}\n.step-content[data-v-4f7ca26e] {\n  margin-bottom: 24px;\n}\n.step-description[data-v-4f7ca26e] {\n  color: #666;\n  margin-bottom: 20px;\n  text-align: center;\n}\n.wallet-options[data-v-4f7ca26e] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n  margin-bottom: 20px;\n}\n.wallet-list[data-v-4f7ca26e] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n.wallet-option[data-v-4f7ca26e] {\n  display: flex;\n  align-items: center;\n  padding: 16px;\n  border: 2px solid #e1e5e9;\n  border-radius: 8px;\n  background: white;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  position: relative;\n}\n.wallet-option[data-v-4f7ca26e]:hover:not(:disabled) {\n  border-color: #e6007a;\n  box-shadow: 0 2px 8px rgba(230, 0, 122, 0.1);\n}\n.wallet-option[data-v-4f7ca26e]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.wallet-icon[data-v-4f7ca26e] {\n  width: 32px;\n  height: 32px;\n  margin-right: 16px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.wallet-icon img[data-v-4f7ca26e] {\n  width: 100%;\n  height: 100%;\n  border-radius: 50%;\n  object-fit: cover;\n}\n.wallet-icon-fallback[data-v-4f7ca26e] {\n  font-size: 20px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.wallet-info[data-v-4f7ca26e] {\n  flex: 1;\n}\n.wallet-name[data-v-4f7ca26e] {\n  font-weight: 600;\n  color: #333;\n  margin-bottom: 4px;\n}\n.wallet-description[data-v-4f7ca26e] {\n  font-size: 14px;\n  color: #666;\n}\n.loading-spinner[data-v-4f7ca26e] {\n  width: 20px;\n  height: 20px;\n  border: 2px solid #f3f3f3;\n  border-top: 2px solid #e6007a;\n  border-radius: 50%;\n  animation: spin-4f7ca26e 1s linear infinite;\n}\n@keyframes spin-4f7ca26e {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.extension-status[data-v-4f7ca26e] {\n  text-align: center;\n  padding: 16px;\n  border-radius: 8px;\n  background: #f8f9fa;\n  border: 1px solid #e1e5e9;\n}\n.status-checking[data-v-4f7ca26e] {\n  color: #0066cc;\n  font-weight: 500;\n}\n.status-not-found[data-v-4f7ca26e] {\n  color: #dc3545;\n  font-weight: 500;\n}\n.status-found[data-v-4f7ca26e] {\n  color: #28a745;\n  font-weight: 500;\n}\n.status-help[data-v-4f7ca26e] {\n  margin-top: 8px;\n  font-size: 14px;\n  color: #666;\n}\n.status-help a[data-v-4f7ca26e] {\n  color: #e6007a;\n  text-decoration: none;\n  font-weight: 500;\n}\n.status-help a[data-v-4f7ca26e]:hover {\n  text-decoration: underline;\n}\n.status-actions[data-v-4f7ca26e] {\n  display: flex;\n  gap: 12px;\n  margin-top: 16px;\n}\n.account-list[data-v-4f7ca26e] {\n  max-height: 300px;\n  overflow-y: auto;\n  border: 1px solid #e1e5e9;\n  border-radius: 8px;\n}\n.account-item[data-v-4f7ca26e] {\n  display: flex;\n  align-items: center;\n  padding: 16px;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n  border-bottom: 1px solid #f0f0f0;\n}\n.account-item[data-v-4f7ca26e]:last-child {\n  border-bottom: none;\n}\n.account-item[data-v-4f7ca26e]:hover {\n  background-color: #f8f9fa;\n}\n.account-item.selected[data-v-4f7ca26e] {\n  background-color: #e8f4fd;\n  border-left: 3px solid #e6007a;\n}\n.account-avatar[data-v-4f7ca26e] {\n  width: 32px;\n  height: 32px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: white;\n  font-weight: bold;\n  font-size: 12px;\n  margin-right: 12px;\n}\n.account-info[data-v-4f7ca26e] {\n  flex: 1;\n}\n.account-name[data-v-4f7ca26e] {\n  font-weight: 500;\n  color: #333;\n  margin-bottom: 2px;\n}\n.account-address[data-v-4f7ca26e] {\n  font-family: monospace;\n  font-size: 12px;\n  color: #666;\n}\n.account-check[data-v-4f7ca26e] {\n  color: #e6007a;\n  font-weight: bold;\n  font-size: 18px;\n}\n.sign-message[data-v-4f7ca26e] {\n  background: #f8f9fa;\n  border: 1px solid #e1e5e9;\n  border-radius: 8px;\n  padding: 16px;\n  margin-bottom: 20px;\n}\n.message-label[data-v-4f7ca26e] {\n  font-weight: 500;\n  color: #333;\n  margin-bottom: 8px;\n}\n.message-content[data-v-4f7ca26e] {\n  font-family: monospace;\n  font-size: 12px;\n  color: #666;\n  white-space: pre-wrap;\n  word-break: break-all;\n}\n.step-actions[data-v-4f7ca26e] {\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n}\n.btn-primary[data-v-4f7ca26e], .btn-secondary[data-v-4f7ca26e] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.btn-primary[data-v-4f7ca26e] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n}\n.btn-primary[data-v-4f7ca26e]:hover:not(:disabled) {\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-primary[data-v-4f7ca26e]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-secondary[data-v-4f7ca26e] {\n  background: #6c757d;\n  color: white;\n}\n.btn-secondary[data-v-4f7ca26e]:hover {\n  background: #5a6268;\n}\n.error-message[data-v-4f7ca26e] {\n  text-align: left;\n  padding: 24px;\n  background: #fff5f5;\n  border: 1px solid #fed7d7;\n  border-radius: 8px;\n}\n.error-icon[data-v-4f7ca26e] {\n  font-size: 24px;\n  margin-bottom: 8px;\n  display: block;\n}\n.error-text[data-v-4f7ca26e] {\n  color: #c53030;\n  font-weight: 500;\n  white-space: pre-line;\n  line-height: 1.5;\n  margin-bottom: 16px;\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n}\n.error-actions[data-v-4f7ca26e] {\n  display: flex;\n  justify-content: center;\n}\n.no-wallets[data-v-4f7ca26e] {\n  text-align: center;\n  padding: 24px;\n  color: #666;\n}\n.no-wallets-icon[data-v-4f7ca26e] {\n  font-size: 32px;\n  margin-bottom: 8px;\n}\n.no-wallets-text[data-v-4f7ca26e] {\n  font-size: 14px;\n}\n\n.modal-overlay[data-v-973fd79d] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.config-modal[data-v-973fd79d] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 90vh;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-973fd79d] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-973fd79d] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-973fd79d] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-973fd79d]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-973fd79d] {\n  padding: 24px;\n  flex: 1;\n  overflow-y: auto;\n}\n.config-sections[data-v-973fd79d] {\n  display: flex;\n  flex-direction: column;\n  gap: 24px;\n}\n.config-section[data-v-973fd79d] {\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  padding: 20px;\n}\n.config-section h4[data-v-973fd79d] {\n  margin: 0 0 16px 0;\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #333;\n  border-bottom: 2px solid #e6007a;\n  padding-bottom: 8px;\n}\n.form-group[data-v-973fd79d] {\n  margin-bottom: 16px;\n}\n.form-group label[data-v-973fd79d] {\n  display: block;\n  margin-bottom: 6px;\n  font-weight: 500;\n  color: #555;\n}\n.form-input[data-v-973fd79d] {\n  width: 100%;\n  padding: 10px 12px;\n  border: 2px solid #e9ecef;\n  border-radius: 6px;\n  font-size: 14px;\n  transition: border-color 0.2s ease;\n}\n.form-input[data-v-973fd79d]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.number-input[data-v-973fd79d] {\n  max-width: 120px;\n}\n.input-help[data-v-973fd79d] {\n  margin-top: 6px;\n  font-size: 12px;\n  color: #666;\n  line-height: 1.4;\n}\n.agreement-preview[data-v-973fd79d] {\n  margin-top: 16px;\n  padding: 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n}\n.preview-label[data-v-973fd79d] {\n  font-size: 12px;\n  font-weight: 500;\n  color: #666;\n  margin-bottom: 8px;\n}\n.preview-bar[data-v-973fd79d] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n.progress-bar[data-v-973fd79d] {\n  width: 100%;\n  height: 8px;\n  background: #e9ecef;\n  border-radius: 4px;\n  overflow: hidden;\n}\n.progress-fill[data-v-973fd79d] {\n  height: 100%;\n  background: linear-gradient(135deg, #28a745, #20c997);\n  transition: width 0.3s ease;\n}\n.progress-text[data-v-973fd79d] {\n  font-size: 12px;\n  color: #666;\n  text-align: center;\n}\n.modal-actions[data-v-973fd79d] {\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-973fd79d] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.btn-secondary[data-v-973fd79d] {\n  background: #f8f9fa;\n  color: #666;\n  border: 1px solid #dee2e6;\n}\n.btn-secondary[data-v-973fd79d]:hover {\n  background: #e9ecef;\n}\n.btn-primary[data-v-973fd79d] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n}\n.btn-primary[data-v-973fd79d]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #cc1177);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn[data-v-973fd79d]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n.status-badge-container[data-v-875347a1] {\n  position: relative;\n  display: inline-block;\n}\n.status-badge[data-v-875347a1] {\n  display: inline-flex;\n  align-items: center;\n  gap: 3px;\n  padding: 4px 8px;\n  border-radius: 12px;\n  font-size: 0.7rem;\n  font-weight: 600;\n  border: 1px solid rgba(255, 255, 255, 0.6);\n  transition: all 0.2s ease;\n  user-select: none;\n  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);\n  backdrop-filter: blur(3px);\n  white-space: nowrap;\n  min-width: 80px;\n  justify-content: center;\n}\n.status-clickable[data-v-875347a1] {\n  cursor: pointer;\n}\n.status-clickable[data-v-875347a1]:hover {\n  transform: translateY(-2px) scale(1.02);\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);\n  border-color: rgba(255, 255, 255, 1);\n}\n.status-icon[data-v-875347a1] {\n  font-size: 0.8rem;\n}\n.edit-icon[data-v-875347a1] {\n  font-size: 0.7rem;\n  opacity: 0.7;\n}\n\n/* Status color classes with enhanced floating design */\n.status-not-started[data-v-875347a1] { \n  background: linear-gradient(135deg, #6c757d, #5a6268); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-considering[data-v-875347a1] { \n  background: linear-gradient(135deg, #ffc107, #e0a800); \n  color: #212529; \n  border-color: rgba(33, 37, 41, 0.2);\n}\n.status-ready-for-approval[data-v-875347a1] { \n  background: linear-gradient(135deg, #17a2b8, #138496); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-waiting-for-agreement[data-v-875347a1] { \n  background: linear-gradient(135deg, #fd7e14, #e8680b); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-ready-to-vote[data-v-875347a1] { \n  background: linear-gradient(135deg, #28a745, #1e7e34); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-reconsidering[data-v-875347a1] { \n  background: linear-gradient(135deg, #dc3545, #c82333); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-voted-aye[data-v-875347a1] { \n  background: linear-gradient(135deg, #198754, #155724); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-voted-nay[data-v-875347a1] { \n  background: linear-gradient(135deg, #dc3545, #c82333); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-voted-abstain[data-v-875347a1] { \n  background: linear-gradient(135deg, #6f42c1, #5a32a3); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-not-voted[data-v-875347a1] { \n  background: linear-gradient(135deg, #e9ecef, #dee2e6); \n  color: #495057; \n  border-color: rgba(73, 80, 87, 0.2);\n}\n\n/* Modal styles */\n.modal-overlay[data-v-875347a1] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.status-modal[data-v-875347a1] {\n  background: white;\n  border-radius: 8px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  overflow-y: auto;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-875347a1] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 16px 20px;\n  border-bottom: 1px solid #e9ecef;\n}\n.modal-header h3[data-v-875347a1] {\n  margin: 0;\n  font-size: 1.1rem;\n  font-weight: 600;\n}\n.close-btn[data-v-875347a1] {\n  background: none;\n  border: none;\n  font-size: 1.5rem;\n  cursor: pointer;\n  color: #6c757d;\n  padding: 0;\n  width: 30px;\n  height: 30px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.close-btn[data-v-875347a1]:hover {\n  color: #495057;\n}\n.modal-content[data-v-875347a1] {\n  padding: 20px;\n}\n.modal-content p[data-v-875347a1] {\n  margin: 0 0 16px 0;\n  font-size: 0.9rem;\n}\n.status-options[data-v-875347a1] {\n  margin: 20px 0;\n}\n.status-options label[data-v-875347a1] {\n  display: block;\n  margin-bottom: 12px;\n  font-weight: 500;\n  font-size: 0.9rem;\n}\n.status-grid[data-v-875347a1] {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));\n  gap: 8px;\n}\n.status-option[data-v-875347a1] {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n  padding: 8px 12px;\n  border: 2px solid #e9ecef;\n  background: white;\n  border-radius: 6px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  font-size: 0.8rem;\n}\n.status-option[data-v-875347a1]:hover {\n  border-color: #007bff;\n  background: #f8f9fa;\n}\n.status-option.selected[data-v-875347a1] {\n  border-color: #007bff;\n  background: #e7f3ff;\n}\n.option-icon[data-v-875347a1] {\n  font-size: 0.9rem;\n}\n.reason-section[data-v-875347a1] {\n  margin: 20px 0;\n}\n.reason-section label[data-v-875347a1] {\n  display: block;\n  margin-bottom: 8px;\n  font-weight: 500;\n  font-size: 0.9rem;\n}\n.reason-section textarea[data-v-875347a1] {\n  width: 100%;\n  border: 1px solid #ced4da;\n  border-radius: 4px;\n  padding: 8px 12px;\n  font-size: 0.9rem;\n  resize: vertical;\n  min-height: 60px;\n}\n.reason-section textarea[data-v-875347a1]:focus {\n  outline: none;\n  border-color: #007bff;\n  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);\n}\n.modal-actions[data-v-875347a1] {\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-875347a1] {\n  padding: 8px 16px;\n  border-radius: 4px;\n  border: none;\n  font-size: 0.9rem;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.btn-secondary[data-v-875347a1] {\n  background: #6c757d;\n  color: white;\n}\n.btn-secondary[data-v-875347a1]:hover {\n  background: #5a6268;\n}\n.btn-primary[data-v-875347a1] {\n  background: #007bff;\n  color: white;\n}\n.btn-primary[data-v-875347a1]:hover:not(:disabled) {\n  background: #0056b3;\n}\n.btn-primary[data-v-875347a1]:disabled {\n  background: #6c757d;\n  cursor: not-allowed;\n}\n\n.modal-overlay[data-v-db9e79d9] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.proposal-browser-modal[data-v-db9e79d9] {\n  background: white;\n  border-radius: 12px;\n  width: 95vw;\n  height: 90vh;\n  max-width: 1400px;\n  display: flex;\n  flex-direction: column;\n  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);\n}\n.modal-header[data-v-db9e79d9] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: #f8f9fa;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h2[data-v-db9e79d9] {\n  margin: 0;\n  font-size: 1.5rem;\n  font-weight: 600;\n  color: #333;\n}\n.close-btn[data-v-db9e79d9] {\n  background: none;\n  border: none;\n  font-size: 2rem;\n  cursor: pointer;\n  color: #6c757d;\n  padding: 0;\n  width: 40px;\n  height: 40px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  transition: all 0.2s ease;\n}\n.close-btn[data-v-db9e79d9]:hover {\n  background: #e9ecef;\n  color: #495057;\n}\n.browser-content[data-v-db9e79d9] {\n  display: flex;\n  flex: 1;\n  overflow: hidden;\n}\n.filter-panel[data-v-db9e79d9] {\n  width: 280px;\n  background: #f8f9fa;\n  border-right: 1px solid #e9ecef;\n  padding: 20px;\n  overflow-y: auto;\n}\n.filter-section h3[data-v-db9e79d9] {\n  margin: 0 0 16px 0;\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #333;\n}\n.filter-group[data-v-db9e79d9] {\n  margin-bottom: 16px;\n}\n.filter-group label[data-v-db9e79d9] {\n  display: block;\n  margin-bottom: 6px;\n  font-weight: 500;\n  font-size: 0.9rem;\n  color: #555;\n}\n.search-input[data-v-db9e79d9],\n.filter-select[data-v-db9e79d9] {\n  width: 100%;\n  padding: 8px 12px;\n  border: 1px solid #ced4da;\n  border-radius: 6px;\n  font-size: 0.9rem;\n  background: white;\n}\n.search-input[data-v-db9e79d9]:focus,\n.filter-select[data-v-db9e79d9]:focus {\n  outline: none;\n  border-color: #007bff;\n  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);\n}\n.clear-filters-btn[data-v-db9e79d9] {\n  width: 100%;\n  padding: 8px 16px;\n  background: #dc3545;\n  color: white;\n  border: none;\n  border-radius: 6px;\n  font-size: 0.9rem;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n}\n.clear-filters-btn[data-v-db9e79d9]:hover {\n  background: #c82333;\n}\n.content-area[data-v-db9e79d9] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n}\n.view-controls[data-v-db9e79d9] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 16px 20px;\n  border-bottom: 1px solid #e9ecef;\n  background: white;\n}\n.view-modes[data-v-db9e79d9] {\n  display: flex;\n  gap: 8px;\n}\n.view-btn[data-v-db9e79d9] {\n  padding: 6px 12px;\n  border: 1px solid #ced4da;\n  background: white;\n  border-radius: 6px;\n  cursor: pointer;\n  font-size: 0.9rem;\n  transition: all 0.2s ease;\n}\n.view-btn.active[data-v-db9e79d9] {\n  background: #007bff;\n  color: white;\n  border-color: #007bff;\n}\n.sort-controls[data-v-db9e79d9] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n.sort-select[data-v-db9e79d9] {\n  padding: 6px 10px;\n  border: 1px solid #ced4da;\n  border-radius: 6px;\n  font-size: 0.9rem;\n}\n.sort-order-btn[data-v-db9e79d9] {\n  padding: 6px 10px;\n  border: 1px solid #ced4da;\n  background: white;\n  border-radius: 6px;\n  cursor: pointer;\n  font-size: 1rem;\n}\n.results-info[data-v-db9e79d9] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.proposals-container[data-v-db9e79d9] {\n  flex: 1;\n  overflow-y: auto;\n  padding: 20px;\n}\n.loading-state[data-v-db9e79d9],\n.empty-state[data-v-db9e79d9] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 300px;\n  text-align: center;\n}\n.spinner[data-v-db9e79d9] {\n  width: 40px;\n  height: 40px;\n  border: 4px solid #f3f3f3;\n  border-top: 4px solid #007bff;\n  border-radius: 50%;\n  animation: spin-db9e79d9 1s linear infinite;\n}\n@keyframes spin-db9e79d9 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.empty-icon[data-v-db9e79d9] {\n  font-size: 4rem;\n  margin-bottom: 16px;\n}\n.proposals-list[data-v-db9e79d9] {\n  display: flex;\n  flex-direction: column;\n  gap: 1px;\n  background: #e9ecef;\n  border-radius: 8px;\n  overflow: hidden;\n}\n.proposal-item[data-v-db9e79d9] {\n  display: grid;\n  grid-template-columns: 80px 1fr 200px 150px 120px;\n  gap: 16px;\n  padding: 16px 20px;\n  background: white;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n  align-items: center;\n}\n.proposal-item[data-v-db9e79d9]:hover {\n  background: #f8f9fa;\n}\n.proposal-id[data-v-db9e79d9] {\n  font-weight: 600;\n  color: #007bff;\n}\n.proposal-title[data-v-db9e79d9] {\n  font-weight: 500;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.proposal-assignment[data-v-db9e79d9] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  font-size: 0.9rem;\n  color: #666;\n}\n.assign-btn[data-v-db9e79d9] {\n  padding: 4px 8px;\n  background: var(--assign-gradient);\n  color: white;\n  border: 1px solid var(--assign-border);\n  border-radius: 4px;\n  font-size: 0.8rem;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.assign-btn[data-v-db9e79d9]:hover {\n  background: var(--assign-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 2px 6px var(--assign-shadow);\n}\n.proposal-updated[data-v-db9e79d9] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.proposals-cards[data-v-db9e79d9] {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));\n  gap: 20px;\n}\n.proposal-card[data-v-db9e79d9] {\n  background: white;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  padding: 20px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.proposal-card[data-v-db9e79d9]:hover {\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);\n  transform: translateY(-2px);\n}\n.card-header[data-v-db9e79d9] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 12px;\n}\n.card-title[data-v-db9e79d9] {\n  margin: 0 0 12px 0;\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #333;\n  display: -webkit-box;\n  -webkit-line-clamp: 2;\n  line-clamp: 2;\n  -webkit-box-orient: vertical;\n  overflow: hidden;\n}\n.card-meta[data-v-db9e79d9] {\n  display: flex;\n  flex-direction: column;\n  gap: 6px;\n}\n.meta-item[data-v-db9e79d9] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.pagination[data-v-db9e79d9] {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  gap: 16px;\n  margin-top: 20px;\n  padding: 20px;\n}\n.page-btn[data-v-db9e79d9] {\n  padding: 8px 16px;\n  border: 1px solid #ced4da;\n  background: white;\n  border-radius: 6px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.page-btn[data-v-db9e79d9]:hover:not(:disabled) {\n  background: #f8f9fa;\n}\n.page-btn[data-v-db9e79d9]:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n.page-info[data-v-db9e79d9] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.modal-content[data-v-db9e79d9] {\n  max-height: 80vh;\n  overflow-y: auto;\n  padding: 20px;\n  background: white;\n  border-radius: 8px;\n  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);\n}\n.proposal-list[data-v-db9e79d9] {\n  overflow-y: auto;\n  max-height: calc(80vh - 180px); /* Account for header, filters, and padding */\n  padding-right: 16px; /* Space for scrollbar */\n}\n\n/* Scrollbar styling */\n[data-v-db9e79d9]::-webkit-scrollbar {\n  width: 8px;\n}\n[data-v-db9e79d9]::-webkit-scrollbar-track {\n  background: #f1f1f1;\n  border-radius: 4px;\n}\n[data-v-db9e79d9]::-webkit-scrollbar-thumb {\n  background: #888;\n  border-radius: 4px;\n}\n[data-v-db9e79d9]::-webkit-scrollbar-thumb:hover {\n  background: #555;\n}\n\n/* Firefox scrollbar */\n[data-v-db9e79d9] {\n  scrollbar-width: thin;\n  scrollbar-color: #888 #f1f1f1;\n}\n\n.modal-overlay[data-v-4961dea0] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.dashboard-modal[data-v-4961dea0] {\n  background: white;\n  border-radius: 12px;\n  width: 90vw;\n  height: 85vh;\n  max-width: 1200px;\n  display: flex;\n  flex-direction: column;\n  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);\n}\n.modal-header[data-v-4961dea0] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: #f8f9fa;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h2[data-v-4961dea0] {\n  margin: 0;\n  font-size: 1.5rem;\n  font-weight: 600;\n  color: #333;\n}\n.close-btn[data-v-4961dea0] {\n  background: none;\n  border: none;\n  font-size: 2rem;\n  cursor: pointer;\n  color: #6c757d;\n  padding: 0;\n  width: 40px;\n  height: 40px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  transition: all 0.2s ease;\n}\n.close-btn[data-v-4961dea0]:hover {\n  background: #e9ecef;\n  color: #495057;\n}\n.dashboard-content[data-v-4961dea0] {\n  flex: 1;\n  overflow: hidden;\n  display: flex;\n  flex-direction: column;\n}\n.stats-section[data-v-4961dea0] {\n  margin-bottom: 1rem;\n}\n.stats-section-container[data-v-4961dea0] {\n  margin: 16px;\n  display: flex;\n  gap: 1rem;\n}\n.stat-card[data-v-4961dea0] {\n  flex: 1;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n  transition: all 0.3s ease;\n  cursor: pointer;\n  position: relative;\n  border: 2px solid transparent;\n  min-width: 150px;\n}\n.stat-card[data-v-4961dea0]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 8px rgba(0,0,0,0.15);\n}\n.stat-card.active[data-v-4961dea0] {\n  border-color: #6b46c1;\n  background: #f8f4ff;\n}\n.stat-number[data-v-4961dea0] {\n  font-size: 2.5rem;\n  font-weight: bold;\n  color: #2d3748;\n  margin-bottom: 0.5rem;\n}\n.stat-label[data-v-4961dea0] {\n  font-size: 1rem;\n  color: #4a5568;\n  margin-bottom: 0.5rem;\n}\n.content-section[data-v-4961dea0] {\n  padding: 0 16px;\n}\n.content-area[data-v-4961dea0] {\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n  height: calc(100vh - 250px);\n  overflow-y: auto;\n}\n.proposals-list[data-v-4961dea0] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.proposal-item[data-v-4961dea0] {\n  background: #ffffff;\n  border-radius: 8px;\n  padding: 1rem;\n  box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.proposal-item[data-v-4961dea0]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n}\n.proposal-header[data-v-4961dea0] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 0.5rem;\n}\n.proposal-id[data-v-4961dea0] {\n  font-size: 0.875rem;\n  color: #6b46c1;\n  font-weight: 600;\n}\n.proposal-title[data-v-4961dea0] {\n  margin: 0.5rem 0;\n  font-size: 1rem;\n  color: #2d3748;\n}\n.proposal-meta[data-v-4961dea0] {\n  display: flex;\n  gap: 1rem;\n  font-size: 0.875rem;\n  color: #718096;\n}\n.meta-item[data-v-4961dea0] {\n  display: flex;\n  align-items: center;\n  gap: 0.25rem;\n}\n.action-required[data-v-4961dea0] {\n  margin-top: 0.5rem;\n}\n.action-badge[data-v-4961dea0] {\n  background: #fed7d7;\n  color: #c53030;\n  padding: 0.25rem 0.5rem;\n  border-radius: 4px;\n  font-size: 0.75rem;\n  font-weight: 600;\n}\n.empty-state[data-v-4961dea0] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-4961dea0] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n.activity-summary[data-v-4961dea0] {\n  margin-bottom: 2rem;\n}\n.activity-stats[data-v-4961dea0] {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\n  gap: 1rem;\n  margin-top: 1rem;\n}\n.activity-stat[data-v-4961dea0] {\n  background: #f7fafc;\n  padding: 1rem;\n  border-radius: 8px;\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}\n.stat-value[data-v-4961dea0] {\n  font-weight: 600;\n  color: #2d3748;\n}\n.recent-actions[data-v-4961dea0] {\n  margin-top: 2rem;\n}\n.activity-list[data-v-4961dea0] {\n  display: flex;\n  flex-direction: column;\n  gap: 0.5rem;\n}\n.activity-item[data-v-4961dea0] {\n  display: flex;\n  align-items: center;\n  gap: 1rem;\n  padding: 0.75rem;\n  background: #f7fafc;\n  border-radius: 8px;\n}\n.activity-icon[data-v-4961dea0] {\n  font-size: 1.25rem;\n}\n.activity-details[data-v-4961dea0] {\n  flex: 1;\n}\n.activity-description[data-v-4961dea0] {\n  font-size: 0.875rem;\n  color: #2d3748;\n}\n.activity-time[data-v-4961dea0] {\n  font-size: 0.75rem;\n  color: #718096;\n  margin-top: 0.25rem;\n}\n.urgent[data-v-4961dea0] {\n  border-left: 4px solid #e53e3e;\n}\n.evaluation-info[data-v-4961dea0] {\n  margin: 0.5rem 0;\n  padding: 0.5rem;\n  background: #f7fafc;\n  border-radius: 4px;\n}\n.suggested-vote[data-v-4961dea0] {\n  font-weight: 600;\n  color: #2d3748;\n}\n.vote-reason[data-v-4961dea0] {\n  margin-top: 0.25rem;\n  font-size: 0.875rem;\n  color: #718096;\n}\n\n.modal-overlay[data-v-cafa1a99] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.modal-content[data-v-cafa1a99] {\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);\n  border: 1px solid #e1e5e9;\n  width: 400px;\n  max-width: 90vw;\n}\n.modal-header[data-v-cafa1a99] {\n  padding: 20px 24px 0;\n  display: flex;\n  align-items: center;\n  gap: 12px;\n}\n.icon[data-v-cafa1a99] {\n  font-size: 24px;\n}\n.icon-success[data-v-cafa1a99] { color: #28a745;\n}\n.icon-error[data-v-cafa1a99] { color: #dc3545;\n}\n.icon-warning[data-v-cafa1a99] { color: #ffc107;\n}\n.icon-info[data-v-cafa1a99] { color: #007bff;\n}\n.modal-header h3[data-v-cafa1a99] {\n  margin: 0;\n  font-size: 18px;\n  font-weight: 600;\n  color: #333;\n}\n.modal-body[data-v-cafa1a99] {\n  padding: 16px 24px 20px;\n}\n.modal-body p[data-v-cafa1a99] {\n  margin: 0;\n  color: #666;\n  line-height: 1.5;\n}\n.modal-actions[data-v-cafa1a99] {\n  padding: 0 24px 24px;\n  display: flex;\n  justify-content: flex-end;\n}\n.ok-btn[data-v-cafa1a99] {\n  padding: 8px 24px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  color: white;\n}\n.ok-btn.success[data-v-cafa1a99] {\n  background: #28a745;\n  border-color: #28a745;\n}\n.ok-btn.success[data-v-cafa1a99]:hover {\n  background: #218838;\n  border-color: #218838;\n}\n.ok-btn.error[data-v-cafa1a99] {\n  background: #dc3545;\n  border-color: #dc3545;\n}\n.ok-btn.error[data-v-cafa1a99]:hover {\n  background: #c82333;\n  border-color: #c82333;\n}\n.ok-btn.warning[data-v-cafa1a99] {\n  background: #ffc107;\n  border-color: #ffc107;\n  color: #212529;\n}\n.ok-btn.warning[data-v-cafa1a99]:hover {\n  background: #e0a800;\n  border-color: #e0a800;\n}\n.ok-btn.info[data-v-cafa1a99] {\n  background: #007bff;\n  border-color: #007bff;\n}\n.ok-btn.info[data-v-cafa1a99]:hover {\n  background: #0056b3;\n  border-color: #0056b3;\n}\n\n.modal-overlay[data-v-8096aa97] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.team-workflow-modal[data-v-8096aa97] {\n  background: white;\n  border-radius: 12px;\n  width: 90vw;\n  height: 85vh;\n  max-width: 1200px;\n  display: flex;\n  flex-direction: column;\n  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);\n}\n.modal-header[data-v-8096aa97] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: #f8f9fa;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h2[data-v-8096aa97] {\n  margin: 0;\n  font-size: 1.5rem;\n  font-weight: 600;\n  color: #333;\n}\n.close-btn[data-v-8096aa97] {\n  background: none;\n  border: none;\n  font-size: 2rem;\n  cursor: pointer;\n  color: #6c757d;\n  padding: 0;\n  width: 40px;\n  height: 40px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  transition: all 0.2s ease;\n}\n.close-btn[data-v-8096aa97]:hover {\n  background: #e9ecef;\n  color: #495057;\n}\n.workflow-content[data-v-8096aa97] {\n  flex: 1;\n  overflow: hidden;\n  display: flex;\n  flex-direction: column;\n}\n.stats-section[data-v-8096aa97] {\n  margin-bottom: 1rem;\n}\n.stats-section-container[data-v-8096aa97] {\n  margin: 16px;\n  display: flex;\n  gap: 1rem;\n}\n.stat-card[data-v-8096aa97] {\n  flex: 1;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n  transition: all 0.3s ease;\n  cursor: pointer;\n  position: relative;\n  border: 2px solid transparent;\n  min-width: 150px;\n}\n.stat-card[data-v-8096aa97]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 8px rgba(0,0,0,0.15);\n}\n.stat-card.active[data-v-8096aa97] {\n  border-color: #6b46c1;\n  background: #f8f4ff;\n}\n.stat-number[data-v-8096aa97] {\n  font-size: 2.5rem;\n  font-weight: bold;\n  color: #2d3748;\n  margin-bottom: 0.5rem;\n}\n.stat-label[data-v-8096aa97] {\n  font-size: 1rem;\n  color: #4a5568;\n  margin-bottom: 0.5rem;\n}\n.stat-icon[data-v-8096aa97] {\n  font-size: 1.5rem;\n  position: absolute;\n  top: 1rem;\n  right: 1rem;\n}\n.stat-subtitle[data-v-8096aa97] {\n  font-size: 0.875rem;\n  color: #6b46c1;\n  margin-top: 0.5rem;\n}\n.content-section[data-v-8096aa97] {\n  padding: 0 16px;\n}\n.content-area[data-v-8096aa97] {\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n  height: calc(100vh - 250px);\n  overflow-y: auto;\n}\nh3[data-v-8096aa97] {\n  margin-top: 0;\n  color: #2d3748;\n  font-size: 1.5rem;\n  margin-bottom: 1.5rem;\n}\n.tabs-section[data-v-8096aa97] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n}\n.tab-buttons[data-v-8096aa97] {\n  display: flex;\n  border-bottom: 1px solid #e9ecef;\n  background: white;\n}\n.tab-btn[data-v-8096aa97] {\n  padding: 16px 20px;\n  border: none;\n  background: none;\n  cursor: pointer;\n  font-size: 0.9rem;\n  font-weight: 500;\n  color: #666;\n  border-bottom: 3px solid transparent;\n  transition: all 0.2s ease;\n  flex: 1;\n  text-align: center;\n}\n.tab-btn.active[data-v-8096aa97] {\n  color: #007bff;\n  border-bottom-color: #007bff;\n  background: #f8f9fa;\n}\n.tab-btn[data-v-8096aa97]:hover:not(.active) {\n  background: #f8f9fa;\n  color: #333;\n}\n.tab-content[data-v-8096aa97] {\n  flex: 1;\n  overflow: hidden;\n}\n.tab-panel[data-v-8096aa97] {\n  height: 100%;\n  overflow-y: auto;\n  padding: 20px 24px;\n}\n.panel-header[data-v-8096aa97] {\n  margin-bottom: 24px;\n}\n.panel-header h3[data-v-8096aa97] {\n  margin: 0 0 8px 0;\n  color: #333;\n  font-size: 1.2rem;\n}\n.panel-header p[data-v-8096aa97] {\n  margin: 0;\n  color: #666;\n  font-size: 0.9rem;\n}\n.empty-state[data-v-8096aa97] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 200px;\n  text-align: center;\n}\n.empty-icon[data-v-8096aa97] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n}\n.empty-state h3[data-v-8096aa97] {\n  margin: 0 0 8px 0;\n  color: #333;\n}\n.empty-state p[data-v-8096aa97] {\n  margin: 0;\n  color: #666;\n}\n.proposals-list[data-v-8096aa97] {\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n}\n.proposal-item[data-v-8096aa97] {\n  background: white;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  padding: 24px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.proposal-item[data-v-8096aa97]:hover {\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);\n  transform: translateY(-2px);\n}\n.agreement-item[data-v-8096aa97] {\n  border-left: 4px solid #ffc107;\n}\n.ready-item[data-v-8096aa97] {\n  border-left: 4px solid #28a745;\n}\n.discussion-item[data-v-8096aa97] {\n  border-left: 4px solid #17a2b8;\n}\n.vetoed-item[data-v-8096aa97] {\n  border-left: 4px solid #dc3545;\n}\n.proposal-header[data-v-8096aa97] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 12px;\n}\n.proposal-id[data-v-8096aa97] {\n  font-weight: 600;\n  color: #007bff;\n}\n.proposal-title[data-v-8096aa97] {\n  margin: 0 0 16px 0;\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #333;\n}\n.agreement-progress[data-v-8096aa97] {\n  margin: 16px 0;\n  padding: 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n}\n.progress-header[data-v-8096aa97] {\n  display: flex;\n  justify-content: space-between;\n  margin-bottom: 8px;\n  font-size: 0.9rem;\n  font-weight: 500;\n}\n.progress-count[data-v-8096aa97] {\n  color: #007bff;\n  font-weight: 600;\n}\n.progress-bar[data-v-8096aa97] {\n  height: 8px;\n  background: #e9ecef;\n  border-radius: 4px;\n  overflow: hidden;\n  position: relative;\n}\n.progress-fill[data-v-8096aa97] {\n  height: 100%;\n  transition: width 0.3s ease, background-color 0.3s ease;\n  border-radius: 4px;\n}\n.team-status[data-v-8096aa97] {\n  display: grid;\n  grid-template-columns: 1fr 1fr;\n  gap: 20px;\n  margin: 16px 0;\n}\n.status-section h5[data-v-8096aa97] {\n  margin: 0 0 8px 0;\n  font-size: 0.9rem;\n  font-weight: 600;\n  color: #333;\n}\n.member-list[data-v-8096aa97] {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 6px;\n}\n.member-badge[data-v-8096aa97] {\n  padding: 4px 8px;\n  border-radius: 12px;\n  font-size: 0.8rem;\n  font-weight: 500;\n}\n.member-badge.agreed[data-v-8096aa97] {\n  background: #d4edda;\n  color: #155724;\n}\n.member-badge.pending[data-v-8096aa97] {\n  background: #fff3cd;\n  color: #856404;\n}\n.member-badge.discussion[data-v-8096aa97] {\n  background: #d1ecf1;\n  color: #0c5460;\n}\n.member-badge.vetoed[data-v-8096aa97] {\n  background: #f8d7da;\n  color: #721c24;\n}\n.no-members[data-v-8096aa97] {\n  color: #666;\n  font-style: italic;\n  font-size: 0.9rem;\n}\n.voting-info[data-v-8096aa97],\n.discussion-info[data-v-8096aa97],\n.veto-info[data-v-8096aa97] {\n  margin: 16px 0;\n  padding: 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n}\n.vote-recommendation[data-v-8096aa97] {\n  margin-bottom: 8px;\n}\n.vote-badge[data-v-8096aa97] {\n  padding: 4px 8px;\n  background: #007bff;\n  color: white;\n  border-radius: 4px;\n  font-size: 0.8rem;\n  margin-left: 8px;\n}\n.vote-reason[data-v-8096aa97] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.veto-alert[data-v-8096aa97] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  color: #721c24;\n}\n.alert-icon[data-v-8096aa97] {\n  font-size: 1.2rem;\n}\n.proposal-meta[data-v-8096aa97] {\n  display: flex;\n  gap: 20px;\n  font-size: 0.9rem;\n  color: #666;\n  margin-top: 16px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.meta-item[data-v-8096aa97] {\n  display: flex;\n  gap: 4px;\n}\n.modal-content[data-v-8096aa97] {\n  max-height: 80vh;\n  overflow-y: auto;\n  padding: 20px;\n  background: white;\n  border-radius: 8px;\n  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);\n}\n.workflow-section[data-v-8096aa97] {\n  margin-bottom: 24px;\n  overflow-y: auto;\n  max-height: calc(80vh - 120px); /* Account for header and padding */\n}\n\n/* Scrollbar styling */\n[data-v-8096aa97]::-webkit-scrollbar {\n  width: 8px;\n}\n[data-v-8096aa97]::-webkit-scrollbar-track {\n  background: #f1f1f1;\n  border-radius: 4px;\n}\n[data-v-8096aa97]::-webkit-scrollbar-thumb {\n  background: #888;\n  border-radius: 4px;\n}\n[data-v-8096aa97]::-webkit-scrollbar-thumb:hover {\n  background: #555;\n}\n\n/* Firefox scrollbar */\n[data-v-8096aa97] {\n  scrollbar-width: thin;\n  scrollbar-color: #888 #f1f1f1;\n}\n.loading-state[data-v-8096aa97],\n.error-state[data-v-8096aa97] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 300px;\n  text-align: center;\n}\n.loading-spinner[data-v-8096aa97] {\n  width: 40px;\n  height: 40px;\n  border: 3px solid #f3f3f3;\n  border-top: 3px solid #007bff;\n  border-radius: 50%;\n  animation: spin-8096aa97 1s linear infinite;\n  margin-bottom: 16px;\n}\n@keyframes spin-8096aa97 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.error-icon[data-v-8096aa97] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n  color: #dc3545;\n}\n.error-state h3[data-v-8096aa97] {\n  margin: 0 0 8px 0;\n  color: #dc3545;\n}\n.error-state p[data-v-8096aa97] {\n  margin: 0 0 16px 0;\n  color: #666;\n}\n.retry-btn[data-v-8096aa97] {\n  padding: 8px 16px;\n  background: #007bff;\n  color: white;\n  border: none;\n  border-radius: 4px;\n  cursor: pointer;\n  font-size: 0.9rem;\n  font-weight: 500;\n  transition: background-color 0.2s ease;\n}\n.retry-btn[data-v-8096aa97]:hover {\n  background: #0056b3;\n}\n.send-to-mimir-btn[data-v-8096aa97] {\n  background: #e6007a;\n  color: white;\n  border: none;\n  border-radius: 6px;\n  padding: 8px 16px;\n  font-size: 14px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  min-width: 120px;\n  margin-top: 12px;\n  transition: background 0.3s, opacity 0.3s;\n}\n.send-to-mimir-btn[data-v-8096aa97]:hover:not(:disabled) {\n  background: #c40069;\n}\n.send-to-mimir-btn[data-v-8096aa97]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.loading-spinner[data-v-8096aa97] {\n  width: 16px;\n  height: 16px;\n  border: 2px solid #ffffff;\n  border-top: 2px solid transparent;\n  border-radius: 50%;\n  animation: spin-8096aa97 1s linear infinite;\n}\n@keyframes spin-8096aa97 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.veto-section[data-v-8096aa97] {\n  display: flex;\n  flex-direction: column;\n  gap: 0.75rem;\n  padding-top: 1rem;\n  border-top: 1px solid #e2e8f0;\n}\n.veto-info[data-v-8096aa97] {\n  font-size: 1rem;\n  color: #e53e3e;\n  font-weight: 500;\n}\n.veto-reason[data-v-8096aa97] {\n  font-size: 1rem;\n  color: #2d3748;\n  background: #fff5f5;\n  padding: 1rem;\n  border-radius: 0.5rem;\n  white-space: pre-wrap;\n}\n.veto-date[data-v-8096aa97] {\n  font-size: 0.875rem;\n  color: #718096;\n}\n.proposal-card[data-v-8096aa97] {\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  margin-bottom: 1rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.proposal-header[data-v-8096aa97] {\n  margin-bottom: 1rem;\n}\n.proposal-header h4[data-v-8096aa97] {\n  font-size: 1.1rem;\n  color: #2d3748;\n  margin: 0;\n}\n.proposal-details[data-v-8096aa97] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.meta-section[data-v-8096aa97] {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 1rem;\n  padding-bottom: 1rem;\n  border-bottom: 1px solid #e2e8f0;\n}\n.meta-item[data-v-8096aa97] {\n  font-size: 0.875rem;\n  color: #4a5568;\n}\n.veto-section[data-v-8096aa97] {\n  display: flex;\n  flex-direction: column;\n  gap: 0.75rem;\n  padding-top: 1rem;\n  border-top: 1px solid #e2e8f0;\n}\n.veto-info[data-v-8096aa97] {\n  font-size: 1rem;\n  color: #e53e3e;\n  font-weight: 500;\n}\n.veto-reason[data-v-8096aa97] {\n  font-size: 1rem;\n  color: #2d3748;\n  background: #fff5f5;\n  padding: 1rem;\n  border-radius: 0.5rem;\n  white-space: pre-wrap;\n}\n.veto-date[data-v-8096aa97] {\n  font-size: 0.875rem;\n  color: #718096;\n}\n\n.modal-overlay[data-v-60c41600] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.settings-modal[data-v-60c41600] {\n  background: white;\n  border-radius: 12px;\n  width: 90vw;\n  height: 85vh;\n  max-width: 1200px;\n  display: flex;\n  flex-direction: column;\n  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);\n}\n.modal-header[data-v-60c41600] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: #f8f9fa;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h2[data-v-60c41600] {\n  margin: 0;\n  font-size: 1.5rem;\n  font-weight: 600;\n  color: #333;\n}\n.close-btn[data-v-60c41600] {\n  background: none;\n  border: none;\n  font-size: 2rem;\n  cursor: pointer;\n  color: #6c757d;\n  padding: 0;\n  width: 40px;\n  height: 40px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  transition: all 0.2s ease;\n}\n.close-btn[data-v-60c41600]:hover {\n  background: #e9ecef;\n  color: #495057;\n}\n.settings-content[data-v-60c41600] {\n  flex: 1;\n  display: flex;\n  overflow: hidden;\n}\n.settings-nav[data-v-60c41600] {\n  width: 280px;\n  background: #f8f9fa;\n  border-right: 1px solid #e9ecef;\n  padding: 20px;\n  overflow-y: auto;\n}\n.nav-section[data-v-60c41600] {\n  margin-bottom: 24px;\n}\n.nav-section h3[data-v-60c41600] {\n  margin: 0 0 12px 0;\n  font-size: 0.9rem;\n  font-weight: 600;\n  color: #666;\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n}\n.nav-item[data-v-60c41600] {\n  display: flex;\n  align-items: center;\n  width: 100%;\n  padding: 12px 16px;\n  border: none;\n  background: none;\n  cursor: pointer;\n  border-radius: 6px;\n  margin-bottom: 4px;\n  transition: all 0.2s ease;\n  text-align: left;\n  font-size: 0.9rem;\n  color: #333;\n}\n.nav-item[data-v-60c41600]:hover:not(:disabled) {\n  background: #e9ecef;\n}\n.nav-item[data-v-60c41600]:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n  color: #999;\n}\n.nav-item[data-v-60c41600]:disabled:hover {\n  background: transparent;\n  color: #999;\n}\n.nav-item.active[data-v-60c41600] {\n  background: #007bff;\n  color: white;\n}\n.nav-icon[data-v-60c41600] {\n  margin-right: 12px;\n  font-size: 1.1rem;\n}\n.settings-main[data-v-60c41600] {\n  flex: 1;\n  overflow-y: auto;\n  padding: 24px;\n}\n.section-content[data-v-60c41600] {\n  max-width: 800px;\n}\n.section-header[data-v-60c41600] {\n  margin-bottom: 24px;\n}\n.section-header h3[data-v-60c41600] {\n  margin: 0 0 8px 0;\n  font-size: 1.3rem;\n  font-weight: 600;\n  color: #333;\n}\n.section-header p[data-v-60c41600] {\n  margin: 0;\n  color: #666;\n  font-size: 0.95rem;\n}\n.form-group[data-v-60c41600] {\n  margin-bottom: 20px;\n}\n.form-group label[data-v-60c41600] {\n  display: block;\n  margin-bottom: 6px;\n  font-weight: 500;\n  color: #333;\n  font-size: 0.9rem;\n}\n.form-input[data-v-60c41600],\n.form-select[data-v-60c41600] {\n  width: 100%;\n  padding: 10px 12px;\n  border: 1px solid #ced4da;\n  border-radius: 6px;\n  font-size: 0.9rem;\n}\n.form-input[data-v-60c41600]:focus,\n.form-select[data-v-60c41600]:focus {\n  outline: none;\n  border-color: #007bff;\n  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);\n}\n.form-group small[data-v-60c41600] {\n  display: block;\n  margin-top: 4px;\n  color: #666;\n  font-size: 0.8rem;\n}\n.form-note[data-v-60c41600] {\n  margin: 0 0 12px 0;\n  color: #666;\n  font-size: 0.9rem;\n  font-style: italic;\n}\n.checkbox-label[data-v-60c41600] {\n  display: flex;\n  align-items: center;\n  cursor: pointer;\n}\n.checkbox-label input[data-v-60c41600] {\n  margin-right: 8px;\n  width: auto;\n}\n.team-members-list[data-v-60c41600] {\n  border: 1px solid #e9ecef;\n  border-radius: 6px;\n  padding: 16px;\n}\n.member-item[data-v-60c41600] {\n  display: flex;\n  gap: 12px;\n  margin-bottom: 12px;\n  align-items: center;\n}\n.member-name[data-v-60c41600] {\n  flex: 1;\n  padding: 8px 12px;\n  border: 1px solid #ced4da;\n  border-radius: 4px;\n}\n.member-address[data-v-60c41600] {\n  flex: 2;\n  padding: 8px 12px;\n  border: 1px solid #ced4da;\n  border-radius: 4px;\n  font-family: monospace;\n  background: #f8f9fa;\n}\n.member-info[data-v-60c41600] {\n  font-size: 0.8rem;\n  color: #666;\n  font-style: italic;\n}\n.no-members[data-v-60c41600] {\n  text-align: center;\n  color: #666;\n  font-style: italic;\n  padding: 20px;\n}\n.readonly-field[data-v-60c41600] {\n  position: relative;\n  display: flex;\n  align-items: center;\n  gap: 12px;\n}\n.readonly-field input[readonly][data-v-60c41600] {\n  background: #f8f9fa;\n  color: #6c757d;\n  cursor: not-allowed;\n  flex: 1;\n}\n.readonly-field-header[data-v-60c41600] {\n  display: flex;\n  justify-content: flex-end;\n  margin-bottom: 8px;\n}\n.multisig-badge[data-v-60c41600] {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  background: #ffc107;\n  color: #212529;\n  padding: 4px 8px;\n  border-radius: 12px;\n  font-size: 0.75rem;\n  font-weight: 500;\n  white-space: nowrap;\n}\n.member-item.readonly[data-v-60c41600] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  padding: 12px;\n  background: #f8f9fa;\n  border-radius: 6px;\n  border: 1px solid #e9ecef;\n  margin-bottom: 8px;\n}\n.member-display-name[data-v-60c41600] {\n  font-weight: 500;\n  color: #333;\n  font-size: 0.9rem;\n}\n.member-address[data-v-60c41600] {\n  font-family: monospace;\n  color: #6c757d;\n  font-size: 0.8rem;\n  word-break: break-all;\n}\n.empty-state[data-v-60c41600] {\n  text-align: center;\n  padding: 40px 20px;\n  color: #6c757d;\n}\n.empty-icon[data-v-60c41600] {\n  font-size: 2.5rem;\n  display: block;\n  margin-bottom: 12px;\n}\n.empty-state p[data-v-60c41600] {\n  margin: 0 0 8px 0;\n  font-weight: 500;\n  color: #495057;\n}\n.empty-state small[data-v-60c41600] {\n  color: #6c757d;\n}\n.remove-btn[data-v-60c41600] {\n  background: #dc3545;\n  color: white;\n  border: none;\n  border-radius: 50%;\n  width: 32px;\n  height: 32px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.add-member-btn[data-v-60c41600] {\n  background: #28a745;\n  color: white;\n  border: none;\n  padding: 8px 16px;\n  border-radius: 4px;\n  cursor: pointer;\n  font-size: 0.9rem;\n}\n.form-actions[data-v-60c41600] {\n  display: flex;\n  gap: 12px;\n  margin-top: 24px;\n}\n.save-btn[data-v-60c41600] {\n  background: #007bff;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.reset-btn[data-v-60c41600] {\n  background: #6c757d;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.voting-stats[data-v-60c41600] {\n  display: grid;\n  grid-template-columns: repeat(4, 1fr);\n  gap: 20px;\n  margin-bottom: 24px;\n}\n.stat-card[data-v-60c41600] {\n  background: #f8f9fa;\n  padding: 20px;\n  border-radius: 8px;\n  text-align: center;\n}\n.stat-number[data-v-60c41600] {\n  font-size: 2rem;\n  font-weight: 700;\n  color: #007bff;\n  margin-bottom: 8px;\n}\n.stat-label[data-v-60c41600] {\n  font-size: 0.9rem;\n  color: #666;\n  font-weight: 500;\n}\n.voting-history-list[data-v-60c41600] {\n  max-height: 400px;\n  overflow-y: auto;\n}\n.vote-item[data-v-60c41600] {\n  background: white;\n  border: 1px solid #e9ecef;\n  border-radius: 6px;\n  padding: 16px;\n  margin-bottom: 12px;\n}\n.vote-header[data-v-60c41600] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 8px;\n}\n.proposal-id[data-v-60c41600] {\n  font-weight: 600;\n  color: #007bff;\n}\n.vote-badge[data-v-60c41600] {\n  padding: 4px 8px;\n  border-radius: 4px;\n  font-size: 0.8rem;\n  font-weight: 500;\n}\n.vote-badge.aye[data-v-60c41600] {\n  background: #d4edda;\n  color: #155724;\n}\n.vote-badge.nay[data-v-60c41600] {\n  background: #f8d7da;\n  color: #721c24;\n}\n.vote-badge.abstain[data-v-60c41600] {\n  background: #e2e3e5;\n  color: #383d41;\n}\n.vote-title[data-v-60c41600] {\n  font-weight: 500;\n  margin-bottom: 4px;\n}\n.vote-date[data-v-60c41600] {\n  font-size: 0.8rem;\n  color: #666;\n}\n.sync-controls[data-v-60c41600] {\n  background: #f8f9fa;\n  padding: 20px;\n  border-radius: 8px;\n}\n.sync-status[data-v-60c41600] {\n  margin-bottom: 16px;\n}\n.status-item[data-v-60c41600] {\n  display: flex;\n  justify-content: space-between;\n  margin-bottom: 8px;\n}\n.status-label[data-v-60c41600] {\n  font-weight: 500;\n}\n.status-value[data-v-60c41600] {\n  font-family: monospace;\n}\n.status-value.connected[data-v-60c41600] {\n  color: #28a745;\n}\n.status-value.error[data-v-60c41600] {\n  color: #dc3545;\n}\n.sync-actions[data-v-60c41600] {\n  display: flex;\n  gap: 12px;\n}\n.sync-btn[data-v-60c41600] {\n  background: #007bff;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.sync-btn[data-v-60c41600]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.clear-cache-btn[data-v-60c41600] {\n  background: #dc3545;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.coming-soon[data-v-60c41600],\n.under-review[data-v-60c41600] {\n  text-align: center;\n  padding: 40px 20px;\n  background: #f8f9fa;\n  border-radius: 8px;\n}\n.coming-soon-icon[data-v-60c41600],\n.under-review-icon[data-v-60c41600] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n}\n.coming-soon h4[data-v-60c41600],\n.under-review h4[data-v-60c41600] {\n  margin: 0 0 12px 0;\n  color: #333;\n}\n.coming-soon p[data-v-60c41600],\n.under-review p[data-v-60c41600] {\n  margin: 0 0 16px 0;\n  color: #666;\n}\n.coming-soon ul[data-v-60c41600] {\n  text-align: left;\n  max-width: 300px;\n  margin: 0 auto;\n}\n.temp-actions[data-v-60c41600] {\n  margin-top: 20px;\n}\n.refresh-btn[data-v-60c41600] {\n  background: #007bff;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.refresh-btn[data-v-60c41600]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.help-content[data-v-60c41600],\n.about-content[data-v-60c41600] {\n  max-width: 600px;\n}\n.help-section[data-v-60c41600],\n.about-section[data-v-60c41600] {\n  margin-bottom: 24px;\n}\n.help-section h4[data-v-60c41600],\n.about-section h4[data-v-60c41600] {\n  margin: 0 0 12px 0;\n  color: #333;\n  font-size: 1.1rem;\n}\n.help-section ul[data-v-60c41600],\n.help-section ol[data-v-60c41600],\n.about-section ul[data-v-60c41600] {\n  margin: 0;\n  padding-left: 20px;\n}\n.help-section li[data-v-60c41600],\n.about-section li[data-v-60c41600] {\n  margin-bottom: 8px;\n  line-height: 1.5;\n}\n.help-links[data-v-60c41600],\n.about-links[data-v-60c41600] {\n  display: flex;\n  gap: 16px;\n  margin-top: 24px;\n}\n.help-link[data-v-60c41600],\n.about-link[data-v-60c41600] {\n  display: inline-flex;\n  align-items: center;\n  padding: 10px 16px;\n  background: #007bff;\n  color: white;\n  text-decoration: none;\n  border-radius: 6px;\n  font-size: 0.9rem;\n  font-weight: 500;\n  transition: background-color 0.2s ease;\n}\n.help-link[data-v-60c41600]:hover,\n.about-link[data-v-60c41600]:hover {\n  background: #0056b3;\n}\n.empty-state[data-v-60c41600] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 200px;\n  text-align: center;\n}\n.empty-icon[data-v-60c41600] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n}\n.empty-state h4[data-v-60c41600] {\n  margin: 0 0 8px 0;\n  color: #333;\n}\n.empty-state p[data-v-60c41600] {\n  margin: 0;\n  color: #666;\n}\n.activity-list[data-v-60c41600] {\n  max-height: 400px;\n  overflow-y: auto;\n}\n.activity-item[data-v-60c41600] {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  padding: 12px 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n  margin-bottom: 8px;\n}\n.activity-icon[data-v-60c41600] {\n  font-size: 1.2rem;\n}\n.activity-details[data-v-60c41600] {\n  flex: 1;\n}\n.activity-description[data-v-60c41600] {\n  font-size: 0.9rem;\n  color: #333;\n  margin-bottom: 2px;\n}\n.activity-time[data-v-60c41600] {\n  font-size: 0.8rem;\n  color: #666;\n}\n.modal-content[data-v-60c41600] {\n  max-height: 80vh;\n  overflow-y: auto;\n  padding: 20px;\n  background: white;\n  border-radius: 8px;\n  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);\n}\n.settings-section[data-v-60c41600] {\n  margin-bottom: 24px;\n  overflow-y: auto;\n  max-height: calc(80vh - 120px); /* Account for header and padding */\n}\n\n/* Scrollbar styling */\n[data-v-60c41600]::-webkit-scrollbar {\n  width: 8px;\n}\n[data-v-60c41600]::-webkit-scrollbar-track {\n  background: #f1f1f1;\n  border-radius: 4px;\n}\n[data-v-60c41600]::-webkit-scrollbar-thumb {\n  background: #888;\n  border-radius: 4px;\n}\n[data-v-60c41600]::-webkit-scrollbar-thumb:hover {\n  background: #555;\n}\n\n/* Firefox scrollbar */\n[data-v-60c41600] {\n  scrollbar-width: thin;\n  scrollbar-color: #888 #f1f1f1;\n}\n.form-note[data-v-60c41600] {\n  margin-top: 24px;\n  padding: 16px;\n  background: #f8f9ff;\n  border: 1px solid #e1e5f2;\n  border-radius: 8px;\n}\n.form-note p[data-v-60c41600] {\n  margin: 0 0 12px 0;\n  color: #333;\n  font-weight: 500;\n}\n.form-note ol[data-v-60c41600] {\n  margin: 0;\n  padding-left: 20px;\n  color: #666;\n}\n.form-note ol li[data-v-60c41600] {\n  margin-bottom: 4px;\n}\n.sync-section[data-v-60c41600] {\n  background: #f8f9fa;\n  border: 1px solid #e1e5e9;\n  border-radius: 8px;\n  padding: 20px;\n}\n.sync-description[data-v-60c41600] {\n  margin-bottom: 20px;\n}\n.sync-description p[data-v-60c41600] {\n  margin: 0;\n  color: #666;\n  line-height: 1.5;\n}\n.sync-actions[data-v-60c41600] {\n  display: flex;\n  gap: 12px;\n  margin-bottom: 16px;\n}\n.sync-btn[data-v-60c41600] {\n  padding: 10px 20px;\n  border: 1px solid #007bff;\n  border-radius: 6px;\n  background: white;\n  color: #007bff;\n  cursor: pointer;\n  font-weight: 500;\n  transition: all 0.2s ease;\n  flex: 1;\n}\n.sync-btn[data-v-60c41600]:hover:not(:disabled) {\n  background: #007bff;\n  color: white;\n}\n.sync-btn[data-v-60c41600]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.sync-btn.deep[data-v-60c41600] {\n  border-color: #28a745;\n  color: #28a745;\n}\n.sync-btn.deep[data-v-60c41600]:hover:not(:disabled) {\n  background: #28a745;\n  color: white;\n}\n.sync-info[data-v-60c41600] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n.sync-type[data-v-60c41600] {\n  font-size: 0.9rem;\n  color: #666;\n  line-height: 1.4;\n}\n\n/* Backend Configuration Styles */\n.backend-config[data-v-60c41600] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n.backend-actions[data-v-60c41600] {\n  display: flex;\n  gap: 8px;\n}\n.test-btn[data-v-60c41600],\n.save-backend-btn[data-v-60c41600] {\n  padding: 8px 16px;\n  border: 1px solid #007bff;\n  border-radius: 4px;\n  background: white;\n  color: #007bff;\n  cursor: pointer;\n  font-size: 0.85rem;\n  font-weight: 500;\n  transition: all 0.2s ease;\n  flex: 1;\n}\n.test-btn[data-v-60c41600]:hover:not(:disabled),\n.save-backend-btn[data-v-60c41600]:hover:not(:disabled) {\n  background: #007bff;\n  color: white;\n}\n.save-backend-btn[data-v-60c41600] {\n  border-color: #28a745;\n  color: #28a745;\n}\n.save-backend-btn[data-v-60c41600]:hover:not(:disabled) {\n  background: #28a745;\n  color: white;\n}\n.test-btn[data-v-60c41600]:disabled,\n.save-backend-btn[data-v-60c41600]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.backend-status[data-v-60c41600] {\n  padding: 8px 12px;\n  border-radius: 4px;\n  font-size: 0.85rem;\n  margin-top: 8px;\n}\n.backend-status.success[data-v-60c41600] {\n  background: #d4edda;\n  color: #155724;\n  border: 1px solid #c3e6cb;\n}\n.backend-status.error[data-v-60c41600] {\n  background: #f8d7da;\n  color: #721c24;\n  border: 1px solid #f5c6cb;\n}\n.backend-status.info[data-v-60c41600] {\n  background: #d1ecf1;\n  color: #0c5460;\n  border: 1px solid #bee5eb;\n}\n\n.menu-container[data-v-0610845d] {\n  width: 100%;\n}\n.user-status[data-v-0610845d] {\n  padding: 16px 20px;\n  border-bottom: 1px solid #f0f0f0;\n  background: #f8f9fa;\n}\n.user-info[data-v-0610845d] {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n}\n.user-avatar[data-v-0610845d] {\n  width: 40px;\n  height: 40px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: white;\n  font-weight: bold;\n  font-size: 14px;\n}\n.user-details[data-v-0610845d] {\n  flex: 1;\n}\n.user-name[data-v-0610845d] {\n  font-weight: 600;\n  color: #333;\n  font-size: 14px;\n  margin-bottom: 2px;\n}\n.user-address[data-v-0610845d] {\n  font-family: monospace;\n  font-size: 12px;\n  color: #666;\n  margin-bottom: 2px;\n}\n.user-network[data-v-0610845d] {\n  font-size: 11px;\n  color: #999;\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n}\n.logout-btn[data-v-0610845d] {\n  background: #dc3545;\n  color: white;\n  border: none;\n  padding: 6px 12px;\n  border-radius: 6px;\n  font-size: 12px;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n}\n.logout-btn[data-v-0610845d]:hover:not(:disabled) {\n  background: #c82333;\n}\n.logout-btn[data-v-0610845d]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.login-prompt[data-v-0610845d] {\n  text-align: center;\n  padding: 20px 0;\n}\n.login-icon[data-v-0610845d] {\n  font-size: 32px;\n  margin-bottom: 8px;\n}\n.login-text[data-v-0610845d] {\n  color: #666;\n  font-size: 14px;\n  margin-bottom: 16px;\n}\n.connect-btn[data-v-0610845d] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 8px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.connect-btn[data-v-0610845d]:hover {\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.menu-items[data-v-0610845d] {\n  display: flex;\n  flex-direction: column;\n  gap: 0.5rem;\n}\n.menu-item[data-v-0610845d] {\n  padding: 1rem;\n  border-radius: 8px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  background: #ffffff;\n  box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n  display: flex;\n  align-items: center;\n  gap: 0.75rem;\n}\n.menu-item[data-v-0610845d]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n}\n.menu-item .icon[data-v-0610845d] {\n  font-size: 1.25rem;\n  width: 1.5rem;\n  text-align: center;\n}\n.menu-item span[data-v-0610845d]:not(.icon) {\n  font-size: 1rem;\n  color: #2d3748;\n  font-weight: 500;\n}\n\n/* Modal styles */\n.modal-overlay[data-v-0610845d] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.modal-content[data-v-0610845d] {\n  background: white;\n  border-radius: 12px;\n  padding: 24px;\n  max-width: 90vw;\n  max-height: 90vh;\n  overflow: auto;\n}\n\n.voting-tool-container[data-v-c1fca634] {\n  position: fixed;\n  bottom: 20px;\n  right: 20px;\n  z-index: 999999;\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n  pointer-events: none; /* Allow clicks to pass through the container */\n}\n\n/* Floating Button */\n.floating-button[data-v-c1fca634] {\n  width: 60px;\n  height: 60px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  cursor: pointer;\n  box-shadow: 0 4px 20px rgba(230, 0, 122, 0.4);\n  transition: all 0.3s ease;\n  border: 3px solid white;\n  pointer-events: auto; /* Make the button clickable */\n}\n.floating-button[data-v-c1fca634]:hover {\n  transform: scale(1.1);\n  box-shadow: 0 6px 25px rgba(230, 0, 122, 0.6);\n}\n.floating-button.menu-open[data-v-c1fca634] {\n  background: linear-gradient(135deg, #ff1493, #e6007a);\n}\n.button-icon[data-v-c1fca634] {\n  font-size: 24px;\n  color: white;\n  font-weight: bold;\n}\n.hamburger-icon[data-v-c1fca634] {\n  display: flex;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  gap: 3px;\n}\n.hamburger-icon span[data-v-c1fca634] {\n  width: 20px;\n  height: 2px;\n  background-color: white;\n  border-radius: 1px;\n  transition: all 0.3s ease;\n}\n\n/* Dropdown Menu */\n.dropdown-menu[data-v-c1fca634] {\n  position: absolute;\n  bottom: 0;\n  right: 70px;\n  width: 280px;\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);\n  border: 1px solid #e1e5e9;\n  overflow: hidden;\n  animation: smoothExpand-c1fca634 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);\n  transform-origin: bottom right;\n  pointer-events: auto; /* Make the menu clickable */\n}\n@keyframes smoothExpand-c1fca634 {\n0% {\n    opacity: 0;\n    transform: scale(0.1);\n}\n100% {\n    opacity: 1;\n    transform: scale(1);\n}\n}\n.menu-content[data-v-c1fca634] {\n  padding: 16px 0;\n}\n.menu-item[data-v-c1fca634] {\n  display: flex;\n  align-items: center;\n  padding: 16px 20px;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n  border-bottom: 1px solid #f0f0f0;\n}\n.menu-item[data-v-c1fca634]:last-child {\n  border-bottom: none;\n}\n.menu-item[data-v-c1fca634]:hover {\n  background-color: #f8f9fa;\n}\n.menu-item .icon[data-v-c1fca634] {\n  font-size: 20px;\n  margin-right: 12px;\n  width: 24px;\n  text-align: center;\n}\n.menu-item span[data-v-c1fca634]:last-child {\n  font-size: 14px;\n  color: #333;\n  font-weight: 500;\n}\n\n/* Modal styles */\n.modal-overlay[data-v-35553c91] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.status-modal[data-v-35553c91] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-35553c91] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-35553c91] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-35553c91] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-35553c91]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-35553c91] {\n  padding: 24px;\n  flex: 1;\n  overflow-y: auto;\n}\n.modal-content p[data-v-35553c91] {\n  margin: 0 0 16px 0;\n  color: #495057;\n}\n.status-options[data-v-35553c91] {\n  margin: 16px 0;\n}\n.status-options label[data-v-35553c91] {\n  display: block;\n  margin-bottom: 8px;\n  font-weight: 600;\n  color: #495057;\n}\n.status-list[data-v-35553c91] {\n  max-height: 300px;\n  overflow-y: auto;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  margin-bottom: 16px;\n}\n.status-option[data-v-35553c91] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 12px 16px;\n  border: none;\n  border-bottom: 1px solid #f0f0f0;\n  background: white;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  font-size: 0.9rem;\n  width: 100%;\n  text-align: left;\n}\n.status-option[data-v-35553c91]:last-child {\n  border-bottom: none;\n}\n.status-option[data-v-35553c91]:hover {\n  background: #f8f9fa;\n}\n.status-option.selected[data-v-35553c91] {\n  background: linear-gradient(135deg, #fff5f8, #ffe8f0);\n  border-left: 4px solid #e6007a;\n}\n.option-text[data-v-35553c91] {\n  font-weight: 500;\n  color: #333;\n}\n.selected-indicator[data-v-35553c91] {\n  color: #e6007a;\n  font-weight: bold;\n  font-size: 1rem;\n}\n.reason-section[data-v-35553c91] {\n  margin: 16px 0;\n}\n.reason-section label[data-v-35553c91] {\n  display: block;\n  margin-bottom: 8px;\n  font-weight: 600;\n  color: #495057;\n}\n.reason-section textarea[data-v-35553c91] {\n  width: 100%;\n  padding: 12px;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  font-family: inherit;\n  font-size: 0.9rem;\n  resize: vertical;\n  transition: border-color 0.2s ease;\n}\n.reason-section textarea[data-v-35553c91]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.modal-actions[data-v-35553c91] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-35553c91] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n.btn[data-v-35553c91]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-primary[data-v-35553c91] {\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border: 1px solid #b3005f;\n}\n.btn-primary[data-v-35553c91]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #8a0047);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-secondary[data-v-35553c91] {\n  background: #6c757d;\n  color: white;\n  border: 1px solid #6c757d;\n}\n.btn-secondary[data-v-35553c91]:hover:not(:disabled) {\n  background: #5a6268;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);\n}\n@media (max-width: 768px) {\n.status-grid[data-v-35553c91] {\n    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));\n}\n}\n\n/* Modal styles */\n.modal-overlay[data-v-5a2938ec] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.assign-modal[data-v-5a2938ec] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  overflow-y: auto;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-5a2938ec] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-5a2938ec] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-5a2938ec] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-5a2938ec]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-5a2938ec] {\n  padding: 24px;\n}\n.modal-content p[data-v-5a2938ec] {\n  margin: 0 0 16px 0;\n  color: #495057;\n}\n.modal-actions[data-v-5a2938ec] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-5a2938ec] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n.btn[data-v-5a2938ec]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-primary[data-v-5a2938ec] {\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border: 1px solid #b3005f;\n}\n.btn-primary[data-v-5a2938ec]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #8a0047);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-secondary[data-v-5a2938ec] {\n  background: #6c757d;\n  color: white;\n  border: 1px solid #6c757d;\n}\n.btn-secondary[data-v-5a2938ec]:hover:not(:disabled) {\n  background: #5a6268;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);\n}\n.error-message[data-v-5a2938ec] {\n  background-color: #fff2f0;\n  border: 1px solid #ffccc7;\n  color: #ff4d4f;\n  padding: 12px;\n  border-radius: 8px;\n  margin-bottom: 16px;\n  font-size: 0.9rem;\n}\n\n/* Modal styles */\n.modal-overlay[data-v-281fbad4] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.unassign-modal[data-v-281fbad4] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  overflow-y: auto;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-281fbad4] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-281fbad4] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-281fbad4] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-281fbad4]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-281fbad4] {\n  padding: 24px;\n}\n.modal-content p[data-v-281fbad4] {\n  margin: 0 0 16px 0;\n  color: #495057;\n}\n.form-group[data-v-281fbad4] {\n  margin-bottom: 20px;\n}\n.form-group label[data-v-281fbad4] {\n  display: block;\n  margin-bottom: 8px;\n  color: #495057;\n  font-weight: 500;\n}\n.form-control[data-v-281fbad4] {\n  width: 100%;\n  padding: 10px;\n  border: 1px solid #ced4da;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  line-height: 1.5;\n  transition: border-color 0.2s ease;\n  resize: vertical;\n}\n.form-control[data-v-281fbad4]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 2px rgba(230, 0, 122, 0.1);\n}\n.current-values[data-v-281fbad4] {\n  background: #f8f9fa;\n  padding: 16px;\n  border-radius: 8px;\n  margin-bottom: 20px;\n}\n.current-values ul[data-v-281fbad4] {\n  margin: 8px 0 0 0;\n  padding-left: 20px;\n  color: #6c757d;\n}\n.error-message[data-v-281fbad4] {\n  background-color: #fff2f0;\n  border: 1px solid #ffccc7;\n  color: #ff4d4f;\n  padding: 12px;\n  border-radius: 8px;\n  margin-bottom: 16px;\n  font-size: 0.9rem;\n}\n.modal-actions[data-v-281fbad4] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-281fbad4] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n.btn[data-v-281fbad4]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-primary[data-v-281fbad4] {\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border: 1px solid #b3005f;\n}\n.btn-primary[data-v-281fbad4]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #8a0047);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-secondary[data-v-281fbad4] {\n  background: #6c757d;\n  color: white;\n  border: 1px solid #6c757d;\n}\n.btn-secondary[data-v-281fbad4]:hover:not(:disabled) {\n  background: #5a6268;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);\n}\n\n/* Modal styles */\n.modal-overlay[data-v-eeb2c9ac] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.vote-modal[data-v-eeb2c9ac] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  overflow-y: auto;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-eeb2c9ac] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-eeb2c9ac] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-eeb2c9ac] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-eeb2c9ac]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-eeb2c9ac] {\n  padding: 24px;\n}\n.modal-content p[data-v-eeb2c9ac] {\n  margin: 0 0 16px 0;\n  color: #495057;\n}\n.vote-options[data-v-eeb2c9ac] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n  margin: 16px 0;\n}\n.vote-option[data-v-eeb2c9ac] {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  justify-content: center;\n  gap: 12px;\n  padding: 16px 20px;\n  border: 2px solid #e9ecef;\n  border-radius: 8px;\n  background: white;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  font-size: 1rem;\n  text-align: center;\n}\n.vote-option[data-v-eeb2c9ac]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);\n}\n.vote-option.selected[data-v-eeb2c9ac] {\n  border-color: #e6007a;\n  background: linear-gradient(135deg, #fff5f8, #ffe8f0);\n}\n.vote-option.aye[data-v-eeb2c9ac]:hover,\n.vote-option.aye.selected[data-v-eeb2c9ac] {\n  border-color: #28a745;\n  background: linear-gradient(135deg, #f8fff9, #e8f5e8);\n}\n.vote-option.nay[data-v-eeb2c9ac]:hover,\n.vote-option.nay.selected[data-v-eeb2c9ac] {\n  border-color: #dc3545;\n  background: linear-gradient(135deg, #fff8f8, #ffe8e8);\n}\n.vote-option.abstain[data-v-eeb2c9ac]:hover,\n.vote-option.abstain.selected[data-v-eeb2c9ac] {\n  border-color: #6f42c1;\n  background: linear-gradient(135deg, #faf8ff, #f0e8ff);\n}\n.vote-icon[data-v-eeb2c9ac] {\n  font-size: 1.5rem;\n}\n.vote-text[data-v-eeb2c9ac] {\n  font-weight: 600;\n}\n.reason-section[data-v-eeb2c9ac] {\n  margin: 16px 0;\n}\n.reason-section label[data-v-eeb2c9ac] {\n  display: block;\n  margin-bottom: 8px;\n  font-weight: 600;\n  color: #495057;\n}\n.reason-section textarea[data-v-eeb2c9ac] {\n  width: 100%;\n  padding: 12px;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  font-family: inherit;\n  font-size: 0.9rem;\n  resize: vertical;\n  transition: border-color 0.2s ease;\n}\n.reason-section textarea[data-v-eeb2c9ac]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.modal-actions[data-v-eeb2c9ac] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-eeb2c9ac] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n.btn[data-v-eeb2c9ac]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-primary[data-v-eeb2c9ac] {\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border: 1px solid #b3005f;\n}\n.btn-primary[data-v-eeb2c9ac]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #8a0047);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-secondary[data-v-eeb2c9ac] {\n  background: #6c757d;\n  color: white;\n  border: 1px solid #6c757d;\n}\n.btn-secondary[data-v-eeb2c9ac]:hover:not(:disabled) {\n  background: #5a6268;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);\n}\n@media (max-width: 768px) {\n.vote-options[data-v-eeb2c9ac] {\n    flex-direction: column;\n}\n}\n\n.modal-overlay[data-v-e479232c] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.modal-content[data-v-e479232c] {\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);\n  border: 1px solid #e1e5e9;\n  width: 400px;\n  max-width: 90vw;\n}\n.modal-header[data-v-e479232c] {\n  padding: 20px 24px 0;\n}\n.modal-header h3[data-v-e479232c] {\n  margin: 0;\n  font-size: 18px;\n  font-weight: 600;\n  color: #333;\n}\n.modal-body[data-v-e479232c] {\n  padding: 16px 24px 20px;\n}\n.modal-body p[data-v-e479232c] {\n  margin: 0;\n  color: #666;\n  line-height: 1.5;\n}\n.modal-actions[data-v-e479232c] {\n  padding: 0 24px 24px;\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n}\n.cancel-btn[data-v-e479232c], .confirm-btn[data-v-e479232c] {\n  padding: 8px 16px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.cancel-btn[data-v-e479232c] {\n  background: white;\n  color: #666;\n}\n.cancel-btn[data-v-e479232c]:hover {\n  background: #f8f9fa;\n}\n.confirm-btn[data-v-e479232c] {\n  background: #007bff;\n  color: white;\n  border-color: #007bff;\n}\n.confirm-btn[data-v-e479232c]:hover {\n  background: #0056b3;\n  border-color: #0056b3;\n}\n.confirm-btn.danger[data-v-e479232c] {\n  background: #dc3545;\n  border-color: #dc3545;\n}\n.confirm-btn.danger[data-v-e479232c]:hover {\n  background: #c82333;\n  border-color: #c82333;\n}\n.confirm-btn.warning[data-v-e479232c] {\n  background: #ffc107;\n  border-color: #ffc107;\n  color: #212529;\n}\n.confirm-btn.warning[data-v-e479232c]:hover {\n  background: #e0a800;\n  border-color: #e0a800;\n}\n.confirm-btn.primary[data-v-e479232c] {\n  background: #007bff;\n  border-color: #007bff;\n}\n.confirm-btn.primary[data-v-e479232c]:hover {\n  background: #0056b3;\n  border-color: #0056b3;\n}\n\n.team-actions-panel[data-v-66a5c8c1] {\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);\n  border: 1px solid #e1e5e9;\n  width: 500px;\n  max-height: 700px;\n  overflow: hidden;\n  display: flex;\n  flex-direction: column;\n}\n.panel-header[data-v-66a5c8c1] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 16px 20px;\n  border-bottom: 1px solid #f0f0f0;\n  background: #f8f9fa;\n}\n.panel-header h3[data-v-66a5c8c1] {\n  margin: 0;\n  font-size: 16px;\n  font-weight: 600;\n  color: #333;\n}\n.close-btn[data-v-66a5c8c1] {\n  background: none;\n  border: none;\n  font-size: 18px;\n  cursor: pointer;\n  color: #666;\n  padding: 4px;\n  border-radius: 4px;\n}\n.close-btn[data-v-66a5c8c1]:hover {\n  background: #e9ecef;\n}\n.loading-state[data-v-66a5c8c1] {\n  padding: 40px 20px;\n  text-align: center;\n  color: #666;\n}\n.spinner[data-v-66a5c8c1] {\n  width: 32px;\n  height: 32px;\n  border: 3px solid #f0f0f0;\n  border-top: 3px solid #e6007a;\n  border-radius: 50%;\n  animation: spin-66a5c8c1 1s linear infinite;\n  margin: 0 auto 16px;\n}\n@keyframes spin-66a5c8c1 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.panel-content[data-v-66a5c8c1] {\n  flex: 1;\n  overflow-y: auto;\n  padding: 20px;\n}\n.agreement-section[data-v-66a5c8c1],\n.team-status-section[data-v-66a5c8c1],\n.user-actions-section[data-v-66a5c8c1],\n.vote-section[data-v-66a5c8c1],\n.discussion-section[data-v-66a5c8c1] {\n  margin-bottom: 24px;\n}\n.agreement-section h4[data-v-66a5c8c1],\n.team-status-section h4[data-v-66a5c8c1],\n.user-actions-section h4[data-v-66a5c8c1],\n.vote-section h4[data-v-66a5c8c1],\n.discussion-section h4[data-v-66a5c8c1] {\n  margin: 0 0 12px 0;\n  font-size: 14px;\n  font-weight: 600;\n  color: #333;\n}\n.agreement-bar[data-v-66a5c8c1] {\n  margin-bottom: 8px;\n}\n.progress-bar[data-v-66a5c8c1] {\n  width: 100%;\n  height: 8px;\n  background: #f0f0f0;\n  border-radius: 4px;\n  overflow: hidden;\n  margin-bottom: 8px;\n}\n.progress-fill[data-v-66a5c8c1] {\n  height: 100%;\n  background: linear-gradient(135deg, #28a745, #20c997);\n  transition: width 0.3s ease;\n}\n.progress-fill.vetoed[data-v-66a5c8c1] {\n  background: linear-gradient(135deg, #dc3545, #c82333);\n}\n.agreement-text[data-v-66a5c8c1] {\n  font-size: 12px;\n  color: #666;\n  text-align: center;\n}\n.veto-text[data-v-66a5c8c1] {\n  color: #dc3545;\n  font-weight: 600;\n}\n.veto-reason[data-v-66a5c8c1] {\n  margin-top: 8px;\n  padding: 8px;\n  background: #f8d7da;\n  border: 1px solid #f5c6cb;\n  border-radius: 4px;\n  font-size: 12px;\n  color: #721c24;\n}\n.team-members[data-v-66a5c8c1] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n.member-status[data-v-66a5c8c1] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 8px;\n  border-radius: 6px;\n  border: 1px solid #e9ecef;\n}\n.member-status.agreed[data-v-66a5c8c1] {\n  background: #d4edda;\n  border-color: #c3e6cb;\n}\n.member-status.recused[data-v-66a5c8c1] {\n  background: #f8f9fa;\n  border-color: #dee2e6;\n}\n.member-status.discuss[data-v-66a5c8c1] {\n  background: #fff3cd;\n  border-color: #ffeaa7;\n}\n.member-info[data-v-66a5c8c1] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n.member-avatar[data-v-66a5c8c1] {\n  width: 24px;\n  height: 24px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: white;\n  font-weight: bold;\n  font-size: 10px;\n}\n.member-name[data-v-66a5c8c1] {\n  font-size: 12px;\n  font-weight: 500;\n  color: #333;\n}\n.member-address[data-v-66a5c8c1] {\n  font-size: 10px;\n  color: #666;\n  font-family: monospace;\n}\n.action-badge[data-v-66a5c8c1] {\n  font-size: 10px;\n  padding: 2px 6px;\n  border-radius: 3px;\n  font-weight: 500;\n}\n.action-agreed[data-v-66a5c8c1] {\n  background: #28a745;\n  color: white;\n}\n.action-recused[data-v-66a5c8c1] {\n  background: #6c757d;\n  color: white;\n}\n.action-discuss[data-v-66a5c8c1] {\n  background: #ffc107;\n  color: #212529;\n}\n.action-pending[data-v-66a5c8c1] {\n  background: #e9ecef;\n  color: #666;\n}\n.action-buttons[data-v-66a5c8c1] {\n  display: grid;\n  grid-template-columns: 1fr 1fr;\n  gap: 8px;\n}\n.action-btn[data-v-66a5c8c1] {\n  padding: 8px 12px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  background: white;\n  cursor: pointer;\n  font-size: 12px;\n  font-weight: 500;\n  transition: all 0.2s ease;\n}\n.action-btn[data-v-66a5c8c1]:hover:not(:disabled) {\n  background: #f8f9fa;\n}\n.action-btn.active[data-v-66a5c8c1] {\n  border-color: #e6007a;\n  background: #e6007a;\n  color: white;\n}\n.action-btn[data-v-66a5c8c1]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.agree-btn.active[data-v-66a5c8c1] {\n  background: #28a745;\n  border-color: #28a745;\n}\n.discuss-btn.active[data-v-66a5c8c1] {\n  background: #ffc107;\n  border-color: #ffc107;\n  color: #212529;\n}\n.veto-btn.active[data-v-66a5c8c1] {\n  background: #dc3545;\n  border-color: #dc3545;\n}\n.recuse-btn.active[data-v-66a5c8c1] {\n  background: #6c757d;\n  border-color: #6c757d;\n}\n.vote-buttons[data-v-66a5c8c1] {\n  display: flex;\n  gap: 8px;\n  margin-bottom: 12px;\n}\n.vote-btn[data-v-66a5c8c1] {\n  flex: 1;\n  padding: 8px 12px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  background: white;\n  cursor: pointer;\n  font-size: 12px;\n  font-weight: 500;\n  transition: all 0.2s ease;\n}\n.vote-btn[data-v-66a5c8c1]:hover:not(:disabled) {\n  background: #f8f9fa;\n}\n.vote-btn.active[data-v-66a5c8c1] {\n  color: white;\n}\n.aye-btn.active[data-v-66a5c8c1] {\n  background: #28a745;\n  border-color: #28a745;\n}\n.nay-btn.active[data-v-66a5c8c1] {\n  background: #dc3545;\n  border-color: #dc3545;\n}\n.abstain-btn.active[data-v-66a5c8c1] {\n  background: #6c757d;\n  border-color: #6c757d;\n}\n.reason-input[data-v-66a5c8c1] {\n  width: 100%;\n  min-height: 60px;\n  padding: 8px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 12px;\n  resize: vertical;\n}\n.comments-list[data-v-66a5c8c1] {\n  max-height: 280px;\n  overflow-y: auto;\n  margin-bottom: 16px;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  background: #fafbfc;\n}\n.comment[data-v-66a5c8c1] {\n  padding: 12px;\n  border-bottom: 1px solid #f0f0f0;\n}\n.comment[data-v-66a5c8c1]:last-child {\n  border-bottom: none;\n}\n.comment-header[data-v-66a5c8c1] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 8px;\n}\n.comment-author[data-v-66a5c8c1] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n.author-avatar[data-v-66a5c8c1] {\n  width: 20px;\n  height: 20px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: white;\n  font-weight: bold;\n  font-size: 8px;\n}\n.author-name[data-v-66a5c8c1] {\n  font-size: 11px;\n  font-weight: 500;\n  color: #333;\n}\n.comment-time[data-v-66a5c8c1] {\n  font-size: 10px;\n  color: #666;\n}\n.delete-comment-btn[data-v-66a5c8c1] {\n  background: none;\n  border: none;\n  font-size: 12px;\n  cursor: pointer;\n  color: #666;\n  padding: 2px;\n  border-radius: 3px;\n}\n.delete-comment-btn[data-v-66a5c8c1]:hover {\n  background: #f8f9fa;\n}\n.comment-content[data-v-66a5c8c1] {\n  font-size: 12px;\n  color: #333;\n  line-height: 1.4;\n}\n.no-comments[data-v-66a5c8c1] {\n  padding: 40px 20px;\n  text-align: center;\n}\n.empty-state[data-v-66a5c8c1] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 8px;\n}\n.empty-icon[data-v-66a5c8c1] {\n  font-size: 32px;\n  opacity: 0.5;\n}\n.empty-text[data-v-66a5c8c1] {\n  font-size: 14px;\n  font-weight: 500;\n  color: #666;\n}\n.empty-subtext[data-v-66a5c8c1] {\n  font-size: 12px;\n  color: #999;\n}\n.add-comment[data-v-66a5c8c1] {\n  border-top: 1px solid #e9ecef;\n  padding-top: 16px;\n}\n.comment-input-wrapper[data-v-66a5c8c1] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n.comment-input[data-v-66a5c8c1] {\n  min-height: 80px;\n  padding: 12px;\n  border: 2px solid #dee2e6;\n  border-radius: 8px;\n  font-size: 13px;\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n  resize: vertical;\n  transition: border-color 0.2s ease;\n}\n.comment-input[data-v-66a5c8c1]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.comment-actions[data-v-66a5c8c1] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}\n.comment-hint[data-v-66a5c8c1] {\n  flex: 1;\n}\n.hint-text[data-v-66a5c8c1] {\n  font-size: 11px;\n  color: #666;\n}\n.add-comment-btn[data-v-66a5c8c1] {\n  padding: 8px 16px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n  border: none;\n  border-radius: 8px;\n  font-size: 13px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  display: flex;\n  align-items: center;\n  gap: 4px;\n}\n.add-comment-btn[data-v-66a5c8c1]:hover:not(:disabled) {\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.add-comment-btn[data-v-66a5c8c1]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n/* Modal Styles */\n.modal-overlay[data-v-66a5c8c1] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.modal-content[data-v-66a5c8c1] {\n  background: white;\n  border-radius: 12px;\n  padding: 24px;\n  max-width: 400px;\n  width: 90%;\n}\n.modal-content h3[data-v-66a5c8c1] {\n  margin: 0 0 16px 0;\n  font-size: 18px;\n  color: #333;\n}\n.veto-reason-input[data-v-66a5c8c1] {\n  width: 100%;\n  min-height: 80px;\n  padding: 12px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 14px;\n  margin: 16px 0;\n  resize: vertical;\n}\n.modal-actions[data-v-66a5c8c1] {\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n}\n.cancel-btn[data-v-66a5c8c1],\n.veto-confirm-btn[data-v-66a5c8c1] {\n  padding: 8px 16px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 14px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.cancel-btn[data-v-66a5c8c1] {\n  background: white;\n  color: #333;\n}\n.cancel-btn[data-v-66a5c8c1]:hover {\n  background: #f8f9fa;\n}\n.veto-confirm-btn[data-v-66a5c8c1] {\n  background: #dc3545;\n  color: white;\n  border-color: #dc3545;\n}\n.veto-confirm-btn[data-v-66a5c8c1]:hover:not(:disabled) {\n  background: #c82333;\n}\n.veto-confirm-btn[data-v-66a5c8c1]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n/* Veto Reason Section */\n.veto-reason-section[data-v-66a5c8c1] {\n  background: #fff5f5;\n  border: 1px solid #fed7d7;\n  border-radius: 8px;\n  padding: 16px;\n  margin-bottom: 20px;\n}\n.veto-reason-section h4[data-v-66a5c8c1] {\n  margin: 0 0 12px 0;\n  color: #e53e3e;\n  font-size: 1rem;\n  font-weight: 600;\n}\n.veto-reason-content[data-v-66a5c8c1] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n.veto-by[data-v-66a5c8c1] {\n  font-size: 0.9rem;\n  color: #e53e3e;\n}\n.veto-reason-text[data-v-66a5c8c1] {\n  font-size: 0.9rem;\n  color: #2d3748;\n  background: white;\n  padding: 12px;\n  border-radius: 6px;\n  white-space: pre-wrap;\n}\n\n.voting-tool-controls[data-v-7e2ea9da] {\n  background: linear-gradient(135deg, #ffffff, #f8f9fa);\n  border: 2px solid #e6007a;\n  border-radius: 12px;\n  padding: 16px;\n  margin-bottom: 16px;\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.15);\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n}\n.controls-header[data-v-7e2ea9da] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 12px;\n}\n.controls-title[data-v-7e2ea9da] {\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #e6007a;\n  margin: 0;\n}\n.status-badge-wrapper[data-v-7e2ea9da] {\n  display: flex;\n  align-items: center;\n}\n.status-badge[data-v-7e2ea9da] {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  padding: 6px 12px;\n  border-radius: 12px;\n  font-size: 0.8rem;\n  font-weight: 600;\n  border: 1px solid rgba(255, 255, 255, 0.6);\n  transition: all 0.2s ease;\n  user-select: none;\n  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);\n  backdrop-filter: blur(3px);\n  white-space: nowrap;\n  min-width: 100px;\n  justify-content: center;\n}\n.status-clickable[data-v-7e2ea9da] {\n  cursor: pointer;\n}\n.status-clickable[data-v-7e2ea9da]:hover {\n  transform: translateY(-1px) scale(1.02);\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);\n  border-color: rgba(255, 255, 255, 1);\n}\n.status-icon[data-v-7e2ea9da] {\n  font-size: 0.9rem;\n}\n.edit-icon[data-v-7e2ea9da] {\n  font-size: 0.8rem;\n  opacity: 0.7;\n}\n\n/* Status color classes */\n.status-not-started[data-v-7e2ea9da] { \n  background: linear-gradient(135deg, #6c757d, #5a6268); \n  color: white;\n}\n.status-considering[data-v-7e2ea9da] { \n  background: linear-gradient(135deg, #ffc107, #e0a800); \n  color: #212529;\n}\n.status-ready-for-approval[data-v-7e2ea9da] { \n  background: linear-gradient(135deg, #17a2b8, #138496); \n  color: white;\n}\n.status-waiting-for-agreement[data-v-7e2ea9da] { \n  background: linear-gradient(135deg, #fd7e14, #e8680b); \n  color: white;\n}\n.status-ready-to-vote[data-v-7e2ea9da] { \n  background: linear-gradient(135deg, #28a745, #1e7e34); \n  color: white;\n}\n.status-reconsidering[data-v-7e2ea9da] { \n  background: linear-gradient(135deg, #dc3545, #c82333); \n  color: white;\n}\n.status-voted-----aye----[data-v-7e2ea9da] { \n  background: linear-gradient(135deg, #198754, #155724); \n  color: white;\n}\n.status-voted-----nay----[data-v-7e2ea9da] { \n  background: linear-gradient(135deg, #dc3545, #c82333); \n  color: white;\n}\n.status-voted------abstain------[data-v-7e2ea9da] { \n  background: linear-gradient(135deg, #6f42c1, #5a32a3); \n  color: white;\n}\n.status-not-voted[data-v-7e2ea9da] { \n  background: linear-gradient(135deg, #e9ecef, #dee2e6); \n  color: #495057;\n}\n.controls-actions[data-v-7e2ea9da] {\n  display: flex;\n  gap: 12px;\n  flex-wrap: wrap;\n}\n.control-btn[data-v-7e2ea9da] {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n  padding: 8px 16px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n  flex: 1;\n  justify-content: center;\n  min-width: 140px;\n}\n.control-btn[data-v-7e2ea9da]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.assign-btn[data-v-7e2ea9da] {\n  background: var(--assign-gradient);\n  color: white;\n  border: 1px solid var(--assign-border);\n}\n.assign-btn[data-v-7e2ea9da]:hover:not(:disabled) {\n  background: var(--assign-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px var(--assign-shadow);\n}\n.vote-btn[data-v-7e2ea9da] {\n  background: var(--primary-gradient);\n  color: white;\n  border: 1px solid var(--primary-border);\n}\n.vote-btn[data-v-7e2ea9da]:hover:not(:disabled) {\n  background: var(--primary-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px var(--primary-shadow);\n}\n.btn-icon[data-v-7e2ea9da] {\n  font-size: 1rem;\n}\n.btn-text[data-v-7e2ea9da] {\n  font-size: 0.9rem;\n}\n\n/* Team Panel Styles */\n.team-btn[data-v-7e2ea9da] {\n  background: var(--team-gradient);\n  color: white;\n  border: 1px solid var(--team-border);\n}\n.team-btn[data-v-7e2ea9da]:hover:not(:disabled) {\n  background: var(--team-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px var(--team-shadow);\n}\n.team-panel-overlay[data-v-7e2ea9da] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.team-panel-wrapper[data-v-7e2ea9da] {\n  max-width: 90vw;\n  max-height: 90vh;\n  overflow: auto;\n}\n\n/* Removed modal styles - now in separate modal components */\n@media (max-width: 768px) {\n.controls-actions[data-v-7e2ea9da] {\n    flex-direction: column;\n}\n.control-btn[data-v-7e2ea9da] {\n    min-width: auto;\n}\n.vote-options[data-v-7e2ea9da] {\n    flex-direction: column;\n}\n.status-grid[data-v-7e2ea9da] {\n    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));\n}\n}\n/* OpenGov VotingTool Design System */\n/* Based on Polkassembly design patterns but platform-agnostic */\n\n:root {\n  /* Color Palette - Polkassembly-inspired */\n  --primary: #e6007a;          /* Polkadot pink */\n  --primary-dark: #b3005f;\n  --primary-light: #ff1a8c;\n  --primary-gradient: linear-gradient(135deg, var(--primary), var(--primary-dark));\n  --primary-gradient-hover: linear-gradient(135deg, var(--primary-dark), #8a0047);\n  --primary-shadow: rgba(230, 0, 122, 0.3);\n  \n  --secondary: #000000;        /* Kusama black */\n  --secondary-light: #333333;\n  --secondary-gradient: linear-gradient(135deg, var(--gray-500), var(--gray-600));\n  --secondary-gradient-hover: linear-gradient(135deg, var(--gray-600), var(--gray-700));\n  --secondary-shadow: rgba(108, 117, 125, 0.3);\n  \n  --accent: #007bff;           /* Blue accent */\n  --accent-light: #3399ff;\n  --accent-dark: #0056b3;\n  \n  /* Team Action Colors */\n  --team: #17a2b8;\n  --team-dark: #138496;\n  --team-gradient: linear-gradient(135deg, var(--team), var(--team-dark));\n  --team-gradient-hover: linear-gradient(135deg, var(--team-dark), #117a8b);\n  --team-shadow: rgba(23, 162, 184, 0.3);\n  \n  /* Assign Button Colors */\n  --assign: #28a745;\n  --assign-dark: #1e7e34;\n  --assign-gradient: linear-gradient(135deg, var(--assign), var(--assign-dark));\n  --assign-gradient-hover: linear-gradient(135deg, var(--assign-dark), #155724);\n  --assign-shadow: rgba(40, 167, 69, 0.3);\n  \n  /* Status Colors */\n  --success: var(--assign);\n  --warning: #ffc107;\n  --danger: #dc3545;\n  --info: var(--team);\n  \n  /* Status-specific Colors */\n  --status-not-started: var(--gray-500);\n  --status-considering: var(--warning);\n  --status-ready-for-approval: var(--info);\n  --status-waiting-for-agreement: #fd7e14;\n  --status-ready-to-vote: var(--success);\n  --status-reconsidering: var(--danger);\n  --status-voted-aye: #198754;\n  --status-voted-nay: var(--danger);\n  --status-voted-abstain: #6f42c1;\n  --status-not-voted: var(--gray-100);\n  \n  /* Neutral Colors */\n  --white: #ffffff;\n  --gray-50: #f8f9fa;\n  --gray-100: #e9ecef;\n  --gray-200: #dee2e6;\n  --gray-300: #ced4da;\n  --gray-400: #adb5bd;\n  --gray-500: #6c757d;\n  --gray-600: #495057;\n  --gray-700: #343a40;\n  --gray-800: #212529;\n  --gray-900: #000000;\n  \n  /* Typography */\n  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n  --font-size-xs: 0.75rem;\n  --font-size-sm: 0.875rem;\n  --font-size-base: 1rem;\n  --font-size-lg: 1.125rem;\n  --font-size-xl: 1.25rem;\n  --font-size-2xl: 1.5rem;\n  --font-size-3xl: 1.875rem;\n  \n  /* Spacing */\n  --spacing-1: 0.25rem;\n  --spacing-2: 0.5rem;\n  --spacing-3: 0.75rem;\n  --spacing-4: 1rem;\n  --spacing-5: 1.25rem;\n  --spacing-6: 1.5rem;\n  --spacing-8: 2rem;\n  --spacing-10: 2.5rem;\n  --spacing-12: 3rem;\n  --spacing-16: 4rem;\n  \n  /* Border Radius */\n  --radius-sm: 0.25rem;\n  --radius-md: 0.375rem;\n  --radius-lg: 0.5rem;\n  --radius-xl: 0.75rem;\n  --radius-2xl: 1rem;\n  --radius-3xl: 1.5rem;\n  \n  /* Shadows */\n  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);\n  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);\n  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);\n  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);\n  \n  /* Z-index */\n  --z-dropdown: 1000;\n  --z-sticky: 1020;\n  --z-fixed: 1030;\n  --z-modal-backdrop: 1040;\n  --z-modal: 1050;\n  --z-popover: 1060;\n  --z-tooltip: 1070;\n  --z-overlay: 999999;\n}\n\n/* Base Styles */\n* {\n  box-sizing: border-box;\n}\n\nbody {\n  font-family: var(--font-family);\n  line-height: 1.5;\n  color: var(--gray-800);\n}\n\n/* Typography */\n.text-xs { font-size: var(--font-size-xs); }\n.text-sm { font-size: var(--font-size-sm); }\n.text-base { font-size: var(--font-size-base); }\n.text-lg { font-size: var(--font-size-lg); }\n.text-xl { font-size: var(--font-size-xl); }\n.text-2xl { font-size: var(--font-size-2xl); }\n.text-3xl { font-size: var(--font-size-3xl); }\n\n.font-normal { font-weight: 400; }\n.font-medium { font-weight: 500; }\n.font-semibold { font-weight: 600; }\n.font-bold { font-weight: 700; }\n\n/* Buttons */\n.btn {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  padding: var(--spacing-3) var(--spacing-4);\n  border: none;\n  border-radius: var(--radius-lg);\n  font-size: var(--font-size-sm);\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n\n.btn:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n.btn-primary {\n  background: var(--primary-gradient);\n  color: var(--white);\n  border: 1px solid var(--primary-dark);\n}\n\n.btn-primary:hover:not(:disabled) {\n  background: var(--primary-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 0 10px var(--primary-shadow);\n}\n\n.btn-secondary {\n  background: var(--secondary-gradient);\n  color: var(--white);\n  border: 1px solid var(--gray-600);\n}\n\n.btn-secondary:hover:not(:disabled) {\n  background: var(--secondary-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 0 10px var(--secondary-shadow);\n}\n\n.btn-team {\n  background: var(--team-gradient);\n  color: var(--white);\n  border: 1px solid var(--team-dark);\n}\n\n.btn-team:hover:not(:disabled) {\n  background: var(--team-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 0 10px var(--team-shadow);\n}\n\n.btn-assign {\n  background: var(--assign-gradient);\n  color: var(--white);\n  border: 1px solid var(--assign-dark);\n}\n\n.btn-assign:hover:not(:disabled) {\n  background: var(--assign-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 0 10px var(--assign-shadow);\n}\n\n.btn-outline {\n  background: transparent;\n  color: var(--primary);\n  border: 2px solid var(--primary);\n}\n\n.btn-outline:hover:not(:disabled) {\n  background: var(--primary-gradient);\n  color: var(--white);\n}\n\n/* Status-specific buttons */\n.btn-status {\n  font-weight: 600;\n  padding: var(--spacing-2) var(--spacing-4);\n  border-radius: var(--radius-lg);\n  transition: all 0.2s ease;\n}\n\n.btn-status-not-started { background: var(--status-not-started); color: var(--white); }\n.btn-status-considering { background: var(--status-considering); color: var(--gray-900); }\n.btn-status-ready-for-approval { background: var(--status-ready-for-approval); color: var(--white); }\n.btn-status-waiting-for-agreement { background: var(--status-waiting-for-agreement); color: var(--white); }\n.btn-status-ready-to-vote { background: var(--status-ready-to-vote); color: var(--white); }\n.btn-status-reconsidering { background: var(--status-reconsidering); color: var(--white); }\n.btn-status-voted-aye { background: var(--status-voted-aye); color: var(--white); }\n.btn-status-voted-nay { background: var(--status-voted-nay); color: var(--white); }\n.btn-status-voted-abstain { background: var(--status-voted-abstain); color: var(--white); }\n.btn-status-not-voted { background: var(--status-not-voted); color: var(--gray-900); }\n\n/* Cards */\n.card {\n  background: var(--white);\n  border-radius: var(--radius-xl);\n  box-shadow: var(--shadow-lg);\n  overflow: hidden;\n}\n\n.card-header {\n  padding: var(--spacing-6);\n  border-bottom: 1px solid var(--gray-200);\n  background: var(--gray-50);\n}\n\n.card-body {\n  padding: var(--spacing-6);\n}\n\n.card-footer {\n  padding: var(--spacing-6);\n  border-top: 1px solid var(--gray-200);\n  background: var(--gray-50);\n}\n\n/* Badges */\n.badge {\n  display: inline-flex;\n  align-items: center;\n  padding: var(--spacing-1) var(--spacing-2);\n  border-radius: var(--radius-2xl);\n  font-size: var(--font-size-xs);\n  font-weight: 600;\n  text-align: center;\n  white-space: nowrap;\n}\n\n.badge-primary { background: var(--primary); color: var(--white); }\n.badge-secondary { background: var(--secondary); color: var(--white); }\n.badge-accent { background: var(--accent); color: var(--white); }\n.badge-success { background: var(--success); color: var(--white); }\n.badge-warning { background: var(--warning); color: var(--gray-800); }\n.badge-danger { background: var(--danger); color: var(--white); }\n.badge-info { background: var(--info); color: var(--white); }\n\n/* Forms */\n.form-group {\n  margin-bottom: var(--spacing-4);\n}\n\n.form-label {\n  display: block;\n  margin-bottom: var(--spacing-2);\n  font-weight: 600;\n  color: var(--gray-700);\n}\n\n.form-control {\n  width: 100%;\n  padding: var(--spacing-3);\n  border: 2px solid var(--gray-300);\n  border-radius: var(--radius-lg);\n  font-size: var(--font-size-base);\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n\n.form-control:focus {\n  outline: none;\n  border-color: var(--primary);\n  box-shadow: 0 0 0 3px var(--primary-shadow);\n}\n\n.form-control:disabled {\n  background-color: var(--gray-100);\n  color: var(--gray-500);\n}\n\n/* Modals */\n.modal-overlay {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: var(--z-modal-backdrop);\n}\n\n.modal {\n  background: var(--white);\n  border-radius: var(--radius-xl);\n  box-shadow: var(--shadow-xl);\n  width: 90%;\n  max-width: 500px;\n  max-height: 90vh;\n  overflow-y: auto;\n  z-index: var(--z-modal);\n}\n\n.modal-header {\n  padding: var(--spacing-4) var(--spacing-6);\n  border-bottom: 1px solid var(--gray-200);\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n}\n\n.modal-header h3 {\n  margin: 0;\n  font-size: var(--font-size-xl);\n  color: var(--gray-900);\n}\n\n.modal-content {\n  padding: var(--spacing-6);\n}\n\n.modal-footer {\n  padding: var(--spacing-4) var(--spacing-6);\n  border-top: 1px solid var(--gray-200);\n  display: flex;\n  justify-content: flex-end;\n  gap: var(--spacing-3);\n}\n\n.close-btn {\n  background: transparent;\n  border: none;\n  font-size: var(--font-size-xl);\n  color: var(--gray-500);\n  cursor: pointer;\n  padding: var(--spacing-1) var(--spacing-2);\n  border-radius: var(--radius-md);\n  transition: all 0.2s ease;\n}\n\n.close-btn:hover {\n  color: var(--gray-700);\n  background: var(--gray-100);\n}\n\n/* Component-specific Modals */\n.assign-modal,\n.unassign-modal {\n  background: var(--white);\n  border-radius: var(--radius-xl);\n  box-shadow: var(--shadow-xl);\n  width: 90%;\n  max-width: 500px;\n  max-height: 90vh;\n  overflow-y: auto;\n  z-index: var(--z-modal);\n}\n\n.assign-modal .modal-content,\n.unassign-modal .modal-content {\n  display: flex;\n  flex-direction: column;\n  gap: var(--spacing-4);\n}\n\n.assign-modal .form-group,\n.unassign-modal .form-group {\n  margin-bottom: 0;\n}\n\n.assign-modal .error-message,\n.unassign-modal .error-message {\n  color: var(--danger);\n  font-size: var(--font-size-sm);\n  margin-top: var(--spacing-2);\n  padding: var(--spacing-2);\n  background: rgba(220, 53, 69, 0.1);\n  border-radius: var(--radius-md);\n}\n\n.assign-modal .old-value,\n.unassign-modal .old-value {\n  color: var(--gray-500);\n  text-decoration: line-through;\n}\n\n.assign-modal .new-value,\n.unassign-modal .new-value {\n  color: var(--success);\n  font-weight: 600;\n}\n\n/* Settings Panel */\n.settings-panel {\n  background: var(--white);\n  border-radius: var(--radius-xl);\n  box-shadow: var(--shadow-lg);\n  overflow: hidden;\n}\n\n.settings-panel-header {\n  padding: var(--spacing-4) var(--spacing-6);\n  background: var(--gray-50);\n  border-bottom: 1px solid var(--gray-200);\n}\n\n.settings-panel-content {\n  padding: var(--spacing-6);\n}\n\n.settings-panel-footer {\n  padding: var(--spacing-4) var(--spacing-6);\n  background: var(--gray-50);\n  border-top: 1px solid var(--gray-200);\n  border-bottom-left-radius: var(--radius-xl);\n  border-bottom-right-radius: var(--radius-xl);\n}\n\n/* Utilities */\n.text-center { text-align: center; }\n.text-left { text-align: left; }\n.text-right { text-align: right; }\n\n.mt-1 { margin-top: var(--spacing-1); }\n.mt-2 { margin-top: var(--spacing-2); }\n.mt-3 { margin-top: var(--spacing-3); }\n.mt-4 { margin-top: var(--spacing-4); }\n.mt-5 { margin-top: var(--spacing-5); }\n.mt-6 { margin-top: var(--spacing-6); }\n\n.mb-1 { margin-bottom: var(--spacing-1); }\n.mb-2 { margin-bottom: var(--spacing-2); }\n.mb-3 { margin-bottom: var(--spacing-3); }\n.mb-4 { margin-bottom: var(--spacing-4); }\n.mb-5 { margin-bottom: var(--spacing-5); }\n.mb-6 { margin-bottom: var(--spacing-6); }\n\n.p-1 { padding: var(--spacing-1); }\n.p-2 { padding: var(--spacing-2); }\n.p-3 { padding: var(--spacing-3); }\n.p-4 { padding: var(--spacing-4); }\n.p-5 { padding: var(--spacing-5); }\n.p-6 { padding: var(--spacing-6); }\n\n/* Responsive */\n@media (max-width: 768px) {\n  .btn {\n    width: 100%;\n    justify-content: center;\n  }\n  \n  .card-header,\n  .card-body,\n  .card-footer {\n    padding: var(--spacing-4);\n  }\n} /*$vite$:1*/";
+  __vite_style__.textContent = "\n.wallet-connect[data-v-4f7ca26e] {\n  min-width: 400px;\n  max-width: 500px;\n}\n.connect-header[data-v-4f7ca26e] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 24px;\n  padding-bottom: 16px;\n  border-bottom: 1px solid #e1e5e9;\n}\n.connect-header h3[data-v-4f7ca26e] {\n  margin: 0;\n  color: #333;\n  font-size: 18px;\n}\n.close-btn[data-v-4f7ca26e] {\n  background: none;\n  border: none;\n  font-size: 20px;\n  cursor: pointer;\n  color: #666;\n  padding: 4px;\n  border-radius: 4px;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-4f7ca26e]:hover {\n  background-color: #f0f0f0;\n}\n.step-content[data-v-4f7ca26e] {\n  margin-bottom: 24px;\n}\n.step-description[data-v-4f7ca26e] {\n  color: #666;\n  margin-bottom: 20px;\n  text-align: center;\n}\n.wallet-options[data-v-4f7ca26e] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n  margin-bottom: 20px;\n}\n.wallet-list[data-v-4f7ca26e] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n.wallet-option[data-v-4f7ca26e] {\n  display: flex;\n  align-items: center;\n  padding: 16px;\n  border: 2px solid #e1e5e9;\n  border-radius: 8px;\n  background: white;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  position: relative;\n}\n.wallet-option[data-v-4f7ca26e]:hover:not(:disabled) {\n  border-color: #e6007a;\n  box-shadow: 0 2px 8px rgba(230, 0, 122, 0.1);\n}\n.wallet-option[data-v-4f7ca26e]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.wallet-icon[data-v-4f7ca26e] {\n  width: 32px;\n  height: 32px;\n  margin-right: 16px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.wallet-icon img[data-v-4f7ca26e] {\n  width: 100%;\n  height: 100%;\n  border-radius: 50%;\n  object-fit: cover;\n}\n.wallet-icon-fallback[data-v-4f7ca26e] {\n  font-size: 20px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.wallet-info[data-v-4f7ca26e] {\n  flex: 1;\n}\n.wallet-name[data-v-4f7ca26e] {\n  font-weight: 600;\n  color: #333;\n  margin-bottom: 4px;\n}\n.wallet-description[data-v-4f7ca26e] {\n  font-size: 14px;\n  color: #666;\n}\n.loading-spinner[data-v-4f7ca26e] {\n  width: 20px;\n  height: 20px;\n  border: 2px solid #f3f3f3;\n  border-top: 2px solid #e6007a;\n  border-radius: 50%;\n  animation: spin-4f7ca26e 1s linear infinite;\n}\n@keyframes spin-4f7ca26e {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.extension-status[data-v-4f7ca26e] {\n  text-align: center;\n  padding: 16px;\n  border-radius: 8px;\n  background: #f8f9fa;\n  border: 1px solid #e1e5e9;\n}\n.status-checking[data-v-4f7ca26e] {\n  color: #0066cc;\n  font-weight: 500;\n}\n.status-not-found[data-v-4f7ca26e] {\n  color: #dc3545;\n  font-weight: 500;\n}\n.status-found[data-v-4f7ca26e] {\n  color: #28a745;\n  font-weight: 500;\n}\n.status-help[data-v-4f7ca26e] {\n  margin-top: 8px;\n  font-size: 14px;\n  color: #666;\n}\n.status-help a[data-v-4f7ca26e] {\n  color: #e6007a;\n  text-decoration: none;\n  font-weight: 500;\n}\n.status-help a[data-v-4f7ca26e]:hover {\n  text-decoration: underline;\n}\n.status-actions[data-v-4f7ca26e] {\n  display: flex;\n  gap: 12px;\n  margin-top: 16px;\n}\n.account-list[data-v-4f7ca26e] {\n  max-height: 300px;\n  overflow-y: auto;\n  border: 1px solid #e1e5e9;\n  border-radius: 8px;\n}\n.account-item[data-v-4f7ca26e] {\n  display: flex;\n  align-items: center;\n  padding: 16px;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n  border-bottom: 1px solid #f0f0f0;\n}\n.account-item[data-v-4f7ca26e]:last-child {\n  border-bottom: none;\n}\n.account-item[data-v-4f7ca26e]:hover {\n  background-color: #f8f9fa;\n}\n.account-item.selected[data-v-4f7ca26e] {\n  background-color: #e8f4fd;\n  border-left: 3px solid #e6007a;\n}\n.account-avatar[data-v-4f7ca26e] {\n  width: 32px;\n  height: 32px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: white;\n  font-weight: bold;\n  font-size: 12px;\n  margin-right: 12px;\n}\n.account-info[data-v-4f7ca26e] {\n  flex: 1;\n}\n.account-name[data-v-4f7ca26e] {\n  font-weight: 500;\n  color: #333;\n  margin-bottom: 2px;\n}\n.account-address[data-v-4f7ca26e] {\n  font-family: monospace;\n  font-size: 12px;\n  color: #666;\n}\n.account-check[data-v-4f7ca26e] {\n  color: #e6007a;\n  font-weight: bold;\n  font-size: 18px;\n}\n.sign-message[data-v-4f7ca26e] {\n  background: #f8f9fa;\n  border: 1px solid #e1e5e9;\n  border-radius: 8px;\n  padding: 16px;\n  margin-bottom: 20px;\n}\n.message-label[data-v-4f7ca26e] {\n  font-weight: 500;\n  color: #333;\n  margin-bottom: 8px;\n}\n.message-content[data-v-4f7ca26e] {\n  font-family: monospace;\n  font-size: 12px;\n  color: #666;\n  white-space: pre-wrap;\n  word-break: break-all;\n}\n.step-actions[data-v-4f7ca26e] {\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n}\n.btn-primary[data-v-4f7ca26e], .btn-secondary[data-v-4f7ca26e] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.btn-primary[data-v-4f7ca26e] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n}\n.btn-primary[data-v-4f7ca26e]:hover:not(:disabled) {\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-primary[data-v-4f7ca26e]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-secondary[data-v-4f7ca26e] {\n  background: #6c757d;\n  color: white;\n}\n.btn-secondary[data-v-4f7ca26e]:hover {\n  background: #5a6268;\n}\n.error-message[data-v-4f7ca26e] {\n  text-align: left;\n  padding: 24px;\n  background: #fff5f5;\n  border: 1px solid #fed7d7;\n  border-radius: 8px;\n}\n.error-icon[data-v-4f7ca26e] {\n  font-size: 24px;\n  margin-bottom: 8px;\n  display: block;\n}\n.error-text[data-v-4f7ca26e] {\n  color: #c53030;\n  font-weight: 500;\n  white-space: pre-line;\n  line-height: 1.5;\n  margin-bottom: 16px;\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n}\n.error-actions[data-v-4f7ca26e] {\n  display: flex;\n  justify-content: center;\n}\n.no-wallets[data-v-4f7ca26e] {\n  text-align: center;\n  padding: 24px;\n  color: #666;\n}\n.no-wallets-icon[data-v-4f7ca26e] {\n  font-size: 32px;\n  margin-bottom: 8px;\n}\n.no-wallets-text[data-v-4f7ca26e] {\n  font-size: 14px;\n}\n\n.modal-overlay[data-v-973fd79d] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.config-modal[data-v-973fd79d] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 90vh;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-973fd79d] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-973fd79d] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-973fd79d] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-973fd79d]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-973fd79d] {\n  padding: 24px;\n  flex: 1;\n  overflow-y: auto;\n}\n.config-sections[data-v-973fd79d] {\n  display: flex;\n  flex-direction: column;\n  gap: 24px;\n}\n.config-section[data-v-973fd79d] {\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  padding: 20px;\n}\n.config-section h4[data-v-973fd79d] {\n  margin: 0 0 16px 0;\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #333;\n  border-bottom: 2px solid #e6007a;\n  padding-bottom: 8px;\n}\n.form-group[data-v-973fd79d] {\n  margin-bottom: 16px;\n}\n.form-group label[data-v-973fd79d] {\n  display: block;\n  margin-bottom: 6px;\n  font-weight: 500;\n  color: #555;\n}\n.form-input[data-v-973fd79d] {\n  width: 100%;\n  padding: 10px 12px;\n  border: 2px solid #e9ecef;\n  border-radius: 6px;\n  font-size: 14px;\n  transition: border-color 0.2s ease;\n}\n.form-input[data-v-973fd79d]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.number-input[data-v-973fd79d] {\n  max-width: 120px;\n}\n.input-help[data-v-973fd79d] {\n  margin-top: 6px;\n  font-size: 12px;\n  color: #666;\n  line-height: 1.4;\n}\n.agreement-preview[data-v-973fd79d] {\n  margin-top: 16px;\n  padding: 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n}\n.preview-label[data-v-973fd79d] {\n  font-size: 12px;\n  font-weight: 500;\n  color: #666;\n  margin-bottom: 8px;\n}\n.preview-bar[data-v-973fd79d] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n.progress-bar[data-v-973fd79d] {\n  width: 100%;\n  height: 8px;\n  background: #e9ecef;\n  border-radius: 4px;\n  overflow: hidden;\n}\n.progress-fill[data-v-973fd79d] {\n  height: 100%;\n  background: linear-gradient(135deg, #28a745, #20c997);\n  transition: width 0.3s ease;\n}\n.progress-text[data-v-973fd79d] {\n  font-size: 12px;\n  color: #666;\n  text-align: center;\n}\n.modal-actions[data-v-973fd79d] {\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-973fd79d] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.btn-secondary[data-v-973fd79d] {\n  background: #f8f9fa;\n  color: #666;\n  border: 1px solid #dee2e6;\n}\n.btn-secondary[data-v-973fd79d]:hover {\n  background: #e9ecef;\n}\n.btn-primary[data-v-973fd79d] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n}\n.btn-primary[data-v-973fd79d]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #cc1177);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn[data-v-973fd79d]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n.status-badge-container[data-v-875347a1] {\n  position: relative;\n  display: inline-block;\n}\n.status-badge[data-v-875347a1] {\n  display: inline-flex;\n  align-items: center;\n  gap: 3px;\n  padding: 4px 8px;\n  border-radius: 12px;\n  font-size: 0.7rem;\n  font-weight: 600;\n  border: 1px solid rgba(255, 255, 255, 0.6);\n  transition: all 0.2s ease;\n  user-select: none;\n  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);\n  backdrop-filter: blur(3px);\n  white-space: nowrap;\n  min-width: 80px;\n  justify-content: center;\n}\n.status-clickable[data-v-875347a1] {\n  cursor: pointer;\n}\n.status-clickable[data-v-875347a1]:hover {\n  transform: translateY(-2px) scale(1.02);\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);\n  border-color: rgba(255, 255, 255, 1);\n}\n.status-icon[data-v-875347a1] {\n  font-size: 0.8rem;\n}\n.edit-icon[data-v-875347a1] {\n  font-size: 0.7rem;\n  opacity: 0.7;\n}\n\n/* Status color classes with enhanced floating design */\n.status-not-started[data-v-875347a1] { \n  background: linear-gradient(135deg, #6c757d, #5a6268); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-considering[data-v-875347a1] { \n  background: linear-gradient(135deg, #ffc107, #e0a800); \n  color: #212529; \n  border-color: rgba(33, 37, 41, 0.2);\n}\n.status-ready-for-approval[data-v-875347a1] { \n  background: linear-gradient(135deg, #17a2b8, #138496); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-waiting-for-agreement[data-v-875347a1] { \n  background: linear-gradient(135deg, #fd7e14, #e8680b); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-ready-to-vote[data-v-875347a1] { \n  background: linear-gradient(135deg, #28a745, #1e7e34); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-reconsidering[data-v-875347a1] { \n  background: linear-gradient(135deg, #dc3545, #c82333); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-voted-aye[data-v-875347a1] { \n  background: linear-gradient(135deg, #198754, #155724); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-voted-nay[data-v-875347a1] { \n  background: linear-gradient(135deg, #dc3545, #c82333); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-voted-abstain[data-v-875347a1] { \n  background: linear-gradient(135deg, #6f42c1, #5a32a3); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-not-voted[data-v-875347a1] { \n  background: linear-gradient(135deg, #e9ecef, #dee2e6); \n  color: #495057; \n  border-color: rgba(73, 80, 87, 0.2);\n}\n\n/* Modal styles */\n.modal-overlay[data-v-875347a1] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.status-modal[data-v-875347a1] {\n  background: white;\n  border-radius: 8px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  overflow-y: auto;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-875347a1] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 16px 20px;\n  border-bottom: 1px solid #e9ecef;\n}\n.modal-header h3[data-v-875347a1] {\n  margin: 0;\n  font-size: 1.1rem;\n  font-weight: 600;\n}\n.close-btn[data-v-875347a1] {\n  background: none;\n  border: none;\n  font-size: 1.5rem;\n  cursor: pointer;\n  color: #6c757d;\n  padding: 0;\n  width: 30px;\n  height: 30px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.close-btn[data-v-875347a1]:hover {\n  color: #495057;\n}\n.modal-content[data-v-875347a1] {\n  padding: 20px;\n}\n.modal-content p[data-v-875347a1] {\n  margin: 0 0 16px 0;\n  font-size: 0.9rem;\n}\n.status-options[data-v-875347a1] {\n  margin: 20px 0;\n}\n.status-options label[data-v-875347a1] {\n  display: block;\n  margin-bottom: 12px;\n  font-weight: 500;\n  font-size: 0.9rem;\n}\n.status-grid[data-v-875347a1] {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));\n  gap: 8px;\n}\n.status-option[data-v-875347a1] {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n  padding: 8px 12px;\n  border: 2px solid #e9ecef;\n  background: white;\n  border-radius: 6px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  font-size: 0.8rem;\n}\n.status-option[data-v-875347a1]:hover {\n  border-color: #007bff;\n  background: #f8f9fa;\n}\n.status-option.selected[data-v-875347a1] {\n  border-color: #007bff;\n  background: #e7f3ff;\n}\n.option-icon[data-v-875347a1] {\n  font-size: 0.9rem;\n}\n.reason-section[data-v-875347a1] {\n  margin: 20px 0;\n}\n.reason-section label[data-v-875347a1] {\n  display: block;\n  margin-bottom: 8px;\n  font-weight: 500;\n  font-size: 0.9rem;\n}\n.reason-section textarea[data-v-875347a1] {\n  width: 100%;\n  border: 1px solid #ced4da;\n  border-radius: 4px;\n  padding: 8px 12px;\n  font-size: 0.9rem;\n  resize: vertical;\n  min-height: 60px;\n}\n.reason-section textarea[data-v-875347a1]:focus {\n  outline: none;\n  border-color: #007bff;\n  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);\n}\n.modal-actions[data-v-875347a1] {\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-875347a1] {\n  padding: 8px 16px;\n  border-radius: 4px;\n  border: none;\n  font-size: 0.9rem;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.btn-secondary[data-v-875347a1] {\n  background: #6c757d;\n  color: white;\n}\n.btn-secondary[data-v-875347a1]:hover {\n  background: #5a6268;\n}\n.btn-primary[data-v-875347a1] {\n  background: #007bff;\n  color: white;\n}\n.btn-primary[data-v-875347a1]:hover:not(:disabled) {\n  background: #0056b3;\n}\n.btn-primary[data-v-875347a1]:disabled {\n  background: #6c757d;\n  cursor: not-allowed;\n}\n\n.modal-overlay[data-v-db9e79d9] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.proposal-browser-modal[data-v-db9e79d9] {\n  background: white;\n  border-radius: 12px;\n  width: 95vw;\n  height: 90vh;\n  max-width: 1400px;\n  display: flex;\n  flex-direction: column;\n  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);\n}\n.modal-header[data-v-db9e79d9] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: #f8f9fa;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h2[data-v-db9e79d9] {\n  margin: 0;\n  font-size: 1.5rem;\n  font-weight: 600;\n  color: #333;\n}\n.close-btn[data-v-db9e79d9] {\n  background: none;\n  border: none;\n  font-size: 2rem;\n  cursor: pointer;\n  color: #6c757d;\n  padding: 0;\n  width: 40px;\n  height: 40px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  transition: all 0.2s ease;\n}\n.close-btn[data-v-db9e79d9]:hover {\n  background: #e9ecef;\n  color: #495057;\n}\n.browser-content[data-v-db9e79d9] {\n  display: flex;\n  flex: 1;\n  overflow: hidden;\n}\n.filter-panel[data-v-db9e79d9] {\n  width: 280px;\n  background: #f8f9fa;\n  border-right: 1px solid #e9ecef;\n  padding: 20px;\n  overflow-y: auto;\n}\n.filter-section h3[data-v-db9e79d9] {\n  margin: 0 0 16px 0;\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #333;\n}\n.filter-group[data-v-db9e79d9] {\n  margin-bottom: 16px;\n}\n.filter-group label[data-v-db9e79d9] {\n  display: block;\n  margin-bottom: 6px;\n  font-weight: 500;\n  font-size: 0.9rem;\n  color: #555;\n}\n.search-input[data-v-db9e79d9],\n.filter-select[data-v-db9e79d9] {\n  width: 100%;\n  padding: 8px 12px;\n  border: 1px solid #ced4da;\n  border-radius: 6px;\n  font-size: 0.9rem;\n  background: white;\n}\n.search-input[data-v-db9e79d9]:focus,\n.filter-select[data-v-db9e79d9]:focus {\n  outline: none;\n  border-color: #007bff;\n  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);\n}\n.clear-filters-btn[data-v-db9e79d9] {\n  width: 100%;\n  padding: 8px 16px;\n  background: #dc3545;\n  color: white;\n  border: none;\n  border-radius: 6px;\n  font-size: 0.9rem;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n}\n.clear-filters-btn[data-v-db9e79d9]:hover {\n  background: #c82333;\n}\n.content-area[data-v-db9e79d9] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n}\n.view-controls[data-v-db9e79d9] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 16px 20px;\n  border-bottom: 1px solid #e9ecef;\n  background: white;\n}\n.view-modes[data-v-db9e79d9] {\n  display: flex;\n  gap: 8px;\n}\n.view-btn[data-v-db9e79d9] {\n  padding: 6px 12px;\n  border: 1px solid #ced4da;\n  background: white;\n  border-radius: 6px;\n  cursor: pointer;\n  font-size: 0.9rem;\n  transition: all 0.2s ease;\n}\n.view-btn.active[data-v-db9e79d9] {\n  background: #007bff;\n  color: white;\n  border-color: #007bff;\n}\n.sort-controls[data-v-db9e79d9] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n.sort-select[data-v-db9e79d9] {\n  padding: 6px 10px;\n  border: 1px solid #ced4da;\n  border-radius: 6px;\n  font-size: 0.9rem;\n}\n.sort-order-btn[data-v-db9e79d9] {\n  padding: 6px 10px;\n  border: 1px solid #ced4da;\n  background: white;\n  border-radius: 6px;\n  cursor: pointer;\n  font-size: 1rem;\n}\n.results-info[data-v-db9e79d9] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.proposals-container[data-v-db9e79d9] {\n  flex: 1;\n  overflow-y: auto;\n  padding: 20px;\n}\n.loading-state[data-v-db9e79d9],\n.empty-state[data-v-db9e79d9] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 300px;\n  text-align: center;\n}\n.spinner[data-v-db9e79d9] {\n  width: 40px;\n  height: 40px;\n  border: 4px solid #f3f3f3;\n  border-top: 4px solid #007bff;\n  border-radius: 50%;\n  animation: spin-db9e79d9 1s linear infinite;\n}\n@keyframes spin-db9e79d9 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.empty-icon[data-v-db9e79d9] {\n  font-size: 4rem;\n  margin-bottom: 16px;\n}\n.proposals-list[data-v-db9e79d9] {\n  display: flex;\n  flex-direction: column;\n  gap: 1px;\n  background: #e9ecef;\n  border-radius: 8px;\n  overflow: hidden;\n}\n.proposal-item[data-v-db9e79d9] {\n  display: grid;\n  grid-template-columns: 80px 1fr 200px 150px 120px;\n  gap: 16px;\n  padding: 16px 20px;\n  background: white;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n  align-items: center;\n}\n.proposal-item[data-v-db9e79d9]:hover {\n  background: #f8f9fa;\n}\n.proposal-id[data-v-db9e79d9] {\n  font-weight: 600;\n  color: #007bff;\n}\n.proposal-title[data-v-db9e79d9] {\n  font-weight: 500;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.proposal-assignment[data-v-db9e79d9] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  font-size: 0.9rem;\n  color: #666;\n}\n.assign-btn[data-v-db9e79d9] {\n  padding: 4px 8px;\n  background: var(--assign-gradient);\n  color: white;\n  border: 1px solid var(--assign-border);\n  border-radius: 4px;\n  font-size: 0.8rem;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.assign-btn[data-v-db9e79d9]:hover {\n  background: var(--assign-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 2px 6px var(--assign-shadow);\n}\n.proposal-updated[data-v-db9e79d9] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.proposals-cards[data-v-db9e79d9] {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));\n  gap: 20px;\n}\n.proposal-card[data-v-db9e79d9] {\n  background: white;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  padding: 20px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.proposal-card[data-v-db9e79d9]:hover {\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);\n  transform: translateY(-2px);\n}\n.card-header[data-v-db9e79d9] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 12px;\n}\n.card-title[data-v-db9e79d9] {\n  margin: 0 0 12px 0;\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #333;\n  display: -webkit-box;\n  -webkit-line-clamp: 2;\n  line-clamp: 2;\n  -webkit-box-orient: vertical;\n  overflow: hidden;\n}\n.card-meta[data-v-db9e79d9] {\n  display: flex;\n  flex-direction: column;\n  gap: 6px;\n}\n.meta-item[data-v-db9e79d9] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.pagination[data-v-db9e79d9] {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  gap: 16px;\n  margin-top: 20px;\n  padding: 20px;\n}\n.page-btn[data-v-db9e79d9] {\n  padding: 8px 16px;\n  border: 1px solid #ced4da;\n  background: white;\n  border-radius: 6px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.page-btn[data-v-db9e79d9]:hover:not(:disabled) {\n  background: #f8f9fa;\n}\n.page-btn[data-v-db9e79d9]:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n.page-info[data-v-db9e79d9] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.modal-content[data-v-db9e79d9] {\n  max-height: 80vh;\n  overflow-y: auto;\n  padding: 20px;\n  background: white;\n  border-radius: 8px;\n  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);\n}\n.proposal-list[data-v-db9e79d9] {\n  overflow-y: auto;\n  max-height: calc(80vh - 180px); /* Account for header, filters, and padding */\n  padding-right: 16px; /* Space for scrollbar */\n}\n\n/* Scrollbar styling */\n[data-v-db9e79d9]::-webkit-scrollbar {\n  width: 8px;\n}\n[data-v-db9e79d9]::-webkit-scrollbar-track {\n  background: #f1f1f1;\n  border-radius: 4px;\n}\n[data-v-db9e79d9]::-webkit-scrollbar-thumb {\n  background: #888;\n  border-radius: 4px;\n}\n[data-v-db9e79d9]::-webkit-scrollbar-thumb:hover {\n  background: #555;\n}\n\n/* Firefox scrollbar */\n[data-v-db9e79d9] {\n  scrollbar-width: thin;\n  scrollbar-color: #888 #f1f1f1;\n}\n\n.modal-overlay[data-v-cafa1a99] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.modal-content[data-v-cafa1a99] {\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);\n  border: 1px solid #e1e5e9;\n  width: 400px;\n  max-width: 90vw;\n}\n.modal-header[data-v-cafa1a99] {\n  padding: 20px 24px 0;\n  display: flex;\n  align-items: center;\n  gap: 12px;\n}\n.icon[data-v-cafa1a99] {\n  font-size: 24px;\n}\n.icon-success[data-v-cafa1a99] { color: #28a745;\n}\n.icon-error[data-v-cafa1a99] { color: #dc3545;\n}\n.icon-warning[data-v-cafa1a99] { color: #ffc107;\n}\n.icon-info[data-v-cafa1a99] { color: #007bff;\n}\n.modal-header h3[data-v-cafa1a99] {\n  margin: 0;\n  font-size: 18px;\n  font-weight: 600;\n  color: #333;\n}\n.modal-body[data-v-cafa1a99] {\n  padding: 16px 24px 20px;\n}\n.modal-body p[data-v-cafa1a99] {\n  margin: 0;\n  color: #666;\n  line-height: 1.5;\n}\n.modal-actions[data-v-cafa1a99] {\n  padding: 0 24px 24px;\n  display: flex;\n  justify-content: flex-end;\n}\n.ok-btn[data-v-cafa1a99] {\n  padding: 8px 24px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  color: white;\n}\n.ok-btn.success[data-v-cafa1a99] {\n  background: #28a745;\n  border-color: #28a745;\n}\n.ok-btn.success[data-v-cafa1a99]:hover {\n  background: #218838;\n  border-color: #218838;\n}\n.ok-btn.error[data-v-cafa1a99] {\n  background: #dc3545;\n  border-color: #dc3545;\n}\n.ok-btn.error[data-v-cafa1a99]:hover {\n  background: #c82333;\n  border-color: #c82333;\n}\n.ok-btn.warning[data-v-cafa1a99] {\n  background: #ffc107;\n  border-color: #ffc107;\n  color: #212529;\n}\n.ok-btn.warning[data-v-cafa1a99]:hover {\n  background: #e0a800;\n  border-color: #e0a800;\n}\n.ok-btn.info[data-v-cafa1a99] {\n  background: #007bff;\n  border-color: #007bff;\n}\n.ok-btn.info[data-v-cafa1a99]:hover {\n  background: #0056b3;\n  border-color: #0056b3;\n}\n\n.modal-overlay[data-v-2a1417c5] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.unified-dashboard-modal[data-v-2a1417c5] {\n  background: white;\n  border-radius: 12px;\n  width: 90vw;\n  height: 85vh;\n  max-width: 1200px;\n  display: flex;\n  flex-direction: column;\n  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);\n}\n.modal-header[data-v-2a1417c5] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: #f8f9fa;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h2[data-v-2a1417c5] {\n  margin: 0;\n  font-size: 1.5rem;\n  font-weight: 600;\n  color: #333;\n}\n.close-btn[data-v-2a1417c5] {\n  background: none;\n  border: none;\n  font-size: 2rem;\n  cursor: pointer;\n  color: #6c757d;\n  padding: 0;\n  width: 40px;\n  height: 40px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  transition: all 0.2s ease;\n}\n.close-btn[data-v-2a1417c5]:hover {\n  background: #e9ecef;\n  color: #495057;\n}\n.dashboard-content[data-v-2a1417c5] {\n  flex: 1;\n  overflow: hidden;\n  display: flex;\n  flex-direction: column;\n}\n.auth-required[data-v-2a1417c5] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 300px;\n  text-align: center;\n}\n.auth-icon[data-v-2a1417c5] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n}\n.auth-required h3[data-v-2a1417c5] {\n  margin: 0 0 8px 0;\n  color: #333;\n}\n.auth-required p[data-v-2a1417c5] {\n  margin: 0 0 16px 0;\n  color: #666;\n}\n.connect-btn[data-v-2a1417c5] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 8px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.connect-btn[data-v-2a1417c5]:hover {\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n\n/* Tab Navigation */\n.tab-navigation[data-v-2a1417c5] {\n  display: flex;\n  border-bottom: 1px solid #e9ecef;\n  background: white;\n  margin: 0 16px;\n}\n.tab-btn[data-v-2a1417c5] {\n  flex: 1;\n  padding: 16px 20px;\n  border: none;\n  background: none;\n  cursor: pointer;\n  font-size: 0.9rem;\n  font-weight: 500;\n  color: #666;\n  border-bottom: 3px solid transparent;\n  transition: all 0.2s ease;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 8px;\n}\n.tab-btn.active[data-v-2a1417c5] {\n  color: #007bff;\n  border-bottom-color: #007bff;\n  background: #f8f9fa;\n}\n.tab-btn[data-v-2a1417c5]:hover:not(.active) {\n  background: #f8f9fa;\n  color: #333;\n}\n.tab-icon[data-v-2a1417c5] {\n  font-size: 1.1rem;\n}\n.tab-content[data-v-2a1417c5] {\n  flex: 1;\n  overflow: hidden;\n  display: flex;\n  flex-direction: column;\n}\n.stats-section[data-v-2a1417c5] {\n  margin-bottom: 1rem;\n}\n.stats-section-container[data-v-2a1417c5] {\n  margin: 16px;\n  display: flex;\n  gap: 1rem;\n}\n.stat-card[data-v-2a1417c5] {\n  flex: 1;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n  transition: all 0.3s ease;\n  cursor: pointer;\n  position: relative;\n  border: 2px solid transparent;\n  min-width: 150px;\n}\n.stat-card[data-v-2a1417c5]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 8px rgba(0,0,0,0.15);\n}\n.stat-card.active[data-v-2a1417c5] {\n  border-color: #6b46c1;\n  background: #f8f4ff;\n}\n.stat-number[data-v-2a1417c5] {\n  font-size: 2.5rem;\n  font-weight: bold;\n  color: #2d3748;\n  margin-bottom: 0.5rem;\n}\n.stat-label[data-v-2a1417c5] {\n  font-size: 1rem;\n  color: #4a5568;\n  margin-bottom: 0.5rem;\n}\n.content-section[data-v-2a1417c5] {\n  padding: 0 16px;\n}\n.content-area[data-v-2a1417c5] {\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n  height: calc(100vh - 250px);\n  overflow-y: auto;\n}\n.proposals-list[data-v-2a1417c5] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.proposal-item[data-v-2a1417c5] {\n  background: #ffffff;\n  border-radius: 8px;\n  padding: 1rem;\n  box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.proposal-item[data-v-2a1417c5]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n}\n.agreement-item[data-v-2a1417c5] {\n  border-left: 4px solid #ffc107;\n}\n.ready-item[data-v-2a1417c5] {\n  border-left: 4px solid #28a745;\n}\n.discussion-item[data-v-2a1417c5] {\n  border-left: 4px solid #17a2b8;\n}\n.vetoed-item[data-v-2a1417c5] {\n  border-left: 4px solid #dc3545;\n}\n.urgent[data-v-2a1417c5] {\n  border-left: 4px solid #e53e3e;\n}\n.proposal-header[data-v-2a1417c5] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 0.5rem;\n}\n.proposal-id[data-v-2a1417c5] {\n  font-size: 0.875rem;\n  color: #6b46c1;\n  font-weight: 600;\n}\n.proposal-title[data-v-2a1417c5] {\n  margin: 0.5rem 0;\n  font-size: 1rem;\n  color: #2d3748;\n}\n.proposal-meta[data-v-2a1417c5] {\n  display: flex;\n  gap: 1rem;\n  font-size: 0.875rem;\n  color: #718096;\n}\n.meta-item[data-v-2a1417c5] {\n  display: flex;\n  align-items: center;\n  gap: 0.25rem;\n}\n.action-required[data-v-2a1417c5] {\n  margin-top: 0.5rem;\n}\n.action-badge[data-v-2a1417c5] {\n  background: #fed7d7;\n  color: #c53030;\n  padding: 0.25rem 0.5rem;\n  border-radius: 4px;\n  font-size: 0.75rem;\n  font-weight: 600;\n}\n.empty-state[data-v-2a1417c5] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-2a1417c5] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n.activity-summary[data-v-2a1417c5] {\n  margin-bottom: 2rem;\n}\n.activity-stats[data-v-2a1417c5] {\n  display: grid;\n  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\n  gap: 1rem;\n  margin-top: 1rem;\n}\n.activity-stat[data-v-2a1417c5] {\n  background: #f7fafc;\n  padding: 1rem;\n  border-radius: 8px;\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}\n.stat-value[data-v-2a1417c5] {\n  font-weight: 600;\n  color: #2d3748;\n}\n.recent-actions[data-v-2a1417c5] {\n  margin-top: 2rem;\n}\n.activity-list[data-v-2a1417c5] {\n  display: flex;\n  flex-direction: column;\n  gap: 0.5rem;\n}\n.activity-item[data-v-2a1417c5] {\n  display: flex;\n  align-items: center;\n  gap: 1rem;\n  padding: 0.75rem;\n  background: #f7fafc;\n  border-radius: 8px;\n}\n.activity-icon[data-v-2a1417c5] {\n  font-size: 1.25rem;\n}\n.activity-details[data-v-2a1417c5] {\n  flex: 1;\n}\n.activity-description[data-v-2a1417c5] {\n  font-size: 0.875rem;\n  color: #2d3748;\n}\n.activity-time[data-v-2a1417c5] {\n  font-size: 0.75rem;\n  color: #718096;\n  margin-top: 0.25rem;\n}\n.evaluation-info[data-v-2a1417c5] {\n  margin: 0.5rem 0;\n  padding: 0.5rem;\n  background: #f7fafc;\n  border-radius: 4px;\n}\n.suggested-vote[data-v-2a1417c5] {\n  font-weight: 600;\n  color: #2d3748;\n}\n.vote-reason[data-v-2a1417c5] {\n  margin-top: 0.25rem;\n  font-size: 0.875rem;\n  color: #718096;\n}\n\n/* Workflow specific styles */\n.panel-header[data-v-2a1417c5] {\n  margin-bottom: 24px;\n}\n.panel-header h3[data-v-2a1417c5] {\n  margin: 0 0 8px 0;\n  color: #333;\n  font-size: 1.2rem;\n}\n.panel-header p[data-v-2a1417c5] {\n  margin: 0;\n  color: #666;\n  font-size: 0.9rem;\n}\n.agreement-progress[data-v-2a1417c5] {\n  margin: 16px 0;\n  padding: 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n}\n.progress-header[data-v-2a1417c5] {\n  display: flex;\n  justify-content: space-between;\n  margin-bottom: 8px;\n  font-size: 0.9rem;\n  font-weight: 500;\n}\n.progress-count[data-v-2a1417c5] {\n  color: #007bff;\n  font-weight: 600;\n}\n.progress-bar[data-v-2a1417c5] {\n  height: 8px;\n  background: #e9ecef;\n  border-radius: 4px;\n  overflow: hidden;\n  position: relative;\n}\n.progress-fill[data-v-2a1417c5] {\n  height: 100%;\n  transition: width 0.3s ease, background-color 0.3s ease;\n  border-radius: 4px;\n}\n.team-status[data-v-2a1417c5] {\n  display: grid;\n  grid-template-columns: 1fr 1fr;\n  gap: 20px;\n  margin: 16px 0;\n}\n.status-section h5[data-v-2a1417c5] {\n  margin: 0 0 8px 0;\n  font-size: 0.9rem;\n  font-weight: 600;\n  color: #333;\n}\n.member-list[data-v-2a1417c5] {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 6px;\n}\n.member-badge[data-v-2a1417c5] {\n  padding: 4px 8px;\n  border-radius: 12px;\n  font-size: 0.8rem;\n  font-weight: 500;\n}\n.member-badge.agreed[data-v-2a1417c5] {\n  background: #d4edda;\n  color: #155724;\n}\n.member-badge.pending[data-v-2a1417c5] {\n  background: #fff3cd;\n  color: #856404;\n}\n.member-badge.discussion[data-v-2a1417c5] {\n  background: #d1ecf1;\n  color: #0c5460;\n}\n.member-badge.vetoed[data-v-2a1417c5] {\n  background: #f8d7da;\n  color: #721c24;\n}\n.no-members[data-v-2a1417c5] {\n  color: #666;\n  font-style: italic;\n  font-size: 0.9rem;\n}\n.voting-info[data-v-2a1417c5],\n.discussion-info[data-v-2a1417c5],\n.veto-info[data-v-2a1417c5] {\n  margin: 16px 0;\n  padding: 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n}\n.vote-recommendation[data-v-2a1417c5] {\n  margin-bottom: 8px;\n}\n.vote-badge[data-v-2a1417c5] {\n  padding: 4px 8px;\n  background: #007bff;\n  color: white;\n  border-radius: 4px;\n  font-size: 0.8rem;\n  margin-left: 8px;\n}\n.vote-reason[data-v-2a1417c5] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.veto-alert[data-v-2a1417c5] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  color: #721c24;\n}\n.alert-icon[data-v-2a1417c5] {\n  font-size: 1.2rem;\n}\n.send-to-mimir-btn[data-v-2a1417c5] {\n  background: #e6007a;\n  color: white;\n  border: none;\n  border-radius: 6px;\n  padding: 8px 16px;\n  font-size: 14px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  min-width: 120px;\n  margin-top: 12px;\n  transition: background 0.3s, opacity 0.3s;\n}\n.send-to-mimir-btn[data-v-2a1417c5]:hover:not(:disabled) {\n  background: #c40069;\n}\n.send-to-mimir-btn[data-v-2a1417c5]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.loading-state[data-v-2a1417c5],\n.error-state[data-v-2a1417c5] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 300px;\n  text-align: center;\n}\n.loading-spinner[data-v-2a1417c5] {\n  width: 40px;\n  height: 40px;\n  border: 3px solid #f3f3f3;\n  border-top: 3px solid #007bff;\n  border-radius: 50%;\n  animation: spin-2a1417c5 1s linear infinite;\n  margin-bottom: 16px;\n}\n@keyframes spin-2a1417c5 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.error-icon[data-v-2a1417c5] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n  color: #dc3545;\n}\n.error-state h3[data-v-2a1417c5] {\n  margin: 0 0 8px 0;\n  color: #dc3545;\n}\n.error-state p[data-v-2a1417c5] {\n  margin: 0 0 16px 0;\n  color: #666;\n}\n.retry-btn[data-v-2a1417c5] {\n  padding: 8px 16px;\n  background: #007bff;\n  color: white;\n  border: none;\n  border-radius: 4px;\n  cursor: pointer;\n  font-size: 0.9rem;\n  font-weight: 500;\n  transition: background-color 0.2s ease;\n}\n.retry-btn[data-v-2a1417c5]:hover {\n  background: #0056b3;\n}\n\n/* Scrollbar styling */\n[data-v-2a1417c5]::-webkit-scrollbar {\n  width: 8px;\n}\n[data-v-2a1417c5]::-webkit-scrollbar-track {\n  background: #f1f1f1;\n  border-radius: 4px;\n}\n[data-v-2a1417c5]::-webkit-scrollbar-thumb {\n  background: #888;\n  border-radius: 4px;\n}\n[data-v-2a1417c5]::-webkit-scrollbar-thumb:hover {\n  background: #555;\n}\n\n/* Firefox scrollbar */\n[data-v-2a1417c5] {\n  scrollbar-width: thin;\n  scrollbar-color: #888 #f1f1f1;\n}\n\n.modal-overlay[data-v-60c41600] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.settings-modal[data-v-60c41600] {\n  background: white;\n  border-radius: 12px;\n  width: 90vw;\n  height: 85vh;\n  max-width: 1200px;\n  display: flex;\n  flex-direction: column;\n  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);\n}\n.modal-header[data-v-60c41600] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: #f8f9fa;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h2[data-v-60c41600] {\n  margin: 0;\n  font-size: 1.5rem;\n  font-weight: 600;\n  color: #333;\n}\n.close-btn[data-v-60c41600] {\n  background: none;\n  border: none;\n  font-size: 2rem;\n  cursor: pointer;\n  color: #6c757d;\n  padding: 0;\n  width: 40px;\n  height: 40px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  transition: all 0.2s ease;\n}\n.close-btn[data-v-60c41600]:hover {\n  background: #e9ecef;\n  color: #495057;\n}\n.settings-content[data-v-60c41600] {\n  flex: 1;\n  display: flex;\n  overflow: hidden;\n}\n.settings-nav[data-v-60c41600] {\n  width: 280px;\n  background: #f8f9fa;\n  border-right: 1px solid #e9ecef;\n  padding: 20px;\n  overflow-y: auto;\n}\n.nav-section[data-v-60c41600] {\n  margin-bottom: 24px;\n}\n.nav-section h3[data-v-60c41600] {\n  margin: 0 0 12px 0;\n  font-size: 0.9rem;\n  font-weight: 600;\n  color: #666;\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n}\n.nav-item[data-v-60c41600] {\n  display: flex;\n  align-items: center;\n  width: 100%;\n  padding: 12px 16px;\n  border: none;\n  background: none;\n  cursor: pointer;\n  border-radius: 6px;\n  margin-bottom: 4px;\n  transition: all 0.2s ease;\n  text-align: left;\n  font-size: 0.9rem;\n  color: #333;\n}\n.nav-item[data-v-60c41600]:hover:not(:disabled) {\n  background: #e9ecef;\n}\n.nav-item[data-v-60c41600]:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n  color: #999;\n}\n.nav-item[data-v-60c41600]:disabled:hover {\n  background: transparent;\n  color: #999;\n}\n.nav-item.active[data-v-60c41600] {\n  background: #007bff;\n  color: white;\n}\n.nav-icon[data-v-60c41600] {\n  margin-right: 12px;\n  font-size: 1.1rem;\n}\n.settings-main[data-v-60c41600] {\n  flex: 1;\n  overflow-y: auto;\n  padding: 24px;\n}\n.section-content[data-v-60c41600] {\n  max-width: 800px;\n}\n.section-header[data-v-60c41600] {\n  margin-bottom: 24px;\n}\n.section-header h3[data-v-60c41600] {\n  margin: 0 0 8px 0;\n  font-size: 1.3rem;\n  font-weight: 600;\n  color: #333;\n}\n.section-header p[data-v-60c41600] {\n  margin: 0;\n  color: #666;\n  font-size: 0.95rem;\n}\n.form-group[data-v-60c41600] {\n  margin-bottom: 20px;\n}\n.form-group label[data-v-60c41600] {\n  display: block;\n  margin-bottom: 6px;\n  font-weight: 500;\n  color: #333;\n  font-size: 0.9rem;\n}\n.form-input[data-v-60c41600],\n.form-select[data-v-60c41600] {\n  width: 100%;\n  padding: 10px 12px;\n  border: 1px solid #ced4da;\n  border-radius: 6px;\n  font-size: 0.9rem;\n}\n.form-input[data-v-60c41600]:focus,\n.form-select[data-v-60c41600]:focus {\n  outline: none;\n  border-color: #007bff;\n  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);\n}\n.form-group small[data-v-60c41600] {\n  display: block;\n  margin-top: 4px;\n  color: #666;\n  font-size: 0.8rem;\n}\n.form-note[data-v-60c41600] {\n  margin: 0 0 12px 0;\n  color: #666;\n  font-size: 0.9rem;\n  font-style: italic;\n}\n.checkbox-label[data-v-60c41600] {\n  display: flex;\n  align-items: center;\n  cursor: pointer;\n}\n.checkbox-label input[data-v-60c41600] {\n  margin-right: 8px;\n  width: auto;\n}\n.team-members-list[data-v-60c41600] {\n  border: 1px solid #e9ecef;\n  border-radius: 6px;\n  padding: 16px;\n}\n.member-item[data-v-60c41600] {\n  display: flex;\n  gap: 12px;\n  margin-bottom: 12px;\n  align-items: center;\n}\n.member-name[data-v-60c41600] {\n  flex: 1;\n  padding: 8px 12px;\n  border: 1px solid #ced4da;\n  border-radius: 4px;\n}\n.member-address[data-v-60c41600] {\n  flex: 2;\n  padding: 8px 12px;\n  border: 1px solid #ced4da;\n  border-radius: 4px;\n  font-family: monospace;\n  background: #f8f9fa;\n}\n.member-info[data-v-60c41600] {\n  font-size: 0.8rem;\n  color: #666;\n  font-style: italic;\n}\n.no-members[data-v-60c41600] {\n  text-align: center;\n  color: #666;\n  font-style: italic;\n  padding: 20px;\n}\n.readonly-field[data-v-60c41600] {\n  position: relative;\n  display: flex;\n  align-items: center;\n  gap: 12px;\n}\n.readonly-field input[readonly][data-v-60c41600] {\n  background: #f8f9fa;\n  color: #6c757d;\n  cursor: not-allowed;\n  flex: 1;\n}\n.readonly-field-header[data-v-60c41600] {\n  display: flex;\n  justify-content: flex-end;\n  margin-bottom: 8px;\n}\n.multisig-badge[data-v-60c41600] {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  background: #ffc107;\n  color: #212529;\n  padding: 4px 8px;\n  border-radius: 12px;\n  font-size: 0.75rem;\n  font-weight: 500;\n  white-space: nowrap;\n}\n.member-item.readonly[data-v-60c41600] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  padding: 12px;\n  background: #f8f9fa;\n  border-radius: 6px;\n  border: 1px solid #e9ecef;\n  margin-bottom: 8px;\n}\n.member-display-name[data-v-60c41600] {\n  font-weight: 500;\n  color: #333;\n  font-size: 0.9rem;\n}\n.member-address[data-v-60c41600] {\n  font-family: monospace;\n  color: #6c757d;\n  font-size: 0.8rem;\n  word-break: break-all;\n}\n.empty-state[data-v-60c41600] {\n  text-align: center;\n  padding: 40px 20px;\n  color: #6c757d;\n}\n.empty-icon[data-v-60c41600] {\n  font-size: 2.5rem;\n  display: block;\n  margin-bottom: 12px;\n}\n.empty-state p[data-v-60c41600] {\n  margin: 0 0 8px 0;\n  font-weight: 500;\n  color: #495057;\n}\n.empty-state small[data-v-60c41600] {\n  color: #6c757d;\n}\n.remove-btn[data-v-60c41600] {\n  background: #dc3545;\n  color: white;\n  border: none;\n  border-radius: 50%;\n  width: 32px;\n  height: 32px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.add-member-btn[data-v-60c41600] {\n  background: #28a745;\n  color: white;\n  border: none;\n  padding: 8px 16px;\n  border-radius: 4px;\n  cursor: pointer;\n  font-size: 0.9rem;\n}\n.form-actions[data-v-60c41600] {\n  display: flex;\n  gap: 12px;\n  margin-top: 24px;\n}\n.save-btn[data-v-60c41600] {\n  background: #007bff;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.reset-btn[data-v-60c41600] {\n  background: #6c757d;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.voting-stats[data-v-60c41600] {\n  display: grid;\n  grid-template-columns: repeat(4, 1fr);\n  gap: 20px;\n  margin-bottom: 24px;\n}\n.stat-card[data-v-60c41600] {\n  background: #f8f9fa;\n  padding: 20px;\n  border-radius: 8px;\n  text-align: center;\n}\n.stat-number[data-v-60c41600] {\n  font-size: 2rem;\n  font-weight: 700;\n  color: #007bff;\n  margin-bottom: 8px;\n}\n.stat-label[data-v-60c41600] {\n  font-size: 0.9rem;\n  color: #666;\n  font-weight: 500;\n}\n.voting-history-list[data-v-60c41600] {\n  max-height: 400px;\n  overflow-y: auto;\n}\n.vote-item[data-v-60c41600] {\n  background: white;\n  border: 1px solid #e9ecef;\n  border-radius: 6px;\n  padding: 16px;\n  margin-bottom: 12px;\n}\n.vote-header[data-v-60c41600] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 8px;\n}\n.proposal-id[data-v-60c41600] {\n  font-weight: 600;\n  color: #007bff;\n}\n.vote-badge[data-v-60c41600] {\n  padding: 4px 8px;\n  border-radius: 4px;\n  font-size: 0.8rem;\n  font-weight: 500;\n}\n.vote-badge.aye[data-v-60c41600] {\n  background: #d4edda;\n  color: #155724;\n}\n.vote-badge.nay[data-v-60c41600] {\n  background: #f8d7da;\n  color: #721c24;\n}\n.vote-badge.abstain[data-v-60c41600] {\n  background: #e2e3e5;\n  color: #383d41;\n}\n.vote-title[data-v-60c41600] {\n  font-weight: 500;\n  margin-bottom: 4px;\n}\n.vote-date[data-v-60c41600] {\n  font-size: 0.8rem;\n  color: #666;\n}\n.sync-controls[data-v-60c41600] {\n  background: #f8f9fa;\n  padding: 20px;\n  border-radius: 8px;\n}\n.sync-status[data-v-60c41600] {\n  margin-bottom: 16px;\n}\n.status-item[data-v-60c41600] {\n  display: flex;\n  justify-content: space-between;\n  margin-bottom: 8px;\n}\n.status-label[data-v-60c41600] {\n  font-weight: 500;\n}\n.status-value[data-v-60c41600] {\n  font-family: monospace;\n}\n.status-value.connected[data-v-60c41600] {\n  color: #28a745;\n}\n.status-value.error[data-v-60c41600] {\n  color: #dc3545;\n}\n.sync-actions[data-v-60c41600] {\n  display: flex;\n  gap: 12px;\n}\n.sync-btn[data-v-60c41600] {\n  background: #007bff;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.sync-btn[data-v-60c41600]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.clear-cache-btn[data-v-60c41600] {\n  background: #dc3545;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.coming-soon[data-v-60c41600],\n.under-review[data-v-60c41600] {\n  text-align: center;\n  padding: 40px 20px;\n  background: #f8f9fa;\n  border-radius: 8px;\n}\n.coming-soon-icon[data-v-60c41600],\n.under-review-icon[data-v-60c41600] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n}\n.coming-soon h4[data-v-60c41600],\n.under-review h4[data-v-60c41600] {\n  margin: 0 0 12px 0;\n  color: #333;\n}\n.coming-soon p[data-v-60c41600],\n.under-review p[data-v-60c41600] {\n  margin: 0 0 16px 0;\n  color: #666;\n}\n.coming-soon ul[data-v-60c41600] {\n  text-align: left;\n  max-width: 300px;\n  margin: 0 auto;\n}\n.temp-actions[data-v-60c41600] {\n  margin-top: 20px;\n}\n.refresh-btn[data-v-60c41600] {\n  background: #007bff;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.refresh-btn[data-v-60c41600]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.help-content[data-v-60c41600],\n.about-content[data-v-60c41600] {\n  max-width: 600px;\n}\n.help-section[data-v-60c41600],\n.about-section[data-v-60c41600] {\n  margin-bottom: 24px;\n}\n.help-section h4[data-v-60c41600],\n.about-section h4[data-v-60c41600] {\n  margin: 0 0 12px 0;\n  color: #333;\n  font-size: 1.1rem;\n}\n.help-section ul[data-v-60c41600],\n.help-section ol[data-v-60c41600],\n.about-section ul[data-v-60c41600] {\n  margin: 0;\n  padding-left: 20px;\n}\n.help-section li[data-v-60c41600],\n.about-section li[data-v-60c41600] {\n  margin-bottom: 8px;\n  line-height: 1.5;\n}\n.help-links[data-v-60c41600],\n.about-links[data-v-60c41600] {\n  display: flex;\n  gap: 16px;\n  margin-top: 24px;\n}\n.help-link[data-v-60c41600],\n.about-link[data-v-60c41600] {\n  display: inline-flex;\n  align-items: center;\n  padding: 10px 16px;\n  background: #007bff;\n  color: white;\n  text-decoration: none;\n  border-radius: 6px;\n  font-size: 0.9rem;\n  font-weight: 500;\n  transition: background-color 0.2s ease;\n}\n.help-link[data-v-60c41600]:hover,\n.about-link[data-v-60c41600]:hover {\n  background: #0056b3;\n}\n.empty-state[data-v-60c41600] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 200px;\n  text-align: center;\n}\n.empty-icon[data-v-60c41600] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n}\n.empty-state h4[data-v-60c41600] {\n  margin: 0 0 8px 0;\n  color: #333;\n}\n.empty-state p[data-v-60c41600] {\n  margin: 0;\n  color: #666;\n}\n.activity-list[data-v-60c41600] {\n  max-height: 400px;\n  overflow-y: auto;\n}\n.activity-item[data-v-60c41600] {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  padding: 12px 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n  margin-bottom: 8px;\n}\n.activity-icon[data-v-60c41600] {\n  font-size: 1.2rem;\n}\n.activity-details[data-v-60c41600] {\n  flex: 1;\n}\n.activity-description[data-v-60c41600] {\n  font-size: 0.9rem;\n  color: #333;\n  margin-bottom: 2px;\n}\n.activity-time[data-v-60c41600] {\n  font-size: 0.8rem;\n  color: #666;\n}\n.modal-content[data-v-60c41600] {\n  max-height: 80vh;\n  overflow-y: auto;\n  padding: 20px;\n  background: white;\n  border-radius: 8px;\n  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);\n}\n.settings-section[data-v-60c41600] {\n  margin-bottom: 24px;\n  overflow-y: auto;\n  max-height: calc(80vh - 120px); /* Account for header and padding */\n}\n\n/* Scrollbar styling */\n[data-v-60c41600]::-webkit-scrollbar {\n  width: 8px;\n}\n[data-v-60c41600]::-webkit-scrollbar-track {\n  background: #f1f1f1;\n  border-radius: 4px;\n}\n[data-v-60c41600]::-webkit-scrollbar-thumb {\n  background: #888;\n  border-radius: 4px;\n}\n[data-v-60c41600]::-webkit-scrollbar-thumb:hover {\n  background: #555;\n}\n\n/* Firefox scrollbar */\n[data-v-60c41600] {\n  scrollbar-width: thin;\n  scrollbar-color: #888 #f1f1f1;\n}\n.form-note[data-v-60c41600] {\n  margin-top: 24px;\n  padding: 16px;\n  background: #f8f9ff;\n  border: 1px solid #e1e5f2;\n  border-radius: 8px;\n}\n.form-note p[data-v-60c41600] {\n  margin: 0 0 12px 0;\n  color: #333;\n  font-weight: 500;\n}\n.form-note ol[data-v-60c41600] {\n  margin: 0;\n  padding-left: 20px;\n  color: #666;\n}\n.form-note ol li[data-v-60c41600] {\n  margin-bottom: 4px;\n}\n.sync-section[data-v-60c41600] {\n  background: #f8f9fa;\n  border: 1px solid #e1e5e9;\n  border-radius: 8px;\n  padding: 20px;\n}\n.sync-description[data-v-60c41600] {\n  margin-bottom: 20px;\n}\n.sync-description p[data-v-60c41600] {\n  margin: 0;\n  color: #666;\n  line-height: 1.5;\n}\n.sync-actions[data-v-60c41600] {\n  display: flex;\n  gap: 12px;\n  margin-bottom: 16px;\n}\n.sync-btn[data-v-60c41600] {\n  padding: 10px 20px;\n  border: 1px solid #007bff;\n  border-radius: 6px;\n  background: white;\n  color: #007bff;\n  cursor: pointer;\n  font-weight: 500;\n  transition: all 0.2s ease;\n  flex: 1;\n}\n.sync-btn[data-v-60c41600]:hover:not(:disabled) {\n  background: #007bff;\n  color: white;\n}\n.sync-btn[data-v-60c41600]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.sync-btn.deep[data-v-60c41600] {\n  border-color: #28a745;\n  color: #28a745;\n}\n.sync-btn.deep[data-v-60c41600]:hover:not(:disabled) {\n  background: #28a745;\n  color: white;\n}\n.sync-info[data-v-60c41600] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n.sync-type[data-v-60c41600] {\n  font-size: 0.9rem;\n  color: #666;\n  line-height: 1.4;\n}\n\n/* Backend Configuration Styles */\n.backend-config[data-v-60c41600] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n.backend-actions[data-v-60c41600] {\n  display: flex;\n  gap: 8px;\n}\n.test-btn[data-v-60c41600],\n.save-backend-btn[data-v-60c41600] {\n  padding: 8px 16px;\n  border: 1px solid #007bff;\n  border-radius: 4px;\n  background: white;\n  color: #007bff;\n  cursor: pointer;\n  font-size: 0.85rem;\n  font-weight: 500;\n  transition: all 0.2s ease;\n  flex: 1;\n}\n.test-btn[data-v-60c41600]:hover:not(:disabled),\n.save-backend-btn[data-v-60c41600]:hover:not(:disabled) {\n  background: #007bff;\n  color: white;\n}\n.save-backend-btn[data-v-60c41600] {\n  border-color: #28a745;\n  color: #28a745;\n}\n.save-backend-btn[data-v-60c41600]:hover:not(:disabled) {\n  background: #28a745;\n  color: white;\n}\n.test-btn[data-v-60c41600]:disabled,\n.save-backend-btn[data-v-60c41600]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.backend-status[data-v-60c41600] {\n  padding: 8px 12px;\n  border-radius: 4px;\n  font-size: 0.85rem;\n  margin-top: 8px;\n}\n.backend-status.success[data-v-60c41600] {\n  background: #d4edda;\n  color: #155724;\n  border: 1px solid #c3e6cb;\n}\n.backend-status.error[data-v-60c41600] {\n  background: #f8d7da;\n  color: #721c24;\n  border: 1px solid #f5c6cb;\n}\n.backend-status.info[data-v-60c41600] {\n  background: #d1ecf1;\n  color: #0c5460;\n  border: 1px solid #bee5eb;\n}\n\n.menu-container[data-v-e1685a40] {\n  width: 100%;\n}\n.user-status[data-v-e1685a40] {\n  padding: 16px 20px;\n  border-bottom: 1px solid #f0f0f0;\n  background: #f8f9fa;\n}\n.user-info[data-v-e1685a40] {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n}\n.user-avatar[data-v-e1685a40] {\n  width: 40px;\n  height: 40px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: white;\n  font-weight: bold;\n  font-size: 14px;\n}\n.user-details[data-v-e1685a40] {\n  flex: 1;\n}\n.user-name[data-v-e1685a40] {\n  font-weight: 600;\n  color: #333;\n  font-size: 14px;\n  margin-bottom: 2px;\n}\n.user-address[data-v-e1685a40] {\n  font-family: monospace;\n  font-size: 12px;\n  color: #666;\n  margin-bottom: 2px;\n}\n.user-network[data-v-e1685a40] {\n  font-size: 11px;\n  color: #999;\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n}\n.logout-btn[data-v-e1685a40] {\n  background: #dc3545;\n  color: white;\n  border: none;\n  padding: 6px 12px;\n  border-radius: 6px;\n  font-size: 12px;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n}\n.logout-btn[data-v-e1685a40]:hover:not(:disabled) {\n  background: #c82333;\n}\n.logout-btn[data-v-e1685a40]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.login-prompt[data-v-e1685a40] {\n  text-align: center;\n  padding: 20px 0;\n}\n.login-icon[data-v-e1685a40] {\n  font-size: 32px;\n  margin-bottom: 8px;\n}\n.login-text[data-v-e1685a40] {\n  color: #666;\n  font-size: 14px;\n  margin-bottom: 16px;\n}\n.connect-btn[data-v-e1685a40] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 8px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.connect-btn[data-v-e1685a40]:hover {\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.menu-items[data-v-e1685a40] {\n  display: flex;\n  flex-direction: column;\n  gap: 0.5rem;\n}\n.menu-item[data-v-e1685a40] {\n  padding: 1rem;\n  border-radius: 8px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  background: #ffffff;\n  box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n  display: flex;\n  align-items: center;\n  gap: 0.75rem;\n}\n.menu-item[data-v-e1685a40]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n}\n.menu-item .icon[data-v-e1685a40] {\n  font-size: 1.25rem;\n  width: 1.5rem;\n  text-align: center;\n}\n.menu-item span[data-v-e1685a40]:not(.icon) {\n  font-size: 1rem;\n  color: #2d3748;\n  font-weight: 500;\n}\n\n/* Modal styles */\n.modal-overlay[data-v-e1685a40] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.modal-content[data-v-e1685a40] {\n  background: white;\n  border-radius: 12px;\n  padding: 24px;\n  max-width: 90vw;\n  max-height: 90vh;\n  overflow: auto;\n}\n\n.voting-tool-container[data-v-c1fca634] {\n  position: fixed;\n  bottom: 20px;\n  right: 20px;\n  z-index: 999999;\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n  pointer-events: none; /* Allow clicks to pass through the container */\n}\n\n/* Floating Button */\n.floating-button[data-v-c1fca634] {\n  width: 60px;\n  height: 60px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  cursor: pointer;\n  box-shadow: 0 4px 20px rgba(230, 0, 122, 0.4);\n  transition: all 0.3s ease;\n  border: 3px solid white;\n  pointer-events: auto; /* Make the button clickable */\n}\n.floating-button[data-v-c1fca634]:hover {\n  transform: scale(1.1);\n  box-shadow: 0 6px 25px rgba(230, 0, 122, 0.6);\n}\n.floating-button.menu-open[data-v-c1fca634] {\n  background: linear-gradient(135deg, #ff1493, #e6007a);\n}\n.button-icon[data-v-c1fca634] {\n  font-size: 24px;\n  color: white;\n  font-weight: bold;\n}\n.hamburger-icon[data-v-c1fca634] {\n  display: flex;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  gap: 3px;\n}\n.hamburger-icon span[data-v-c1fca634] {\n  width: 20px;\n  height: 2px;\n  background-color: white;\n  border-radius: 1px;\n  transition: all 0.3s ease;\n}\n\n/* Dropdown Menu */\n.dropdown-menu[data-v-c1fca634] {\n  position: absolute;\n  bottom: 0;\n  right: 70px;\n  width: 280px;\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);\n  border: 1px solid #e1e5e9;\n  overflow: hidden;\n  animation: smoothExpand-c1fca634 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);\n  transform-origin: bottom right;\n  pointer-events: auto; /* Make the menu clickable */\n}\n@keyframes smoothExpand-c1fca634 {\n0% {\n    opacity: 0;\n    transform: scale(0.1);\n}\n100% {\n    opacity: 1;\n    transform: scale(1);\n}\n}\n.menu-content[data-v-c1fca634] {\n  padding: 16px 0;\n}\n.menu-item[data-v-c1fca634] {\n  display: flex;\n  align-items: center;\n  padding: 16px 20px;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n  border-bottom: 1px solid #f0f0f0;\n}\n.menu-item[data-v-c1fca634]:last-child {\n  border-bottom: none;\n}\n.menu-item[data-v-c1fca634]:hover {\n  background-color: #f8f9fa;\n}\n.menu-item .icon[data-v-c1fca634] {\n  font-size: 20px;\n  margin-right: 12px;\n  width: 24px;\n  text-align: center;\n}\n.menu-item span[data-v-c1fca634]:last-child {\n  font-size: 14px;\n  color: #333;\n  font-weight: 500;\n}\n\n/* Modal styles */\n.modal-overlay[data-v-a01f811b] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.status-modal[data-v-a01f811b] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-a01f811b] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-a01f811b] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-a01f811b] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-a01f811b]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-a01f811b] {\n  padding: 24px;\n  flex: 1;\n  overflow-y: auto;\n}\n.modal-content p[data-v-a01f811b] {\n  margin: 0 0 16px 0;\n  color: #495057;\n}\n.status-options[data-v-a01f811b] {\n  margin: 16px 0;\n}\n.status-options label[data-v-a01f811b] {\n  display: block;\n  margin-bottom: 8px;\n  font-weight: 600;\n  color: #495057;\n}\n.status-list[data-v-a01f811b] {\n  max-height: 300px;\n  overflow-y: auto;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  margin-bottom: 16px;\n}\n.status-option[data-v-a01f811b] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 12px 16px;\n  border: none;\n  border-bottom: 1px solid #f0f0f0;\n  background: white;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  font-size: 0.9rem;\n  width: 100%;\n  text-align: left;\n}\n.status-option[data-v-a01f811b]:last-child {\n  border-bottom: none;\n}\n.status-option[data-v-a01f811b]:hover {\n  background: #f8f9fa;\n}\n.status-option.selected[data-v-a01f811b] {\n  background: linear-gradient(135deg, #fff5f8, #ffe8f0);\n  border-left: 4px solid #e6007a;\n}\n.option-text[data-v-a01f811b] {\n  font-weight: 500;\n  color: #333;\n}\n.selected-indicator[data-v-a01f811b] {\n  color: #e6007a;\n  font-weight: bold;\n  font-size: 1rem;\n}\n.reason-section[data-v-a01f811b] {\n  margin: 16px 0;\n}\n.reason-section label[data-v-a01f811b] {\n  display: block;\n  margin-bottom: 8px;\n  font-weight: 600;\n  color: #495057;\n}\n.reason-section textarea[data-v-a01f811b] {\n  width: 100%;\n  padding: 12px;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  font-family: inherit;\n  font-size: 0.9rem;\n  resize: vertical;\n  transition: border-color 0.2s ease;\n}\n.reason-section textarea[data-v-a01f811b]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.modal-actions[data-v-a01f811b] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-a01f811b] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n.btn[data-v-a01f811b]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-primary[data-v-a01f811b] {\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border: 1px solid #b3005f;\n}\n.btn-primary[data-v-a01f811b]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #8a0047);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-secondary[data-v-a01f811b] {\n  background: #6c757d;\n  color: white;\n  border: 1px solid #6c757d;\n}\n.btn-secondary[data-v-a01f811b]:hover:not(:disabled) {\n  background: #5a6268;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);\n}\n@media (max-width: 768px) {\n.status-grid[data-v-a01f811b] {\n    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));\n}\n}\n\n/* Modal styles */\n.modal-overlay[data-v-5a2938ec] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.assign-modal[data-v-5a2938ec] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  overflow-y: auto;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-5a2938ec] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-5a2938ec] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-5a2938ec] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-5a2938ec]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-5a2938ec] {\n  padding: 24px;\n}\n.modal-content p[data-v-5a2938ec] {\n  margin: 0 0 16px 0;\n  color: #495057;\n}\n.modal-actions[data-v-5a2938ec] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-5a2938ec] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n.btn[data-v-5a2938ec]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-primary[data-v-5a2938ec] {\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border: 1px solid #b3005f;\n}\n.btn-primary[data-v-5a2938ec]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #8a0047);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-secondary[data-v-5a2938ec] {\n  background: #6c757d;\n  color: white;\n  border: 1px solid #6c757d;\n}\n.btn-secondary[data-v-5a2938ec]:hover:not(:disabled) {\n  background: #5a6268;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);\n}\n.error-message[data-v-5a2938ec] {\n  background-color: #fff2f0;\n  border: 1px solid #ffccc7;\n  color: #ff4d4f;\n  padding: 12px;\n  border-radius: 8px;\n  margin-bottom: 16px;\n  font-size: 0.9rem;\n}\n\n/* Modal styles */\n.modal-overlay[data-v-281fbad4] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.unassign-modal[data-v-281fbad4] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  overflow-y: auto;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-281fbad4] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-281fbad4] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-281fbad4] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-281fbad4]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-281fbad4] {\n  padding: 24px;\n}\n.modal-content p[data-v-281fbad4] {\n  margin: 0 0 16px 0;\n  color: #495057;\n}\n.form-group[data-v-281fbad4] {\n  margin-bottom: 20px;\n}\n.form-group label[data-v-281fbad4] {\n  display: block;\n  margin-bottom: 8px;\n  color: #495057;\n  font-weight: 500;\n}\n.form-control[data-v-281fbad4] {\n  width: 100%;\n  padding: 10px;\n  border: 1px solid #ced4da;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  line-height: 1.5;\n  transition: border-color 0.2s ease;\n  resize: vertical;\n}\n.form-control[data-v-281fbad4]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 2px rgba(230, 0, 122, 0.1);\n}\n.current-values[data-v-281fbad4] {\n  background: #f8f9fa;\n  padding: 16px;\n  border-radius: 8px;\n  margin-bottom: 20px;\n}\n.current-values ul[data-v-281fbad4] {\n  margin: 8px 0 0 0;\n  padding-left: 20px;\n  color: #6c757d;\n}\n.error-message[data-v-281fbad4] {\n  background-color: #fff2f0;\n  border: 1px solid #ffccc7;\n  color: #ff4d4f;\n  padding: 12px;\n  border-radius: 8px;\n  margin-bottom: 16px;\n  font-size: 0.9rem;\n}\n.modal-actions[data-v-281fbad4] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-281fbad4] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n.btn[data-v-281fbad4]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-primary[data-v-281fbad4] {\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border: 1px solid #b3005f;\n}\n.btn-primary[data-v-281fbad4]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #8a0047);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-secondary[data-v-281fbad4] {\n  background: #6c757d;\n  color: white;\n  border: 1px solid #6c757d;\n}\n.btn-secondary[data-v-281fbad4]:hover:not(:disabled) {\n  background: #5a6268;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);\n}\n\n/* Modal styles */\n.modal-overlay[data-v-eeb2c9ac] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.vote-modal[data-v-eeb2c9ac] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  overflow-y: auto;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-eeb2c9ac] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-eeb2c9ac] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-eeb2c9ac] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-eeb2c9ac]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-eeb2c9ac] {\n  padding: 24px;\n}\n.modal-content p[data-v-eeb2c9ac] {\n  margin: 0 0 16px 0;\n  color: #495057;\n}\n.vote-options[data-v-eeb2c9ac] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n  margin: 16px 0;\n}\n.vote-option[data-v-eeb2c9ac] {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  justify-content: center;\n  gap: 12px;\n  padding: 16px 20px;\n  border: 2px solid #e9ecef;\n  border-radius: 8px;\n  background: white;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  font-size: 1rem;\n  text-align: center;\n}\n.vote-option[data-v-eeb2c9ac]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);\n}\n.vote-option.selected[data-v-eeb2c9ac] {\n  border-color: #e6007a;\n  background: linear-gradient(135deg, #fff5f8, #ffe8f0);\n}\n.vote-option.aye[data-v-eeb2c9ac]:hover,\n.vote-option.aye.selected[data-v-eeb2c9ac] {\n  border-color: #28a745;\n  background: linear-gradient(135deg, #f8fff9, #e8f5e8);\n}\n.vote-option.nay[data-v-eeb2c9ac]:hover,\n.vote-option.nay.selected[data-v-eeb2c9ac] {\n  border-color: #dc3545;\n  background: linear-gradient(135deg, #fff8f8, #ffe8e8);\n}\n.vote-option.abstain[data-v-eeb2c9ac]:hover,\n.vote-option.abstain.selected[data-v-eeb2c9ac] {\n  border-color: #6f42c1;\n  background: linear-gradient(135deg, #faf8ff, #f0e8ff);\n}\n.vote-icon[data-v-eeb2c9ac] {\n  font-size: 1.5rem;\n}\n.vote-text[data-v-eeb2c9ac] {\n  font-weight: 600;\n}\n.reason-section[data-v-eeb2c9ac] {\n  margin: 16px 0;\n}\n.reason-section label[data-v-eeb2c9ac] {\n  display: block;\n  margin-bottom: 8px;\n  font-weight: 600;\n  color: #495057;\n}\n.reason-section textarea[data-v-eeb2c9ac] {\n  width: 100%;\n  padding: 12px;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  font-family: inherit;\n  font-size: 0.9rem;\n  resize: vertical;\n  transition: border-color 0.2s ease;\n}\n.reason-section textarea[data-v-eeb2c9ac]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.modal-actions[data-v-eeb2c9ac] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-eeb2c9ac] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n.btn[data-v-eeb2c9ac]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-primary[data-v-eeb2c9ac] {\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border: 1px solid #b3005f;\n}\n.btn-primary[data-v-eeb2c9ac]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #8a0047);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-secondary[data-v-eeb2c9ac] {\n  background: #6c757d;\n  color: white;\n  border: 1px solid #6c757d;\n}\n.btn-secondary[data-v-eeb2c9ac]:hover:not(:disabled) {\n  background: #5a6268;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);\n}\n@media (max-width: 768px) {\n.vote-options[data-v-eeb2c9ac] {\n    flex-direction: column;\n}\n}\n\n.modal-overlay[data-v-e479232c] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.modal-content[data-v-e479232c] {\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);\n  border: 1px solid #e1e5e9;\n  width: 400px;\n  max-width: 90vw;\n}\n.modal-header[data-v-e479232c] {\n  padding: 20px 24px 0;\n}\n.modal-header h3[data-v-e479232c] {\n  margin: 0;\n  font-size: 18px;\n  font-weight: 600;\n  color: #333;\n}\n.modal-body[data-v-e479232c] {\n  padding: 16px 24px 20px;\n}\n.modal-body p[data-v-e479232c] {\n  margin: 0;\n  color: #666;\n  line-height: 1.5;\n}\n.modal-actions[data-v-e479232c] {\n  padding: 0 24px 24px;\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n}\n.cancel-btn[data-v-e479232c], .confirm-btn[data-v-e479232c] {\n  padding: 8px 16px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.cancel-btn[data-v-e479232c] {\n  background: white;\n  color: #666;\n}\n.cancel-btn[data-v-e479232c]:hover {\n  background: #f8f9fa;\n}\n.confirm-btn[data-v-e479232c] {\n  background: #007bff;\n  color: white;\n  border-color: #007bff;\n}\n.confirm-btn[data-v-e479232c]:hover {\n  background: #0056b3;\n  border-color: #0056b3;\n}\n.confirm-btn.danger[data-v-e479232c] {\n  background: #dc3545;\n  border-color: #dc3545;\n}\n.confirm-btn.danger[data-v-e479232c]:hover {\n  background: #c82333;\n  border-color: #c82333;\n}\n.confirm-btn.warning[data-v-e479232c] {\n  background: #ffc107;\n  border-color: #ffc107;\n  color: #212529;\n}\n.confirm-btn.warning[data-v-e479232c]:hover {\n  background: #e0a800;\n  border-color: #e0a800;\n}\n.confirm-btn.primary[data-v-e479232c] {\n  background: #007bff;\n  border-color: #007bff;\n}\n.confirm-btn.primary[data-v-e479232c]:hover {\n  background: #0056b3;\n  border-color: #0056b3;\n}\n\n.team-actions-panel[data-v-66a5c8c1] {\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);\n  border: 1px solid #e1e5e9;\n  width: 500px;\n  max-height: 700px;\n  overflow: hidden;\n  display: flex;\n  flex-direction: column;\n}\n.panel-header[data-v-66a5c8c1] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 16px 20px;\n  border-bottom: 1px solid #f0f0f0;\n  background: #f8f9fa;\n}\n.panel-header h3[data-v-66a5c8c1] {\n  margin: 0;\n  font-size: 16px;\n  font-weight: 600;\n  color: #333;\n}\n.close-btn[data-v-66a5c8c1] {\n  background: none;\n  border: none;\n  font-size: 18px;\n  cursor: pointer;\n  color: #666;\n  padding: 4px;\n  border-radius: 4px;\n}\n.close-btn[data-v-66a5c8c1]:hover {\n  background: #e9ecef;\n}\n.loading-state[data-v-66a5c8c1] {\n  padding: 40px 20px;\n  text-align: center;\n  color: #666;\n}\n.spinner[data-v-66a5c8c1] {\n  width: 32px;\n  height: 32px;\n  border: 3px solid #f0f0f0;\n  border-top: 3px solid #e6007a;\n  border-radius: 50%;\n  animation: spin-66a5c8c1 1s linear infinite;\n  margin: 0 auto 16px;\n}\n@keyframes spin-66a5c8c1 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.panel-content[data-v-66a5c8c1] {\n  flex: 1;\n  overflow-y: auto;\n  padding: 20px;\n}\n.agreement-section[data-v-66a5c8c1],\n.team-status-section[data-v-66a5c8c1],\n.user-actions-section[data-v-66a5c8c1],\n.vote-section[data-v-66a5c8c1],\n.discussion-section[data-v-66a5c8c1] {\n  margin-bottom: 24px;\n}\n.agreement-section h4[data-v-66a5c8c1],\n.team-status-section h4[data-v-66a5c8c1],\n.user-actions-section h4[data-v-66a5c8c1],\n.vote-section h4[data-v-66a5c8c1],\n.discussion-section h4[data-v-66a5c8c1] {\n  margin: 0 0 12px 0;\n  font-size: 14px;\n  font-weight: 600;\n  color: #333;\n}\n.agreement-bar[data-v-66a5c8c1] {\n  margin-bottom: 8px;\n}\n.progress-bar[data-v-66a5c8c1] {\n  width: 100%;\n  height: 8px;\n  background: #f0f0f0;\n  border-radius: 4px;\n  overflow: hidden;\n  margin-bottom: 8px;\n}\n.progress-fill[data-v-66a5c8c1] {\n  height: 100%;\n  background: linear-gradient(135deg, #28a745, #20c997);\n  transition: width 0.3s ease;\n}\n.progress-fill.vetoed[data-v-66a5c8c1] {\n  background: linear-gradient(135deg, #dc3545, #c82333);\n}\n.agreement-text[data-v-66a5c8c1] {\n  font-size: 12px;\n  color: #666;\n  text-align: center;\n}\n.veto-text[data-v-66a5c8c1] {\n  color: #dc3545;\n  font-weight: 600;\n}\n.veto-reason[data-v-66a5c8c1] {\n  margin-top: 8px;\n  padding: 8px;\n  background: #f8d7da;\n  border: 1px solid #f5c6cb;\n  border-radius: 4px;\n  font-size: 12px;\n  color: #721c24;\n}\n.team-members[data-v-66a5c8c1] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n.member-status[data-v-66a5c8c1] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 8px;\n  border-radius: 6px;\n  border: 1px solid #e9ecef;\n}\n.member-status.agreed[data-v-66a5c8c1] {\n  background: #d4edda;\n  border-color: #c3e6cb;\n}\n.member-status.recused[data-v-66a5c8c1] {\n  background: #f8f9fa;\n  border-color: #dee2e6;\n}\n.member-status.discuss[data-v-66a5c8c1] {\n  background: #fff3cd;\n  border-color: #ffeaa7;\n}\n.member-info[data-v-66a5c8c1] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n.member-avatar[data-v-66a5c8c1] {\n  width: 24px;\n  height: 24px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: white;\n  font-weight: bold;\n  font-size: 10px;\n}\n.member-name[data-v-66a5c8c1] {\n  font-size: 12px;\n  font-weight: 500;\n  color: #333;\n}\n.member-address[data-v-66a5c8c1] {\n  font-size: 10px;\n  color: #666;\n  font-family: monospace;\n}\n.action-badge[data-v-66a5c8c1] {\n  font-size: 10px;\n  padding: 2px 6px;\n  border-radius: 3px;\n  font-weight: 500;\n}\n.action-agreed[data-v-66a5c8c1] {\n  background: #28a745;\n  color: white;\n}\n.action-recused[data-v-66a5c8c1] {\n  background: #6c757d;\n  color: white;\n}\n.action-discuss[data-v-66a5c8c1] {\n  background: #ffc107;\n  color: #212529;\n}\n.action-pending[data-v-66a5c8c1] {\n  background: #e9ecef;\n  color: #666;\n}\n.action-buttons[data-v-66a5c8c1] {\n  display: grid;\n  grid-template-columns: 1fr 1fr;\n  gap: 8px;\n}\n.action-btn[data-v-66a5c8c1] {\n  padding: 8px 12px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  background: white;\n  cursor: pointer;\n  font-size: 12px;\n  font-weight: 500;\n  transition: all 0.2s ease;\n}\n.action-btn[data-v-66a5c8c1]:hover:not(:disabled) {\n  background: #f8f9fa;\n}\n.action-btn.active[data-v-66a5c8c1] {\n  border-color: #e6007a;\n  background: #e6007a;\n  color: white;\n}\n.action-btn[data-v-66a5c8c1]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.agree-btn.active[data-v-66a5c8c1] {\n  background: #28a745;\n  border-color: #28a745;\n}\n.discuss-btn.active[data-v-66a5c8c1] {\n  background: #ffc107;\n  border-color: #ffc107;\n  color: #212529;\n}\n.veto-btn.active[data-v-66a5c8c1] {\n  background: #dc3545;\n  border-color: #dc3545;\n}\n.recuse-btn.active[data-v-66a5c8c1] {\n  background: #6c757d;\n  border-color: #6c757d;\n}\n.vote-buttons[data-v-66a5c8c1] {\n  display: flex;\n  gap: 8px;\n  margin-bottom: 12px;\n}\n.vote-btn[data-v-66a5c8c1] {\n  flex: 1;\n  padding: 8px 12px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  background: white;\n  cursor: pointer;\n  font-size: 12px;\n  font-weight: 500;\n  transition: all 0.2s ease;\n}\n.vote-btn[data-v-66a5c8c1]:hover:not(:disabled) {\n  background: #f8f9fa;\n}\n.vote-btn.active[data-v-66a5c8c1] {\n  color: white;\n}\n.aye-btn.active[data-v-66a5c8c1] {\n  background: #28a745;\n  border-color: #28a745;\n}\n.nay-btn.active[data-v-66a5c8c1] {\n  background: #dc3545;\n  border-color: #dc3545;\n}\n.abstain-btn.active[data-v-66a5c8c1] {\n  background: #6c757d;\n  border-color: #6c757d;\n}\n.reason-input[data-v-66a5c8c1] {\n  width: 100%;\n  min-height: 60px;\n  padding: 8px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 12px;\n  resize: vertical;\n}\n.comments-list[data-v-66a5c8c1] {\n  max-height: 280px;\n  overflow-y: auto;\n  margin-bottom: 16px;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  background: #fafbfc;\n}\n.comment[data-v-66a5c8c1] {\n  padding: 12px;\n  border-bottom: 1px solid #f0f0f0;\n}\n.comment[data-v-66a5c8c1]:last-child {\n  border-bottom: none;\n}\n.comment-header[data-v-66a5c8c1] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 8px;\n}\n.comment-author[data-v-66a5c8c1] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n.author-avatar[data-v-66a5c8c1] {\n  width: 20px;\n  height: 20px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: white;\n  font-weight: bold;\n  font-size: 8px;\n}\n.author-name[data-v-66a5c8c1] {\n  font-size: 11px;\n  font-weight: 500;\n  color: #333;\n}\n.comment-time[data-v-66a5c8c1] {\n  font-size: 10px;\n  color: #666;\n}\n.delete-comment-btn[data-v-66a5c8c1] {\n  background: none;\n  border: none;\n  font-size: 12px;\n  cursor: pointer;\n  color: #666;\n  padding: 2px;\n  border-radius: 3px;\n}\n.delete-comment-btn[data-v-66a5c8c1]:hover {\n  background: #f8f9fa;\n}\n.comment-content[data-v-66a5c8c1] {\n  font-size: 12px;\n  color: #333;\n  line-height: 1.4;\n}\n.no-comments[data-v-66a5c8c1] {\n  padding: 40px 20px;\n  text-align: center;\n}\n.empty-state[data-v-66a5c8c1] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 8px;\n}\n.empty-icon[data-v-66a5c8c1] {\n  font-size: 32px;\n  opacity: 0.5;\n}\n.empty-text[data-v-66a5c8c1] {\n  font-size: 14px;\n  font-weight: 500;\n  color: #666;\n}\n.empty-subtext[data-v-66a5c8c1] {\n  font-size: 12px;\n  color: #999;\n}\n.add-comment[data-v-66a5c8c1] {\n  border-top: 1px solid #e9ecef;\n  padding-top: 16px;\n}\n.comment-input-wrapper[data-v-66a5c8c1] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n.comment-input[data-v-66a5c8c1] {\n  min-height: 80px;\n  padding: 12px;\n  border: 2px solid #dee2e6;\n  border-radius: 8px;\n  font-size: 13px;\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n  resize: vertical;\n  transition: border-color 0.2s ease;\n}\n.comment-input[data-v-66a5c8c1]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.comment-actions[data-v-66a5c8c1] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}\n.comment-hint[data-v-66a5c8c1] {\n  flex: 1;\n}\n.hint-text[data-v-66a5c8c1] {\n  font-size: 11px;\n  color: #666;\n}\n.add-comment-btn[data-v-66a5c8c1] {\n  padding: 8px 16px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n  border: none;\n  border-radius: 8px;\n  font-size: 13px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  display: flex;\n  align-items: center;\n  gap: 4px;\n}\n.add-comment-btn[data-v-66a5c8c1]:hover:not(:disabled) {\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.add-comment-btn[data-v-66a5c8c1]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n/* Modal Styles */\n.modal-overlay[data-v-66a5c8c1] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.modal-content[data-v-66a5c8c1] {\n  background: white;\n  border-radius: 12px;\n  padding: 24px;\n  max-width: 400px;\n  width: 90%;\n}\n.modal-content h3[data-v-66a5c8c1] {\n  margin: 0 0 16px 0;\n  font-size: 18px;\n  color: #333;\n}\n.veto-reason-input[data-v-66a5c8c1] {\n  width: 100%;\n  min-height: 80px;\n  padding: 12px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 14px;\n  margin: 16px 0;\n  resize: vertical;\n}\n.modal-actions[data-v-66a5c8c1] {\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n}\n.cancel-btn[data-v-66a5c8c1],\n.veto-confirm-btn[data-v-66a5c8c1] {\n  padding: 8px 16px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 14px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.cancel-btn[data-v-66a5c8c1] {\n  background: white;\n  color: #333;\n}\n.cancel-btn[data-v-66a5c8c1]:hover {\n  background: #f8f9fa;\n}\n.veto-confirm-btn[data-v-66a5c8c1] {\n  background: #dc3545;\n  color: white;\n  border-color: #dc3545;\n}\n.veto-confirm-btn[data-v-66a5c8c1]:hover:not(:disabled) {\n  background: #c82333;\n}\n.veto-confirm-btn[data-v-66a5c8c1]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n/* Veto Reason Section */\n.veto-reason-section[data-v-66a5c8c1] {\n  background: #fff5f5;\n  border: 1px solid #fed7d7;\n  border-radius: 8px;\n  padding: 16px;\n  margin-bottom: 20px;\n}\n.veto-reason-section h4[data-v-66a5c8c1] {\n  margin: 0 0 12px 0;\n  color: #e53e3e;\n  font-size: 1rem;\n  font-weight: 600;\n}\n.veto-reason-content[data-v-66a5c8c1] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n.veto-by[data-v-66a5c8c1] {\n  font-size: 0.9rem;\n  color: #e53e3e;\n}\n.veto-reason-text[data-v-66a5c8c1] {\n  font-size: 0.9rem;\n  color: #2d3748;\n  background: white;\n  padding: 12px;\n  border-radius: 6px;\n  white-space: pre-wrap;\n}\n\n.voting-tool-controls[data-v-9f2310c4] {\n  background: linear-gradient(135deg, #ffffff, #f8f9fa);\n  border: 2px solid #e6007a;\n  border-radius: 12px;\n  padding: 16px;\n  margin-bottom: 16px;\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.15);\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n}\n.controls-header[data-v-9f2310c4] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 12px;\n}\n.controls-title[data-v-9f2310c4] {\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #e6007a;\n  margin: 0;\n}\n.status-badge-wrapper[data-v-9f2310c4] {\n  display: flex;\n  align-items: center;\n}\n.status-badge[data-v-9f2310c4] {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  padding: 6px 12px;\n  border-radius: 12px;\n  font-size: 0.8rem;\n  font-weight: 600;\n  border: 1px solid rgba(255, 255, 255, 0.6);\n  transition: all 0.2s ease;\n  user-select: none;\n  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);\n  backdrop-filter: blur(3px);\n  white-space: nowrap;\n  min-width: 100px;\n  justify-content: center;\n}\n.status-clickable[data-v-9f2310c4] {\n  cursor: pointer;\n}\n.status-clickable[data-v-9f2310c4]:hover {\n  transform: translateY(-1px) scale(1.02);\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);\n  border-color: rgba(255, 255, 255, 1);\n}\n.status-icon[data-v-9f2310c4] {\n  font-size: 0.9rem;\n}\n.edit-icon[data-v-9f2310c4] {\n  font-size: 0.8rem;\n  opacity: 0.7;\n}\n\n/* Status color classes */\n.status-not-started[data-v-9f2310c4] { \n  background: linear-gradient(135deg, #6c757d, #5a6268); \n  color: white;\n}\n.status-considering[data-v-9f2310c4] { \n  background: linear-gradient(135deg, #ffc107, #e0a800); \n  color: #212529;\n}\n.status-ready-for-approval[data-v-9f2310c4] { \n  background: linear-gradient(135deg, #17a2b8, #138496); \n  color: white;\n}\n.status-waiting-for-agreement[data-v-9f2310c4] { \n  background: linear-gradient(135deg, #fd7e14, #e8680b); \n  color: white;\n}\n.status-ready-to-vote[data-v-9f2310c4] { \n  background: linear-gradient(135deg, #28a745, #1e7e34); \n  color: white;\n}\n.status-reconsidering[data-v-9f2310c4] { \n  background: linear-gradient(135deg, #dc3545, #c82333); \n  color: white;\n}\n.status-voted-----aye----[data-v-9f2310c4] { \n  background: linear-gradient(135deg, #198754, #155724); \n  color: white;\n}\n.status-voted-----nay----[data-v-9f2310c4] { \n  background: linear-gradient(135deg, #dc3545, #c82333); \n  color: white;\n}\n.status-voted------abstain------[data-v-9f2310c4] { \n  background: linear-gradient(135deg, #6f42c1, #5a32a3); \n  color: white;\n}\n.status-not-voted[data-v-9f2310c4] { \n  background: linear-gradient(135deg, #e9ecef, #dee2e6); \n  color: #495057;\n}\n.controls-actions[data-v-9f2310c4] {\n  display: flex;\n  gap: 12px;\n  flex-wrap: wrap;\n}\n.control-btn[data-v-9f2310c4] {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n  padding: 8px 16px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n  flex: 1;\n  justify-content: center;\n  min-width: 140px;\n}\n.control-btn[data-v-9f2310c4]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.assign-btn[data-v-9f2310c4] {\n  background: var(--assign-gradient);\n  color: white;\n  border: 1px solid var(--assign-border);\n}\n.assign-btn[data-v-9f2310c4]:hover:not(:disabled) {\n  background: var(--assign-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px var(--assign-shadow);\n}\n.vote-btn[data-v-9f2310c4] {\n  background: var(--primary-gradient);\n  color: white;\n  border: 1px solid var(--primary-border);\n}\n.vote-btn[data-v-9f2310c4]:hover:not(:disabled) {\n  background: var(--primary-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px var(--primary-shadow);\n}\n.btn-icon[data-v-9f2310c4] {\n  font-size: 1rem;\n}\n.btn-text[data-v-9f2310c4] {\n  font-size: 0.9rem;\n}\n\n/* Team Panel Styles */\n.team-btn[data-v-9f2310c4] {\n  background: var(--team-gradient);\n  color: white;\n  border: 1px solid var(--team-border);\n}\n.team-btn[data-v-9f2310c4]:hover:not(:disabled) {\n  background: var(--team-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px var(--team-shadow);\n}\n.team-panel-overlay[data-v-9f2310c4] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.team-panel-wrapper[data-v-9f2310c4] {\n  max-width: 90vw;\n  max-height: 90vh;\n  overflow: auto;\n}\n\n/* Removed modal styles - now in separate modal components */\n@media (max-width: 768px) {\n.controls-actions[data-v-9f2310c4] {\n    flex-direction: column;\n}\n.control-btn[data-v-9f2310c4] {\n    min-width: auto;\n}\n.vote-options[data-v-9f2310c4] {\n    flex-direction: column;\n}\n.status-grid[data-v-9f2310c4] {\n    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));\n}\n}\n/* OpenGov VotingTool Design System */\n/* Based on Polkassembly design patterns but platform-agnostic */\n\n:root {\n  /* Color Palette - Polkassembly-inspired */\n  --primary: #e6007a;          /* Polkadot pink */\n  --primary-dark: #b3005f;\n  --primary-light: #ff1a8c;\n  --primary-gradient: linear-gradient(135deg, var(--primary), var(--primary-dark));\n  --primary-gradient-hover: linear-gradient(135deg, var(--primary-dark), #8a0047);\n  --primary-shadow: rgba(230, 0, 122, 0.3);\n  \n  --secondary: #000000;        /* Kusama black */\n  --secondary-light: #333333;\n  --secondary-gradient: linear-gradient(135deg, var(--gray-500), var(--gray-600));\n  --secondary-gradient-hover: linear-gradient(135deg, var(--gray-600), var(--gray-700));\n  --secondary-shadow: rgba(108, 117, 125, 0.3);\n  \n  --accent: #007bff;           /* Blue accent */\n  --accent-light: #3399ff;\n  --accent-dark: #0056b3;\n  \n  /* Team Action Colors */\n  --team: #17a2b8;\n  --team-dark: #138496;\n  --team-gradient: linear-gradient(135deg, var(--team), var(--team-dark));\n  --team-gradient-hover: linear-gradient(135deg, var(--team-dark), #117a8b);\n  --team-shadow: rgba(23, 162, 184, 0.3);\n  \n  /* Assign Button Colors */\n  --assign: #28a745;\n  --assign-dark: #1e7e34;\n  --assign-gradient: linear-gradient(135deg, var(--assign), var(--assign-dark));\n  --assign-gradient-hover: linear-gradient(135deg, var(--assign-dark), #155724);\n  --assign-shadow: rgba(40, 167, 69, 0.3);\n  \n  /* Status Colors */\n  --success: var(--assign);\n  --warning: #ffc107;\n  --danger: #dc3545;\n  --info: var(--team);\n  \n  /* Status-specific Colors */\n  --status-not-started: var(--gray-500);\n  --status-considering: var(--warning);\n  --status-ready-for-approval: var(--info);\n  --status-waiting-for-agreement: #fd7e14;\n  --status-ready-to-vote: var(--success);\n  --status-reconsidering: var(--danger);\n  --status-voted-aye: #198754;\n  --status-voted-nay: var(--danger);\n  --status-voted-abstain: #6f42c1;\n  --status-not-voted: var(--gray-100);\n  \n  /* Neutral Colors */\n  --white: #ffffff;\n  --gray-50: #f8f9fa;\n  --gray-100: #e9ecef;\n  --gray-200: #dee2e6;\n  --gray-300: #ced4da;\n  --gray-400: #adb5bd;\n  --gray-500: #6c757d;\n  --gray-600: #495057;\n  --gray-700: #343a40;\n  --gray-800: #212529;\n  --gray-900: #000000;\n  \n  /* Typography */\n  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n  --font-size-xs: 0.75rem;\n  --font-size-sm: 0.875rem;\n  --font-size-base: 1rem;\n  --font-size-lg: 1.125rem;\n  --font-size-xl: 1.25rem;\n  --font-size-2xl: 1.5rem;\n  --font-size-3xl: 1.875rem;\n  \n  /* Spacing */\n  --spacing-1: 0.25rem;\n  --spacing-2: 0.5rem;\n  --spacing-3: 0.75rem;\n  --spacing-4: 1rem;\n  --spacing-5: 1.25rem;\n  --spacing-6: 1.5rem;\n  --spacing-8: 2rem;\n  --spacing-10: 2.5rem;\n  --spacing-12: 3rem;\n  --spacing-16: 4rem;\n  \n  /* Border Radius */\n  --radius-sm: 0.25rem;\n  --radius-md: 0.375rem;\n  --radius-lg: 0.5rem;\n  --radius-xl: 0.75rem;\n  --radius-2xl: 1rem;\n  --radius-3xl: 1.5rem;\n  \n  /* Shadows */\n  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);\n  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);\n  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);\n  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);\n  \n  /* Z-index */\n  --z-dropdown: 1000;\n  --z-sticky: 1020;\n  --z-fixed: 1030;\n  --z-modal-backdrop: 1040;\n  --z-modal: 1050;\n  --z-popover: 1060;\n  --z-tooltip: 1070;\n  --z-overlay: 999999;\n}\n\n/* Base Styles */\n* {\n  box-sizing: border-box;\n}\n\nbody {\n  font-family: var(--font-family);\n  line-height: 1.5;\n  color: var(--gray-800);\n}\n\n/* Typography */\n.text-xs { font-size: var(--font-size-xs); }\n.text-sm { font-size: var(--font-size-sm); }\n.text-base { font-size: var(--font-size-base); }\n.text-lg { font-size: var(--font-size-lg); }\n.text-xl { font-size: var(--font-size-xl); }\n.text-2xl { font-size: var(--font-size-2xl); }\n.text-3xl { font-size: var(--font-size-3xl); }\n\n.font-normal { font-weight: 400; }\n.font-medium { font-weight: 500; }\n.font-semibold { font-weight: 600; }\n.font-bold { font-weight: 700; }\n\n/* Buttons */\n.btn {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  padding: var(--spacing-3) var(--spacing-4);\n  border: none;\n  border-radius: var(--radius-lg);\n  font-size: var(--font-size-sm);\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n\n.btn:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n.btn-primary {\n  background: var(--primary-gradient);\n  color: var(--white);\n  border: 1px solid var(--primary-dark);\n}\n\n.btn-primary:hover:not(:disabled) {\n  background: var(--primary-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 0 10px var(--primary-shadow);\n}\n\n.btn-secondary {\n  background: var(--secondary-gradient);\n  color: var(--white);\n  border: 1px solid var(--gray-600);\n}\n\n.btn-secondary:hover:not(:disabled) {\n  background: var(--secondary-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 0 10px var(--secondary-shadow);\n}\n\n.btn-team {\n  background: var(--team-gradient);\n  color: var(--white);\n  border: 1px solid var(--team-dark);\n}\n\n.btn-team:hover:not(:disabled) {\n  background: var(--team-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 0 10px var(--team-shadow);\n}\n\n.btn-assign {\n  background: var(--assign-gradient);\n  color: var(--white);\n  border: 1px solid var(--assign-dark);\n}\n\n.btn-assign:hover:not(:disabled) {\n  background: var(--assign-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 0 10px var(--assign-shadow);\n}\n\n.btn-outline {\n  background: transparent;\n  color: var(--primary);\n  border: 2px solid var(--primary);\n}\n\n.btn-outline:hover:not(:disabled) {\n  background: var(--primary-gradient);\n  color: var(--white);\n}\n\n/* Status-specific buttons */\n.btn-status {\n  font-weight: 600;\n  padding: var(--spacing-2) var(--spacing-4);\n  border-radius: var(--radius-lg);\n  transition: all 0.2s ease;\n}\n\n.btn-status-not-started { background: var(--status-not-started); color: var(--white); }\n.btn-status-considering { background: var(--status-considering); color: var(--gray-900); }\n.btn-status-ready-for-approval { background: var(--status-ready-for-approval); color: var(--white); }\n.btn-status-waiting-for-agreement { background: var(--status-waiting-for-agreement); color: var(--white); }\n.btn-status-ready-to-vote { background: var(--status-ready-to-vote); color: var(--white); }\n.btn-status-reconsidering { background: var(--status-reconsidering); color: var(--white); }\n.btn-status-voted-aye { background: var(--status-voted-aye); color: var(--white); }\n.btn-status-voted-nay { background: var(--status-voted-nay); color: var(--white); }\n.btn-status-voted-abstain { background: var(--status-voted-abstain); color: var(--white); }\n.btn-status-not-voted { background: var(--status-not-voted); color: var(--gray-900); }\n\n/* Cards */\n.card {\n  background: var(--white);\n  border-radius: var(--radius-xl);\n  box-shadow: var(--shadow-lg);\n  overflow: hidden;\n}\n\n.card-header {\n  padding: var(--spacing-6);\n  border-bottom: 1px solid var(--gray-200);\n  background: var(--gray-50);\n}\n\n.card-body {\n  padding: var(--spacing-6);\n}\n\n.card-footer {\n  padding: var(--spacing-6);\n  border-top: 1px solid var(--gray-200);\n  background: var(--gray-50);\n}\n\n/* Badges */\n.badge {\n  display: inline-flex;\n  align-items: center;\n  padding: var(--spacing-1) var(--spacing-2);\n  border-radius: var(--radius-2xl);\n  font-size: var(--font-size-xs);\n  font-weight: 600;\n  text-align: center;\n  white-space: nowrap;\n}\n\n.badge-primary { background: var(--primary); color: var(--white); }\n.badge-secondary { background: var(--secondary); color: var(--white); }\n.badge-accent { background: var(--accent); color: var(--white); }\n.badge-success { background: var(--success); color: var(--white); }\n.badge-warning { background: var(--warning); color: var(--gray-800); }\n.badge-danger { background: var(--danger); color: var(--white); }\n.badge-info { background: var(--info); color: var(--white); }\n\n/* Forms */\n.form-group {\n  margin-bottom: var(--spacing-4);\n}\n\n.form-label {\n  display: block;\n  margin-bottom: var(--spacing-2);\n  font-weight: 600;\n  color: var(--gray-700);\n}\n\n.form-control {\n  width: 100%;\n  padding: var(--spacing-3);\n  border: 2px solid var(--gray-300);\n  border-radius: var(--radius-lg);\n  font-size: var(--font-size-base);\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n\n.form-control:focus {\n  outline: none;\n  border-color: var(--primary);\n  box-shadow: 0 0 0 3px var(--primary-shadow);\n}\n\n.form-control:disabled {\n  background-color: var(--gray-100);\n  color: var(--gray-500);\n}\n\n/* Modals */\n.modal-overlay {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: var(--z-modal-backdrop);\n}\n\n.modal {\n  background: var(--white);\n  border-radius: var(--radius-xl);\n  box-shadow: var(--shadow-xl);\n  width: 90%;\n  max-width: 500px;\n  max-height: 90vh;\n  overflow-y: auto;\n  z-index: var(--z-modal);\n}\n\n.modal-header {\n  padding: var(--spacing-4) var(--spacing-6);\n  border-bottom: 1px solid var(--gray-200);\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n}\n\n.modal-header h3 {\n  margin: 0;\n  font-size: var(--font-size-xl);\n  color: var(--gray-900);\n}\n\n.modal-content {\n  padding: var(--spacing-6);\n}\n\n.modal-footer {\n  padding: var(--spacing-4) var(--spacing-6);\n  border-top: 1px solid var(--gray-200);\n  display: flex;\n  justify-content: flex-end;\n  gap: var(--spacing-3);\n}\n\n.close-btn {\n  background: transparent;\n  border: none;\n  font-size: var(--font-size-xl);\n  color: var(--gray-500);\n  cursor: pointer;\n  padding: var(--spacing-1) var(--spacing-2);\n  border-radius: var(--radius-md);\n  transition: all 0.2s ease;\n}\n\n.close-btn:hover {\n  color: var(--gray-700);\n  background: var(--gray-100);\n}\n\n/* Component-specific Modals */\n.assign-modal,\n.unassign-modal {\n  background: var(--white);\n  border-radius: var(--radius-xl);\n  box-shadow: var(--shadow-xl);\n  width: 90%;\n  max-width: 500px;\n  max-height: 90vh;\n  overflow-y: auto;\n  z-index: var(--z-modal);\n}\n\n.assign-modal .modal-content,\n.unassign-modal .modal-content {\n  display: flex;\n  flex-direction: column;\n  gap: var(--spacing-4);\n}\n\n.assign-modal .form-group,\n.unassign-modal .form-group {\n  margin-bottom: 0;\n}\n\n.assign-modal .error-message,\n.unassign-modal .error-message {\n  color: var(--danger);\n  font-size: var(--font-size-sm);\n  margin-top: var(--spacing-2);\n  padding: var(--spacing-2);\n  background: rgba(220, 53, 69, 0.1);\n  border-radius: var(--radius-md);\n}\n\n.assign-modal .old-value,\n.unassign-modal .old-value {\n  color: var(--gray-500);\n  text-decoration: line-through;\n}\n\n.assign-modal .new-value,\n.unassign-modal .new-value {\n  color: var(--success);\n  font-weight: 600;\n}\n\n/* Settings Panel */\n.settings-panel {\n  background: var(--white);\n  border-radius: var(--radius-xl);\n  box-shadow: var(--shadow-lg);\n  overflow: hidden;\n}\n\n.settings-panel-header {\n  padding: var(--spacing-4) var(--spacing-6);\n  background: var(--gray-50);\n  border-bottom: 1px solid var(--gray-200);\n}\n\n.settings-panel-content {\n  padding: var(--spacing-6);\n}\n\n.settings-panel-footer {\n  padding: var(--spacing-4) var(--spacing-6);\n  background: var(--gray-50);\n  border-top: 1px solid var(--gray-200);\n  border-bottom-left-radius: var(--radius-xl);\n  border-bottom-right-radius: var(--radius-xl);\n}\n\n/* Utilities */\n.text-center { text-align: center; }\n.text-left { text-align: left; }\n.text-right { text-align: right; }\n\n.mt-1 { margin-top: var(--spacing-1); }\n.mt-2 { margin-top: var(--spacing-2); }\n.mt-3 { margin-top: var(--spacing-3); }\n.mt-4 { margin-top: var(--spacing-4); }\n.mt-5 { margin-top: var(--spacing-5); }\n.mt-6 { margin-top: var(--spacing-6); }\n\n.mb-1 { margin-bottom: var(--spacing-1); }\n.mb-2 { margin-bottom: var(--spacing-2); }\n.mb-3 { margin-bottom: var(--spacing-3); }\n.mb-4 { margin-bottom: var(--spacing-4); }\n.mb-5 { margin-bottom: var(--spacing-5); }\n.mb-6 { margin-bottom: var(--spacing-6); }\n\n.p-1 { padding: var(--spacing-1); }\n.p-2 { padding: var(--spacing-2); }\n.p-3 { padding: var(--spacing-3); }\n.p-4 { padding: var(--spacing-4); }\n.p-5 { padding: var(--spacing-5); }\n.p-6 { padding: var(--spacing-6); }\n\n/* Responsive */\n@media (max-width: 768px) {\n  .btn {\n    width: 100%;\n    justify-content: center;\n  }\n  \n  .card-header,\n  .card-body,\n  .card-footer {\n    padding: var(--spacing-4);\n  }\n} /*$vite$:1*/";
   document.head.appendChild(__vite_style__);
   /**
   * @vue/shared v3.5.20
@@ -11102,75 +11102,75 @@ var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "
     if (!dateString) return "";
     return new Date(dateString).toLocaleDateString();
   };
-  const _hoisted_1$g = { class: "wallet-connect" };
-  const _hoisted_2$g = { class: "connect-header" };
-  const _hoisted_3$g = { class: "connect-content" };
-  const _hoisted_4$e = {
+  const _hoisted_1$f = { class: "wallet-connect" };
+  const _hoisted_2$f = { class: "connect-header" };
+  const _hoisted_3$f = { class: "connect-content" };
+  const _hoisted_4$d = {
     key: 0,
     class: "step-content"
   };
-  const _hoisted_5$e = { class: "wallet-options" };
-  const _hoisted_6$c = {
+  const _hoisted_5$d = { class: "wallet-options" };
+  const _hoisted_6$b = {
     key: 0,
     class: "wallet-list"
   };
-  const _hoisted_7$b = ["onClick", "disabled"];
-  const _hoisted_8$a = { class: "wallet-icon" };
-  const _hoisted_9$a = ["src", "alt"];
-  const _hoisted_10$a = {
+  const _hoisted_7$a = ["onClick", "disabled"];
+  const _hoisted_8$9 = { class: "wallet-icon" };
+  const _hoisted_9$9 = ["src", "alt"];
+  const _hoisted_10$9 = {
     class: "wallet-icon-fallback",
     style: { "display": "none" }
   };
-  const _hoisted_11$9 = { class: "wallet-info" };
-  const _hoisted_12$7 = { class: "wallet-name" };
-  const _hoisted_13$6 = {
+  const _hoisted_11$8 = { class: "wallet-info" };
+  const _hoisted_12$6 = { class: "wallet-name" };
+  const _hoisted_13$5 = {
     key: 0,
     class: "loading-spinner"
   };
-  const _hoisted_14$5 = {
+  const _hoisted_14$4 = {
     key: 1,
     class: "no-wallets"
   };
-  const _hoisted_15$5 = { class: "extension-status" };
-  const _hoisted_16$5 = {
+  const _hoisted_15$4 = { class: "extension-status" };
+  const _hoisted_16$4 = {
     key: 0,
     class: "status-checking"
   };
-  const _hoisted_17$5 = {
+  const _hoisted_17$4 = {
     key: 1,
     class: "status-not-found"
   };
-  const _hoisted_18$5 = {
+  const _hoisted_18$4 = {
     key: 2,
     class: "status-found"
   };
-  const _hoisted_19$5 = {
+  const _hoisted_19$4 = {
     key: 1,
     class: "step-content"
   };
-  const _hoisted_20$5 = { class: "account-list" };
-  const _hoisted_21$5 = ["onClick"];
-  const _hoisted_22$5 = { class: "account-avatar" };
-  const _hoisted_23$5 = { class: "account-info" };
-  const _hoisted_24$5 = { class: "account-name" };
-  const _hoisted_25$5 = { class: "account-address" };
-  const _hoisted_26$5 = { class: "account-check" };
-  const _hoisted_27$5 = { class: "step-actions" };
-  const _hoisted_28$5 = ["disabled"];
-  const _hoisted_29$5 = {
+  const _hoisted_20$4 = { class: "account-list" };
+  const _hoisted_21$4 = ["onClick"];
+  const _hoisted_22$4 = { class: "account-avatar" };
+  const _hoisted_23$4 = { class: "account-info" };
+  const _hoisted_24$4 = { class: "account-name" };
+  const _hoisted_25$4 = { class: "account-address" };
+  const _hoisted_26$4 = { class: "account-check" };
+  const _hoisted_27$4 = { class: "step-actions" };
+  const _hoisted_28$4 = ["disabled"];
+  const _hoisted_29$4 = {
     key: 2,
     class: "step-content"
   };
-  const _hoisted_30$5 = { class: "sign-message" };
-  const _hoisted_31$5 = { class: "message-content" };
-  const _hoisted_32$5 = { class: "step-actions" };
-  const _hoisted_33$5 = ["disabled"];
-  const _hoisted_34$5 = {
+  const _hoisted_30$4 = { class: "sign-message" };
+  const _hoisted_31$4 = { class: "message-content" };
+  const _hoisted_32$4 = { class: "step-actions" };
+  const _hoisted_33$4 = ["disabled"];
+  const _hoisted_34$4 = {
     key: 3,
     class: "error-message"
   };
-  const _hoisted_35$5 = { class: "error-text" };
-  const _sfc_main$g = /* @__PURE__ */ defineComponent({
+  const _hoisted_35$4 = { class: "error-text" };
+  const _sfc_main$f = /* @__PURE__ */ defineComponent({
     __name: "WalletConnect",
     emits: ["close"],
     setup(__props, { emit: __emit }) {
@@ -11428,19 +11428,19 @@ Your address: ${address}${configuredMultisigs}
 💡 ${suggestion}`;
       };
       return (_ctx, _cache) => {
-        return openBlock(), createElementBlock("div", _hoisted_1$g, [
-          createBaseVNode("div", _hoisted_2$g, [
+        return openBlock(), createElementBlock("div", _hoisted_1$f, [
+          createBaseVNode("div", _hoisted_2$f, [
             _cache[3] || (_cache[3] = createBaseVNode("h3", null, "Connect Wallet", -1)),
             createBaseVNode("button", {
               onClick: _cache[0] || (_cache[0] = ($event) => _ctx.$emit("close")),
               class: "close-btn"
             }, "✕")
           ]),
-          createBaseVNode("div", _hoisted_3$g, [
-            step.value === "select" ? (openBlock(), createElementBlock("div", _hoisted_4$e, [
+          createBaseVNode("div", _hoisted_3$f, [
+            step.value === "select" ? (openBlock(), createElementBlock("div", _hoisted_4$d, [
               _cache[8] || (_cache[8] = createBaseVNode("div", { class: "step-description" }, " Choose your Polkadot wallet to connect: ", -1)),
-              createBaseVNode("div", _hoisted_5$e, [
-                availableWallets.value.length > 0 ? (openBlock(), createElementBlock("div", _hoisted_6$c, [
+              createBaseVNode("div", _hoisted_5$d, [
+                availableWallets.value.length > 0 ? (openBlock(), createElementBlock("div", _hoisted_6$b, [
                   (openBlock(true), createElementBlock(Fragment, null, renderList(availableWallets.value, (wallet) => {
                     return openBlock(), createElementBlock("div", {
                       key: wallet.key,
@@ -11448,29 +11448,29 @@ Your address: ${address}${configuredMultisigs}
                       class: "wallet-option",
                       disabled: isConnecting.value
                     }, [
-                      createBaseVNode("div", _hoisted_8$a, [
+                      createBaseVNode("div", _hoisted_8$9, [
                         createBaseVNode("img", {
                           src: getWalletIcon(wallet.key),
                           alt: wallet.name,
                           onError: handleIconError,
                           onerror: `this.style.display='none'; this.nextElementSibling.style.display='block'`
-                        }, null, 40, _hoisted_9$a),
-                        createBaseVNode("span", _hoisted_10$a, toDisplayString(getWalletEmoji(wallet.key)), 1)
+                        }, null, 40, _hoisted_9$9),
+                        createBaseVNode("span", _hoisted_10$9, toDisplayString(getWalletEmoji(wallet.key)), 1)
                       ]),
-                      createBaseVNode("div", _hoisted_11$9, [
-                        createBaseVNode("div", _hoisted_12$7, toDisplayString(wallet.name), 1),
+                      createBaseVNode("div", _hoisted_11$8, [
+                        createBaseVNode("div", _hoisted_12$6, toDisplayString(wallet.name), 1),
                         _cache[4] || (_cache[4] = createBaseVNode("div", { class: "wallet-description" }, "Click to connect", -1))
                       ]),
-                      isConnecting.value ? (openBlock(), createElementBlock("div", _hoisted_13$6)) : createCommentVNode("", true)
-                    ], 8, _hoisted_7$b);
+                      isConnecting.value ? (openBlock(), createElementBlock("div", _hoisted_13$5)) : createCommentVNode("", true)
+                    ], 8, _hoisted_7$a);
                   }), 128))
-                ])) : (openBlock(), createElementBlock("div", _hoisted_14$5, [..._cache[5] || (_cache[5] = [
+                ])) : (openBlock(), createElementBlock("div", _hoisted_14$4, [..._cache[5] || (_cache[5] = [
                   createBaseVNode("div", { class: "no-wallets-icon" }, "⚠️", -1),
                   createBaseVNode("div", { class: "no-wallets-text" }, "No wallet extensions found", -1)
                 ])]))
               ]),
-              createBaseVNode("div", _hoisted_15$5, [
-                extensionStatus.value === "checking" ? (openBlock(), createElementBlock("div", _hoisted_16$5, " 🔍 Checking for Polkadot Extension... ")) : extensionStatus.value === "not-found" ? (openBlock(), createElementBlock("div", _hoisted_17$5, [
+              createBaseVNode("div", _hoisted_15$4, [
+                extensionStatus.value === "checking" ? (openBlock(), createElementBlock("div", _hoisted_16$4, " 🔍 Checking for Polkadot Extension... ")) : extensionStatus.value === "not-found" ? (openBlock(), createElementBlock("div", _hoisted_17$4, [
                   _cache[6] || (_cache[6] = createTextVNode(" ⚠️ Polkadot Extension not found ", -1)),
                   _cache[7] || (_cache[7] = createBaseVNode("div", { class: "status-help" }, [
                     createTextVNode(" Please install the "),
@@ -11491,12 +11491,12 @@ Your address: ${address}${configuredMultisigs}
                       class: "btn-secondary"
                     }, " 🔍 Manual Check ")
                   ])
-                ])) : extensionStatus.value === "found" ? (openBlock(), createElementBlock("div", _hoisted_18$5, " ✅ Polkadot Extension detected ")) : createCommentVNode("", true)
+                ])) : extensionStatus.value === "found" ? (openBlock(), createElementBlock("div", _hoisted_18$4, " ✅ Polkadot Extension detected ")) : createCommentVNode("", true)
               ])
             ])) : createCommentVNode("", true),
-            step.value === "accounts" ? (openBlock(), createElementBlock("div", _hoisted_19$5, [
+            step.value === "accounts" ? (openBlock(), createElementBlock("div", _hoisted_19$4, [
               _cache[9] || (_cache[9] = createBaseVNode("div", { class: "step-description" }, " Select an account to connect: ", -1)),
-              createBaseVNode("div", _hoisted_20$5, [
+              createBaseVNode("div", _hoisted_20$4, [
                 (openBlock(true), createElementBlock(Fragment, null, renderList(accounts.value, (account) => {
                   var _a, _b;
                   return openBlock(), createElementBlock("div", {
@@ -11504,16 +11504,16 @@ Your address: ${address}${configuredMultisigs}
                     onClick: ($event) => selectAccount(account),
                     class: normalizeClass(["account-item", { selected: ((_a = selectedAccount.value) == null ? void 0 : _a.address) === account.address }])
                   }, [
-                    createBaseVNode("div", _hoisted_22$5, toDisplayString(getAccountInitials(account.name || account.address)), 1),
-                    createBaseVNode("div", _hoisted_23$5, [
-                      createBaseVNode("div", _hoisted_24$5, toDisplayString(account.name || "Unnamed Account"), 1),
-                      createBaseVNode("div", _hoisted_25$5, toDisplayString(unref(formatAddress)(account.address)), 1)
+                    createBaseVNode("div", _hoisted_22$4, toDisplayString(getAccountInitials(account.name || account.address)), 1),
+                    createBaseVNode("div", _hoisted_23$4, [
+                      createBaseVNode("div", _hoisted_24$4, toDisplayString(account.name || "Unnamed Account"), 1),
+                      createBaseVNode("div", _hoisted_25$4, toDisplayString(unref(formatAddress)(account.address)), 1)
                     ]),
-                    createBaseVNode("div", _hoisted_26$5, toDisplayString(((_b = selectedAccount.value) == null ? void 0 : _b.address) === account.address ? "✓" : ""), 1)
-                  ], 10, _hoisted_21$5);
+                    createBaseVNode("div", _hoisted_26$4, toDisplayString(((_b = selectedAccount.value) == null ? void 0 : _b.address) === account.address ? "✓" : ""), 1)
+                  ], 10, _hoisted_21$4);
                 }), 128))
               ]),
-              createBaseVNode("div", _hoisted_27$5, [
+              createBaseVNode("div", _hoisted_27$4, [
                 createBaseVNode("button", {
                   onClick: _cache[1] || (_cache[1] = ($event) => step.value = "select"),
                   class: "btn-secondary"
@@ -11522,16 +11522,16 @@ Your address: ${address}${configuredMultisigs}
                   onClick: proceedToSign,
                   class: "btn-primary",
                   disabled: !selectedAccount.value
-                }, " Continue ", 8, _hoisted_28$5)
+                }, " Continue ", 8, _hoisted_28$4)
               ])
             ])) : createCommentVNode("", true),
-            step.value === "sign" ? (openBlock(), createElementBlock("div", _hoisted_29$5, [
+            step.value === "sign" ? (openBlock(), createElementBlock("div", _hoisted_29$4, [
               _cache[11] || (_cache[11] = createBaseVNode("div", { class: "step-description" }, " Sign the message to authenticate: ", -1)),
-              createBaseVNode("div", _hoisted_30$5, [
+              createBaseVNode("div", _hoisted_30$4, [
                 _cache[10] || (_cache[10] = createBaseVNode("div", { class: "message-label" }, "Message to sign:", -1)),
-                createBaseVNode("div", _hoisted_31$5, toDisplayString(messageToSign.value), 1)
+                createBaseVNode("div", _hoisted_31$4, toDisplayString(messageToSign.value), 1)
               ]),
-              createBaseVNode("div", _hoisted_32$5, [
+              createBaseVNode("div", _hoisted_32$4, [
                 createBaseVNode("button", {
                   onClick: _cache[2] || (_cache[2] = ($event) => step.value = "accounts"),
                   class: "btn-secondary"
@@ -11540,12 +11540,12 @@ Your address: ${address}${configuredMultisigs}
                   onClick: handleSignMessage,
                   class: "btn-primary",
                   disabled: isSigning.value
-                }, toDisplayString(isSigning.value ? "Signing..." : "Sign Message"), 9, _hoisted_33$5)
+                }, toDisplayString(isSigning.value ? "Signing..." : "Sign Message"), 9, _hoisted_33$4)
               ])
             ])) : createCommentVNode("", true),
-            error.value ? (openBlock(), createElementBlock("div", _hoisted_34$5, [
+            error.value ? (openBlock(), createElementBlock("div", _hoisted_34$4, [
               _cache[12] || (_cache[12] = createBaseVNode("div", { class: "error-icon" }, "⚠️", -1)),
-              createBaseVNode("div", _hoisted_35$5, toDisplayString(error.value), 1),
+              createBaseVNode("div", _hoisted_35$4, toDisplayString(error.value), 1),
               createBaseVNode("div", { class: "error-actions" }, [
                 createBaseVNode("button", {
                   onClick: clearError,
@@ -11565,19 +11565,19 @@ Your address: ${address}${configuredMultisigs}
     }
     return target;
   };
-  const WalletConnect = /* @__PURE__ */ _export_sfc(_sfc_main$g, [["__scopeId", "data-v-4f7ca26e"]]);
-  const _hoisted_1$f = { class: "modal-header" };
-  const _hoisted_2$f = { class: "modal-content" };
-  const _hoisted_3$f = { class: "config-sections" };
-  const _hoisted_4$d = { class: "config-section" };
-  const _hoisted_5$d = { class: "form-group" };
-  const _hoisted_6$b = { class: "number-input-wrapper" };
-  const _hoisted_7$a = { class: "agreement-preview" };
-  const _hoisted_8$9 = { class: "preview-bar" };
-  const _hoisted_9$9 = { class: "progress-text" };
-  const _hoisted_10$9 = { class: "modal-actions" };
-  const _hoisted_11$8 = ["disabled"];
-  const _sfc_main$f = /* @__PURE__ */ defineComponent({
+  const WalletConnect = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["__scopeId", "data-v-4f7ca26e"]]);
+  const _hoisted_1$e = { class: "modal-header" };
+  const _hoisted_2$e = { class: "modal-content" };
+  const _hoisted_3$e = { class: "config-sections" };
+  const _hoisted_4$c = { class: "config-section" };
+  const _hoisted_5$c = { class: "form-group" };
+  const _hoisted_6$a = { class: "number-input-wrapper" };
+  const _hoisted_7$9 = { class: "agreement-preview" };
+  const _hoisted_8$8 = { class: "preview-bar" };
+  const _hoisted_9$8 = { class: "progress-text" };
+  const _hoisted_10$8 = { class: "modal-actions" };
+  const _hoisted_11$7 = ["disabled"];
+  const _sfc_main$e = /* @__PURE__ */ defineComponent({
     __name: "DAOConfigModal",
     props: {
       show: { type: Boolean }
@@ -11613,20 +11613,20 @@ Your address: ${address}${configuredMultisigs}
             onClick: _cache[3] || (_cache[3] = withModifiers(() => {
             }, ["stop"]))
           }, [
-            createBaseVNode("div", _hoisted_1$f, [
+            createBaseVNode("div", _hoisted_1$e, [
               _cache[5] || (_cache[5] = createBaseVNode("h3", null, "DAO Configuration", -1)),
               createBaseVNode("button", {
                 class: "close-btn",
                 onClick: _cache[0] || (_cache[0] = ($event) => _ctx.$emit("close"))
               }, "×")
             ]),
-            createBaseVNode("div", _hoisted_2$f, [
-              createBaseVNode("div", _hoisted_3$f, [
-                createBaseVNode("div", _hoisted_4$d, [
+            createBaseVNode("div", _hoisted_2$e, [
+              createBaseVNode("div", _hoisted_3$e, [
+                createBaseVNode("div", _hoisted_4$c, [
                   _cache[10] || (_cache[10] = createBaseVNode("h4", null, "Agreement Requirements", -1)),
-                  createBaseVNode("div", _hoisted_5$d, [
+                  createBaseVNode("div", _hoisted_5$c, [
                     _cache[7] || (_cache[7] = createBaseVNode("label", { for: "required-agreements" }, "Required Agreements", -1)),
-                    createBaseVNode("div", _hoisted_6$b, [
+                    createBaseVNode("div", _hoisted_6$a, [
                       withDirectives(createBaseVNode("input", {
                         id: "required-agreements",
                         "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => requiredAgreements.value = $event),
@@ -11645,21 +11645,21 @@ Your address: ${address}${configuredMultisigs}
                       _cache[6] || (_cache[6] = createBaseVNode("div", { class: "input-help" }, ' Number of team members who must agree before a proposal can move to "Ready to vote" ', -1))
                     ])
                   ]),
-                  createBaseVNode("div", _hoisted_7$a, [
+                  createBaseVNode("div", _hoisted_7$9, [
                     _cache[9] || (_cache[9] = createBaseVNode("div", { class: "preview-label" }, "Preview:", -1)),
-                    createBaseVNode("div", _hoisted_8$9, [
+                    createBaseVNode("div", _hoisted_8$8, [
                       _cache[8] || (_cache[8] = createBaseVNode("div", { class: "progress-bar" }, [
                         createBaseVNode("div", {
                           class: "progress-fill",
                           style: { width: "60%" }
                         })
                       ], -1)),
-                      createBaseVNode("div", _hoisted_9$9, toDisplayString(Math.ceil(requiredAgreements.value * 0.6)) + " / " + toDisplayString(requiredAgreements.value) + " agreements ", 1)
+                      createBaseVNode("div", _hoisted_9$8, toDisplayString(Math.ceil(requiredAgreements.value * 0.6)) + " / " + toDisplayString(requiredAgreements.value) + " agreements ", 1)
                     ])
                   ])
                 ])
               ]),
-              createBaseVNode("div", _hoisted_10$9, [
+              createBaseVNode("div", _hoisted_10$8, [
                 createBaseVNode("button", {
                   class: "btn btn-secondary",
                   onClick: _cache[2] || (_cache[2] = ($event) => _ctx.$emit("close"))
@@ -11668,7 +11668,7 @@ Your address: ${address}${configuredMultisigs}
                   class: "btn btn-primary",
                   onClick: handleSave,
                   disabled: requiredAgreements.value < 1
-                }, " Save Configuration ", 8, _hoisted_11$8)
+                }, " Save Configuration ", 8, _hoisted_11$7)
               ])
             ])
           ])
@@ -11676,7 +11676,7 @@ Your address: ${address}${configuredMultisigs}
       };
     }
   });
-  const DAOConfigModal = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["__scopeId", "data-v-973fd79d"]]);
+  const DAOConfigModal = /* @__PURE__ */ _export_sfc(_sfc_main$e, [["__scopeId", "data-v-973fd79d"]]);
   const state = reactive({
     proposals: [],
     currentProposal: null,
@@ -11810,26 +11810,25 @@ Your address: ${address}${configuredMultisigs}
           (p2) => p2.post_id === proposalId && p2.chain === chain2
         );
         if (index !== -1) {
-          const updatedProposal = __spreadProps(__spreadValues(__spreadValues({}, freshData), updates), {
+          const newProposals = [...state.proposals];
+          newProposals[index] = __spreadProps(__spreadValues({}, freshData), {
+            suggested_vote: (updates == null ? void 0 : updates.suggested_vote) === void 0 ? void 0 : freshData.suggested_vote,
+            assigned_to: (updates == null ? void 0 : updates.assigned_to) === null ? void 0 : freshData.assigned_to,
             updated_at: (/* @__PURE__ */ new Date()).toISOString()
           });
-          state.proposals = [
-            ...state.proposals.slice(0, index),
-            updatedProposal,
-            ...state.proposals.slice(index + 1)
-          ];
+          state.proposals = newProposals;
           if (((_a = state.currentProposal) == null ? void 0 : _a.post_id) === proposalId && ((_b = state.currentProposal) == null ? void 0 : _b.chain) === chain2) {
-            state.currentProposal = updatedProposal;
+            state.currentProposal = newProposals[index];
           }
           console.log("Updated proposal in store:", {
             id: proposalId,
             chain: chain2,
-            status: updatedProposal.internal_status,
-            suggestedVote: updatedProposal.suggested_vote,
-            assignedTo: updatedProposal.assigned_to
+            status: newProposals[index].internal_status,
+            suggestedVote: newProposals[index].suggested_vote,
+            assignedTo: newProposals[index].assigned_to
           });
         } else {
-          console.warn("Proposal not found in store:", proposalId);
+          await this.fetchProposals();
         }
       } catch (error) {
         console.error("Failed to update proposal:", error);
@@ -11863,23 +11862,23 @@ Your address: ${address}${configuredMultisigs}
       state.error = null;
     }
   });
-  const _hoisted_1$e = { class: "status-badge-container" };
-  const _hoisted_2$e = ["title"];
-  const _hoisted_3$e = { class: "status-text" };
-  const _hoisted_4$c = {
+  const _hoisted_1$d = { class: "status-badge-container" };
+  const _hoisted_2$d = ["title"];
+  const _hoisted_3$d = { class: "status-text" };
+  const _hoisted_4$b = {
     key: 0,
     class: "edit-icon"
   };
-  const _hoisted_5$c = { class: "modal-content" };
-  const _hoisted_6$a = { class: "status-options" };
-  const _hoisted_7$9 = { class: "status-grid" };
-  const _hoisted_8$8 = ["onClick"];
-  const _hoisted_9$8 = { class: "option-icon" };
-  const _hoisted_10$8 = { class: "option-text" };
-  const _hoisted_11$7 = { class: "reason-section" };
-  const _hoisted_12$6 = { class: "modal-actions" };
-  const _hoisted_13$5 = ["disabled"];
-  const _sfc_main$e = /* @__PURE__ */ defineComponent({
+  const _hoisted_5$b = { class: "modal-content" };
+  const _hoisted_6$9 = { class: "status-options" };
+  const _hoisted_7$8 = { class: "status-grid" };
+  const _hoisted_8$7 = ["onClick"];
+  const _hoisted_9$7 = { class: "option-icon" };
+  const _hoisted_10$7 = { class: "option-text" };
+  const _hoisted_11$6 = { class: "reason-section" };
+  const _hoisted_12$5 = { class: "modal-actions" };
+  const _hoisted_13$4 = ["disabled"];
+  const _sfc_main$d = /* @__PURE__ */ defineComponent({
     __name: "StatusBadge",
     props: {
       status: {},
@@ -11947,15 +11946,15 @@ Your address: ${address}${configuredMultisigs}
         }
       };
       return (_ctx, _cache) => {
-        return openBlock(), createElementBlock("div", _hoisted_1$e, [
+        return openBlock(), createElementBlock("div", _hoisted_1$d, [
           createBaseVNode("div", {
             class: normalizeClass(["status-badge", statusClass.value]),
             onClick: handleClick,
             title: _ctx.editable ? "Click to change status" : _ctx.status
           }, [
-            createBaseVNode("span", _hoisted_3$e, toDisplayString(_ctx.status), 1),
-            _ctx.editable ? (openBlock(), createElementBlock("span", _hoisted_4$c, "edit")) : createCommentVNode("", true)
-          ], 10, _hoisted_2$e),
+            createBaseVNode("span", _hoisted_3$d, toDisplayString(_ctx.status), 1),
+            _ctx.editable ? (openBlock(), createElementBlock("span", _hoisted_4$b, "edit")) : createCommentVNode("", true)
+          ], 10, _hoisted_2$d),
           showModal.value ? (openBlock(), createElementBlock("div", {
             key: 0,
             class: "modal-overlay",
@@ -11973,7 +11972,7 @@ Your address: ${address}${configuredMultisigs}
                   onClick: closeModal
                 }, "×")
               ]),
-              createBaseVNode("div", _hoisted_5$c, [
+              createBaseVNode("div", _hoisted_5$b, [
                 createBaseVNode("p", null, [
                   _cache[3] || (_cache[3] = createBaseVNode("strong", null, "Proposal:", -1)),
                   createTextVNode(" #" + toDisplayString(_ctx.proposalId), 1)
@@ -11982,22 +11981,22 @@ Your address: ${address}${configuredMultisigs}
                   _cache[4] || (_cache[4] = createBaseVNode("strong", null, "Current Status:", -1)),
                   createTextVNode(" " + toDisplayString(_ctx.status), 1)
                 ]),
-                createBaseVNode("div", _hoisted_6$a, [
+                createBaseVNode("div", _hoisted_6$9, [
                   _cache[5] || (_cache[5] = createBaseVNode("label", null, "New Status:", -1)),
-                  createBaseVNode("div", _hoisted_7$9, [
+                  createBaseVNode("div", _hoisted_7$8, [
                     (openBlock(true), createElementBlock(Fragment, null, renderList(unref(statusOptions), (statusOption) => {
                       return openBlock(), createElementBlock("button", {
                         key: statusOption.value,
                         class: normalizeClass(["status-option", { selected: selectedStatus.value === statusOption.value }]),
                         onClick: ($event) => selectedStatus.value = statusOption.value
                       }, [
-                        createBaseVNode("span", _hoisted_9$8, toDisplayString(statusOption.icon), 1),
-                        createBaseVNode("span", _hoisted_10$8, toDisplayString(statusOption.value), 1)
-                      ], 10, _hoisted_8$8);
+                        createBaseVNode("span", _hoisted_9$7, toDisplayString(statusOption.icon), 1),
+                        createBaseVNode("span", _hoisted_10$7, toDisplayString(statusOption.value), 1)
+                      ], 10, _hoisted_8$7);
                     }), 128))
                   ])
                 ]),
-                createBaseVNode("div", _hoisted_11$7, [
+                createBaseVNode("div", _hoisted_11$6, [
                   _cache[6] || (_cache[6] = createBaseVNode("label", { for: "reason" }, "Reason for change (optional):", -1)),
                   withDirectives(createBaseVNode("textarea", {
                     id: "reason",
@@ -12008,7 +12007,7 @@ Your address: ${address}${configuredMultisigs}
                     [vModelText, changeReason.value]
                   ])
                 ]),
-                createBaseVNode("div", _hoisted_12$6, [
+                createBaseVNode("div", _hoisted_12$5, [
                   createBaseVNode("button", {
                     class: "btn btn-secondary",
                     onClick: closeModal
@@ -12017,7 +12016,7 @@ Your address: ${address}${configuredMultisigs}
                     class: "btn btn-primary",
                     onClick: saveStatusChange,
                     disabled: !selectedStatus.value || selectedStatus.value === _ctx.status
-                  }, " Update Status ", 8, _hoisted_13$5)
+                  }, " Update Status ", 8, _hoisted_13$4)
                 ])
               ])
             ])
@@ -12026,66 +12025,66 @@ Your address: ${address}${configuredMultisigs}
       };
     }
   });
-  const StatusBadge = /* @__PURE__ */ _export_sfc(_sfc_main$e, [["__scopeId", "data-v-875347a1"]]);
-  const _hoisted_1$d = { class: "modal-header" };
-  const _hoisted_2$d = { class: "browser-content" };
-  const _hoisted_3$d = { class: "filter-panel" };
-  const _hoisted_4$b = { class: "filter-section" };
-  const _hoisted_5$b = { class: "filter-group" };
-  const _hoisted_6$9 = { class: "filter-group" };
-  const _hoisted_7$8 = ["value"];
-  const _hoisted_8$7 = { class: "filter-group" };
-  const _hoisted_9$7 = ["value"];
-  const _hoisted_10$7 = { class: "filter-group" };
-  const _hoisted_11$6 = { class: "filter-group" };
-  const _hoisted_12$5 = { class: "content-area" };
-  const _hoisted_13$4 = { class: "view-controls" };
-  const _hoisted_14$4 = { class: "view-modes" };
-  const _hoisted_15$4 = { class: "sort-controls" };
-  const _hoisted_16$4 = { class: "results-info" };
-  const _hoisted_17$4 = {
+  const StatusBadge = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["__scopeId", "data-v-875347a1"]]);
+  const _hoisted_1$c = { class: "modal-header" };
+  const _hoisted_2$c = { class: "browser-content" };
+  const _hoisted_3$c = { class: "filter-panel" };
+  const _hoisted_4$a = { class: "filter-section" };
+  const _hoisted_5$a = { class: "filter-group" };
+  const _hoisted_6$8 = { class: "filter-group" };
+  const _hoisted_7$7 = ["value"];
+  const _hoisted_8$6 = { class: "filter-group" };
+  const _hoisted_9$6 = ["value"];
+  const _hoisted_10$6 = { class: "filter-group" };
+  const _hoisted_11$5 = { class: "filter-group" };
+  const _hoisted_12$4 = { class: "content-area" };
+  const _hoisted_13$3 = { class: "view-controls" };
+  const _hoisted_14$3 = { class: "view-modes" };
+  const _hoisted_15$3 = { class: "sort-controls" };
+  const _hoisted_16$3 = { class: "results-info" };
+  const _hoisted_17$3 = {
     key: 0,
     class: "loading-state"
   };
-  const _hoisted_18$4 = {
+  const _hoisted_18$3 = {
     key: 1,
     class: "empty-state"
   };
-  const _hoisted_19$4 = { key: 2 };
-  const _hoisted_20$4 = {
+  const _hoisted_19$3 = { key: 2 };
+  const _hoisted_20$3 = {
     key: 0,
     class: "proposals-list"
   };
-  const _hoisted_21$4 = ["onClick"];
-  const _hoisted_22$4 = { class: "proposal-id" };
-  const _hoisted_23$4 = { class: "proposal-title" };
-  const _hoisted_24$4 = { class: "proposal-status" };
-  const _hoisted_25$4 = { class: "proposal-assignment" };
-  const _hoisted_26$4 = ["onClick"];
-  const _hoisted_27$4 = { class: "proposal-updated" };
-  const _hoisted_28$4 = {
+  const _hoisted_21$3 = ["onClick"];
+  const _hoisted_22$3 = { class: "proposal-id" };
+  const _hoisted_23$3 = { class: "proposal-title" };
+  const _hoisted_24$3 = { class: "proposal-status" };
+  const _hoisted_25$3 = { class: "proposal-assignment" };
+  const _hoisted_26$3 = ["onClick"];
+  const _hoisted_27$3 = { class: "proposal-updated" };
+  const _hoisted_28$3 = {
     key: 1,
     class: "proposals-cards"
   };
-  const _hoisted_29$4 = ["onClick"];
-  const _hoisted_30$4 = { class: "card-header" };
-  const _hoisted_31$4 = { class: "proposal-id" };
-  const _hoisted_32$4 = { class: "card-title" };
-  const _hoisted_33$4 = { class: "card-meta" };
-  const _hoisted_34$4 = { class: "meta-item" };
-  const _hoisted_35$4 = { class: "meta-item" };
-  const _hoisted_36$4 = {
+  const _hoisted_29$3 = ["onClick"];
+  const _hoisted_30$3 = { class: "card-header" };
+  const _hoisted_31$3 = { class: "proposal-id" };
+  const _hoisted_32$3 = { class: "card-title" };
+  const _hoisted_33$3 = { class: "card-meta" };
+  const _hoisted_34$3 = { class: "meta-item" };
+  const _hoisted_35$3 = { class: "meta-item" };
+  const _hoisted_36$3 = {
     key: 0,
     class: "meta-item"
   };
-  const _hoisted_37$4 = {
+  const _hoisted_37$3 = {
     key: 3,
     class: "pagination"
   };
-  const _hoisted_38$4 = ["disabled"];
-  const _hoisted_39$4 = { class: "page-info" };
-  const _hoisted_40$4 = ["disabled"];
-  const _sfc_main$d = /* @__PURE__ */ defineComponent({
+  const _hoisted_38$3 = ["disabled"];
+  const _hoisted_39$3 = { class: "page-info" };
+  const _hoisted_40$3 = ["disabled"];
+  const _sfc_main$c = /* @__PURE__ */ defineComponent({
     __name: "ProposalBrowser",
     props: {
       show: { type: Boolean }
@@ -12288,18 +12287,18 @@ Your address: ${address}${configuredMultisigs}
             onClick: _cache[12] || (_cache[12] = withModifiers(() => {
             }, ["stop"]))
           }, [
-            createBaseVNode("div", _hoisted_1$d, [
+            createBaseVNode("div", _hoisted_1$c, [
               _cache[14] || (_cache[14] = createBaseVNode("h2", null, "Browse Proposals", -1)),
               createBaseVNode("button", {
                 class: "close-btn",
                 onClick: _cache[0] || (_cache[0] = ($event) => _ctx.$emit("close"))
               }, "×")
             ]),
-            createBaseVNode("div", _hoisted_2$d, [
-              createBaseVNode("div", _hoisted_3$d, [
-                createBaseVNode("div", _hoisted_4$b, [
+            createBaseVNode("div", _hoisted_2$c, [
+              createBaseVNode("div", _hoisted_3$c, [
+                createBaseVNode("div", _hoisted_4$a, [
                   _cache[24] || (_cache[24] = createBaseVNode("h3", null, "Filters", -1)),
-                  createBaseVNode("div", _hoisted_5$b, [
+                  createBaseVNode("div", _hoisted_5$a, [
                     _cache[15] || (_cache[15] = createBaseVNode("label", null, "Search", -1)),
                     withDirectives(createBaseVNode("input", {
                       "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => searchQuery.value = $event),
@@ -12310,7 +12309,7 @@ Your address: ${address}${configuredMultisigs}
                       [vModelText, searchQuery.value]
                     ])
                   ]),
-                  createBaseVNode("div", _hoisted_6$9, [
+                  createBaseVNode("div", _hoisted_6$8, [
                     _cache[17] || (_cache[17] = createBaseVNode("label", null, "Internal Status", -1)),
                     withDirectives(createBaseVNode("select", {
                       "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => selectedInternalStatus.value = $event),
@@ -12321,13 +12320,13 @@ Your address: ${address}${configuredMultisigs}
                         return createBaseVNode("option", {
                           key: status,
                           value: status
-                        }, toDisplayString(status), 9, _hoisted_7$8);
+                        }, toDisplayString(status), 9, _hoisted_7$7);
                       }), 64))
                     ], 512), [
                       [vModelSelect, selectedInternalStatus.value]
                     ])
                   ]),
-                  createBaseVNode("div", _hoisted_8$7, [
+                  createBaseVNode("div", _hoisted_8$6, [
                     _cache[19] || (_cache[19] = createBaseVNode("label", null, "Timeline Status", -1)),
                     withDirectives(createBaseVNode("select", {
                       "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => selectedTimelineStatus.value = $event),
@@ -12338,13 +12337,13 @@ Your address: ${address}${configuredMultisigs}
                         return createBaseVNode("option", {
                           key: status,
                           value: status
-                        }, toDisplayString(status), 9, _hoisted_9$7);
+                        }, toDisplayString(status), 9, _hoisted_9$6);
                       }), 64))
                     ], 512), [
                       [vModelSelect, selectedTimelineStatus.value]
                     ])
                   ]),
-                  createBaseVNode("div", _hoisted_10$7, [
+                  createBaseVNode("div", _hoisted_10$6, [
                     _cache[21] || (_cache[21] = createBaseVNode("label", null, "Assignment", -1)),
                     withDirectives(createBaseVNode("select", {
                       "onUpdate:modelValue": _cache[4] || (_cache[4] = ($event) => selectedAssignment.value = $event),
@@ -12358,7 +12357,7 @@ Your address: ${address}${configuredMultisigs}
                       [vModelSelect, selectedAssignment.value]
                     ])
                   ]),
-                  createBaseVNode("div", _hoisted_11$6, [
+                  createBaseVNode("div", _hoisted_11$5, [
                     _cache[23] || (_cache[23] = createBaseVNode("label", null, "My Team Action", -1)),
                     withDirectives(createBaseVNode("select", {
                       "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => selectedTeamAction.value = $event),
@@ -12375,9 +12374,9 @@ Your address: ${address}${configuredMultisigs}
                   }, " Clear All Filters ")
                 ])
               ]),
-              createBaseVNode("div", _hoisted_12$5, [
-                createBaseVNode("div", _hoisted_13$4, [
-                  createBaseVNode("div", _hoisted_14$4, [
+              createBaseVNode("div", _hoisted_12$4, [
+                createBaseVNode("div", _hoisted_13$3, [
+                  createBaseVNode("div", _hoisted_14$3, [
                     createBaseVNode("button", {
                       onClick: _cache[6] || (_cache[6] = ($event) => viewMode.value = "list"),
                       class: normalizeClass([{ active: viewMode.value === "list" }, "view-btn"])
@@ -12387,7 +12386,7 @@ Your address: ${address}${configuredMultisigs}
                       class: normalizeClass([{ active: viewMode.value === "cards" }, "view-btn"])
                     }, " 🗃️ Cards ", 2)
                   ]),
-                  createBaseVNode("div", _hoisted_15$4, [
+                  createBaseVNode("div", _hoisted_15$3, [
                     withDirectives(createBaseVNode("select", {
                       "onUpdate:modelValue": _cache[8] || (_cache[8] = ($event) => sortBy.value = $event),
                       class: "sort-select"
@@ -12401,93 +12400,93 @@ Your address: ${address}${configuredMultisigs}
                       class: "sort-order-btn"
                     }, toDisplayString(sortOrder.value === "asc" ? "↑" : "↓"), 1)
                   ]),
-                  createBaseVNode("div", _hoisted_16$4, toDisplayString(filteredProposals2.value.length) + " of " + toDisplayString(unref(proposalStore).state.proposals.length) + " proposals ", 1)
+                  createBaseVNode("div", _hoisted_16$3, toDisplayString(filteredProposals2.value.length) + " of " + toDisplayString(unref(proposalStore).state.proposals.length) + " proposals ", 1)
                 ]),
                 createBaseVNode("div", {
                   class: normalizeClass(["proposals-container", viewMode.value])
                 }, [
-                  loading.value ? (openBlock(), createElementBlock("div", _hoisted_17$4, [..._cache[26] || (_cache[26] = [
+                  loading.value ? (openBlock(), createElementBlock("div", _hoisted_17$3, [..._cache[26] || (_cache[26] = [
                     createBaseVNode("div", { class: "spinner" }, null, -1),
                     createBaseVNode("p", null, "Loading proposals...", -1)
-                  ])])) : filteredProposals2.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_18$4, [..._cache[27] || (_cache[27] = [
+                  ])])) : filteredProposals2.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_18$3, [..._cache[27] || (_cache[27] = [
                     createBaseVNode("div", { class: "empty-icon" }, "📭", -1),
                     createBaseVNode("h3", null, "No proposals found", -1),
                     createBaseVNode("p", null, "Try adjusting your filters or search terms", -1)
-                  ])])) : (openBlock(), createElementBlock("div", _hoisted_19$4, [
-                    viewMode.value === "list" ? (openBlock(), createElementBlock("div", _hoisted_20$4, [
+                  ])])) : (openBlock(), createElementBlock("div", _hoisted_19$3, [
+                    viewMode.value === "list" ? (openBlock(), createElementBlock("div", _hoisted_20$3, [
                       (openBlock(true), createElementBlock(Fragment, null, renderList(paginatedProposals.value, (proposal) => {
                         return openBlock(), createElementBlock("div", {
                           key: `${proposal.chain}-${proposal.post_id}`,
                           class: "proposal-item",
                           onClick: ($event) => openProposal(proposal)
                         }, [
-                          createBaseVNode("div", _hoisted_22$4, "#" + toDisplayString(proposal.post_id), 1),
-                          createBaseVNode("div", _hoisted_23$4, toDisplayString(proposal.title), 1),
-                          createBaseVNode("div", _hoisted_24$4, [
+                          createBaseVNode("div", _hoisted_22$3, "#" + toDisplayString(proposal.post_id), 1),
+                          createBaseVNode("div", _hoisted_23$3, toDisplayString(proposal.title), 1),
+                          createBaseVNode("div", _hoisted_24$3, [
                             createVNode(StatusBadge, {
                               status: proposal.internal_status,
                               "proposal-id": proposal.post_id,
                               editable: false
                             }, null, 8, ["status", "proposal-id"])
                           ]),
-                          createBaseVNode("div", _hoisted_25$4, [
+                          createBaseVNode("div", _hoisted_25$3, [
                             createBaseVNode("span", null, toDisplayString(proposal.assigned_to || "Unassigned"), 1),
                             !proposal.assigned_to ? (openBlock(), createElementBlock("button", {
                               key: 0,
                               onClick: ($event) => assignToMe(proposal, $event),
                               class: "assign-btn"
-                            }, " Assign to me ", 8, _hoisted_26$4)) : createCommentVNode("", true)
+                            }, " Assign to me ", 8, _hoisted_26$3)) : createCommentVNode("", true)
                           ]),
-                          createBaseVNode("div", _hoisted_27$4, toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
-                        ], 8, _hoisted_21$4);
+                          createBaseVNode("div", _hoisted_27$3, toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
+                        ], 8, _hoisted_21$3);
                       }), 128))
                     ])) : createCommentVNode("", true),
-                    viewMode.value === "cards" ? (openBlock(), createElementBlock("div", _hoisted_28$4, [
+                    viewMode.value === "cards" ? (openBlock(), createElementBlock("div", _hoisted_28$3, [
                       (openBlock(true), createElementBlock(Fragment, null, renderList(paginatedProposals.value, (proposal) => {
                         return openBlock(), createElementBlock("div", {
                           key: `${proposal.chain}-${proposal.post_id}`,
                           class: "proposal-card",
                           onClick: ($event) => openProposal(proposal)
                         }, [
-                          createBaseVNode("div", _hoisted_30$4, [
-                            createBaseVNode("span", _hoisted_31$4, "#" + toDisplayString(proposal.post_id), 1),
+                          createBaseVNode("div", _hoisted_30$3, [
+                            createBaseVNode("span", _hoisted_31$3, "#" + toDisplayString(proposal.post_id), 1),
                             createVNode(StatusBadge, {
                               status: proposal.internal_status,
                               "proposal-id": proposal.post_id,
                               editable: false
                             }, null, 8, ["status", "proposal-id"])
                           ]),
-                          createBaseVNode("h4", _hoisted_32$4, toDisplayString(proposal.title), 1),
-                          createBaseVNode("div", _hoisted_33$4, [
-                            createBaseVNode("div", _hoisted_34$4, [
+                          createBaseVNode("h4", _hoisted_32$3, toDisplayString(proposal.title), 1),
+                          createBaseVNode("div", _hoisted_33$3, [
+                            createBaseVNode("div", _hoisted_34$3, [
                               _cache[28] || (_cache[28] = createBaseVNode("strong", null, "Assigned:", -1)),
                               createTextVNode(" " + toDisplayString(unref(teamStore).getTeamMemberName(proposal.assigned_to) || unref(formatAddress)(proposal.assigned_to) || "Unassigned"), 1)
                             ]),
-                            createBaseVNode("div", _hoisted_35$4, [
+                            createBaseVNode("div", _hoisted_35$3, [
                               _cache[29] || (_cache[29] = createBaseVNode("strong", null, "Updated:", -1)),
                               createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
                             ]),
-                            proposal.suggested_vote ? (openBlock(), createElementBlock("div", _hoisted_36$4, [
+                            proposal.suggested_vote ? (openBlock(), createElementBlock("div", _hoisted_36$3, [
                               _cache[30] || (_cache[30] = createBaseVNode("strong", null, "Suggested:", -1)),
                               createTextVNode(" " + toDisplayString(proposal.suggested_vote), 1)
                             ])) : createCommentVNode("", true)
                           ])
-                        ], 8, _hoisted_29$4);
+                        ], 8, _hoisted_29$3);
                       }), 128))
                     ])) : createCommentVNode("", true)
                   ])),
-                  totalPages.value > 1 ? (openBlock(), createElementBlock("div", _hoisted_37$4, [
+                  totalPages.value > 1 ? (openBlock(), createElementBlock("div", _hoisted_37$3, [
                     createBaseVNode("button", {
                       onClick: _cache[10] || (_cache[10] = ($event) => currentPage.value--),
                       disabled: currentPage.value === 1,
                       class: "page-btn"
-                    }, " Previous ", 8, _hoisted_38$4),
-                    createBaseVNode("span", _hoisted_39$4, " Page " + toDisplayString(currentPage.value) + " of " + toDisplayString(totalPages.value), 1),
+                    }, " Previous ", 8, _hoisted_38$3),
+                    createBaseVNode("span", _hoisted_39$3, " Page " + toDisplayString(currentPage.value) + " of " + toDisplayString(totalPages.value), 1),
                     createBaseVNode("button", {
                       onClick: _cache[11] || (_cache[11] = ($event) => currentPage.value++),
                       disabled: currentPage.value === totalPages.value,
                       class: "page-btn"
-                    }, " Next ", 8, _hoisted_40$4)
+                    }, " Next ", 8, _hoisted_40$3)
                   ])) : createCommentVNode("", true)
                 ], 2)
               ])
@@ -12497,505 +12496,7 @@ Your address: ${address}${configuredMultisigs}
       };
     }
   });
-  const ProposalBrowser = /* @__PURE__ */ _export_sfc(_sfc_main$d, [["__scopeId", "data-v-db9e79d9"]]);
-  const _hoisted_1$c = { class: "modal-header" };
-  const _hoisted_2$c = { class: "dashboard-content" };
-  const _hoisted_3$c = {
-    key: 0,
-    class: "auth-required"
-  };
-  const _hoisted_4$a = { key: 1 };
-  const _hoisted_5$a = { class: "stats-section" };
-  const _hoisted_6$8 = { class: "stats-section-container" };
-  const _hoisted_7$7 = { class: "stat-number" };
-  const _hoisted_8$6 = { class: "stat-number" };
-  const _hoisted_9$6 = { class: "stat-number" };
-  const _hoisted_10$6 = { class: "stat-number" };
-  const _hoisted_11$5 = { class: "content-section" };
-  const _hoisted_12$4 = {
-    key: 0,
-    class: "content-area"
-  };
-  const _hoisted_13$3 = {
-    key: 0,
-    class: "empty-state"
-  };
-  const _hoisted_14$3 = {
-    key: 1,
-    class: "proposals-list"
-  };
-  const _hoisted_15$3 = ["onClick"];
-  const _hoisted_16$3 = { class: "proposal-header" };
-  const _hoisted_17$3 = { class: "proposal-id" };
-  const _hoisted_18$3 = { class: "proposal-title" };
-  const _hoisted_19$3 = { class: "proposal-meta" };
-  const _hoisted_20$3 = { class: "meta-item" };
-  const _hoisted_21$3 = { class: "meta-item" };
-  const _hoisted_22$3 = {
-    key: 1,
-    class: "content-area"
-  };
-  const _hoisted_23$3 = {
-    key: 0,
-    class: "empty-state"
-  };
-  const _hoisted_24$3 = {
-    key: 1,
-    class: "proposals-list"
-  };
-  const _hoisted_25$3 = ["onClick"];
-  const _hoisted_26$3 = { class: "proposal-header" };
-  const _hoisted_27$3 = { class: "proposal-id" };
-  const _hoisted_28$3 = { class: "proposal-title" };
-  const _hoisted_29$3 = { class: "action-required" };
-  const _hoisted_30$3 = { class: "action-badge" };
-  const _hoisted_31$3 = { class: "proposal-meta" };
-  const _hoisted_32$3 = { class: "meta-item" };
-  const _hoisted_33$3 = { class: "meta-item" };
-  const _hoisted_34$3 = {
-    key: 2,
-    class: "content-area"
-  };
-  const _hoisted_35$3 = {
-    key: 0,
-    class: "empty-state"
-  };
-  const _hoisted_36$3 = {
-    key: 1,
-    class: "proposals-list"
-  };
-  const _hoisted_37$3 = ["onClick"];
-  const _hoisted_38$3 = { class: "proposal-header" };
-  const _hoisted_39$3 = { class: "proposal-id" };
-  const _hoisted_40$3 = { class: "proposal-title" };
-  const _hoisted_41$3 = { class: "evaluation-info" };
-  const _hoisted_42$3 = {
-    key: 0,
-    class: "suggested-vote"
-  };
-  const _hoisted_43$3 = {
-    key: 1,
-    class: "vote-reason"
-  };
-  const _hoisted_44$3 = { class: "proposal-meta" };
-  const _hoisted_45$3 = { class: "meta-item" };
-  const _hoisted_46$3 = { class: "meta-item" };
-  const _hoisted_47$3 = {
-    key: 3,
-    class: "content-area"
-  };
-  const _hoisted_48$3 = { class: "activity-summary" };
-  const _hoisted_49$3 = { class: "activity-stats" };
-  const _hoisted_50$3 = { class: "activity-stat" };
-  const _hoisted_51$2 = { class: "stat-value" };
-  const _hoisted_52$2 = { class: "activity-stat" };
-  const _hoisted_53$2 = { class: "stat-value" };
-  const _hoisted_54$2 = { class: "activity-stat" };
-  const _hoisted_55$2 = { class: "stat-value" };
-  const _hoisted_56$2 = { class: "recent-actions" };
-  const _hoisted_57$2 = {
-    key: 0,
-    class: "empty-state"
-  };
-  const _hoisted_58$2 = {
-    key: 1,
-    class: "activity-list"
-  };
-  const _hoisted_59$2 = { class: "activity-icon" };
-  const _hoisted_60$1 = { class: "activity-details" };
-  const _hoisted_61$1 = { class: "activity-description" };
-  const _hoisted_62$1 = { class: "activity-time" };
-  const _sfc_main$c = /* @__PURE__ */ defineComponent({
-    __name: "MyDashboard",
-    props: {
-      show: { type: Boolean }
-    },
-    emits: ["close"],
-    setup(__props, { emit: __emit }) {
-      const emit2 = __emit;
-      const loading = ref(false);
-      const recentActivity = ref([]);
-      const activeTab = ref("assignments");
-      const dashboardProposals = ref([]);
-      const currentUser = computed(() => {
-        var _a;
-        const address = (_a = authStore.state.user) == null ? void 0 : _a.address;
-        return address || null;
-      });
-      const myAssignments2 = computed(() => {
-        var _a;
-        const currentUser2 = (_a = authStore.state.user) == null ? void 0 : _a.address;
-        if (!currentUser2) return [];
-        return dashboardProposals.value.filter((p2) => p2.assigned_to === currentUser2);
-      });
-      const actionsNeeded2 = computed(() => {
-        var _a;
-        const currentUser2 = (_a = authStore.state.user) == null ? void 0 : _a.address;
-        if (!currentUser2) return [];
-        return dashboardProposals.value.filter((p2) => {
-          var _a2;
-          const hasNoTeamAction = !((_a2 = p2.team_actions) == null ? void 0 : _a2.some((action) => action.wallet_address === currentUser2));
-          const isAssignedToMe = p2.assigned_to === currentUser2;
-          const needsEvaluation = isAssignedToMe && !p2.suggested_vote;
-          const inActionableStatus = ["Considering", "Ready for approval", "Waiting for agreement"].includes(p2.internal_status);
-          return hasNoTeamAction && inActionableStatus || needsEvaluation;
-        });
-      });
-      const myEvaluations2 = computed(() => {
-        var _a;
-        const currentUser2 = (_a = authStore.state.user) == null ? void 0 : _a.address;
-        if (!currentUser2) return [];
-        return dashboardProposals.value.filter((p2) => p2.assigned_to === currentUser2 && p2.suggested_vote);
-      });
-      const totalTeamActions = computed(() => {
-        const user = currentUser.value;
-        let count = 0;
-        dashboardProposals.value.forEach((p2) => {
-          var _a;
-          if ((_a = p2.team_actions) == null ? void 0 : _a.some((action) => action.wallet_address === user)) {
-            count++;
-          }
-        });
-        return count;
-      });
-      const completedAssignments = computed(
-        () => myAssignments2.value.filter(
-          (p2) => ["Ready to vote", "Voted 👍 Aye 👍", "Voted 👎 Nay 👎", "Voted ✌️ Abstain ✌️"].includes(p2.internal_status)
-        ).length
-      );
-      const activityCount = computed(() => recentActivity.value.length);
-      const loadData = async () => {
-        var _a;
-        loading.value = true;
-        try {
-          if (!authStore.state.isAuthenticated || !((_a = authStore.state.user) == null ? void 0 : _a.address)) {
-            return;
-          }
-          const apiService = ApiService.getInstance();
-          try {
-            const assignments = await apiService.getMyAssignments();
-            const needingAttention = await apiService.getProposalsNeedingAttention();
-            const allProposals = [...assignments, ...needingAttention];
-            const uniqueProposals = allProposals.filter(
-              (proposal, index, self2) => index === self2.findIndex((p2) => p2.post_id === proposal.post_id && p2.chain === proposal.chain)
-            );
-            dashboardProposals.value = uniqueProposals;
-          } catch (apiError) {
-            console.warn("Specific API endpoints failed, falling back to general proposal list:", apiError);
-            try {
-              console.warn("No fallback endpoint available, using empty proposals");
-              const relevantProposals = [];
-              dashboardProposals.value = relevantProposals;
-            } catch (fallbackError) {
-              console.error("All API calls failed:", fallbackError);
-              dashboardProposals.value = [];
-            }
-          }
-          const recentProposals = [...dashboardProposals.value].sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime()).slice(0, 10);
-          recentActivity.value = recentProposals.map((p2) => ({
-            id: `${p2.chain}-${p2.post_id}`,
-            type: p2.suggested_vote ? "evaluation" : "assignment",
-            description: `${p2.suggested_vote ? "Evaluated" : "Assigned to"} proposal #${p2.post_id}: ${p2.title}`,
-            timestamp: p2.updated_at || p2.created_at
-          }));
-        } catch (error) {
-          console.error("Failed to load dashboard data:", error);
-          proposalStore.setProposals([]);
-          recentActivity.value = [];
-        } finally {
-          loading.value = false;
-        }
-      };
-      const openProposal = async (proposal) => {
-        try {
-          const apiService = ApiService.getInstance();
-          const existingProposal = await apiService.getProposal(proposal.post_id, proposal.chain);
-          if (!existingProposal) {
-            await apiService.refreshReferenda();
-          }
-          const url = `https://${proposal.chain.toLowerCase()}.polkassembly.io/referenda/${proposal.post_id}`;
-          window.open(url, "_blank");
-        } catch (error) {
-          console.error("Failed to open proposal:", error);
-        }
-      };
-      const getRequiredAction = (proposal) => {
-        var _a;
-        const user = currentUser.value;
-        const hasTeamAction = (_a = proposal.team_actions) == null ? void 0 : _a.some((action) => action.wallet_address === user);
-        const isAssignedToMe = proposal.assigned_to === user;
-        if (isAssignedToMe && !proposal.suggested_vote) {
-          return "Needs Evaluation";
-        }
-        if (!hasTeamAction) {
-          return "Team Action Required";
-        }
-        return "Review Needed";
-      };
-      const getAgreementStatus = (proposal) => {
-        const agreements = proposal.agreement_count || 0;
-        const required = proposal.required_agreements || 4;
-        return `${agreements}/${required} agreements`;
-      };
-      const getActivityIcon = (type) => {
-        switch (type) {
-          case "evaluation":
-            return "";
-          case "team-action":
-            return "";
-          case "assignment":
-            return "";
-          case "vote":
-            return "";
-          default:
-            return "";
-        }
-      };
-      const handleEscKey = (event) => {
-        if (event.key === "Escape") {
-          emit2("close");
-        }
-      };
-      watch(() => authStore.state.isAuthenticated, (isAuthenticated) => {
-        if (isAuthenticated) {
-          loadData();
-        }
-      });
-      onMounted(() => {
-        if (authStore.state.isAuthenticated) {
-          loadData();
-        }
-        document.addEventListener("keydown", handleEscKey);
-      });
-      onUnmounted(() => {
-        document.removeEventListener("keydown", handleEscKey);
-      });
-      return (_ctx, _cache) => {
-        return _ctx.show ? (openBlock(), createElementBlock("div", {
-          key: 0,
-          class: "modal-overlay",
-          onClick: _cache[7] || (_cache[7] = ($event) => _ctx.$emit("close"))
-        }, [
-          createBaseVNode("div", {
-            class: "dashboard-modal",
-            onClick: _cache[6] || (_cache[6] = withModifiers(() => {
-            }, ["stop"]))
-          }, [
-            createBaseVNode("div", _hoisted_1$c, [
-              _cache[8] || (_cache[8] = createBaseVNode("h2", null, "My Dashboard", -1)),
-              createBaseVNode("button", {
-                class: "close-btn",
-                onClick: _cache[0] || (_cache[0] = ($event) => _ctx.$emit("close"))
-              }, "×")
-            ]),
-            createBaseVNode("div", _hoisted_2$c, [
-              !unref(authStore).state.isAuthenticated ? (openBlock(), createElementBlock("div", _hoisted_3$c, [
-                _cache[9] || (_cache[9] = createBaseVNode("div", { class: "auth-icon" }, "🔐", -1)),
-                _cache[10] || (_cache[10] = createBaseVNode("h3", null, "Authentication Required", -1)),
-                _cache[11] || (_cache[11] = createBaseVNode("p", null, "Please connect your wallet to view your dashboard", -1)),
-                createBaseVNode("button", {
-                  onClick: _cache[1] || (_cache[1] = ($event) => _ctx.$emit("close")),
-                  class: "connect-btn"
-                }, "Connect Wallet")
-              ])) : (openBlock(), createElementBlock("div", _hoisted_4$a, [
-                createBaseVNode("div", _hoisted_5$a, [
-                  createBaseVNode("div", _hoisted_6$8, [
-                    createBaseVNode("div", {
-                      class: normalizeClass(["stat-card", { active: activeTab.value === "assignments" }]),
-                      onClick: _cache[2] || (_cache[2] = ($event) => activeTab.value = "assignments")
-                    }, [
-                      createBaseVNode("div", _hoisted_7$7, toDisplayString(myAssignments2.value.length), 1),
-                      _cache[12] || (_cache[12] = createBaseVNode("div", { class: "stat-label" }, "My Assignments", -1))
-                    ], 2),
-                    createBaseVNode("div", {
-                      class: normalizeClass(["stat-card", { active: activeTab.value === "actions" }]),
-                      onClick: _cache[3] || (_cache[3] = ($event) => activeTab.value = "actions")
-                    }, [
-                      createBaseVNode("div", _hoisted_8$6, toDisplayString(actionsNeeded2.value.length), 1),
-                      _cache[13] || (_cache[13] = createBaseVNode("div", { class: "stat-label" }, "Actions Needed", -1))
-                    ], 2),
-                    createBaseVNode("div", {
-                      class: normalizeClass(["stat-card", { active: activeTab.value === "evaluations" }]),
-                      onClick: _cache[4] || (_cache[4] = ($event) => activeTab.value = "evaluations")
-                    }, [
-                      createBaseVNode("div", _hoisted_9$6, toDisplayString(myEvaluations2.value.length), 1),
-                      _cache[14] || (_cache[14] = createBaseVNode("div", { class: "stat-label" }, "My Evaluations", -1))
-                    ], 2),
-                    createBaseVNode("div", {
-                      class: normalizeClass(["stat-card", { active: activeTab.value === "activity" }]),
-                      onClick: _cache[5] || (_cache[5] = ($event) => activeTab.value = "activity")
-                    }, [
-                      createBaseVNode("div", _hoisted_10$6, toDisplayString(activityCount.value), 1),
-                      _cache[15] || (_cache[15] = createBaseVNode("div", { class: "stat-label" }, "My Activity", -1))
-                    ], 2)
-                  ])
-                ]),
-                createBaseVNode("div", _hoisted_11$5, [
-                  activeTab.value === "assignments" ? (openBlock(), createElementBlock("div", _hoisted_12$4, [
-                    myAssignments2.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_13$3, [..._cache[16] || (_cache[16] = [
-                      createBaseVNode("div", { class: "empty-icon" }, "📭", -1),
-                      createBaseVNode("h3", null, "No assignments", -1),
-                      createBaseVNode("p", null, "You don't have any proposals assigned to you", -1)
-                    ])])) : (openBlock(), createElementBlock("div", _hoisted_14$3, [
-                      (openBlock(true), createElementBlock(Fragment, null, renderList(myAssignments2.value, (proposal) => {
-                        return openBlock(), createElementBlock("div", {
-                          key: `${proposal.chain}-${proposal.post_id}`,
-                          class: "proposal-item",
-                          onClick: ($event) => openProposal(proposal)
-                        }, [
-                          createBaseVNode("div", _hoisted_16$3, [
-                            createBaseVNode("span", _hoisted_17$3, "#" + toDisplayString(proposal.post_id), 1),
-                            createVNode(StatusBadge, {
-                              status: proposal.internal_status,
-                              "proposal-id": proposal.post_id,
-                              editable: false
-                            }, null, 8, ["status", "proposal-id"])
-                          ]),
-                          createBaseVNode("h4", _hoisted_18$3, toDisplayString(proposal.title), 1),
-                          createBaseVNode("div", _hoisted_19$3, [
-                            createBaseVNode("div", _hoisted_20$3, [
-                              _cache[17] || (_cache[17] = createBaseVNode("strong", null, "Timeline:", -1)),
-                              createTextVNode(" " + toDisplayString(proposal.referendum_timeline || "Unknown"), 1)
-                            ]),
-                            createBaseVNode("div", _hoisted_21$3, [
-                              _cache[18] || (_cache[18] = createBaseVNode("strong", null, "Updated:", -1)),
-                              createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
-                            ])
-                          ])
-                        ], 8, _hoisted_15$3);
-                      }), 128))
-                    ]))
-                  ])) : createCommentVNode("", true),
-                  activeTab.value === "actions" ? (openBlock(), createElementBlock("div", _hoisted_22$3, [
-                    actionsNeeded2.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_23$3, [..._cache[19] || (_cache[19] = [
-                      createBaseVNode("div", { class: "empty-icon" }, "✅", -1),
-                      createBaseVNode("h3", null, "All caught up!", -1),
-                      createBaseVNode("p", null, "You don't have any pending actions", -1)
-                    ])])) : (openBlock(), createElementBlock("div", _hoisted_24$3, [
-                      (openBlock(true), createElementBlock(Fragment, null, renderList(actionsNeeded2.value, (proposal) => {
-                        return openBlock(), createElementBlock("div", {
-                          key: `${proposal.chain}-${proposal.post_id}`,
-                          class: "proposal-item urgent",
-                          onClick: ($event) => openProposal(proposal)
-                        }, [
-                          createBaseVNode("div", _hoisted_26$3, [
-                            createBaseVNode("span", _hoisted_27$3, "#" + toDisplayString(proposal.post_id), 1),
-                            createVNode(StatusBadge, {
-                              status: proposal.internal_status,
-                              "proposal-id": proposal.post_id,
-                              editable: false
-                            }, null, 8, ["status", "proposal-id"])
-                          ]),
-                          createBaseVNode("h4", _hoisted_28$3, toDisplayString(proposal.title), 1),
-                          createBaseVNode("div", _hoisted_29$3, [
-                            createBaseVNode("span", _hoisted_30$3, toDisplayString(getRequiredAction(proposal)), 1)
-                          ]),
-                          createBaseVNode("div", _hoisted_31$3, [
-                            createBaseVNode("div", _hoisted_32$3, [
-                              _cache[20] || (_cache[20] = createBaseVNode("strong", null, "Assigned:", -1)),
-                              createTextVNode(" " + toDisplayString(proposal.assigned_to === currentUser.value ? "You" : proposal.assigned_to || "Unassigned"), 1)
-                            ]),
-                            createBaseVNode("div", _hoisted_33$3, [
-                              _cache[21] || (_cache[21] = createBaseVNode("strong", null, "Updated:", -1)),
-                              createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
-                            ])
-                          ])
-                        ], 8, _hoisted_25$3);
-                      }), 128))
-                    ]))
-                  ])) : createCommentVNode("", true),
-                  activeTab.value === "evaluations" ? (openBlock(), createElementBlock("div", _hoisted_34$3, [
-                    myEvaluations2.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_35$3, [..._cache[22] || (_cache[22] = [
-                      createBaseVNode("div", { class: "empty-icon" }, "🎯", -1),
-                      createBaseVNode("h3", null, "No evaluations", -1),
-                      createBaseVNode("p", null, "You're not evaluating any proposals", -1)
-                    ])])) : (openBlock(), createElementBlock("div", _hoisted_36$3, [
-                      (openBlock(true), createElementBlock(Fragment, null, renderList(myEvaluations2.value, (proposal) => {
-                        return openBlock(), createElementBlock("div", {
-                          key: `${proposal.chain}-${proposal.post_id}`,
-                          class: "proposal-item",
-                          onClick: ($event) => openProposal(proposal)
-                        }, [
-                          createBaseVNode("div", _hoisted_38$3, [
-                            createBaseVNode("span", _hoisted_39$3, "#" + toDisplayString(proposal.post_id), 1),
-                            createVNode(StatusBadge, {
-                              status: proposal.internal_status,
-                              "proposal-id": proposal.post_id,
-                              editable: false
-                            }, null, 8, ["status", "proposal-id"])
-                          ]),
-                          createBaseVNode("h4", _hoisted_40$3, toDisplayString(proposal.title), 1),
-                          createBaseVNode("div", _hoisted_41$3, [
-                            proposal.suggested_vote ? (openBlock(), createElementBlock("div", _hoisted_42$3, [
-                              _cache[23] || (_cache[23] = createBaseVNode("strong", null, "Suggested Vote:", -1)),
-                              createTextVNode(" " + toDisplayString(proposal.suggested_vote), 1)
-                            ])) : createCommentVNode("", true),
-                            proposal.reason_for_vote ? (openBlock(), createElementBlock("div", _hoisted_43$3, [
-                              _cache[24] || (_cache[24] = createBaseVNode("strong", null, "Reason:", -1)),
-                              createTextVNode(" " + toDisplayString(proposal.reason_for_vote), 1)
-                            ])) : createCommentVNode("", true)
-                          ]),
-                          createBaseVNode("div", _hoisted_44$3, [
-                            createBaseVNode("div", _hoisted_45$3, [
-                              _cache[25] || (_cache[25] = createBaseVNode("strong", null, "Agreement:", -1)),
-                              createTextVNode(" " + toDisplayString(getAgreementStatus(proposal)), 1)
-                            ]),
-                            createBaseVNode("div", _hoisted_46$3, [
-                              _cache[26] || (_cache[26] = createBaseVNode("strong", null, "Updated:", -1)),
-                              createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
-                            ])
-                          ])
-                        ], 8, _hoisted_37$3);
-                      }), 128))
-                    ]))
-                  ])) : createCommentVNode("", true),
-                  activeTab.value === "activity" ? (openBlock(), createElementBlock("div", _hoisted_47$3, [
-                    createBaseVNode("div", _hoisted_48$3, [
-                      _cache[30] || (_cache[30] = createBaseVNode("h3", null, "Recent Activity Summary", -1)),
-                      createBaseVNode("div", _hoisted_49$3, [
-                        createBaseVNode("div", _hoisted_50$3, [
-                          _cache[27] || (_cache[27] = createBaseVNode("span", { class: "stat-label" }, "Proposals Evaluated:", -1)),
-                          createBaseVNode("span", _hoisted_51$2, toDisplayString(myEvaluations2.value.length), 1)
-                        ]),
-                        createBaseVNode("div", _hoisted_52$2, [
-                          _cache[28] || (_cache[28] = createBaseVNode("span", { class: "stat-label" }, "Team Actions Taken:", -1)),
-                          createBaseVNode("span", _hoisted_53$2, toDisplayString(totalTeamActions.value), 1)
-                        ]),
-                        createBaseVNode("div", _hoisted_54$2, [
-                          _cache[29] || (_cache[29] = createBaseVNode("span", { class: "stat-label" }, "Assignments Completed:", -1)),
-                          createBaseVNode("span", _hoisted_55$2, toDisplayString(completedAssignments.value), 1)
-                        ])
-                      ])
-                    ]),
-                    createBaseVNode("div", _hoisted_56$2, [
-                      _cache[32] || (_cache[32] = createBaseVNode("h4", null, "Recent Actions", -1)),
-                      recentActivity.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_57$2, [..._cache[31] || (_cache[31] = [
-                        createBaseVNode("p", null, "No recent activity", -1)
-                      ])])) : (openBlock(), createElementBlock("div", _hoisted_58$2, [
-                        (openBlock(true), createElementBlock(Fragment, null, renderList(recentActivity.value, (activity) => {
-                          return openBlock(), createElementBlock("div", {
-                            key: activity.id,
-                            class: "activity-item"
-                          }, [
-                            createBaseVNode("div", _hoisted_59$2, toDisplayString(getActivityIcon(activity.type)), 1),
-                            createBaseVNode("div", _hoisted_60$1, [
-                              createBaseVNode("div", _hoisted_61$1, toDisplayString(activity.description), 1),
-                              createBaseVNode("div", _hoisted_62$1, toDisplayString(unref(formatDate)(activity.timestamp)), 1)
-                            ])
-                          ]);
-                        }), 128))
-                      ]))
-                    ])
-                  ])) : createCommentVNode("", true)
-                ])
-              ]))
-            ])
-          ])
-        ])) : createCommentVNode("", true);
-      };
-    }
-  });
-  const MyDashboard = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["__scopeId", "data-v-4961dea0"]]);
+  const ProposalBrowser = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["__scopeId", "data-v-db9e79d9"]]);
   const _hoisted_1$b = { class: "modal-header" };
   const _hoisted_2$b = { class: "modal-body" };
   const _hoisted_3$b = { class: "modal-actions" };
@@ -13078,65 +12579,68 @@ Your address: ${address}${configuredMultisigs}
   });
   const AlertModal = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["__scopeId", "data-v-cafa1a99"]]);
   const _hoisted_1$a = { class: "modal-header" };
-  const _hoisted_2$a = { class: "workflow-content" };
+  const _hoisted_2$a = { class: "dashboard-content" };
   const _hoisted_3$a = {
     key: 0,
-    class: "loading-state"
+    class: "auth-required"
   };
-  const _hoisted_4$9 = {
-    key: 1,
-    class: "error-state"
+  const _hoisted_4$9 = { key: 1 };
+  const _hoisted_5$9 = { class: "tab-navigation" };
+  const _hoisted_6$7 = {
+    key: 0,
+    class: "tab-content"
   };
-  const _hoisted_5$9 = { class: "stats-section" };
-  const _hoisted_6$7 = { class: "stats-section-container" };
-  const _hoisted_7$6 = { class: "stat-number" };
-  const _hoisted_8$5 = { class: "stat-number" };
+  const _hoisted_7$6 = { class: "stats-section" };
+  const _hoisted_8$5 = { class: "stats-section-container" };
   const _hoisted_9$5 = { class: "stat-number" };
   const _hoisted_10$5 = { class: "stat-number" };
-  const _hoisted_11$4 = { class: "content-section" };
-  const _hoisted_12$3 = {
+  const _hoisted_11$4 = { class: "stat-number" };
+  const _hoisted_12$3 = { class: "stat-number" };
+  const _hoisted_13$2 = { class: "content-section" };
+  const _hoisted_14$2 = {
     key: 0,
     class: "content-area"
   };
-  const _hoisted_13$2 = { class: "panel-header" };
-  const _hoisted_14$2 = {
+  const _hoisted_15$2 = {
     key: 0,
     class: "empty-state"
   };
-  const _hoisted_15$2 = {
+  const _hoisted_16$2 = {
     key: 1,
     class: "proposals-list"
   };
-  const _hoisted_16$2 = ["onClick"];
-  const _hoisted_17$2 = { class: "proposal-header" };
-  const _hoisted_18$2 = { class: "proposal-id" };
-  const _hoisted_19$2 = { class: "proposal-title" };
-  const _hoisted_20$2 = { class: "agreement-progress" };
-  const _hoisted_21$2 = { class: "progress-header" };
-  const _hoisted_22$2 = { class: "progress-count" };
-  const _hoisted_23$2 = { class: "progress-bar" };
-  const _hoisted_24$2 = { class: "team-status" };
-  const _hoisted_25$2 = { class: "status-section" };
-  const _hoisted_26$2 = { class: "member-list" };
-  const _hoisted_27$2 = {
-    key: 0,
-    class: "no-members"
-  };
-  const _hoisted_28$2 = { class: "proposal-meta" };
-  const _hoisted_29$2 = { class: "meta-item" };
-  const _hoisted_30$2 = { class: "meta-item" };
-  const _hoisted_31$2 = { class: "meta-item" };
-  const _hoisted_32$2 = {
+  const _hoisted_17$2 = ["onClick"];
+  const _hoisted_18$2 = { class: "proposal-header" };
+  const _hoisted_19$2 = { class: "proposal-id" };
+  const _hoisted_20$2 = { class: "proposal-title" };
+  const _hoisted_21$2 = { class: "proposal-meta" };
+  const _hoisted_22$2 = { class: "meta-item" };
+  const _hoisted_23$2 = { class: "meta-item" };
+  const _hoisted_24$2 = {
     key: 1,
     class: "content-area"
   };
-  const _hoisted_33$2 = { class: "panel-header" };
-  const _hoisted_34$2 = ["disabled"];
-  const _hoisted_35$2 = {
+  const _hoisted_25$2 = {
     key: 0,
-    class: "loading-spinner"
+    class: "empty-state"
   };
-  const _hoisted_36$2 = { key: 1 };
+  const _hoisted_26$2 = {
+    key: 1,
+    class: "proposals-list"
+  };
+  const _hoisted_27$2 = ["onClick"];
+  const _hoisted_28$2 = { class: "proposal-header" };
+  const _hoisted_29$2 = { class: "proposal-id" };
+  const _hoisted_30$2 = { class: "proposal-title" };
+  const _hoisted_31$2 = { class: "action-required" };
+  const _hoisted_32$2 = { class: "action-badge" };
+  const _hoisted_33$2 = { class: "proposal-meta" };
+  const _hoisted_34$2 = { class: "meta-item" };
+  const _hoisted_35$2 = { class: "meta-item" };
+  const _hoisted_36$2 = {
+    key: 2,
+    class: "content-area"
+  };
   const _hoisted_37$2 = {
     key: 0,
     class: "empty-state"
@@ -13149,71 +12653,182 @@ Your address: ${address}${configuredMultisigs}
   const _hoisted_40$2 = { class: "proposal-header" };
   const _hoisted_41$2 = { class: "proposal-id" };
   const _hoisted_42$2 = { class: "proposal-title" };
-  const _hoisted_43$2 = { class: "voting-info" };
-  const _hoisted_44$2 = { class: "vote-recommendation" };
-  const _hoisted_45$2 = { class: "vote-badge" };
-  const _hoisted_46$2 = {
+  const _hoisted_43$2 = { class: "evaluation-info" };
+  const _hoisted_44$2 = {
     key: 0,
+    class: "suggested-vote"
+  };
+  const _hoisted_45$2 = {
+    key: 1,
     class: "vote-reason"
   };
-  const _hoisted_47$2 = { class: "proposal-meta" };
+  const _hoisted_46$2 = { class: "proposal-meta" };
+  const _hoisted_47$2 = { class: "meta-item" };
   const _hoisted_48$2 = { class: "meta-item" };
-  const _hoisted_49$2 = { class: "meta-item" };
-  const _hoisted_50$2 = { class: "meta-item" };
-  const _hoisted_51$1 = {
-    key: 2,
-    class: "content-area"
-  };
-  const _hoisted_52$1 = {
-    key: 0,
-    class: "empty-state"
-  };
-  const _hoisted_53$1 = {
-    key: 1,
-    class: "proposals-list"
-  };
-  const _hoisted_54$1 = ["onClick"];
-  const _hoisted_55$1 = { class: "proposal-header" };
-  const _hoisted_56$1 = { class: "proposal-id" };
-  const _hoisted_57$1 = { class: "proposal-title" };
-  const _hoisted_58$1 = { class: "discussion-info" };
-  const _hoisted_59$1 = { class: "discussion-members" };
-  const _hoisted_60 = { class: "member-list" };
-  const _hoisted_61 = { class: "proposal-meta" };
-  const _hoisted_62 = { class: "meta-item" };
-  const _hoisted_63 = { class: "meta-item" };
-  const _hoisted_64 = { class: "meta-item" };
-  const _hoisted_65 = {
+  const _hoisted_49$2 = {
     key: 3,
     class: "content-area"
   };
-  const _hoisted_66 = {
+  const _hoisted_50$2 = { class: "activity-summary" };
+  const _hoisted_51$1 = { class: "activity-stats" };
+  const _hoisted_52$1 = { class: "activity-stat" };
+  const _hoisted_53$1 = { class: "stat-value" };
+  const _hoisted_54$1 = { class: "activity-stat" };
+  const _hoisted_55$1 = { class: "stat-value" };
+  const _hoisted_56$1 = { class: "activity-stat" };
+  const _hoisted_57$1 = { class: "stat-value" };
+  const _hoisted_58$1 = { class: "recent-actions" };
+  const _hoisted_59$1 = {
     key: 0,
     class: "empty-state"
   };
+  const _hoisted_60 = {
+    key: 1,
+    class: "activity-list"
+  };
+  const _hoisted_61 = { class: "activity-icon" };
+  const _hoisted_62 = { class: "activity-details" };
+  const _hoisted_63 = { class: "activity-description" };
+  const _hoisted_64 = { class: "activity-time" };
+  const _hoisted_65 = {
+    key: 1,
+    class: "tab-content"
+  };
+  const _hoisted_66 = {
+    key: 0,
+    class: "loading-state"
+  };
   const _hoisted_67 = {
+    key: 1,
+    class: "error-state"
+  };
+  const _hoisted_68 = { class: "stats-section" };
+  const _hoisted_69 = { class: "stats-section-container" };
+  const _hoisted_70 = { class: "stat-number" };
+  const _hoisted_71 = { class: "stat-number" };
+  const _hoisted_72 = { class: "stat-number" };
+  const _hoisted_73 = { class: "stat-number" };
+  const _hoisted_74 = { class: "content-section" };
+  const _hoisted_75 = {
+    key: 0,
+    class: "content-area"
+  };
+  const _hoisted_76 = { class: "panel-header" };
+  const _hoisted_77 = {
+    key: 0,
+    class: "empty-state"
+  };
+  const _hoisted_78 = {
     key: 1,
     class: "proposals-list"
   };
-  const _hoisted_68 = ["onClick"];
-  const _hoisted_69 = { class: "proposal-header" };
-  const _hoisted_70 = { class: "proposal-id" };
-  const _hoisted_71 = { class: "proposal-title" };
-  const _hoisted_72 = { class: "veto-info" };
-  const _hoisted_73 = { class: "veto-alert" };
-  const _hoisted_74 = {
+  const _hoisted_79 = ["onClick"];
+  const _hoisted_80 = { class: "proposal-header" };
+  const _hoisted_81 = { class: "proposal-id" };
+  const _hoisted_82 = { class: "proposal-title" };
+  const _hoisted_83 = { class: "agreement-progress" };
+  const _hoisted_84 = { class: "progress-header" };
+  const _hoisted_85 = { class: "progress-count" };
+  const _hoisted_86 = { class: "progress-bar" };
+  const _hoisted_87 = { class: "team-status" };
+  const _hoisted_88 = { class: "status-section" };
+  const _hoisted_89 = { class: "member-list" };
+  const _hoisted_90 = {
+    key: 0,
+    class: "no-members"
+  };
+  const _hoisted_91 = { class: "proposal-meta" };
+  const _hoisted_92 = { class: "meta-item" };
+  const _hoisted_93 = { class: "meta-item" };
+  const _hoisted_94 = { class: "meta-item" };
+  const _hoisted_95 = {
+    key: 1,
+    class: "content-area"
+  };
+  const _hoisted_96 = { class: "panel-header" };
+  const _hoisted_97 = ["disabled"];
+  const _hoisted_98 = {
+    key: 0,
+    class: "loading-spinner"
+  };
+  const _hoisted_99 = { key: 1 };
+  const _hoisted_100 = {
+    key: 0,
+    class: "empty-state"
+  };
+  const _hoisted_101 = {
+    key: 1,
+    class: "proposals-list"
+  };
+  const _hoisted_102 = ["onClick"];
+  const _hoisted_103 = { class: "proposal-header" };
+  const _hoisted_104 = { class: "proposal-id" };
+  const _hoisted_105 = { class: "proposal-title" };
+  const _hoisted_106 = { class: "voting-info" };
+  const _hoisted_107 = { class: "vote-recommendation" };
+  const _hoisted_108 = { class: "vote-badge" };
+  const _hoisted_109 = {
+    key: 0,
+    class: "vote-reason"
+  };
+  const _hoisted_110 = { class: "proposal-meta" };
+  const _hoisted_111 = { class: "meta-item" };
+  const _hoisted_112 = { class: "meta-item" };
+  const _hoisted_113 = { class: "meta-item" };
+  const _hoisted_114 = {
+    key: 2,
+    class: "content-area"
+  };
+  const _hoisted_115 = {
+    key: 0,
+    class: "empty-state"
+  };
+  const _hoisted_116 = {
+    key: 1,
+    class: "proposals-list"
+  };
+  const _hoisted_117 = ["onClick"];
+  const _hoisted_118 = { class: "proposal-header" };
+  const _hoisted_119 = { class: "proposal-id" };
+  const _hoisted_120 = { class: "proposal-title" };
+  const _hoisted_121 = { class: "discussion-info" };
+  const _hoisted_122 = { class: "discussion-members" };
+  const _hoisted_123 = { class: "member-list" };
+  const _hoisted_124 = { class: "proposal-meta" };
+  const _hoisted_125 = { class: "meta-item" };
+  const _hoisted_126 = { class: "meta-item" };
+  const _hoisted_127 = { class: "meta-item" };
+  const _hoisted_128 = {
+    key: 3,
+    class: "content-area"
+  };
+  const _hoisted_129 = {
+    key: 0,
+    class: "empty-state"
+  };
+  const _hoisted_130 = {
+    key: 1,
+    class: "proposals-list"
+  };
+  const _hoisted_131 = ["onClick"];
+  const _hoisted_132 = { class: "proposal-header" };
+  const _hoisted_133 = { class: "proposal-id" };
+  const _hoisted_134 = { class: "proposal-title" };
+  const _hoisted_135 = { class: "veto-info" };
+  const _hoisted_136 = { class: "veto-alert" };
+  const _hoisted_137 = {
     key: 0,
     class: "veto-reason"
   };
-  const _hoisted_75 = {
+  const _hoisted_138 = {
     key: 1,
     class: "veto-date"
   };
-  const _hoisted_76 = { class: "proposal-meta" };
-  const _hoisted_77 = { class: "meta-item" };
-  const _hoisted_78 = { class: "meta-item" };
+  const _hoisted_139 = { class: "proposal-meta" };
+  const _hoisted_140 = { class: "meta-item" };
+  const _hoisted_141 = { class: "meta-item" };
   const _sfc_main$a = /* @__PURE__ */ defineComponent({
-    __name: "TeamWorkflow",
+    __name: "UnifiedDashboard",
     props: {
       show: { type: Boolean }
     },
@@ -13221,24 +12836,88 @@ Your address: ${address}${configuredMultisigs}
     setup(__props, { emit: __emit }) {
       const props = __props;
       const emit2 = __emit;
-      const handleEscKey = (event) => {
-        if (event.key === "Escape" && props.show) {
-          emit2("close");
-        }
-      };
-      onMounted(() => {
-        window.addEventListener("keydown", handleEscKey);
-        loadData();
+      const activeTab = ref("dashboard");
+      const dashboardActiveTab = ref("assignments");
+      const workflowActiveTab = ref("agreement");
+      const loading = ref(false);
+      const recentActivity = ref([]);
+      const dashboardProposals = ref([]);
+      const workflowData = ref({
+        needsAgreement: [],
+        readyToVote: [],
+        forDiscussion: [],
+        vetoed: []
       });
-      onUnmounted(() => {
-        window.removeEventListener("keydown", handleEscKey);
+      const workflowLoading = ref(false);
+      const workflowError = ref(null);
+      const showAlertModal = ref(false);
+      const alertModalData = ref({
+        title: "",
+        message: "",
+        type: "info"
       });
+      const sendingToMimir = ref(false);
+      const currentUser = computed(() => {
+        var _a;
+        const address = (_a = authStore.state.user) == null ? void 0 : _a.address;
+        return address || null;
+      });
+      const myAssignments2 = computed(() => {
+        var _a;
+        const currentUser2 = (_a = authStore.state.user) == null ? void 0 : _a.address;
+        if (!currentUser2) return [];
+        return dashboardProposals.value.filter((p2) => p2.assigned_to === currentUser2);
+      });
+      const actionsNeeded2 = computed(() => {
+        var _a;
+        const currentUser2 = (_a = authStore.state.user) == null ? void 0 : _a.address;
+        if (!currentUser2) return [];
+        return dashboardProposals.value.filter((p2) => {
+          var _a2;
+          const hasNoTeamAction = !((_a2 = p2.team_actions) == null ? void 0 : _a2.some((action) => action.wallet_address === currentUser2));
+          const isAssignedToMe = p2.assigned_to === currentUser2;
+          const needsEvaluation = isAssignedToMe && !p2.suggested_vote;
+          const inActionableStatus = ["Considering", "Ready for approval", "Waiting for agreement"].includes(p2.internal_status);
+          return hasNoTeamAction && inActionableStatus || needsEvaluation;
+        });
+      });
+      const myEvaluations2 = computed(() => {
+        var _a;
+        const currentUser2 = (_a = authStore.state.user) == null ? void 0 : _a.address;
+        if (!currentUser2) return [];
+        return dashboardProposals.value.filter((p2) => p2.assigned_to === currentUser2 && p2.suggested_vote);
+      });
+      const totalTeamActions = computed(() => {
+        const user = currentUser.value;
+        let count = 0;
+        dashboardProposals.value.forEach((p2) => {
+          var _a;
+          if ((_a = p2.team_actions) == null ? void 0 : _a.some((action) => action.wallet_address === user)) {
+            count++;
+          }
+        });
+        return count;
+      });
+      const completedAssignments = computed(
+        () => myAssignments2.value.filter(
+          (p2) => ["Ready to vote", "Voted 👍 Aye 👍", "Voted 👎 Nay 👎", "Voted ✌️ Abstain ✌️"].includes(p2.internal_status)
+        ).length
+      );
+      const activityCount = computed(() => recentActivity.value.length);
+      const requiredAgreements = computed(() => {
+        var _a;
+        return ((_a = teamStore.daoConfig) == null ? void 0 : _a.required_agreements) || 4;
+      });
+      const filteredNeedsAgreement = computed(() => workflowData.value.needsAgreement);
+      const filteredReadyToVote = computed(() => workflowData.value.readyToVote);
+      const filteredForDiscussion = computed(() => workflowData.value.forDiscussion);
+      const filteredVetoedProposals = computed(() => workflowData.value.vetoed);
       const normalizeAddress = (address) => {
         try {
           const publicKey = decodeAddress(address);
           return encodeAddress(publicKey, 42);
-        } catch (error2) {
-          console.warn("Failed to normalize address:", address, error2);
+        } catch (error) {
+          console.warn("Failed to normalize address:", address, error);
           return address;
         }
       };
@@ -13255,38 +12934,52 @@ Your address: ${address}${configuredMultisigs}
         const member = findTeamMemberByAddress(address);
         return (member == null ? void 0 : member.name) || `${address.slice(0, 6)}...${address.slice(-6)}`;
       };
-      const workflowData = ref({
-        needsAgreement: [],
-        readyToVote: [],
-        forDiscussion: [],
-        vetoed: []
-      });
-      const activeTab = ref("agreement");
-      const loading = ref(false);
-      const error = ref(null);
-      computed(() => teamStore.teamMembers);
-      const requiredAgreements = computed(() => {
+      const loadDashboardData = async () => {
         var _a;
-        return ((_a = teamStore.daoConfig) == null ? void 0 : _a.required_agreements) || 4;
-      });
-      const showAlertModal = ref(false);
-      const alertModalData = ref({
-        title: "",
-        message: "",
-        type: "info"
-      });
-      const showAlert = (title, message, type = "info") => {
-        alertModalData.value = { title, message, type };
-        showAlertModal.value = true;
-      };
-      const filteredNeedsAgreement = computed(() => workflowData.value.needsAgreement);
-      const filteredReadyToVote = computed(() => workflowData.value.readyToVote);
-      const filteredForDiscussion = computed(() => workflowData.value.forDiscussion);
-      const filteredVetoedProposals = computed(() => workflowData.value.vetoed);
-      const loadData = async () => {
-        if (!props.show) return;
         loading.value = true;
-        error.value = null;
+        try {
+          if (!authStore.state.isAuthenticated || !((_a = authStore.state.user) == null ? void 0 : _a.address)) {
+            return;
+          }
+          const apiService = ApiService.getInstance();
+          try {
+            const assignments = await apiService.getMyAssignments();
+            const needingAttention = await apiService.getProposalsNeedingAttention();
+            const allProposals = [...assignments, ...needingAttention];
+            const uniqueProposals = allProposals.filter(
+              (proposal, index, self2) => index === self2.findIndex((p2) => p2.post_id === proposal.post_id && p2.chain === proposal.chain)
+            );
+            dashboardProposals.value = uniqueProposals;
+          } catch (apiError) {
+            console.warn("Specific API endpoints failed, falling back to general proposal list:", apiError);
+            try {
+              console.warn("No fallback endpoint available, using empty proposals");
+              const relevantProposals = [];
+              dashboardProposals.value = relevantProposals;
+            } catch (fallbackError) {
+              console.error("All API calls failed:", fallbackError);
+              dashboardProposals.value = [];
+            }
+          }
+          const recentProposals = [...dashboardProposals.value].sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime()).slice(0, 10);
+          recentActivity.value = recentProposals.map((p2) => ({
+            id: `${p2.chain}-${p2.post_id}`,
+            type: p2.suggested_vote ? "evaluation" : "assignment",
+            description: `${p2.suggested_vote ? "Evaluated" : "Assigned to"} proposal #${p2.post_id}: ${p2.title}`,
+            timestamp: p2.updated_at || p2.created_at
+          }));
+        } catch (error) {
+          console.error("Failed to load dashboard data:", error);
+          proposalStore.setProposals([]);
+          recentActivity.value = [];
+        } finally {
+          loading.value = false;
+        }
+      };
+      const loadWorkflowData = async () => {
+        if (!props.show) return;
+        workflowLoading.value = true;
+        workflowError.value = null;
         try {
           const apiService = ApiService.getInstance();
           const [data, daoConfig] = await Promise.all([
@@ -13306,31 +12999,55 @@ Your address: ${address}${configuredMultisigs}
           }
         } catch (err) {
           console.error("Error loading team workflow data:", err);
-          error.value = "Failed to load data. Please try again.";
+          workflowError.value = "Failed to load data. Please try again.";
         } finally {
-          loading.value = false;
+          workflowLoading.value = false;
         }
       };
-      watch(() => props.show, (newValue) => {
-        if (newValue) {
-          console.log("🔄 TeamWorkflow modal shown, loading data...");
-          loadData();
+      const openProposal = async (proposal) => {
+        try {
+          const apiService = ApiService.getInstance();
+          const existingProposal = await apiService.getProposal(proposal.post_id, proposal.chain);
+          if (!existingProposal) {
+            await apiService.refreshReferenda();
+          }
+          const url = `https://${proposal.chain.toLowerCase()}.polkassembly.io/referenda/${proposal.post_id}`;
+          window.open(url, "_blank");
+        } catch (error) {
+          console.error("Failed to open proposal:", error);
         }
-      });
-      watch(
-        [filteredNeedsAgreement, filteredReadyToVote, filteredForDiscussion, filteredVetoedProposals],
-        ([needs, ready, discuss, vetoed]) => {
-          console.log("📊 Filtered lists updated:", {
-            needsAgreement: needs.length,
-            readyToVote: ready.length,
-            forDiscussion: discuss.length,
-            vetoedProposals: vetoed.length
-          });
+      };
+      const getRequiredAction = (proposal) => {
+        var _a;
+        const user = currentUser.value;
+        const hasTeamAction = (_a = proposal.team_actions) == null ? void 0 : _a.some((action) => action.wallet_address === user);
+        const isAssignedToMe = proposal.assigned_to === user;
+        if (isAssignedToMe && !proposal.suggested_vote) {
+          return "Needs Evaluation";
         }
-      );
-      const openProposal = (proposal) => {
-        const url = `https://${proposal.chain}.polkassembly.io/referenda/${proposal.post_id}`;
-        window.open(url, "_blank");
+        if (!hasTeamAction) {
+          return "Team Action Required";
+        }
+        return "Review Needed";
+      };
+      const getAgreementStatus = (proposal) => {
+        const agreements = proposal.agreement_count || 0;
+        const required = proposal.required_agreements || 4;
+        return `${agreements}/${required} agreements`;
+      };
+      const getActivityIcon = (type) => {
+        switch (type) {
+          case "evaluation":
+            return "🎯";
+          case "team-action":
+            return "👥";
+          case "assignment":
+            return "📋";
+          case "vote":
+            return "🗳️";
+          default:
+            return "📝";
+        }
       };
       const getAgreementCount = (proposal) => {
         var _a, _b;
@@ -13361,7 +13078,6 @@ Your address: ${address}${configuredMultisigs}
           address: action.wallet_address
         }));
       };
-      const sendingToMimir = ref(false);
       const sendToMimir = () => {
         if (sendingToMimir.value) return;
         sendingToMimir.value = true;
@@ -13400,318 +13116,565 @@ Your address: ${address}${configuredMultisigs}
           sendingToMimir.value = false;
         });
       };
+      const showAlert = (title, message, type = "info") => {
+        alertModalData.value = { title, message, type };
+        showAlertModal.value = true;
+      };
+      const handleEscKey = (event) => {
+        if (event.key === "Escape") {
+          emit2("close");
+        }
+      };
+      watch(() => authStore.state.isAuthenticated, (isAuthenticated) => {
+        if (isAuthenticated) {
+          loadDashboardData();
+        }
+      });
+      watch(() => props.show, (newValue) => {
+        if (newValue) {
+          console.log("🔄 UnifiedDashboard modal shown, loading data...");
+          loadDashboardData();
+          loadWorkflowData();
+        }
+      });
       onMounted(() => {
-        loadData();
+        if (authStore.state.isAuthenticated) {
+          loadDashboardData();
+        }
+        document.addEventListener("keydown", handleEscKey);
+      });
+      onUnmounted(() => {
+        document.removeEventListener("keydown", handleEscKey);
       });
       return (_ctx, _cache) => {
         return _ctx.show ? (openBlock(), createElementBlock("div", {
           key: 0,
           class: "modal-overlay",
-          onClick: _cache[7] || (_cache[7] = ($event) => _ctx.$emit("close"))
+          onClick: _cache[14] || (_cache[14] = ($event) => _ctx.$emit("close"))
         }, [
           createBaseVNode("div", {
-            class: "team-workflow-modal",
-            onClick: _cache[5] || (_cache[5] = withModifiers(() => {
+            class: "unified-dashboard-modal",
+            onClick: _cache[12] || (_cache[12] = withModifiers(() => {
             }, ["stop"]))
           }, [
             createBaseVNode("div", _hoisted_1$a, [
-              _cache[8] || (_cache[8] = createBaseVNode("h2", null, "Team Workflow", -1)),
+              _cache[15] || (_cache[15] = createBaseVNode("h2", null, "Dashboard & Workflow", -1)),
               createBaseVNode("button", {
                 class: "close-btn",
                 onClick: _cache[0] || (_cache[0] = ($event) => _ctx.$emit("close"))
               }, "×")
             ]),
             createBaseVNode("div", _hoisted_2$a, [
-              loading.value ? (openBlock(), createElementBlock("div", _hoisted_3$a, [..._cache[9] || (_cache[9] = [
-                createBaseVNode("div", { class: "loading-spinner" }, null, -1),
-                createBaseVNode("p", null, "Loading team workflow data...", -1)
-              ])])) : error.value ? (openBlock(), createElementBlock("div", _hoisted_4$9, [
-                _cache[10] || (_cache[10] = createBaseVNode("div", { class: "error-icon" }, "⚠️", -1)),
-                _cache[11] || (_cache[11] = createBaseVNode("h3", null, "Error Loading Data", -1)),
-                createBaseVNode("p", null, toDisplayString(error.value), 1),
+              !unref(authStore).state.isAuthenticated ? (openBlock(), createElementBlock("div", _hoisted_3$a, [
+                _cache[16] || (_cache[16] = createBaseVNode("div", { class: "auth-icon" }, "🔐", -1)),
+                _cache[17] || (_cache[17] = createBaseVNode("h3", null, "Authentication Required", -1)),
+                _cache[18] || (_cache[18] = createBaseVNode("p", null, "Please connect your wallet to view your dashboard", -1)),
                 createBaseVNode("button", {
-                  onClick: loadData,
-                  class: "retry-btn"
-                }, "Try Again")
-              ])) : (openBlock(), createElementBlock(Fragment, { key: 2 }, [
+                  onClick: _cache[1] || (_cache[1] = ($event) => _ctx.$emit("close")),
+                  class: "connect-btn"
+                }, "Connect Wallet")
+              ])) : (openBlock(), createElementBlock("div", _hoisted_4$9, [
                 createBaseVNode("div", _hoisted_5$9, [
-                  createBaseVNode("div", _hoisted_6$7, [
-                    createBaseVNode("div", {
-                      class: normalizeClass(["stat-card", { active: activeTab.value === "agreement" }]),
-                      onClick: _cache[1] || (_cache[1] = ($event) => activeTab.value = "agreement")
-                    }, [
-                      createBaseVNode("div", _hoisted_7$6, toDisplayString(filteredNeedsAgreement.value.length), 1),
-                      _cache[12] || (_cache[12] = createBaseVNode("div", { class: "stat-label" }, "Needs Agreement", -1))
-                    ], 2),
-                    createBaseVNode("div", {
-                      class: normalizeClass(["stat-card", { active: activeTab.value === "ready" }]),
-                      onClick: _cache[2] || (_cache[2] = ($event) => activeTab.value = "ready")
-                    }, [
-                      createBaseVNode("div", _hoisted_8$5, toDisplayString(filteredReadyToVote.value.length), 1),
-                      _cache[13] || (_cache[13] = createBaseVNode("div", { class: "stat-label" }, "Ready to Vote", -1))
-                    ], 2),
-                    createBaseVNode("div", {
-                      class: normalizeClass(["stat-card", { active: activeTab.value === "discussion" }]),
-                      onClick: _cache[3] || (_cache[3] = ($event) => activeTab.value = "discussion")
-                    }, [
-                      createBaseVNode("div", _hoisted_9$5, toDisplayString(filteredForDiscussion.value.length), 1),
-                      _cache[14] || (_cache[14] = createBaseVNode("div", { class: "stat-label" }, "For Discussion", -1))
-                    ], 2),
-                    createBaseVNode("div", {
-                      class: normalizeClass(["stat-card", { active: activeTab.value === "vetoed" }]),
-                      onClick: _cache[4] || (_cache[4] = ($event) => activeTab.value = "vetoed")
-                    }, [
-                      createBaseVNode("div", _hoisted_10$5, toDisplayString(filteredVetoedProposals.value.length), 1),
-                      _cache[15] || (_cache[15] = createBaseVNode("div", { class: "stat-label" }, "NO WAYED", -1))
-                    ], 2)
-                  ])
+                  createBaseVNode("button", {
+                    class: normalizeClass(["tab-btn", { active: activeTab.value === "dashboard" }]),
+                    onClick: _cache[2] || (_cache[2] = ($event) => activeTab.value = "dashboard")
+                  }, [..._cache[19] || (_cache[19] = [
+                    createBaseVNode("span", { class: "tab-icon" }, "👤", -1),
+                    createBaseVNode("span", null, "My Dashboard", -1)
+                  ])], 2),
+                  createBaseVNode("button", {
+                    class: normalizeClass(["tab-btn", { active: activeTab.value === "workflow" }]),
+                    onClick: _cache[3] || (_cache[3] = ($event) => activeTab.value = "workflow")
+                  }, [..._cache[20] || (_cache[20] = [
+                    createBaseVNode("span", { class: "tab-icon" }, "👥", -1),
+                    createBaseVNode("span", null, "Team Workflow", -1)
+                  ])], 2)
                 ]),
-                createBaseVNode("div", _hoisted_11$4, [
-                  activeTab.value === "agreement" ? (openBlock(), createElementBlock("div", _hoisted_12$3, [
-                    createBaseVNode("div", _hoisted_13$2, [
-                      _cache[16] || (_cache[16] = createBaseVNode("h3", null, "Proposals Waiting for Team Agreement", -1)),
-                      createBaseVNode("p", null, "These proposals need " + toDisplayString(requiredAgreements.value) + " team member agreements to proceed to voting.", 1)
-                    ]),
-                    filteredNeedsAgreement.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_14$2, [..._cache[17] || (_cache[17] = [
-                      createBaseVNode("div", { class: "empty-icon" }, "✅", -1),
-                      createBaseVNode("h3", null, "All caught up!", -1),
-                      createBaseVNode("p", null, "No proposals are waiting for agreement", -1)
-                    ])])) : (openBlock(), createElementBlock("div", _hoisted_15$2, [
-                      (openBlock(true), createElementBlock(Fragment, null, renderList(filteredNeedsAgreement.value, (proposal) => {
-                        return openBlock(), createElementBlock("div", {
-                          key: `${proposal.chain}-${proposal.post_id}`,
-                          class: "proposal-item agreement-item",
-                          onClick: ($event) => openProposal(proposal)
-                        }, [
-                          createBaseVNode("div", _hoisted_17$2, [
-                            createBaseVNode("span", _hoisted_18$2, "#" + toDisplayString(proposal.post_id), 1),
-                            createVNode(StatusBadge, {
-                              status: proposal.internal_status,
-                              "proposal-id": proposal.post_id,
-                              editable: false
-                            }, null, 8, ["status", "proposal-id"])
-                          ]),
-                          createBaseVNode("h4", _hoisted_19$2, toDisplayString(proposal.title), 1),
-                          createBaseVNode("div", _hoisted_20$2, [
-                            createBaseVNode("div", _hoisted_21$2, [
-                              _cache[18] || (_cache[18] = createBaseVNode("span", null, "Agreement Progress", -1)),
-                              createBaseVNode("span", _hoisted_22$2, toDisplayString(getAgreementCount(proposal)) + "/" + toDisplayString(requiredAgreements.value), 1)
-                            ]),
-                            createBaseVNode("div", _hoisted_23$2, [
-                              createBaseVNode("div", {
-                                class: "progress-fill",
-                                style: normalizeStyle({
-                                  width: `${Math.min(getAgreementCount(proposal) / requiredAgreements.value * 100, 100)}%`,
-                                  backgroundColor: getAgreementCount(proposal) >= requiredAgreements.value ? "#28a745" : "#ffc107"
-                                })
-                              }, null, 4)
-                            ])
-                          ]),
-                          createBaseVNode("div", _hoisted_24$2, [
-                            createBaseVNode("div", _hoisted_25$2, [
-                              _cache[19] || (_cache[19] = createBaseVNode("h5", null, "Agreed Members", -1)),
-                              createBaseVNode("div", _hoisted_26$2, [
-                                (openBlock(true), createElementBlock(Fragment, null, renderList(getAgreedMembers(proposal), (member) => {
-                                  return openBlock(), createElementBlock("span", {
-                                    key: member.address,
-                                    class: "member-badge agreed"
-                                  }, toDisplayString(member.name), 1);
-                                }), 128)),
-                                getAgreedMembers(proposal).length === 0 ? (openBlock(), createElementBlock("span", _hoisted_27$2, "None yet")) : createCommentVNode("", true)
-                              ])
-                            ])
-                          ]),
-                          createBaseVNode("div", _hoisted_28$2, [
-                            createBaseVNode("div", _hoisted_29$2, [
-                              _cache[20] || (_cache[20] = createBaseVNode("strong", null, "Evaluator:", -1)),
-                              createTextVNode(" " + toDisplayString(proposal.assigned_to || "Unassigned"), 1)
-                            ]),
-                            createBaseVNode("div", _hoisted_30$2, [
-                              _cache[21] || (_cache[21] = createBaseVNode("strong", null, "Suggested Vote:", -1)),
-                              createTextVNode(" " + toDisplayString(proposal.suggested_vote || "Not set"), 1)
-                            ]),
-                            createBaseVNode("div", _hoisted_31$2, [
-                              _cache[22] || (_cache[22] = createBaseVNode("strong", null, "Updated:", -1)),
-                              createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
-                            ])
-                          ])
-                        ], 8, _hoisted_16$2);
-                      }), 128))
-                    ]))
-                  ])) : createCommentVNode("", true),
-                  activeTab.value === "ready" ? (openBlock(), createElementBlock("div", _hoisted_32$2, [
-                    createBaseVNode("div", _hoisted_33$2, [
-                      _cache[23] || (_cache[23] = createBaseVNode("h3", null, "Proposals Ready for Voting", -1)),
-                      _cache[24] || (_cache[24] = createBaseVNode("p", null, "These proposals have received sufficient team agreement and are ready for on-chain voting.", -1)),
-                      createBaseVNode("button", {
-                        onClick: sendToMimir,
-                        disabled: sendingToMimir.value || filteredReadyToVote.value.length === 0,
-                        class: "send-to-mimir-btn"
+                activeTab.value === "dashboard" ? (openBlock(), createElementBlock("div", _hoisted_6$7, [
+                  createBaseVNode("div", _hoisted_7$6, [
+                    createBaseVNode("div", _hoisted_8$5, [
+                      createBaseVNode("div", {
+                        class: normalizeClass(["stat-card", { active: dashboardActiveTab.value === "assignments" }]),
+                        onClick: _cache[4] || (_cache[4] = ($event) => dashboardActiveTab.value = "assignments")
                       }, [
-                        sendingToMimir.value ? (openBlock(), createElementBlock("span", _hoisted_35$2)) : (openBlock(), createElementBlock("span", _hoisted_36$2, "Send to Mimir"))
-                      ], 8, _hoisted_34$2)
-                    ]),
-                    filteredReadyToVote.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_37$2, [..._cache[25] || (_cache[25] = [
-                      createBaseVNode("div", { class: "empty-icon" }, "🗳️", -1),
-                      createBaseVNode("h3", null, "No proposals ready", -1),
-                      createBaseVNode("p", null, "No proposals are currently ready for voting", -1)
-                    ])])) : (openBlock(), createElementBlock("div", _hoisted_38$2, [
-                      (openBlock(true), createElementBlock(Fragment, null, renderList(filteredReadyToVote.value, (proposal) => {
-                        return openBlock(), createElementBlock("div", {
-                          key: `${proposal.chain}-${proposal.post_id}`,
-                          class: "proposal-item ready-item",
-                          onClick: ($event) => openProposal(proposal)
-                        }, [
-                          createBaseVNode("div", _hoisted_40$2, [
-                            createBaseVNode("span", _hoisted_41$2, "#" + toDisplayString(proposal.post_id), 1),
-                            createVNode(StatusBadge, {
-                              status: proposal.internal_status,
-                              "proposal-id": proposal.post_id,
-                              editable: false
-                            }, null, 8, ["status", "proposal-id"])
-                          ]),
-                          createBaseVNode("h4", _hoisted_42$2, toDisplayString(proposal.title), 1),
-                          createBaseVNode("div", _hoisted_43$2, [
-                            createBaseVNode("div", _hoisted_44$2, [
-                              _cache[26] || (_cache[26] = createBaseVNode("strong", null, "Team Recommendation:", -1)),
-                              createBaseVNode("span", _hoisted_45$2, toDisplayString(proposal.suggested_vote || "Not set"), 1)
+                        createBaseVNode("div", _hoisted_9$5, toDisplayString(myAssignments2.value.length), 1),
+                        _cache[21] || (_cache[21] = createBaseVNode("div", { class: "stat-label" }, "My Assignments", -1))
+                      ], 2),
+                      createBaseVNode("div", {
+                        class: normalizeClass(["stat-card", { active: dashboardActiveTab.value === "actions" }]),
+                        onClick: _cache[5] || (_cache[5] = ($event) => dashboardActiveTab.value = "actions")
+                      }, [
+                        createBaseVNode("div", _hoisted_10$5, toDisplayString(actionsNeeded2.value.length), 1),
+                        _cache[22] || (_cache[22] = createBaseVNode("div", { class: "stat-label" }, "Actions Needed", -1))
+                      ], 2),
+                      createBaseVNode("div", {
+                        class: normalizeClass(["stat-card", { active: dashboardActiveTab.value === "evaluations" }]),
+                        onClick: _cache[6] || (_cache[6] = ($event) => dashboardActiveTab.value = "evaluations")
+                      }, [
+                        createBaseVNode("div", _hoisted_11$4, toDisplayString(myEvaluations2.value.length), 1),
+                        _cache[23] || (_cache[23] = createBaseVNode("div", { class: "stat-label" }, "My Evaluations", -1))
+                      ], 2),
+                      createBaseVNode("div", {
+                        class: normalizeClass(["stat-card", { active: dashboardActiveTab.value === "activity" }]),
+                        onClick: _cache[7] || (_cache[7] = ($event) => dashboardActiveTab.value = "activity")
+                      }, [
+                        createBaseVNode("div", _hoisted_12$3, toDisplayString(activityCount.value), 1),
+                        _cache[24] || (_cache[24] = createBaseVNode("div", { class: "stat-label" }, "My Activity", -1))
+                      ], 2)
+                    ])
+                  ]),
+                  createBaseVNode("div", _hoisted_13$2, [
+                    dashboardActiveTab.value === "assignments" ? (openBlock(), createElementBlock("div", _hoisted_14$2, [
+                      myAssignments2.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_15$2, [..._cache[25] || (_cache[25] = [
+                        createBaseVNode("div", { class: "empty-icon" }, "📭", -1),
+                        createBaseVNode("h3", null, "No assignments", -1),
+                        createBaseVNode("p", null, "You don't have any proposals assigned to you", -1)
+                      ])])) : (openBlock(), createElementBlock("div", _hoisted_16$2, [
+                        (openBlock(true), createElementBlock(Fragment, null, renderList(myAssignments2.value, (proposal) => {
+                          return openBlock(), createElementBlock("div", {
+                            key: `${proposal.chain}-${proposal.post_id}`,
+                            class: "proposal-item",
+                            onClick: ($event) => openProposal(proposal)
+                          }, [
+                            createBaseVNode("div", _hoisted_18$2, [
+                              createBaseVNode("span", _hoisted_19$2, "#" + toDisplayString(proposal.post_id), 1),
+                              createVNode(StatusBadge, {
+                                status: proposal.internal_status,
+                                "proposal-id": proposal.post_id,
+                                editable: false
+                              }, null, 8, ["status", "proposal-id"])
                             ]),
-                            proposal.reason_for_vote ? (openBlock(), createElementBlock("div", _hoisted_46$2, [
-                              _cache[27] || (_cache[27] = createBaseVNode("strong", null, "Reason:", -1)),
-                              createTextVNode(" " + toDisplayString(proposal.reason_for_vote), 1)
-                            ])) : createCommentVNode("", true)
-                          ]),
-                          createBaseVNode("div", _hoisted_47$2, [
-                            createBaseVNode("div", _hoisted_48$2, [
-                              _cache[28] || (_cache[28] = createBaseVNode("strong", null, "Evaluator:", -1)),
-                              createTextVNode(" " + toDisplayString(proposal.assigned_to || "Unassigned"), 1)
-                            ]),
-                            createBaseVNode("div", _hoisted_49$2, [
-                              _cache[29] || (_cache[29] = createBaseVNode("strong", null, "Timeline:", -1)),
-                              createTextVNode(" " + toDisplayString(proposal.referendum_timeline || "Unknown"), 1)
-                            ]),
-                            createBaseVNode("div", _hoisted_50$2, [
-                              _cache[30] || (_cache[30] = createBaseVNode("strong", null, "Updated:", -1)),
-                              createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
-                            ])
-                          ])
-                        ], 8, _hoisted_39$2);
-                      }), 128))
-                    ]))
-                  ])) : createCommentVNode("", true),
-                  activeTab.value === "discussion" ? (openBlock(), createElementBlock("div", _hoisted_51$1, [
-                    _cache[36] || (_cache[36] = createBaseVNode("div", { class: "panel-header" }, [
-                      createBaseVNode("h3", null, "Proposals for Team Discussion"),
-                      createBaseVNode("p", null, "These proposals have been marked for team discussion before proceeding.")
-                    ], -1)),
-                    filteredForDiscussion.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_52$1, [..._cache[31] || (_cache[31] = [
-                      createBaseVNode("div", { class: "empty-icon" }, "💬", -1),
-                      createBaseVNode("h3", null, "No discussions needed", -1),
-                      createBaseVNode("p", null, "No proposals are marked for discussion", -1)
-                    ])])) : (openBlock(), createElementBlock("div", _hoisted_53$1, [
-                      (openBlock(true), createElementBlock(Fragment, null, renderList(filteredForDiscussion.value, (proposal) => {
-                        var _a;
-                        return openBlock(), createElementBlock("div", {
-                          key: `${proposal.chain}-${proposal.post_id}`,
-                          class: "proposal-item discussion-item",
-                          onClick: ($event) => openProposal(proposal)
-                        }, [
-                          createBaseVNode("div", _hoisted_55$1, [
-                            createBaseVNode("span", _hoisted_56$1, "#" + toDisplayString(proposal.post_id), 1),
-                            createVNode(StatusBadge, {
-                              status: proposal.internal_status,
-                              "proposal-id": proposal.post_id,
-                              editable: false
-                            }, null, 8, ["status", "proposal-id"])
-                          ]),
-                          createBaseVNode("h4", _hoisted_57$1, toDisplayString(proposal.title), 1),
-                          createBaseVNode("div", _hoisted_58$1, [
-                            createBaseVNode("div", _hoisted_59$1, [
-                              _cache[32] || (_cache[32] = createBaseVNode("strong", null, "Marked for discussion by:", -1)),
-                              createBaseVNode("div", _hoisted_60, [
-                                (openBlock(true), createElementBlock(Fragment, null, renderList(getDiscussionMembers(proposal), (member) => {
-                                  return openBlock(), createElementBlock("span", {
-                                    key: member.address,
-                                    class: "member-badge discussion"
-                                  }, toDisplayString(member.name), 1);
-                                }), 128))
+                            createBaseVNode("h4", _hoisted_20$2, toDisplayString(proposal.title), 1),
+                            createBaseVNode("div", _hoisted_21$2, [
+                              createBaseVNode("div", _hoisted_22$2, [
+                                _cache[26] || (_cache[26] = createBaseVNode("strong", null, "Timeline:", -1)),
+                                createTextVNode(" " + toDisplayString(proposal.referendum_timeline || "Unknown"), 1)
+                              ]),
+                              createBaseVNode("div", _hoisted_23$2, [
+                                _cache[27] || (_cache[27] = createBaseVNode("strong", null, "Updated:", -1)),
+                                createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
                               ])
                             ])
-                          ]),
-                          createBaseVNode("div", _hoisted_61, [
-                            createBaseVNode("div", _hoisted_62, [
-                              _cache[33] || (_cache[33] = createBaseVNode("strong", null, "Assigned:", -1)),
-                              createTextVNode(" " + toDisplayString(proposal.assigned_to || "Unassigned"), 1)
+                          ], 8, _hoisted_17$2);
+                        }), 128))
+                      ]))
+                    ])) : createCommentVNode("", true),
+                    dashboardActiveTab.value === "actions" ? (openBlock(), createElementBlock("div", _hoisted_24$2, [
+                      actionsNeeded2.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_25$2, [..._cache[28] || (_cache[28] = [
+                        createBaseVNode("div", { class: "empty-icon" }, "✅", -1),
+                        createBaseVNode("h3", null, "All caught up!", -1),
+                        createBaseVNode("p", null, "You don't have any pending actions", -1)
+                      ])])) : (openBlock(), createElementBlock("div", _hoisted_26$2, [
+                        (openBlock(true), createElementBlock(Fragment, null, renderList(actionsNeeded2.value, (proposal) => {
+                          return openBlock(), createElementBlock("div", {
+                            key: `${proposal.chain}-${proposal.post_id}`,
+                            class: "proposal-item urgent",
+                            onClick: ($event) => openProposal(proposal)
+                          }, [
+                            createBaseVNode("div", _hoisted_28$2, [
+                              createBaseVNode("span", _hoisted_29$2, "#" + toDisplayString(proposal.post_id), 1),
+                              createVNode(StatusBadge, {
+                                status: proposal.internal_status,
+                                "proposal-id": proposal.post_id,
+                                editable: false
+                              }, null, 8, ["status", "proposal-id"])
                             ]),
-                            createBaseVNode("div", _hoisted_63, [
-                              _cache[34] || (_cache[34] = createBaseVNode("strong", null, "Comments:", -1)),
-                              createTextVNode(" " + toDisplayString(((_a = proposal.comments) == null ? void 0 : _a.length) || 0), 1)
+                            createBaseVNode("h4", _hoisted_30$2, toDisplayString(proposal.title), 1),
+                            createBaseVNode("div", _hoisted_31$2, [
+                              createBaseVNode("span", _hoisted_32$2, toDisplayString(getRequiredAction(proposal)), 1)
                             ]),
-                            createBaseVNode("div", _hoisted_64, [
-                              _cache[35] || (_cache[35] = createBaseVNode("strong", null, "Updated:", -1)),
-                              createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
+                            createBaseVNode("div", _hoisted_33$2, [
+                              createBaseVNode("div", _hoisted_34$2, [
+                                _cache[29] || (_cache[29] = createBaseVNode("strong", null, "Assigned:", -1)),
+                                createTextVNode(" " + toDisplayString(proposal.assigned_to === currentUser.value ? "You" : proposal.assigned_to || "Unassigned"), 1)
+                              ]),
+                              createBaseVNode("div", _hoisted_35$2, [
+                                _cache[30] || (_cache[30] = createBaseVNode("strong", null, "Updated:", -1)),
+                                createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
+                              ])
                             ])
+                          ], 8, _hoisted_27$2);
+                        }), 128))
+                      ]))
+                    ])) : createCommentVNode("", true),
+                    dashboardActiveTab.value === "evaluations" ? (openBlock(), createElementBlock("div", _hoisted_36$2, [
+                      myEvaluations2.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_37$2, [..._cache[31] || (_cache[31] = [
+                        createBaseVNode("div", { class: "empty-icon" }, "🎯", -1),
+                        createBaseVNode("h3", null, "No evaluations", -1),
+                        createBaseVNode("p", null, "You're not evaluating any proposals", -1)
+                      ])])) : (openBlock(), createElementBlock("div", _hoisted_38$2, [
+                        (openBlock(true), createElementBlock(Fragment, null, renderList(myEvaluations2.value, (proposal) => {
+                          return openBlock(), createElementBlock("div", {
+                            key: `${proposal.chain}-${proposal.post_id}`,
+                            class: "proposal-item",
+                            onClick: ($event) => openProposal(proposal)
+                          }, [
+                            createBaseVNode("div", _hoisted_40$2, [
+                              createBaseVNode("span", _hoisted_41$2, "#" + toDisplayString(proposal.post_id), 1),
+                              createVNode(StatusBadge, {
+                                status: proposal.internal_status,
+                                "proposal-id": proposal.post_id,
+                                editable: false
+                              }, null, 8, ["status", "proposal-id"])
+                            ]),
+                            createBaseVNode("h4", _hoisted_42$2, toDisplayString(proposal.title), 1),
+                            createBaseVNode("div", _hoisted_43$2, [
+                              proposal.suggested_vote ? (openBlock(), createElementBlock("div", _hoisted_44$2, [
+                                _cache[32] || (_cache[32] = createBaseVNode("strong", null, "Suggested Vote:", -1)),
+                                createTextVNode(" " + toDisplayString(proposal.suggested_vote), 1)
+                              ])) : createCommentVNode("", true),
+                              proposal.reason_for_vote ? (openBlock(), createElementBlock("div", _hoisted_45$2, [
+                                _cache[33] || (_cache[33] = createBaseVNode("strong", null, "Reason:", -1)),
+                                createTextVNode(" " + toDisplayString(proposal.reason_for_vote), 1)
+                              ])) : createCommentVNode("", true)
+                            ]),
+                            createBaseVNode("div", _hoisted_46$2, [
+                              createBaseVNode("div", _hoisted_47$2, [
+                                _cache[34] || (_cache[34] = createBaseVNode("strong", null, "Agreement:", -1)),
+                                createTextVNode(" " + toDisplayString(getAgreementStatus(proposal)), 1)
+                              ]),
+                              createBaseVNode("div", _hoisted_48$2, [
+                                _cache[35] || (_cache[35] = createBaseVNode("strong", null, "Updated:", -1)),
+                                createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
+                              ])
+                            ])
+                          ], 8, _hoisted_39$2);
+                        }), 128))
+                      ]))
+                    ])) : createCommentVNode("", true),
+                    dashboardActiveTab.value === "activity" ? (openBlock(), createElementBlock("div", _hoisted_49$2, [
+                      createBaseVNode("div", _hoisted_50$2, [
+                        _cache[39] || (_cache[39] = createBaseVNode("h3", null, "Recent Activity Summary", -1)),
+                        createBaseVNode("div", _hoisted_51$1, [
+                          createBaseVNode("div", _hoisted_52$1, [
+                            _cache[36] || (_cache[36] = createBaseVNode("span", { class: "stat-label" }, "Proposals Evaluated:", -1)),
+                            createBaseVNode("span", _hoisted_53$1, toDisplayString(myEvaluations2.value.length), 1)
+                          ]),
+                          createBaseVNode("div", _hoisted_54$1, [
+                            _cache[37] || (_cache[37] = createBaseVNode("span", { class: "stat-label" }, "Team Actions Taken:", -1)),
+                            createBaseVNode("span", _hoisted_55$1, toDisplayString(totalTeamActions.value), 1)
+                          ]),
+                          createBaseVNode("div", _hoisted_56$1, [
+                            _cache[38] || (_cache[38] = createBaseVNode("span", { class: "stat-label" }, "Assignments Completed:", -1)),
+                            createBaseVNode("span", _hoisted_57$1, toDisplayString(completedAssignments.value), 1)
                           ])
-                        ], 8, _hoisted_54$1);
-                      }), 128))
-                    ]))
-                  ])) : createCommentVNode("", true),
-                  activeTab.value === "vetoed" ? (openBlock(), createElementBlock("div", _hoisted_65, [
-                    _cache[44] || (_cache[44] = createBaseVNode("div", { class: "panel-header" }, [
-                      createBaseVNode("h3", null, "NO WAYed Proposals"),
-                      createBaseVNode("p", null, "These proposals have been vetoed by team members.")
-                    ], -1)),
-                    filteredVetoedProposals.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_66, [..._cache[37] || (_cache[37] = [
-                      createBaseVNode("div", { class: "empty-icon" }, "🚫", -1),
-                      createBaseVNode("h3", null, "No vetoed proposals", -1),
-                      createBaseVNode("p", null, "No proposals have been NO WAYed", -1)
-                    ])])) : (openBlock(), createElementBlock("div", _hoisted_67, [
-                      (openBlock(true), createElementBlock(Fragment, null, renderList(filteredVetoedProposals.value, (proposal) => {
-                        return openBlock(), createElementBlock("div", {
-                          key: `${proposal.chain}-${proposal.post_id}`,
-                          class: "proposal-item vetoed-item",
-                          onClick: ($event) => openProposal(proposal)
+                        ])
+                      ]),
+                      createBaseVNode("div", _hoisted_58$1, [
+                        _cache[41] || (_cache[41] = createBaseVNode("h4", null, "Recent Actions", -1)),
+                        recentActivity.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_59$1, [..._cache[40] || (_cache[40] = [
+                          createBaseVNode("p", null, "No recent activity", -1)
+                        ])])) : (openBlock(), createElementBlock("div", _hoisted_60, [
+                          (openBlock(true), createElementBlock(Fragment, null, renderList(recentActivity.value, (activity) => {
+                            return openBlock(), createElementBlock("div", {
+                              key: activity.id,
+                              class: "activity-item"
+                            }, [
+                              createBaseVNode("div", _hoisted_61, toDisplayString(getActivityIcon(activity.type)), 1),
+                              createBaseVNode("div", _hoisted_62, [
+                                createBaseVNode("div", _hoisted_63, toDisplayString(activity.description), 1),
+                                createBaseVNode("div", _hoisted_64, toDisplayString(unref(formatDate)(activity.timestamp)), 1)
+                              ])
+                            ]);
+                          }), 128))
+                        ]))
+                      ])
+                    ])) : createCommentVNode("", true)
+                  ])
+                ])) : createCommentVNode("", true),
+                activeTab.value === "workflow" ? (openBlock(), createElementBlock("div", _hoisted_65, [
+                  workflowLoading.value ? (openBlock(), createElementBlock("div", _hoisted_66, [..._cache[42] || (_cache[42] = [
+                    createBaseVNode("div", { class: "loading-spinner" }, null, -1),
+                    createBaseVNode("p", null, "Loading team workflow data...", -1)
+                  ])])) : workflowError.value ? (openBlock(), createElementBlock("div", _hoisted_67, [
+                    _cache[43] || (_cache[43] = createBaseVNode("div", { class: "error-icon" }, "⚠️", -1)),
+                    _cache[44] || (_cache[44] = createBaseVNode("h3", null, "Error Loading Data", -1)),
+                    createBaseVNode("p", null, toDisplayString(workflowError.value), 1),
+                    createBaseVNode("button", {
+                      onClick: loadWorkflowData,
+                      class: "retry-btn"
+                    }, "Try Again")
+                  ])) : (openBlock(), createElementBlock(Fragment, { key: 2 }, [
+                    createBaseVNode("div", _hoisted_68, [
+                      createBaseVNode("div", _hoisted_69, [
+                        createBaseVNode("div", {
+                          class: normalizeClass(["stat-card", { active: workflowActiveTab.value === "agreement" }]),
+                          onClick: _cache[8] || (_cache[8] = ($event) => workflowActiveTab.value = "agreement")
                         }, [
-                          createBaseVNode("div", _hoisted_69, [
-                            createBaseVNode("span", _hoisted_70, "#" + toDisplayString(proposal.post_id), 1),
-                            createVNode(StatusBadge, {
-                              status: proposal.internal_status,
-                              "proposal-id": proposal.post_id,
-                              editable: false
-                            }, null, 8, ["status", "proposal-id"])
-                          ]),
-                          createBaseVNode("h4", _hoisted_71, toDisplayString(proposal.title), 1),
-                          createBaseVNode("div", _hoisted_72, [
-                            createBaseVNode("div", _hoisted_73, [
-                              _cache[38] || (_cache[38] = createBaseVNode("span", { class: "alert-icon" }, "🚫", -1)),
-                              _cache[39] || (_cache[39] = createBaseVNode("strong", null, "NO WAYed by:", -1)),
-                              createTextVNode(" " + toDisplayString(proposal.veto_by_name || getLocalTeamMemberName(proposal.veto_by)), 1)
-                            ]),
-                            proposal.veto_reason ? (openBlock(), createElementBlock("div", _hoisted_74, [
-                              _cache[40] || (_cache[40] = createBaseVNode("strong", null, "Reason:", -1)),
-                              createTextVNode(" " + toDisplayString(proposal.veto_reason), 1)
-                            ])) : createCommentVNode("", true),
-                            proposal.veto_date ? (openBlock(), createElementBlock("div", _hoisted_75, [
-                              _cache[41] || (_cache[41] = createBaseVNode("strong", null, "NO WAYed on:", -1)),
-                              createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.veto_date)), 1)
-                            ])) : createCommentVNode("", true)
-                          ]),
-                          createBaseVNode("div", _hoisted_76, [
-                            createBaseVNode("div", _hoisted_77, [
-                              _cache[42] || (_cache[42] = createBaseVNode("strong", null, "Chain:", -1)),
-                              createTextVNode(" " + toDisplayString(proposal.chain), 1)
-                            ]),
-                            createBaseVNode("div", _hoisted_78, [
-                              _cache[43] || (_cache[43] = createBaseVNode("strong", null, "Updated:", -1)),
-                              createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
-                            ])
-                          ])
-                        ], 8, _hoisted_68);
-                      }), 128))
-                    ]))
-                  ])) : createCommentVNode("", true)
-                ])
-              ], 64))
+                          createBaseVNode("div", _hoisted_70, toDisplayString(filteredNeedsAgreement.value.length), 1),
+                          _cache[45] || (_cache[45] = createBaseVNode("div", { class: "stat-label" }, "Needs Agreement", -1))
+                        ], 2),
+                        createBaseVNode("div", {
+                          class: normalizeClass(["stat-card", { active: workflowActiveTab.value === "ready" }]),
+                          onClick: _cache[9] || (_cache[9] = ($event) => workflowActiveTab.value = "ready")
+                        }, [
+                          createBaseVNode("div", _hoisted_71, toDisplayString(filteredReadyToVote.value.length), 1),
+                          _cache[46] || (_cache[46] = createBaseVNode("div", { class: "stat-label" }, "Ready to Vote", -1))
+                        ], 2),
+                        createBaseVNode("div", {
+                          class: normalizeClass(["stat-card", { active: workflowActiveTab.value === "discussion" }]),
+                          onClick: _cache[10] || (_cache[10] = ($event) => workflowActiveTab.value = "discussion")
+                        }, [
+                          createBaseVNode("div", _hoisted_72, toDisplayString(filteredForDiscussion.value.length), 1),
+                          _cache[47] || (_cache[47] = createBaseVNode("div", { class: "stat-label" }, "For Discussion", -1))
+                        ], 2),
+                        createBaseVNode("div", {
+                          class: normalizeClass(["stat-card", { active: workflowActiveTab.value === "vetoed" }]),
+                          onClick: _cache[11] || (_cache[11] = ($event) => workflowActiveTab.value = "vetoed")
+                        }, [
+                          createBaseVNode("div", _hoisted_73, toDisplayString(filteredVetoedProposals.value.length), 1),
+                          _cache[48] || (_cache[48] = createBaseVNode("div", { class: "stat-label" }, "NO WAYed", -1))
+                        ], 2)
+                      ])
+                    ]),
+                    createBaseVNode("div", _hoisted_74, [
+                      workflowActiveTab.value === "agreement" ? (openBlock(), createElementBlock("div", _hoisted_75, [
+                        createBaseVNode("div", _hoisted_76, [
+                          _cache[49] || (_cache[49] = createBaseVNode("h3", null, "Proposals Waiting for Team Agreement", -1)),
+                          createBaseVNode("p", null, "These proposals need " + toDisplayString(requiredAgreements.value) + " team member agreements to proceed to voting.", 1)
+                        ]),
+                        filteredNeedsAgreement.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_77, [..._cache[50] || (_cache[50] = [
+                          createBaseVNode("div", { class: "empty-icon" }, "✅", -1),
+                          createBaseVNode("h3", null, "All caught up!", -1),
+                          createBaseVNode("p", null, "No proposals are waiting for agreement", -1)
+                        ])])) : (openBlock(), createElementBlock("div", _hoisted_78, [
+                          (openBlock(true), createElementBlock(Fragment, null, renderList(filteredNeedsAgreement.value, (proposal) => {
+                            return openBlock(), createElementBlock("div", {
+                              key: `${proposal.chain}-${proposal.post_id}`,
+                              class: "proposal-item agreement-item",
+                              onClick: ($event) => openProposal(proposal)
+                            }, [
+                              createBaseVNode("div", _hoisted_80, [
+                                createBaseVNode("span", _hoisted_81, "#" + toDisplayString(proposal.post_id), 1),
+                                createVNode(StatusBadge, {
+                                  status: proposal.internal_status,
+                                  "proposal-id": proposal.post_id,
+                                  editable: false
+                                }, null, 8, ["status", "proposal-id"])
+                              ]),
+                              createBaseVNode("h4", _hoisted_82, toDisplayString(proposal.title), 1),
+                              createBaseVNode("div", _hoisted_83, [
+                                createBaseVNode("div", _hoisted_84, [
+                                  _cache[51] || (_cache[51] = createBaseVNode("span", null, "Agreement Progress", -1)),
+                                  createBaseVNode("span", _hoisted_85, toDisplayString(getAgreementCount(proposal)) + "/" + toDisplayString(requiredAgreements.value), 1)
+                                ]),
+                                createBaseVNode("div", _hoisted_86, [
+                                  createBaseVNode("div", {
+                                    class: "progress-fill",
+                                    style: normalizeStyle({
+                                      width: `${Math.min(getAgreementCount(proposal) / requiredAgreements.value * 100, 100)}%`,
+                                      backgroundColor: getAgreementCount(proposal) >= requiredAgreements.value ? "#28a745" : "#ffc107"
+                                    })
+                                  }, null, 4)
+                                ])
+                              ]),
+                              createBaseVNode("div", _hoisted_87, [
+                                createBaseVNode("div", _hoisted_88, [
+                                  _cache[52] || (_cache[52] = createBaseVNode("h5", null, "Agreed Members", -1)),
+                                  createBaseVNode("div", _hoisted_89, [
+                                    (openBlock(true), createElementBlock(Fragment, null, renderList(getAgreedMembers(proposal), (member) => {
+                                      return openBlock(), createElementBlock("span", {
+                                        key: member.address,
+                                        class: "member-badge agreed"
+                                      }, toDisplayString(member.name), 1);
+                                    }), 128)),
+                                    getAgreedMembers(proposal).length === 0 ? (openBlock(), createElementBlock("span", _hoisted_90, "None yet")) : createCommentVNode("", true)
+                                  ])
+                                ])
+                              ]),
+                              createBaseVNode("div", _hoisted_91, [
+                                createBaseVNode("div", _hoisted_92, [
+                                  _cache[53] || (_cache[53] = createBaseVNode("strong", null, "Evaluator:", -1)),
+                                  createTextVNode(" " + toDisplayString(proposal.assigned_to || "Unassigned"), 1)
+                                ]),
+                                createBaseVNode("div", _hoisted_93, [
+                                  _cache[54] || (_cache[54] = createBaseVNode("strong", null, "Suggested Vote:", -1)),
+                                  createTextVNode(" " + toDisplayString(proposal.suggested_vote || "Not set"), 1)
+                                ]),
+                                createBaseVNode("div", _hoisted_94, [
+                                  _cache[55] || (_cache[55] = createBaseVNode("strong", null, "Updated:", -1)),
+                                  createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
+                                ])
+                              ])
+                            ], 8, _hoisted_79);
+                          }), 128))
+                        ]))
+                      ])) : createCommentVNode("", true),
+                      workflowActiveTab.value === "ready" ? (openBlock(), createElementBlock("div", _hoisted_95, [
+                        createBaseVNode("div", _hoisted_96, [
+                          _cache[56] || (_cache[56] = createBaseVNode("h3", null, "Proposals Ready for Voting", -1)),
+                          _cache[57] || (_cache[57] = createBaseVNode("p", null, "These proposals have received sufficient team agreement and are ready for on-chain voting.", -1)),
+                          createBaseVNode("button", {
+                            onClick: sendToMimir,
+                            disabled: sendingToMimir.value || filteredReadyToVote.value.length === 0,
+                            class: "send-to-mimir-btn"
+                          }, [
+                            sendingToMimir.value ? (openBlock(), createElementBlock("span", _hoisted_98)) : (openBlock(), createElementBlock("span", _hoisted_99, "Send to Mimir"))
+                          ], 8, _hoisted_97)
+                        ]),
+                        filteredReadyToVote.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_100, [..._cache[58] || (_cache[58] = [
+                          createBaseVNode("div", { class: "empty-icon" }, "🗳️", -1),
+                          createBaseVNode("h3", null, "No proposals ready", -1),
+                          createBaseVNode("p", null, "No proposals are currently ready for voting", -1)
+                        ])])) : (openBlock(), createElementBlock("div", _hoisted_101, [
+                          (openBlock(true), createElementBlock(Fragment, null, renderList(filteredReadyToVote.value, (proposal) => {
+                            return openBlock(), createElementBlock("div", {
+                              key: `${proposal.chain}-${proposal.post_id}`,
+                              class: "proposal-item ready-item",
+                              onClick: ($event) => openProposal(proposal)
+                            }, [
+                              createBaseVNode("div", _hoisted_103, [
+                                createBaseVNode("span", _hoisted_104, "#" + toDisplayString(proposal.post_id), 1),
+                                createVNode(StatusBadge, {
+                                  status: proposal.internal_status,
+                                  "proposal-id": proposal.post_id,
+                                  editable: false
+                                }, null, 8, ["status", "proposal-id"])
+                              ]),
+                              createBaseVNode("h4", _hoisted_105, toDisplayString(proposal.title), 1),
+                              createBaseVNode("div", _hoisted_106, [
+                                createBaseVNode("div", _hoisted_107, [
+                                  _cache[59] || (_cache[59] = createBaseVNode("strong", null, "Team Recommendation:", -1)),
+                                  createBaseVNode("span", _hoisted_108, toDisplayString(proposal.suggested_vote || "Not set"), 1)
+                                ]),
+                                proposal.reason_for_vote ? (openBlock(), createElementBlock("div", _hoisted_109, [
+                                  _cache[60] || (_cache[60] = createBaseVNode("strong", null, "Reason:", -1)),
+                                  createTextVNode(" " + toDisplayString(proposal.reason_for_vote), 1)
+                                ])) : createCommentVNode("", true)
+                              ]),
+                              createBaseVNode("div", _hoisted_110, [
+                                createBaseVNode("div", _hoisted_111, [
+                                  _cache[61] || (_cache[61] = createBaseVNode("strong", null, "Evaluator:", -1)),
+                                  createTextVNode(" " + toDisplayString(proposal.assigned_to || "Unassigned"), 1)
+                                ]),
+                                createBaseVNode("div", _hoisted_112, [
+                                  _cache[62] || (_cache[62] = createBaseVNode("strong", null, "Timeline:", -1)),
+                                  createTextVNode(" " + toDisplayString(proposal.referendum_timeline || "Unknown"), 1)
+                                ]),
+                                createBaseVNode("div", _hoisted_113, [
+                                  _cache[63] || (_cache[63] = createBaseVNode("strong", null, "Updated:", -1)),
+                                  createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
+                                ])
+                              ])
+                            ], 8, _hoisted_102);
+                          }), 128))
+                        ]))
+                      ])) : createCommentVNode("", true),
+                      workflowActiveTab.value === "discussion" ? (openBlock(), createElementBlock("div", _hoisted_114, [
+                        _cache[69] || (_cache[69] = createBaseVNode("div", { class: "panel-header" }, [
+                          createBaseVNode("h3", null, "Proposals for Team Discussion"),
+                          createBaseVNode("p", null, "These proposals have been marked for team discussion before proceeding.")
+                        ], -1)),
+                        filteredForDiscussion.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_115, [..._cache[64] || (_cache[64] = [
+                          createBaseVNode("div", { class: "empty-icon" }, "💬", -1),
+                          createBaseVNode("h3", null, "No discussions needed", -1),
+                          createBaseVNode("p", null, "No proposals are marked for discussion", -1)
+                        ])])) : (openBlock(), createElementBlock("div", _hoisted_116, [
+                          (openBlock(true), createElementBlock(Fragment, null, renderList(filteredForDiscussion.value, (proposal) => {
+                            var _a;
+                            return openBlock(), createElementBlock("div", {
+                              key: `${proposal.chain}-${proposal.post_id}`,
+                              class: "proposal-item discussion-item",
+                              onClick: ($event) => openProposal(proposal)
+                            }, [
+                              createBaseVNode("div", _hoisted_118, [
+                                createBaseVNode("span", _hoisted_119, "#" + toDisplayString(proposal.post_id), 1),
+                                createVNode(StatusBadge, {
+                                  status: proposal.internal_status,
+                                  "proposal-id": proposal.post_id,
+                                  editable: false
+                                }, null, 8, ["status", "proposal-id"])
+                              ]),
+                              createBaseVNode("h4", _hoisted_120, toDisplayString(proposal.title), 1),
+                              createBaseVNode("div", _hoisted_121, [
+                                createBaseVNode("div", _hoisted_122, [
+                                  _cache[65] || (_cache[65] = createBaseVNode("strong", null, "Marked for discussion by:", -1)),
+                                  createBaseVNode("div", _hoisted_123, [
+                                    (openBlock(true), createElementBlock(Fragment, null, renderList(getDiscussionMembers(proposal), (member) => {
+                                      return openBlock(), createElementBlock("span", {
+                                        key: member.address,
+                                        class: "member-badge discussion"
+                                      }, toDisplayString(member.name), 1);
+                                    }), 128))
+                                  ])
+                                ])
+                              ]),
+                              createBaseVNode("div", _hoisted_124, [
+                                createBaseVNode("div", _hoisted_125, [
+                                  _cache[66] || (_cache[66] = createBaseVNode("strong", null, "Assigned:", -1)),
+                                  createTextVNode(" " + toDisplayString(proposal.assigned_to || "Unassigned"), 1)
+                                ]),
+                                createBaseVNode("div", _hoisted_126, [
+                                  _cache[67] || (_cache[67] = createBaseVNode("strong", null, "Comments:", -1)),
+                                  createTextVNode(" " + toDisplayString(((_a = proposal.comments) == null ? void 0 : _a.length) || 0), 1)
+                                ]),
+                                createBaseVNode("div", _hoisted_127, [
+                                  _cache[68] || (_cache[68] = createBaseVNode("strong", null, "Updated:", -1)),
+                                  createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
+                                ])
+                              ])
+                            ], 8, _hoisted_117);
+                          }), 128))
+                        ]))
+                      ])) : createCommentVNode("", true),
+                      workflowActiveTab.value === "vetoed" ? (openBlock(), createElementBlock("div", _hoisted_128, [
+                        _cache[77] || (_cache[77] = createBaseVNode("div", { class: "panel-header" }, [
+                          createBaseVNode("h3", null, "NO WAYed Proposals"),
+                          createBaseVNode("p", null, "These proposals have been vetoed by team members.")
+                        ], -1)),
+                        filteredVetoedProposals.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_129, [..._cache[70] || (_cache[70] = [
+                          createBaseVNode("div", { class: "empty-icon" }, "🚫", -1),
+                          createBaseVNode("h3", null, "No vetoed proposals", -1),
+                          createBaseVNode("p", null, "No proposals have been NO WAYed", -1)
+                        ])])) : (openBlock(), createElementBlock("div", _hoisted_130, [
+                          (openBlock(true), createElementBlock(Fragment, null, renderList(filteredVetoedProposals.value, (proposal) => {
+                            return openBlock(), createElementBlock("div", {
+                              key: `${proposal.chain}-${proposal.post_id}`,
+                              class: "proposal-item vetoed-item",
+                              onClick: ($event) => openProposal(proposal)
+                            }, [
+                              createBaseVNode("div", _hoisted_132, [
+                                createBaseVNode("span", _hoisted_133, "#" + toDisplayString(proposal.post_id), 1),
+                                createVNode(StatusBadge, {
+                                  status: proposal.internal_status,
+                                  "proposal-id": proposal.post_id,
+                                  editable: false
+                                }, null, 8, ["status", "proposal-id"])
+                              ]),
+                              createBaseVNode("h4", _hoisted_134, toDisplayString(proposal.title), 1),
+                              createBaseVNode("div", _hoisted_135, [
+                                createBaseVNode("div", _hoisted_136, [
+                                  _cache[71] || (_cache[71] = createBaseVNode("span", { class: "alert-icon" }, "🚫", -1)),
+                                  _cache[72] || (_cache[72] = createBaseVNode("strong", null, "NO WAYed by:", -1)),
+                                  createTextVNode(" " + toDisplayString(proposal.veto_by_name || getLocalTeamMemberName(proposal.veto_by)), 1)
+                                ]),
+                                proposal.veto_reason ? (openBlock(), createElementBlock("div", _hoisted_137, [
+                                  _cache[73] || (_cache[73] = createBaseVNode("strong", null, "Reason:", -1)),
+                                  createTextVNode(" " + toDisplayString(proposal.veto_reason), 1)
+                                ])) : createCommentVNode("", true),
+                                proposal.veto_date ? (openBlock(), createElementBlock("div", _hoisted_138, [
+                                  _cache[74] || (_cache[74] = createBaseVNode("strong", null, "NO WAYed on:", -1)),
+                                  createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.veto_date)), 1)
+                                ])) : createCommentVNode("", true)
+                              ]),
+                              createBaseVNode("div", _hoisted_139, [
+                                createBaseVNode("div", _hoisted_140, [
+                                  _cache[75] || (_cache[75] = createBaseVNode("strong", null, "Chain:", -1)),
+                                  createTextVNode(" " + toDisplayString(proposal.chain), 1)
+                                ]),
+                                createBaseVNode("div", _hoisted_141, [
+                                  _cache[76] || (_cache[76] = createBaseVNode("strong", null, "Updated:", -1)),
+                                  createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
+                                ])
+                              ])
+                            ], 8, _hoisted_131);
+                          }), 128))
+                        ]))
+                      ])) : createCommentVNode("", true)
+                    ])
+                  ], 64))
+                ])) : createCommentVNode("", true)
+              ]))
             ])
           ]),
           createVNode(AlertModal, {
@@ -13719,13 +13682,13 @@ Your address: ${address}${configuredMultisigs}
             title: alertModalData.value.title,
             message: alertModalData.value.message,
             type: alertModalData.value.type,
-            onOk: _cache[6] || (_cache[6] = ($event) => showAlertModal.value = false)
+            onOk: _cache[13] || (_cache[13] = ($event) => showAlertModal.value = false)
           }, null, 8, ["show", "title", "message", "type"])
         ])) : createCommentVNode("", true);
       };
     }
   });
-  const TeamWorkflow = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["__scopeId", "data-v-8096aa97"]]);
+  const UnifiedDashboard = /* @__PURE__ */ _export_sfc(_sfc_main$a, [["__scopeId", "data-v-2a1417c5"]]);
   const _hoisted_1$9 = { class: "modal-header" };
   const _hoisted_2$9 = { class: "settings-content" };
   const _hoisted_3$9 = { class: "settings-nav" };
@@ -14424,8 +14387,7 @@ Your address: ${address}${configuredMultisigs}
       const showWalletConnect = ref(false);
       const showDAOConfig = ref(false);
       const showProposalBrowser = ref(false);
-      const showMyDashboard = ref(false);
-      const showTeamWorkflow = ref(false);
+      const showUnifiedDashboard = ref(false);
       const showSettingsMore = ref(false);
       const getUserInitials = () => {
         var _a;
@@ -14441,11 +14403,8 @@ Your address: ${address}${configuredMultisigs}
           case "browse-proposals":
             showProposalBrowser.value = true;
             break;
-          case "my-dashboard":
-            showMyDashboard.value = true;
-            break;
-          case "team-workflow":
-            showTeamWorkflow.value = true;
+          case "unified-dashboard":
+            showUnifiedDashboard.value = true;
             break;
           case "settings-more":
             showSettingsMore.value = true;
@@ -14472,8 +14431,8 @@ Your address: ${address}${configuredMultisigs}
                 disabled: unref(authStore).state.isLoading
               }, toDisplayString(unref(authStore).state.isLoading ? "..." : "Logout"), 9, _hoisted_9$3)
             ])) : (openBlock(), createElementBlock("div", _hoisted_10$3, [
-              _cache[13] || (_cache[13] = createBaseVNode("div", { class: "login-icon" }, "🔐", -1)),
-              _cache[14] || (_cache[14] = createBaseVNode("div", { class: "login-text" }, "Connect your wallet to continue", -1)),
+              _cache[11] || (_cache[11] = createBaseVNode("div", { class: "login-icon" }, "🔐", -1)),
+              _cache[12] || (_cache[12] = createBaseVNode("div", { class: "login-text" }, "Connect your wallet to continue", -1)),
               createBaseVNode("button", {
                 onClick: _cache[0] || (_cache[0] = ($event) => showWalletConnect.value = true),
                 class: "connect-btn"
@@ -14485,31 +14444,23 @@ Your address: ${address}${configuredMultisigs}
               class: "menu-item",
               onClick: _cache[1] || (_cache[1] = ($event) => handleAction("browse-proposals")),
               title: "All proposals with advanced filters"
-            }, [..._cache[15] || (_cache[15] = [
+            }, [..._cache[13] || (_cache[13] = [
               createBaseVNode("span", { class: "icon" }, "📋", -1),
               createBaseVNode("span", null, "Browse Proposals", -1)
             ])]),
             createBaseVNode("div", {
               class: "menu-item",
-              onClick: _cache[2] || (_cache[2] = ($event) => handleAction("my-dashboard")),
-              title: "My assignments & actions needed"
-            }, [..._cache[16] || (_cache[16] = [
-              createBaseVNode("span", { class: "icon" }, "👤", -1),
-              createBaseVNode("span", null, "My Dashboard", -1)
+              onClick: _cache[2] || (_cache[2] = ($event) => handleAction("unified-dashboard")),
+              title: "My dashboard & team workflow"
+            }, [..._cache[14] || (_cache[14] = [
+              createBaseVNode("span", { class: "icon" }, "📊", -1),
+              createBaseVNode("span", null, "Dashboard & Workflow", -1)
             ])]),
             createBaseVNode("div", {
               class: "menu-item",
-              onClick: _cache[3] || (_cache[3] = ($event) => handleAction("team-workflow")),
-              title: "Team collaboration & approvals"
-            }, [..._cache[17] || (_cache[17] = [
-              createBaseVNode("span", { class: "icon" }, "👥", -1),
-              createBaseVNode("span", null, "Team Workflow", -1)
-            ])]),
-            createBaseVNode("div", {
-              class: "menu-item",
-              onClick: _cache[4] || (_cache[4] = ($event) => handleAction("settings-more")),
+              onClick: _cache[3] || (_cache[3] = ($event) => handleAction("settings-more")),
               title: "Configuration, history & help"
-            }, [..._cache[18] || (_cache[18] = [
+            }, [..._cache[15] || (_cache[15] = [
               createBaseVNode("span", { class: "icon" }, "⚙️", -1),
               createBaseVNode("span", null, "Settings & More", -1)
             ])])
@@ -14517,44 +14468,40 @@ Your address: ${address}${configuredMultisigs}
           showWalletConnect.value ? (openBlock(), createElementBlock("div", {
             key: 0,
             class: "modal-overlay",
-            onClick: _cache[7] || (_cache[7] = ($event) => showWalletConnect.value = false)
+            onClick: _cache[6] || (_cache[6] = ($event) => showWalletConnect.value = false)
           }, [
             createBaseVNode("div", {
               class: "modal-content",
-              onClick: _cache[6] || (_cache[6] = withModifiers(() => {
+              onClick: _cache[5] || (_cache[5] = withModifiers(() => {
               }, ["stop"]))
             }, [
               createVNode(WalletConnect, {
-                onClose: _cache[5] || (_cache[5] = ($event) => showWalletConnect.value = false)
+                onClose: _cache[4] || (_cache[4] = ($event) => showWalletConnect.value = false)
               })
             ])
           ])) : createCommentVNode("", true),
           createVNode(ProposalBrowser, {
             show: showProposalBrowser.value,
-            onClose: _cache[8] || (_cache[8] = ($event) => showProposalBrowser.value = false)
+            onClose: _cache[7] || (_cache[7] = ($event) => showProposalBrowser.value = false)
           }, null, 8, ["show"]),
-          createVNode(MyDashboard, {
-            show: showMyDashboard.value,
-            onClose: _cache[9] || (_cache[9] = ($event) => showMyDashboard.value = false)
-          }, null, 8, ["show"]),
-          createVNode(TeamWorkflow, {
-            show: showTeamWorkflow.value,
-            onClose: _cache[10] || (_cache[10] = ($event) => showTeamWorkflow.value = false)
+          createVNode(UnifiedDashboard, {
+            show: showUnifiedDashboard.value,
+            onClose: _cache[8] || (_cache[8] = ($event) => showUnifiedDashboard.value = false)
           }, null, 8, ["show"]),
           createVNode(SettingsMore, {
             show: showSettingsMore.value,
-            onClose: _cache[11] || (_cache[11] = ($event) => showSettingsMore.value = false)
+            onClose: _cache[9] || (_cache[9] = ($event) => showSettingsMore.value = false)
           }, null, 8, ["show"]),
           createVNode(DAOConfigModal, {
             show: showDAOConfig.value,
-            onClose: _cache[12] || (_cache[12] = ($event) => showDAOConfig.value = false),
+            onClose: _cache[10] || (_cache[10] = ($event) => showDAOConfig.value = false),
             onSaved: handleConfigSaved
           }, null, 8, ["show"])
         ]);
       };
     }
   });
-  const Menu = /* @__PURE__ */ _export_sfc(_sfc_main$8, [["__scopeId", "data-v-0610845d"]]);
+  const Menu = /* @__PURE__ */ _export_sfc(_sfc_main$8, [["__scopeId", "data-v-e1685a40"]]);
   const _hoisted_1$7 = {
     id: "voting-tool-app",
     class: "voting-tool-container"
@@ -14636,13 +14583,43 @@ Your address: ${address}${configuredMultisigs}
         "Voted ✌️ Abstain ✌️": { color: "#6f42c1", icon: "✌️" },
         "Not Voted": { color: "#e9ecef", icon: "❌" }
       };
-      const statusOptions = Object.keys(statusConfig).map((status) => ({
+      const getAllowedTransitions = (currentStatus) => {
+        const allowedTransitions = {
+          "Not started": [],
+          // Can't manually change from Not started
+          "Considering": ["Ready for approval"],
+          // Can only move to Ready for approval
+          "Ready for approval": ["Waiting for agreement", "Considering"],
+          // Can move back to Considering or forward to Waiting
+          "Waiting for agreement": ["Ready for approval"],
+          // Can move back to Ready for approval
+          "Ready to vote": [],
+          // Automatic based on agreements
+          "Reconsidering": ["Ready for approval"],
+          // Can move back to Ready for approval
+          "Voted 👍 Aye 👍": [],
+          // Final states - can't change
+          "Voted 👎 Nay 👎": [],
+          // Final states - can't change
+          "Voted ✌️ Abstain ✌️": [],
+          // Final states - can't change
+          "Not Voted": []
+          // Final state - can't change
+        };
+        return allowedTransitions[currentStatus] || [];
+      };
+      const statusOptions = getAllowedTransitions(props.currentStatus).map((status) => ({
         value: status,
         icon: statusConfig[status].icon,
         color: statusConfig[status].color
       }));
       const handleSave = () => {
         if (!selectedStatus.value || selectedStatus.value === props.currentStatus) return;
+        const allowedTransitions = getAllowedTransitions(props.currentStatus);
+        if (!allowedTransitions.includes(selectedStatus.value)) {
+          alert("This status transition is not allowed");
+          return;
+        }
         emit2("save", {
           newStatus: selectedStatus.value,
           reason: changeReason.value
@@ -14735,7 +14712,7 @@ Your address: ${address}${configuredMultisigs}
       };
     }
   });
-  const StatusChangeModal = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["__scopeId", "data-v-35553c91"]]);
+  const StatusChangeModal = /* @__PURE__ */ _export_sfc(_sfc_main$6, [["__scopeId", "data-v-a01f811b"]]);
   const _hoisted_1$5 = { class: "modal-header" };
   const _hoisted_2$5 = { class: "modal-content" };
   const _hoisted_3$5 = {
@@ -15691,9 +15668,9 @@ Would you like to connect your wallet now?`,
   const _hoisted_7 = { class: "controls-actions" };
   const _hoisted_8 = ["title"];
   const _hoisted_9 = { class: "btn-text" };
-  const _hoisted_10 = ["title"];
+  const _hoisted_10 = ["disabled", "title"];
   const _hoisted_11 = { class: "btn-text" };
-  const _hoisted_12 = ["title"];
+  const _hoisted_12 = ["disabled", "title"];
   const _sfc_main = /* @__PURE__ */ defineComponent({
     __name: "VotingControls",
     props: {
@@ -15794,13 +15771,17 @@ Would you like to connect your wallet now?`,
         }
         return "Assign this proposal to yourself";
       });
-      const canUnassign = computed(() => {
+      const isAssignedToMe = computed(() => {
         var _a;
         return authStore.state.isAuthenticated && props.assignedTo && addressesMatch(props.assignedTo, (_a = authStore.state.user) == null ? void 0 : _a.address);
       });
-      const voteButtonTooltip = computed(() => {
+      const canUnassign = computed(() => isAssignedToMe.value);
+      const getVoteButtonTooltip = computed(() => {
         if (!authStore.state.isAuthenticated) {
-          return "Click to connect wallet and vote";
+          return "Please connect your wallet first";
+        }
+        if (!isAssignedToMe.value) {
+          return "Only the assigned person can change the vote";
         }
         if (props.suggestedVote) {
           let tooltip = `Current vote: ${props.suggestedVote}`;
@@ -15811,7 +15792,13 @@ Reason: ${props.reasonForVote}`;
           tooltip += "\n\nClick to change";
           return tooltip;
         }
-        return "Change suggested vote";
+        return "Set suggested vote";
+      });
+      const getTeamActionsTooltip = computed(() => {
+        if (!authStore.state.isAuthenticated) {
+          return "Please connect your wallet to access team actions";
+        }
+        return "Open team collaboration panel";
       });
       const statusConfig = {
         "Not started": { color: "#6c757d", icon: "●" },
@@ -15827,7 +15814,7 @@ Reason: ${props.reasonForVote}`;
       };
       const statusClass = computed(() => {
         return {
-          "status-clickable": props.editable,
+          "status-clickable": canChangeStatus.value,
           [`status-${props.status.toLowerCase().replace(/[^a-z0-9]/g, "-")}`]: true
         };
       });
@@ -15835,16 +15822,75 @@ Reason: ${props.reasonForVote}`;
         var _a;
         return ((_a = statusConfig[props.status]) == null ? void 0 : _a.icon) || "⚪";
       });
+      const canChangeStatus = computed(() => {
+        var _a;
+        if (!isAssignedToMe.value) {
+          return false;
+        }
+        const allowedTransitions = {
+          "Not started": [],
+          // Can't manually change from Not started
+          "Considering": ["Ready for approval"],
+          // Can only move to Ready for approval
+          "Ready for approval": ["Waiting for agreement", "Considering"],
+          // Can move back to Considering or forward to Waiting
+          "Waiting for agreement": ["Ready for approval"],
+          // Can move back to Ready for approval
+          "Ready to vote": [],
+          // Automatic based on agreements
+          "Reconsidering": ["Ready for approval"],
+          // Can move back to Ready for approval
+          "Voted 👍 Aye 👍": [],
+          // Final states - can't change
+          "Voted 👎 Nay 👎": [],
+          // Final states - can't change
+          "Voted ✌️ Abstain ✌️": [],
+          // Final states - can't change
+          "Not Voted": []
+          // Final state - can't change
+        };
+        return ((_a = allowedTransitions[props.status]) == null ? void 0 : _a.length) > 0;
+      });
       const handleStatusClick = () => {
-        if (props.editable) {
+        if (canChangeStatus.value) {
           showStatusModal.value = true;
         }
       };
       const closeStatusModal = () => {
         showStatusModal.value = false;
       };
+      const getAllowedTransitions = (currentStatus) => {
+        const allowedTransitions = {
+          "Not started": [],
+          // Can't manually change from Not started
+          "Considering": ["Ready for approval"],
+          // Can only move to Ready for approval
+          "Ready for approval": ["Waiting for agreement", "Considering"],
+          // Can move back to Considering or forward to Waiting
+          "Waiting for agreement": ["Ready for approval"],
+          // Can move back to Ready for approval
+          "Ready to vote": [],
+          // Automatic based on agreements
+          "Reconsidering": ["Ready for approval"],
+          // Can move back to Ready for approval
+          "Voted 👍 Aye 👍": [],
+          // Final states - can't change
+          "Voted 👎 Nay 👎": [],
+          // Final states - can't change
+          "Voted ✌️ Abstain ✌️": [],
+          // Final states - can't change
+          "Not Voted": []
+          // Final state - can't change
+        };
+        return allowedTransitions[currentStatus] || [];
+      };
       const saveStatusChange = async (data) => {
         try {
+          const allowedTransitions = getAllowedTransitions(props.status);
+          if (!allowedTransitions.includes(data.newStatus)) {
+            alert("This status transition is not allowed");
+            return;
+          }
           const changeData = {
             proposalId: props.proposalId,
             oldStatus: props.status,
@@ -15853,16 +15899,17 @@ Reason: ${props.reasonForVote}`;
           };
           console.log("Status change requested:", changeData);
           closeStatusModal();
-          emit2("update:status", data.newStatus);
-          emit2("proposal-updated", {
-            type: "status",
-            proposal: __spreadProps(__spreadValues({}, changeData), {
-              chain: props.chain
-            }),
-            chain: props.chain
+          await proposalStore.updateProposal(props.proposalId, props.chain, {
+            internal_status: data.newStatus
           });
+          const freshData = await apiService.getProposal(props.proposalId, props.chain);
+          if (!freshData) {
+            throw new Error("Failed to fetch updated proposal data");
+          }
+          emit2("update:status", freshData.internal_status);
         } catch (error) {
           console.error("Failed to update status:", error);
+          alert(error instanceof Error ? error.message : "Failed to update status");
         }
       };
       const handleAssignToMe = () => {
@@ -15895,10 +15942,20 @@ Reason: ${props.reasonForVote}`;
           if (!updatedProposal) {
             throw new Error("Failed to fetch updated proposal data");
           }
-          await proposalStore.updateProposal(props.proposalId, props.chain);
-          emit2("update:status", updatedProposal.internal_status);
+          await proposalStore.updateProposal(props.proposalId, props.chain, {
+            suggested_vote: void 0,
+            assigned_to: void 0,
+            internal_status: "Not started"
+          });
+          const freshData = await apiService.getProposal(props.proposalId, props.chain);
+          if (!freshData) {
+            throw new Error("Failed to fetch updated proposal data");
+          }
+          emit2("update:status", "Not started");
           emit2("update:suggestedVote", void 0);
           emit2("update:assignedTo", null);
+          await proposalStore.fetchProposals();
+          await proposalStore.fetchProposals();
         } catch (error) {
           console.error("Failed to unassign proposal:", error);
           alert(error instanceof Error ? error.message : "Failed to unassign proposal");
@@ -15927,12 +15984,20 @@ Reason: ${props.reasonForVote}`;
           showLoginPrompt("Please connect your wallet to change suggested votes.");
           return;
         }
+        if (!isAssignedToMe.value) {
+          alert("Only the assigned person can change the vote");
+          return;
+        }
         showVoteModal.value = true;
       };
       const closeVoteModal = () => {
         showVoteModal.value = false;
       };
       const saveVoteChange = async (data) => {
+        if (!isAssignedToMe.value) {
+          alert("Only the assigned person can change the vote");
+          return;
+        }
         try {
           console.log("Suggested vote change requested:", { vote: data.vote, reason: data.reason });
           closeVoteModal();
@@ -15944,8 +16009,16 @@ Reason: ${props.reasonForVote}`;
           if (!updatedProposal) {
             throw new Error("Failed to fetch updated proposal data");
           }
-          await proposalStore.updateProposal(props.proposalId, props.chain);
-          emit2("update:suggestedVote", updatedProposal.suggested_vote);
+          await proposalStore.updateProposal(props.proposalId, props.chain, {
+            suggested_vote: void 0
+          });
+          const freshData = await apiService.getProposal(props.proposalId, props.chain);
+          if (!freshData) {
+            throw new Error("Failed to fetch updated proposal data");
+          }
+          emit2("update:suggestedVote", void 0);
+          emit2("update:status", freshData.internal_status);
+          await proposalStore.fetchProposals();
         } catch (error) {
           console.error("Failed to update suggested vote:", error);
           alert(error instanceof Error ? error.message : "Failed to update suggested vote");
@@ -16004,7 +16077,8 @@ Would you like to connect your wallet now?`,
               id: "voting-tool-change-vote",
               class: "control-btn vote-btn",
               onClick: handleChangeVote,
-              title: voteButtonTooltip.value
+              disabled: !isAssignedToMe.value,
+              title: getVoteButtonTooltip.value
             }, [
               createBaseVNode("span", _hoisted_11, toDisplayString(_ctx.suggestedVote || "No Suggested Vote"), 1)
             ], 8, _hoisted_10),
@@ -16012,7 +16086,8 @@ Would you like to connect your wallet now?`,
               id: "voting-tool-team-actions",
               class: "control-btn team-btn",
               onClick: handleTeamActions,
-              title: unref(authStore).state.isAuthenticated ? "Open team collaboration panel" : "Click to connect wallet for team actions"
+              disabled: !unref(authStore).state.isAuthenticated,
+              title: getTeamActionsTooltip.value
             }, [..._cache[4] || (_cache[4] = [
               createBaseVNode("span", { class: "btn-text" }, "Team Actions", -1)
             ])], 8, _hoisted_12)
@@ -16077,7 +16152,7 @@ Would you like to connect your wallet now?`,
       };
     }
   });
-  const VotingControls = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-7e2ea9da"]]);
+  const VotingControls = /* @__PURE__ */ _export_sfc(_sfc_main, [["__scopeId", "data-v-9f2310c4"]]);
   const _ProposalDetector = class _ProposalDetector {
     static getInstance() {
       if (!_ProposalDetector.instance) {

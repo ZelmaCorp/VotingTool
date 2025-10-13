@@ -38,20 +38,11 @@
       
       <div 
         class="menu-item" 
-        @click="handleAction('my-dashboard')"
-        title="My assignments & actions needed"
+        @click="handleAction('unified-dashboard')"
+        title="My dashboard & team workflow"
       >
-        <span class="icon">👤</span>
-        <span>My Dashboard</span>
-      </div>
-      
-      <div 
-        class="menu-item" 
-        @click="handleAction('team-workflow')"
-        title="Team collaboration & approvals"
-      >
-        <span class="icon">👥</span>
-        <span>Team Workflow</span>
+        <span class="icon">📊</span>
+        <span>Dashboard & Workflow</span>
       </div>
       
       <div 
@@ -77,16 +68,10 @@
       @close="showProposalBrowser = false"
     />
 
-    <!-- My Dashboard Modal -->
-    <MyDashboard 
-      :show="showMyDashboard"
-      @close="showMyDashboard = false"
-    />
-
-    <!-- Team Workflow Modal -->
-    <TeamWorkflow 
-      :show="showTeamWorkflow"
-      @close="showTeamWorkflow = false"
+    <!-- Unified Dashboard Modal -->
+    <UnifiedDashboard 
+      :show="showUnifiedDashboard"
+      @close="showUnifiedDashboard = false"
     />
 
     <!-- Settings & More Modal -->
@@ -111,15 +96,13 @@ import { formatAddress } from '../../utils/teamUtils'
 import WalletConnect from '../WalletConnect.vue'
 import DAOConfigModal from '../modals/DAOConfigModal.vue'
 import ProposalBrowser from './ProposalBrowser.vue'
-import MyDashboard from './MyDashboard.vue'
-import TeamWorkflow from './TeamWorkflow.vue'
+import UnifiedDashboard from './UnifiedDashboard.vue'
 import SettingsMore from './SettingsMore.vue'
 
 const showWalletConnect = ref(false)
 const showDAOConfig = ref(false)
 const showProposalBrowser = ref(false)
-const showMyDashboard = ref(false)
-const showTeamWorkflow = ref(false)
+const showUnifiedDashboard = ref(false)
 const showSettingsMore = ref(false)
 
 const getUserInitials = () => {
@@ -137,11 +120,8 @@ const handleAction = (action: string) => {
     case 'browse-proposals':
       showProposalBrowser.value = true
       break
-    case 'my-dashboard':
-      showMyDashboard.value = true
-      break
-    case 'team-workflow':
-      showTeamWorkflow.value = true
+    case 'unified-dashboard':
+      showUnifiedDashboard.value = true
       break
     case 'settings-more':
       showSettingsMore.value = true

@@ -334,16 +334,39 @@ const statusConfig = {
 
 const statusClass = computed(() => {
   return {
-    'status-clickable': props.editable,
+    'status-clickable': canChangeStatus.value,
     [`status-${props.status.toLowerCase().replace(/[^a-z0-9]/g, '-')}`]: true
   }
 })
 
 const statusIcon = computed(() => statusConfig[props.status]?.icon || '⚪')
 
+const canChangeStatus = computed(() => {
+  // Only assigned person can change status
+  if (!isAssignedToMe.value) {
+    return false;
+  }
+
+  // Only certain statuses can be manually changed
+  const allowedTransitions: Record<InternalStatus, InternalStatus[]> = {
+    'Not started': [],  // Can't manually change from Not started
+    'Considering': ['Ready for approval'],  // Can only move to Ready for approval
+    'Ready for approval': ['Waiting for agreement', 'Considering'],  // Can move back to Considering or forward to Waiting
+    'Waiting for agreement': ['Ready for approval'],  // Can move back to Ready for approval
+    'Ready to vote': [],  // Automatic based on agreements
+    'Reconsidering': ['Ready for approval'],  // Can move back to Ready for approval
+    'Voted 👍 Aye 👍': [],  // Final states - can't change
+    'Voted 👎 Nay 👎': [],  // Final states - can't change
+    'Voted ✌️ Abstain ✌️': [],  // Final states - can't change
+    'Not Voted': []  // Final state - can't change
+  };
+
+  return allowedTransitions[props.status]?.length > 0;
+});
+
 const handleStatusClick = () => {
-  if (props.editable) {
-    showStatusModal.value = true
+  if (canChangeStatus.value) {
+    showStatusModal.value = true;
   }
 }
 
@@ -351,8 +374,32 @@ const closeStatusModal = () => {
   showStatusModal.value = false
 }
 
+const getAllowedTransitions = (currentStatus: InternalStatus): InternalStatus[] => {
+  const allowedTransitions: Record<InternalStatus, InternalStatus[]> = {
+    'Not started': [],  // Can't manually change from Not started
+    'Considering': ['Ready for approval'],  // Can only move to Ready for approval
+    'Ready for approval': ['Waiting for agreement', 'Considering'],  // Can move back to Considering or forward to Waiting
+    'Waiting for agreement': ['Ready for approval'],  // Can move back to Ready for approval
+    'Ready to vote': [],  // Automatic based on agreements
+    'Reconsidering': ['Ready for approval'],  // Can move back to Ready for approval
+    'Voted 👍 Aye 👍': [],  // Final states - can't change
+    'Voted 👎 Nay 👎': [],  // Final states - can't change
+    'Voted ✌️ Abstain ✌️': [],  // Final states - can't change
+    'Not Voted': []  // Final state - can't change
+  };
+  
+  return allowedTransitions[currentStatus] || [];
+};
+
 const saveStatusChange = async (data: { newStatus: InternalStatus; reason: string }) => {
   try {
+    // Validate the transition is allowed
+    const allowedTransitions = getAllowedTransitions(props.status);
+    if (!allowedTransitions.includes(data.newStatus)) {
+      alert('This status transition is not allowed');
+      return;
+    }
+
     const changeData = {
       proposalId: props.proposalId,
       oldStatus: props.status,
@@ -363,21 +410,23 @@ const saveStatusChange = async (data: { newStatus: InternalStatus; reason: strin
     console.log('Status change requested:', changeData)
     closeStatusModal()
     
-    // Emit events to update parent state
-    emit('update:status', data.newStatus);
-    
-    // Emit full update event
-    emit('proposal-updated', {
-      type: 'status',
-      proposal: {
-        ...changeData,
-        chain: props.chain
-      },
-      chain: props.chain
+    // First update the store
+    await proposalStore.updateProposal(props.proposalId, props.chain, {
+      internal_status: data.newStatus
     });
+    
+    // Force a fresh fetch to ensure we have the latest data
+    const freshData = await apiService.getProposal(props.proposalId, props.chain);
+    if (!freshData) {
+      throw new Error('Failed to fetch updated proposal data');
+    }
+    
+    // Emit events to update parent state
+    emit('update:status', freshData.internal_status as InternalStatus);
     
   } catch (error) {
     console.error('Failed to update status:', error)
+    alert(error instanceof Error ? error.message : 'Failed to update status');
   }
 }
 
@@ -421,8 +470,12 @@ const confirmUnassign = async (unassignNote: string | undefined) => {
       throw new Error('Failed to fetch updated proposal data');
     }
     
-    // First update the store
-    await proposalStore.updateProposal(props.proposalId, props.chain);
+    // First update the store with explicit nulls/undefined
+    await proposalStore.updateProposal(props.proposalId, props.chain, {
+      suggested_vote: undefined,
+      assigned_to: undefined,
+      internal_status: 'Not started' as InternalStatus
+    });
     
     // Force a fresh fetch to ensure we have the latest data
     const freshData = await apiService.getProposal(props.proposalId, props.chain);
@@ -430,10 +483,13 @@ const confirmUnassign = async (unassignNote: string | undefined) => {
       throw new Error('Failed to fetch updated proposal data');
     }
     
-    // Emit events to update parent state with fresh data
-    emit('update:status', freshData.internal_status as InternalStatus);
-    emit('update:suggestedVote', undefined); // Force suggested vote to undefined
+    // Emit events to update parent state with explicit undefined/null
+    emit('update:status', 'Not started' as InternalStatus);
+    emit('update:suggestedVote', undefined);
     emit('update:assignedTo', null);
+    
+    // Force a store refresh to ensure all components update
+    await proposalStore.fetchProposals();
     
     // Force a store refresh
     await proposalStore.fetchProposals();
@@ -505,8 +561,10 @@ const saveVoteChange = async (data: { vote: '👍 Aye 👍' | '👎 Nay 👎' | 
       throw new Error('Failed to fetch updated proposal data');
     }
 
-    // First update the store
-    await proposalStore.updateProposal(props.proposalId, props.chain);
+    // First update the store with explicit undefined for suggestedVote
+    await proposalStore.updateProposal(props.proposalId, props.chain, {
+      suggested_vote: undefined
+    });
     
     // Force a fresh fetch to ensure we have the latest data
     const freshData = await apiService.getProposal(props.proposalId, props.chain);
@@ -514,8 +572,8 @@ const saveVoteChange = async (data: { vote: '👍 Aye 👍' | '👎 Nay 👎' | 
       throw new Error('Failed to fetch updated proposal data');
     }
     
-    // Emit events to update parent state
-    emit('update:suggestedVote', freshData.suggested_vote as SuggestedVote | undefined);
+    // Emit events to update parent state with undefined
+    emit('update:suggestedVote', undefined);
     emit('update:status', freshData.internal_status as InternalStatus);
     
     // Force a store refresh
