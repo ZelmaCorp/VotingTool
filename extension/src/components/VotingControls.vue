@@ -29,7 +29,8 @@
         id="voting-tool-change-vote"
         class="control-btn vote-btn"
         @click="handleChangeVote"
-        :title="voteButtonTooltip"
+        :disabled="!isAssignedToMe"
+        :title="getVoteButtonTooltip"
       >
         <span class="btn-text">{{ suggestedVote || 'No Suggested Vote' }}</span>
       </button>
@@ -38,7 +39,8 @@
         id="voting-tool-team-actions"
         class="control-btn team-btn"
         @click="handleTeamActions"
-        :title="authStore.state.isAuthenticated ? 'Open team collaboration panel' : 'Click to connect wallet for team actions'"
+        :disabled="!authStore.state.isAuthenticated"
+        :title="getTeamActionsTooltip"
       >
         <span class="btn-text">Team Actions</span>
       </button>
@@ -280,18 +282,21 @@ const assignButtonTooltip = computed(() => {
 /**
  * Computed property to determine if current user can unassign
  */
-const canUnassign = computed(() => {
+const isAssignedToMe = computed(() => {
   return authStore.state.isAuthenticated && 
          props.assignedTo && 
          addressesMatch(props.assignedTo, authStore.state.user?.address)
 })
 
-/**
- * Computed property for vote button tooltip that includes reason
- */
-const voteButtonTooltip = computed(() => {
+const canUnassign = computed(() => isAssignedToMe.value)
+
+const getVoteButtonTooltip = computed(() => {
   if (!authStore.state.isAuthenticated) {
-    return 'Click to connect wallet and vote'
+    return 'Please connect your wallet first'
+  }
+  
+  if (!isAssignedToMe.value) {
+    return 'Only the assigned person can change the vote'
   }
   
   if (props.suggestedVote) {
@@ -303,8 +308,16 @@ const voteButtonTooltip = computed(() => {
     return tooltip
   }
   
-  return 'Change suggested vote'
+  return 'Set suggested vote'
 })
+
+const getTeamActionsTooltip = computed(() => {
+  if (!authStore.state.isAuthenticated) {
+    return 'Please connect your wallet to access team actions'
+  }
+  return 'Open team collaboration panel'
+})
+
 
 const statusConfig = {
   'Not started': { color: '#6c757d', icon: '●' },
@@ -408,13 +421,22 @@ const confirmUnassign = async (unassignNote: string | undefined) => {
       throw new Error('Failed to fetch updated proposal data');
     }
     
-    // Update store and emit events
+    // First update the store
     await proposalStore.updateProposal(props.proposalId, props.chain);
     
-    // Emit events to update parent state
-    emit('update:status', updatedProposal.internal_status as InternalStatus);
-    emit('update:suggestedVote', undefined);
+    // Force a fresh fetch to ensure we have the latest data
+    const freshData = await apiService.getProposal(props.proposalId, props.chain);
+    if (!freshData) {
+      throw new Error('Failed to fetch updated proposal data');
+    }
+    
+    // Emit events to update parent state with fresh data
+    emit('update:status', freshData.internal_status as InternalStatus);
+    emit('update:suggestedVote', undefined); // Force suggested vote to undefined
     emit('update:assignedTo', null);
+    
+    // Force a store refresh
+    await proposalStore.fetchProposals();
   } catch (error) {
     console.error('Failed to unassign proposal:', error);
     alert(error instanceof Error ? error.message : 'Failed to unassign proposal');
@@ -449,6 +471,12 @@ const handleChangeVote = () => {
     showLoginPrompt('Please connect your wallet to change suggested votes.')
     return
   }
+  
+  if (!isAssignedToMe.value) {
+    alert('Only the assigned person can change the vote');
+    return;
+  }
+  
   showVoteModal.value = true
 }
 
@@ -457,6 +485,10 @@ const closeVoteModal = () => {
 }
 
 const saveVoteChange = async (data: { vote: '👍 Aye 👍' | '👎 Nay 👎' | '✌️ Abstain ✌️'; reason: string }) => {
+  if (!isAssignedToMe.value) {
+    alert('Only the assigned person can change the vote');
+    return;
+  }
   try {
     console.log('Suggested vote change requested:', { vote: data.vote, reason: data.reason });
     closeVoteModal();
@@ -473,11 +505,21 @@ const saveVoteChange = async (data: { vote: '👍 Aye 👍' | '👎 Nay 👎' | 
       throw new Error('Failed to fetch updated proposal data');
     }
 
-    // Update store and emit events
+    // First update the store
     await proposalStore.updateProposal(props.proposalId, props.chain);
     
+    // Force a fresh fetch to ensure we have the latest data
+    const freshData = await apiService.getProposal(props.proposalId, props.chain);
+    if (!freshData) {
+      throw new Error('Failed to fetch updated proposal data');
+    }
+    
     // Emit events to update parent state
-    emit('update:suggestedVote', updatedProposal.suggested_vote as SuggestedVote | undefined);
+    emit('update:suggestedVote', freshData.suggested_vote as SuggestedVote | undefined);
+    emit('update:status', freshData.internal_status as InternalStatus);
+    
+    // Force a store refresh
+    await proposalStore.fetchProposals();
     
   } catch (error) {
     console.error('Failed to update suggested vote:', error);
@@ -490,6 +532,8 @@ const handleTeamActions = () => {
     showLoginPrompt('Please connect your wallet to access team collaboration features.')
     return
   }
+  
+  // Team actions are available to all authenticated users
   showTeamPanel.value = true
 }
 

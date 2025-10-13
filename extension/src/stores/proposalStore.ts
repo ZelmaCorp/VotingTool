@@ -165,35 +165,36 @@ export const proposalStore = {
       );
 
       if (index !== -1) {
-        // Merge fresh data with any additional updates
-        const updatedProposal = {
+        // Create a new array to trigger reactivity
+        const newProposals = [...state.proposals];
+        
+        // Apply updates, ensuring undefined values override existing ones
+        newProposals[index] = {
           ...freshData,
-          ...updates,
+          suggested_vote: updates?.suggested_vote === undefined ? undefined : freshData.suggested_vote,
+          assigned_to: updates?.assigned_to === null ? undefined : freshData.assigned_to,
           updated_at: new Date().toISOString()
         };
 
-        // Create a new array to trigger reactivity
-        state.proposals = [
-          ...state.proposals.slice(0, index),
-          updatedProposal,
-          ...state.proposals.slice(index + 1)
-        ];
+        // Update the store with the new array
+        state.proposals = newProposals;
 
         // Also update currentProposal if it matches
         if (state.currentProposal?.post_id === proposalId && 
             state.currentProposal?.chain === chain) {
-          state.currentProposal = updatedProposal;
+          state.currentProposal = newProposals[index];
         }
 
         console.log('Updated proposal in store:', {
           id: proposalId,
           chain,
-          status: updatedProposal.internal_status,
-          suggestedVote: updatedProposal.suggested_vote,
-          assignedTo: updatedProposal.assigned_to
+          status: newProposals[index].internal_status,
+          suggestedVote: newProposals[index].suggested_vote,
+          assignedTo: newProposals[index].assigned_to
         });
       } else {
-        console.warn('Proposal not found in store:', proposalId);
+        // If not found, fetch all proposals to ensure we have the latest data
+        await this.fetchProposals();
       }
     } catch (error) {
       console.error('Failed to update proposal:', error);

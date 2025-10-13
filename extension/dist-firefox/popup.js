@@ -11798,28 +11798,42 @@ Your address: ${address}${configuredMultisigs}
     setProposals(proposals) {
       state.proposals = proposals;
     },
-    updateProposal(updatedProposal) {
+    async updateProposal(proposalId, chain2, updates) {
       var _a, _b;
-      const index = state.proposals.findIndex(
-        (p2) => p2.post_id === updatedProposal.post_id && p2.chain === updatedProposal.chain
-      );
-      if (index !== -1) {
-        state.proposals = [
-          ...state.proposals.slice(0, index),
-          updatedProposal,
-          ...state.proposals.slice(index + 1)
-        ];
-        if (((_a = state.currentProposal) == null ? void 0 : _a.post_id) === updatedProposal.post_id && ((_b = state.currentProposal) == null ? void 0 : _b.chain) === updatedProposal.chain) {
-          state.currentProposal = updatedProposal;
+      try {
+        const apiService = ApiService.getInstance();
+        const freshData = await apiService.getProposal(proposalId, chain2);
+        if (!freshData) {
+          throw new Error("Failed to fetch updated proposal data");
         }
-      } else {
-        console.warn("Proposal not found in store:", updatedProposal.post_id);
-      }
-    },
-    async updateProposal(proposalId, updates) {
-      const index = state.proposals.findIndex((p2) => p2.post_id.toString() === proposalId);
-      if (index !== -1) {
-        state.proposals[index] = __spreadProps(__spreadValues(__spreadValues({}, state.proposals[index]), updates), { updated_at: (/* @__PURE__ */ new Date()).toISOString() });
+        const index = state.proposals.findIndex(
+          (p2) => p2.post_id === proposalId && p2.chain === chain2
+        );
+        if (index !== -1) {
+          const updatedProposal = __spreadProps(__spreadValues(__spreadValues({}, freshData), updates), {
+            updated_at: (/* @__PURE__ */ new Date()).toISOString()
+          });
+          state.proposals = [
+            ...state.proposals.slice(0, index),
+            updatedProposal,
+            ...state.proposals.slice(index + 1)
+          ];
+          if (((_a = state.currentProposal) == null ? void 0 : _a.post_id) === proposalId && ((_b = state.currentProposal) == null ? void 0 : _b.chain) === chain2) {
+            state.currentProposal = updatedProposal;
+          }
+          console.log("Updated proposal in store:", {
+            id: proposalId,
+            chain: chain2,
+            status: updatedProposal.internal_status,
+            suggestedVote: updatedProposal.suggested_vote,
+            assignedTo: updatedProposal.assigned_to
+          });
+        } else {
+          console.warn("Proposal not found in store:", proposalId);
+        }
+      } catch (error) {
+        console.error("Failed to update proposal:", error);
+        throw error;
       }
     },
     setFilters(newFilters) {
