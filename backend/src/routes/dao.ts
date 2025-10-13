@@ -755,8 +755,8 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
     try {
       // Reset proposal values
       await db.run(
-        `UPDATE referendums SET internal_status = '${InternalStatus.NotStarted}', suggested_vote = NULL WHERE id = ?`,
-        [referendum.id]
+        "UPDATE referendums SET internal_status = ?, suggested_vote = NULL WHERE id = ?",
+        [InternalStatus.NotStarted, referendum.id]
       );
       
       // Add unassign note as a comment if provided
