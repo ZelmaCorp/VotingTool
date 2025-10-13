@@ -749,6 +749,7 @@ const formatDate = (dateString: string) => {
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden; /* Add this to fix border-radius clipping */
 }
 
 .modal-header {
