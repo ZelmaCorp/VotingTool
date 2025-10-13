@@ -2,7 +2,8 @@ import { Router, Request, Response } from 'express';
 import { db } from '../database/connection';
 import { authenticateToken } from '../middleware/auth';
 import { multisigService } from '../services/multisig';
-import { ReferendumAction, InternalStatus } from '../types';
+import { ReferendumAction } from '../types/auth';
+import { InternalStatus } from '../types/properties';
 import fs from 'fs';
 import path from 'path';
 
@@ -23,7 +24,8 @@ const [
   NO_WAYED_QUERY,
   MY_ASSIGNMENTS_QUERY,
   ACTIONS_NEEDED_QUERY,
-  MY_EVALUATIONS_QUERY
+  MY_EVALUATIONS_QUERY,
+  MY_ACTIVITY_QUERY
 ] = queries;
 
 /**
@@ -162,6 +164,37 @@ router.get("/my-evaluations", authenticateToken, async (req: Request, res: Respo
     res.status(500).json({
       success: false,
       error: 'Failed to get user evaluations'
+    });
+  }
+});
+
+/**
+ * GET /dao/my-activity
+ * Get user's recent activity
+ */
+router.get("/my-activity", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const walletAddress = req.user?.address;
+    if (!walletAddress) {
+      return res.status(401).json({
+        success: false,
+        error: "Unauthorized access attempt"
+      });
+    }
+
+    // Get user's recent activity
+    const activity = await db.all(MY_ACTIVITY_QUERY, [walletAddress]);
+
+    res.json({
+      success: true,
+      data: activity
+    });
+
+  } catch (error) {
+    console.error('Failed to get user activity:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get user activity'
     });
   }
 });
