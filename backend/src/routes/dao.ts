@@ -753,9 +753,29 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
     await db.run('BEGIN TRANSACTION');
     
     try {
+      // First check if the user has any actions to remove
+      const existingActions = await db.all(
+        "SELECT id, role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ?",
+        [referendum.id, req.user.address]
+      );
+
+      if (existingActions.length === 0) {
+        await db.run('ROLLBACK');
+        return res.status(404).json({
+          success: false,
+          error: "No governance action found for this user and referendum"
+        });
+      }
+
+      // Remove user's action for this referendum
+      await db.run(
+        "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ?",
+        [referendum.id, req.user.address]
+      );
+
       // Reset proposal values
       await db.run(
-        "UPDATE referendums SET internal_status = ?, suggested_vote = NULL WHERE id = ?",
+        "UPDATE referendums SET internal_status = ?, suggested_vote = NULL, updated_at = datetime('now') WHERE id = ?",
         [InternalStatus.NotStarted, referendum.id]
       );
       
@@ -765,20 +785,6 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
           "INSERT INTO referendum_comments (referendum_id, team_member_id, content) VALUES (?, ?, ?)",
           [referendum.id, req.user.address, unassignNote]
         );
-      }
-      
-      // Remove user's action for this referendum
-      const result = await db.run(
-        "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ?",
-        [referendum.id, req.user.address]
-      );
-      
-      if (result.changes === 0) {
-        await db.run('ROLLBACK');
-        return res.status(404).json({
-          success: false,
-          error: "No governance action found for this user and referendum"
-        });
       }
       
       // Commit all changes
@@ -791,22 +797,45 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
         previousVote: referendum.suggested_vote
       }, "User governance action removed and values reset");
       
-      res.json({
+      return res.json({
         success: true,
         message: "Governance action removed and values reset successfully"
       });
       
     } catch (transactionError) {
       await db.run('ROLLBACK');
+      logger.error({ 
+        error: formatError(transactionError), 
+        referendumId: req.params.referendumId,
+        chain: req.body.chain,
+        walletAddress: req.user?.address,
+        step: 'transaction'
+      }, "Transaction error while removing user governance action");
       throw transactionError;
     }
     
   } catch (error) {
-    logger.error({ error: formatError(error), referendumId: req.params.referendumId }, "Error removing user governance action from referendum");
-    res.status(500).json({
-      success: false,
-      error: "Internal server error"
-    });
+    logger.error({ 
+      error: formatError(error), 
+      referendumId: req.params.referendumId,
+      chain: req.body.chain,
+      walletAddress: req.user?.address,
+      body: req.body,
+      step: 'outer'
+    }, "Error removing user governance action from referendum");
+    
+    // Check if it's a transaction error that was re-thrown
+    if (error instanceof Error && error.message.includes('SQLITE_CONSTRAINT')) {
+      res.status(409).json({
+        success: false,
+        error: "Database constraint violation. Please try again."
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : "Internal server error"
+      });
+    }
   }
 });
 
