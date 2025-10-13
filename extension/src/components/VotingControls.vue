@@ -617,27 +617,27 @@ const showLoginPrompt = (message: string) => {
 }
 
 .assign-btn {
-  background: linear-gradient(135deg, #28a745, #1e7e34);
+  background: var(--assign-gradient);
   color: white;
-  border: 1px solid #1e7e34;
+  border: 1px solid var(--assign-border);
 }
 
 .assign-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #1e7e34, #155724);
+  background: var(--assign-gradient-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+  box-shadow: 0 4px 12px var(--assign-shadow);
 }
 
 .vote-btn {
-  background: linear-gradient(135deg, #e6007a, #b3005f);
+  background: var(--primary-gradient);
   color: white;
-  border: 1px solid #b3005f;
+  border: 1px solid var(--primary-border);
 }
 
 .vote-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #b3005f, #8a0047);
+  background: var(--primary-gradient-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);
+  box-shadow: 0 4px 12px var(--primary-shadow);
 }
 
 .btn-icon {
@@ -650,15 +650,15 @@ const showLoginPrompt = (message: string) => {
 
 /* Team Panel Styles */
 .team-btn {
-  background: linear-gradient(135deg, #17a2b8, #138496);
+  background: var(--team-gradient);
   color: white;
-  border: 1px solid #138496;
+  border: 1px solid var(--team-border);
 }
 
 .team-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #138496, #117a8b);
+  background: var(--team-gradient-hover);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+  box-shadow: 0 4px 12px var(--team-shadow);
 }
 
 .team-panel-overlay {

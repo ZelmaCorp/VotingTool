@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express';
 import { Referendum } from '../database/models/referendum';
 import { VotingDecision } from '../database/models/votingDecision';
 import { Chain, InternalStatus } from '../types/properties';
+import { isValidTransition, getNextStatus, canManuallySetStatus, getTransitionErrorMessage } from '../utils/statusTransitions';
 import { createSubsystemLogger, formatError } from '../config/logger';
 import { Subsystem } from '../types/logging';
 import { db } from '../database/connection';
@@ -119,6 +120,34 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
 
     // Update referendum fields if any
     if (Object.keys(referendumFields).length > 0) {
+      // Check if status is being updated
+      if (referendumFields.internal_status) {
+        const newStatus = referendumFields.internal_status as InternalStatus;
+
+        // Check if user is assigned to this referendum
+        const isAssigned = await db.get(
+          "SELECT id FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
+          [referendum.id, req.user?.address, ReferendumAction.RESPONSIBLE_PERSON]
+        );
+
+        // Only assigned user can change status (except for special statuses)
+        if (!isAssigned && !canManuallySetStatus(newStatus)) {
+          return res.status(403).json({
+            success: false,
+            error: "Only the assigned user can change the status"
+          });
+        }
+
+        // Validate status transition
+        const currentStatus = referendum.internal_status as InternalStatus;
+        if (!isValidTransition(currentStatus, newStatus)) {
+          return res.status(400).json({
+            success: false,
+            error: getTransitionErrorMessage(currentStatus, newStatus)
+          });
+        }
+      }
+
       await Referendum.update(postId, chain, referendumFields);
     }
 
@@ -126,8 +155,7 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
     if (Object.keys(votingFields).length > 0) {
       await VotingDecision.upsert(referendum.id!, votingFields);
       
-      // If suggested_vote is being updated, automatically update the user's action state
-      // This assumes the person changing suggested vote is the evaluator/responsible person
+      // If suggested_vote is being updated, handle automatic transitions and updates
       if (votingFields.suggested_vote && req.user?.address) {
         try {
           // Check if user is assigned as responsible person for this referendum
@@ -137,36 +165,64 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
           );
           
           if (existingAssignment) {
-            // Get all current action states for this user
-            const existingActions = await db.all(
-              "SELECT id, role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ?",
-              [referendum.id, req.user.address, ReferendumAction.RESPONSIBLE_PERSON]
-            );
+            // Start a transaction for all the changes
+            await db.run('BEGIN TRANSACTION');
 
-            // Delete all existing action states (but keep RESPONSIBLE_PERSON)
-            if (existingActions.length > 0) {
-              const actionIds = existingActions.map(a => a.id).join(',');
-              await db.run(
-                `DELETE FROM referendum_team_roles WHERE id IN (${actionIds})`
+            try {
+              // Get all current action states for this user
+              const existingActions = await db.all(
+                "SELECT id, role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ?",
+                [referendum.id, req.user.address, ReferendumAction.RESPONSIBLE_PERSON]
               );
-            }
 
-            // When setting any suggested vote, the user automatically agrees with their decision
-            await db.run(
-              "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type, reason) VALUES (?, ?, ?, ?)",
-              [referendum.id, req.user.address, ReferendumAction.AGREE, votingFields.reason_for_vote || null]
-            );
-            
-            logger.info({ 
-              walletAddress: req.user.address, 
-              postId, 
-              chain,
-              suggestedVote: votingFields.suggested_vote,
-              removedActions: existingActions.map(a => a.role_type)
-            }, "Auto-set evaluator to 'Agree' after setting suggested vote");
+              // Delete all existing action states (but keep RESPONSIBLE_PERSON)
+              if (existingActions.length > 0) {
+                const actionIds = existingActions.map(a => a.id).join(',');
+                await db.run(
+                  "DELETE FROM referendum_team_roles WHERE id IN (?)",
+                  [actionIds]
+                );
+              }
+
+              // When setting any suggested vote, the user automatically agrees with their decision
+              await db.run(
+                "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type, reason) VALUES (?, ?, ?, ?)",
+                [referendum.id, req.user.address, ReferendumAction.AGREE, votingFields.reason_for_vote || null]
+              );
+
+              // Auto-transition to Ready for approval if in Considering state
+              if (referendum.internal_status === InternalStatus.Considering) {
+                await db.run(
+                  "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
+                  [InternalStatus.ReadyForApproval, referendum.id]
+                );
+
+                logger.info({
+                  walletAddress: req.user.address,
+                  postId,
+                  chain,
+                  oldStatus: InternalStatus.Considering,
+                  newStatus: InternalStatus.ReadyForApproval
+                }, "Auto-transitioned to Ready for approval after setting suggested vote");
+              }
+
+              await db.run('COMMIT');
+              
+              logger.info({ 
+                walletAddress: req.user.address, 
+                postId, 
+                chain,
+                suggestedVote: votingFields.suggested_vote,
+                removedActions: existingActions.map(a => a.role_type)
+              }, "Auto-set evaluator to 'Agree' after setting suggested vote");
+            } catch (transactionError) {
+              await db.run('ROLLBACK');
+              throw transactionError;
+            }
           }
         } catch (autoAgreeError) {
-          logger.warn({ autoAgreeError, walletAddress: req.user.address, postId }, "Failed to auto-update evaluator action state");
+          logger.error({ autoAgreeError, walletAddress: req.user.address, postId }, "Failed to auto-update evaluator action state");
+          throw autoAgreeError;
         }
       }
       

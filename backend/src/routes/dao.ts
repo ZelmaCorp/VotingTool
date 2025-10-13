@@ -952,57 +952,178 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
 
     // Get proposals waiting for agreement
     const needsAgreement = await db.all(`
+      WITH member_actions AS (
+        SELECT 
+          r.id as referendum_id,
+          tm.wallet_address as member_address,
+          MAX(CASE 
+            WHEN rtr.role_type = ? THEN 1
+            WHEN rtr.role_type = ? THEN 2
+            WHEN rtr.role_type = ? THEN 3
+            WHEN rtr.role_type = ? THEN 4
+            ELSE 0
+          END) as action_priority
+        FROM referendums r
+        CROSS JOIN (SELECT DISTINCT wallet_address FROM team_members) tm
+        LEFT JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id 
+          AND (rtr.team_member_id = tm.wallet_address 
+            OR EXISTS (
+              SELECT 1 FROM team_members tm2 
+              WHERE tm2.wallet_address = tm.wallet_address 
+              AND rtr.team_member_id = tm2.wallet_address
+            )
+          )
+        WHERE (r.internal_status = ? OR r.internal_status = ?)
+        GROUP BY r.id, tm.wallet_address
+      )
       SELECT 
         r.*,
-        COUNT(DISTINCT CASE WHEN rtr.role_type = ? THEN rtr.team_member_id END) as agreement_count,
+        COUNT(CASE WHEN ma.action_priority = 1 THEN 1 END) as agreement_count,
         ? as required_agreements
       FROM referendums r
-      LEFT JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id
+      LEFT JOIN member_actions ma ON r.id = ma.referendum_id
       WHERE (r.internal_status = ? OR r.internal_status = ?)
         AND NOT EXISTS (
-          SELECT 1 FROM referendum_team_roles rtr2 
-          WHERE rtr2.referendum_id = r.id 
-          AND rtr2.role_type = ?
+          SELECT 1 
+          FROM member_actions ma2 
+          WHERE ma2.referendum_id = r.id 
+          AND ma2.action_priority = 2
         )
       GROUP BY r.id
       HAVING agreement_count < ?
-    `, [ReferendumAction.AGREE, totalTeamMembers, InternalStatus.WaitingForAgreement, InternalStatus.ReadyForApproval, ReferendumAction.NO_WAY, totalTeamMembers]);
+    `, [
+      ReferendumAction.AGREE,       // Priority 1
+      ReferendumAction.NO_WAY,      // Priority 2
+      ReferendumAction.RECUSE,      // Priority 3
+      ReferendumAction.TO_BE_DISCUSSED, // Priority 4
+      InternalStatus.WaitingForAgreement,
+      InternalStatus.ReadyForApproval,
+      totalTeamMembers,
+      InternalStatus.WaitingForAgreement,
+      InternalStatus.ReadyForApproval,
+      totalTeamMembers
+    ]);
 
     // Get proposals ready to vote
     const readyToVote = await db.all(`
-      SELECT r.*
+      WITH member_actions AS (
+        SELECT 
+          r.id as referendum_id,
+          tm.wallet_address as member_address,
+          MAX(CASE 
+            WHEN rtr.role_type = ? THEN 1
+            WHEN rtr.role_type = ? THEN 2
+            ELSE 0
+          END) as action_priority
+        FROM referendums r
+        CROSS JOIN (SELECT DISTINCT wallet_address FROM team_members) tm
+        LEFT JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id 
+          AND (rtr.team_member_id = tm.wallet_address 
+            OR EXISTS (
+              SELECT 1 FROM team_members tm2 
+              WHERE tm2.wallet_address = tm.wallet_address 
+              AND rtr.team_member_id = tm2.wallet_address
+            )
+          )
+        WHERE r.internal_status = ?
+        GROUP BY r.id, tm.wallet_address
+      )
+      SELECT DISTINCT r.*
       FROM referendums r
+      LEFT JOIN member_actions ma ON r.id = ma.referendum_id
       WHERE r.internal_status = ?
         AND NOT EXISTS (
-          SELECT 1 FROM referendum_team_roles rtr2 
-          WHERE rtr2.referendum_id = r.id 
-          AND rtr2.role_type = ?
+          SELECT 1 
+          FROM member_actions ma2 
+          WHERE ma2.referendum_id = r.id 
+          AND ma2.action_priority = 2
         )
-    `, [InternalStatus.ReadyToVote, ReferendumAction.NO_WAY]);
+    `, [
+      ReferendumAction.AGREE,
+      ReferendumAction.NO_WAY,
+      InternalStatus.ReadyToVote,
+      InternalStatus.ReadyToVote
+    ]);
 
     // Get proposals for discussion
     const forDiscussion = await db.all(`
-      SELECT r.*
+      WITH member_actions AS (
+        SELECT 
+          r.id as referendum_id,
+          tm.wallet_address as member_address,
+          MAX(CASE 
+            WHEN rtr.role_type = ? THEN 1
+            WHEN rtr.role_type = ? THEN 2
+            WHEN rtr.role_type = ? THEN 3
+            ELSE 0
+          END) as action_priority
+        FROM referendums r
+        CROSS JOIN (SELECT DISTINCT wallet_address FROM team_members) tm
+        LEFT JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id 
+          AND (rtr.team_member_id = tm.wallet_address 
+            OR EXISTS (
+              SELECT 1 FROM team_members tm2 
+              WHERE tm2.wallet_address = tm.wallet_address 
+              AND rtr.team_member_id = tm2.wallet_address
+            )
+          )
+        GROUP BY r.id, tm.wallet_address
+      )
+      SELECT DISTINCT r.*
       FROM referendums r
-      INNER JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id
-      WHERE rtr.role_type = ?
-        AND NOT EXISTS (
-          SELECT 1 FROM referendum_team_roles rtr2 
-          WHERE rtr2.referendum_id = r.id 
-          AND rtr2.role_type = ?
-        )
-      GROUP BY r.id
-    `, [ReferendumAction.TO_BE_DISCUSSED, ReferendumAction.NO_WAY]);
+      INNER JOIN member_actions ma ON r.id = ma.referendum_id
+      WHERE EXISTS (
+        SELECT 1 
+        FROM member_actions ma2 
+        WHERE ma2.referendum_id = r.id 
+        AND ma2.action_priority = 3
+      )
+      AND NOT EXISTS (
+        SELECT 1 
+        FROM member_actions ma3 
+        WHERE ma3.referendum_id = r.id 
+        AND ma3.action_priority = 2
+      )
+    `, [
+      ReferendumAction.AGREE,
+      ReferendumAction.NO_WAY,
+      ReferendumAction.TO_BE_DISCUSSED
+    ]);
 
     // Get NO WAYed proposals
     const vetoedProposals = await db.all(`
+      WITH member_actions AS (
+        SELECT 
+          r.id as referendum_id,
+          tm.wallet_address as member_address,
+          rtr.reason as action_reason,
+          rtr.created_at as action_date,
+          MAX(CASE 
+            WHEN rtr.role_type = ? THEN 1
+            ELSE 0
+          END) as action_priority
+        FROM referendums r
+        CROSS JOIN (SELECT DISTINCT wallet_address, team_member_name FROM team_members) tm
+        LEFT JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id 
+          AND (rtr.team_member_id = tm.wallet_address 
+            OR EXISTS (
+              SELECT 1 FROM team_members tm2 
+              WHERE tm2.wallet_address = tm.wallet_address 
+              AND rtr.team_member_id = tm2.wallet_address
+            )
+          )
+        GROUP BY r.id, tm.wallet_address, rtr.reason, rtr.created_at
+        HAVING action_priority = 1
+      )
       SELECT 
         r.*,
-        rtr.team_member_id as veto_by,
-        rtr.reason as veto_reason,
-        rtr.created_at as veto_date
+        ma.member_address as veto_by,
+        tm.team_member_name as veto_by_name,
+        ma.action_reason as veto_reason,
+        ma.action_date as veto_date
       FROM referendums r
-      INNER JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id AND rtr.role_type = ?
+      INNER JOIN member_actions ma ON r.id = ma.referendum_id
+      LEFT JOIN team_members tm ON ma.member_address = tm.wallet_address
       GROUP BY r.id
     `, [ReferendumAction.NO_WAY]);
 

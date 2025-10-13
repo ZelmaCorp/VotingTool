@@ -6,19 +6,51 @@
   --primary: #e6007a;          /* Polkadot pink */
   --primary-dark: #b3005f;
   --primary-light: #ff1a8c;
+  --primary-gradient: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  --primary-gradient-hover: linear-gradient(135deg, var(--primary-dark), #8a0047);
+  --primary-shadow: rgba(230, 0, 122, 0.3);
   
   --secondary: #000000;        /* Kusama black */
   --secondary-light: #333333;
+  --secondary-gradient: linear-gradient(135deg, var(--gray-500), var(--gray-600));
+  --secondary-gradient-hover: linear-gradient(135deg, var(--gray-600), var(--gray-700));
+  --secondary-shadow: rgba(108, 117, 125, 0.3);
   
   --accent: #007bff;           /* Blue accent */
   --accent-light: #3399ff;
   --accent-dark: #0056b3;
   
+  /* Team Action Colors */
+  --team: #17a2b8;
+  --team-dark: #138496;
+  --team-gradient: linear-gradient(135deg, var(--team), var(--team-dark));
+  --team-gradient-hover: linear-gradient(135deg, var(--team-dark), #117a8b);
+  --team-shadow: rgba(23, 162, 184, 0.3);
+  
+  /* Assign Button Colors */
+  --assign: #28a745;
+  --assign-dark: #1e7e34;
+  --assign-gradient: linear-gradient(135deg, var(--assign), var(--assign-dark));
+  --assign-gradient-hover: linear-gradient(135deg, var(--assign-dark), #155724);
+  --assign-shadow: rgba(40, 167, 69, 0.3);
+  
   /* Status Colors */
-  --success: #28a745;
+  --success: var(--assign);
   --warning: #ffc107;
   --danger: #dc3545;
-  --info: #17a2b8;
+  --info: var(--team);
+  
+  /* Status-specific Colors */
+  --status-not-started: var(--gray-500);
+  --status-considering: var(--warning);
+  --status-ready-for-approval: var(--info);
+  --status-waiting-for-agreement: #fd7e14;
+  --status-ready-to-vote: var(--success);
+  --status-reconsidering: var(--danger);
+  --status-voted-aye: #198754;
+  --status-voted-nay: var(--danger);
+  --status-voted-abstain: #6f42c1;
+  --status-not-voted: var(--gray-100);
   
   /* Neutral Colors */
   --white: #ffffff;
@@ -127,36 +159,51 @@ body {
 }
 
 .btn-primary {
-  background: var(--primary);
+  background: var(--primary-gradient);
   color: var(--white);
+  border: 1px solid var(--primary-dark);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--primary-dark);
+  background: var(--primary-gradient-hover);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 0 10px var(--primary-shadow);
 }
 
 .btn-secondary {
-  background: var(--secondary);
+  background: var(--secondary-gradient);
   color: var(--white);
+  border: 1px solid var(--gray-600);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: var(--secondary-light);
+  background: var(--secondary-gradient-hover);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 0 10px var(--secondary-shadow);
 }
 
-.btn-accent {
-  background: var(--accent);
+.btn-team {
+  background: var(--team-gradient);
   color: var(--white);
+  border: 1px solid var(--team-dark);
 }
 
-.btn-accent:hover:not(:disabled) {
-  background: var(--accent-dark);
+.btn-team:hover:not(:disabled) {
+  background: var(--team-gradient-hover);
   transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 0 10px var(--team-shadow);
+}
+
+.btn-assign {
+  background: var(--assign-gradient);
+  color: var(--white);
+  border: 1px solid var(--assign-dark);
+}
+
+.btn-assign:hover:not(:disabled) {
+  background: var(--assign-gradient-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 0 10px var(--assign-shadow);
 }
 
 .btn-outline {
@@ -166,9 +213,28 @@ body {
 }
 
 .btn-outline:hover:not(:disabled) {
-  background: var(--primary);
+  background: var(--primary-gradient);
   color: var(--white);
 }
+
+/* Status-specific buttons */
+.btn-status {
+  font-weight: 600;
+  padding: var(--spacing-2) var(--spacing-4);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+}
+
+.btn-status-not-started { background: var(--status-not-started); color: var(--white); }
+.btn-status-considering { background: var(--status-considering); color: var(--gray-900); }
+.btn-status-ready-for-approval { background: var(--status-ready-for-approval); color: var(--white); }
+.btn-status-waiting-for-agreement { background: var(--status-waiting-for-agreement); color: var(--white); }
+.btn-status-ready-to-vote { background: var(--status-ready-to-vote); color: var(--white); }
+.btn-status-reconsidering { background: var(--status-reconsidering); color: var(--white); }
+.btn-status-voted-aye { background: var(--status-voted-aye); color: var(--white); }
+.btn-status-voted-nay { background: var(--status-voted-nay); color: var(--white); }
+.btn-status-voted-abstain { background: var(--status-voted-abstain); color: var(--white); }
+.btn-status-not-voted { background: var(--status-not-voted); color: var(--gray-900); }
 
 /* Cards */
 .card {
@@ -238,12 +304,152 @@ body {
 .form-control:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);
+  box-shadow: 0 0 0 3px var(--primary-shadow);
 }
 
 .form-control:disabled {
   background-color: var(--gray-100);
   color: var(--gray-500);
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal-backdrop);
+}
+
+.modal {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  z-index: var(--z-modal);
+}
+
+.modal-header {
+  padding: var(--spacing-4) var(--spacing-6);
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  color: var(--gray-900);
+}
+
+.modal-content {
+  padding: var(--spacing-6);
+}
+
+.modal-footer {
+  padding: var(--spacing-4) var(--spacing-6);
+  border-top: 1px solid var(--gray-200);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-3);
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: var(--font-size-xl);
+  color: var(--gray-500);
+  cursor: pointer;
+  padding: var(--spacing-1) var(--spacing-2);
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  color: var(--gray-700);
+  background: var(--gray-100);
+}
+
+/* Component-specific Modals */
+.assign-modal,
+.unassign-modal {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  z-index: var(--z-modal);
+}
+
+.assign-modal .modal-content,
+.unassign-modal .modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+}
+
+.assign-modal .form-group,
+.unassign-modal .form-group {
+  margin-bottom: 0;
+}
+
+.assign-modal .error-message,
+.unassign-modal .error-message {
+  color: var(--danger);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-2);
+  padding: var(--spacing-2);
+  background: rgba(220, 53, 69, 0.1);
+  border-radius: var(--radius-md);
+}
+
+.assign-modal .old-value,
+.unassign-modal .old-value {
+  color: var(--gray-500);
+  text-decoration: line-through;
+}
+
+.assign-modal .new-value,
+.unassign-modal .new-value {
+  color: var(--success);
+  font-weight: 600;
+}
+
+/* Settings Panel */
+.settings-panel {
+  background: var(--white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.settings-panel-header {
+  padding: var(--spacing-4) var(--spacing-6);
+  background: var(--gray-50);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.settings-panel-content {
+  padding: var(--spacing-6);
+}
+
+.settings-panel-footer {
+  padding: var(--spacing-4) var(--spacing-6);
+  background: var(--gray-50);
+  border-top: 1px solid var(--gray-200);
+  border-bottom-left-radius: var(--radius-xl);
+  border-bottom-right-radius: var(--radius-xl);
 }
 
 /* Utilities */

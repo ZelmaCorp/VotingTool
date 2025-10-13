@@ -13,6 +13,7 @@ import { createApp } from 'vue'
 import App from './App.vue'
 import { ContentInjector } from './utils/contentInjector'
 import { proposalStore, teamStore } from './stores'
+import '../design-system.css'
 
 // Extend Window interface
 declare global {

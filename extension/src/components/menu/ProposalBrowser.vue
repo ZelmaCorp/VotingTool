@@ -738,17 +738,19 @@ onUnmounted(() => {
 
 .assign-btn {
   padding: 4px 8px;
-  background: #007bff;
+  background: var(--assign-gradient);
   color: white;
-  border: none;
+  border: 1px solid var(--assign-border);
   border-radius: 4px;
   font-size: 0.8rem;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .assign-btn:hover {
-  background: #0056b3;
+  background: var(--assign-gradient-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px var(--assign-shadow);
 }
 
 .proposal-updated {
