@@ -868,10 +868,10 @@ router.post("/referendum/:referendumId/unassign", requireTeamMember, async (req:
         const votingDecision = await VotingDecision.getByReferendumId(referendum.id);
         const previousVote = votingDecision?.suggested_vote;
         
-        // Remove responsible person role
+        // Remove responsible person role AND any team actions (except NO WAY)
         await db.run(
-          "DELETE FROM referendum_team_roles WHERE id = ?",
-          [responsibleRole.id]
+          "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ?",
+          [referendum.id, req.user.address, ReferendumAction.NO_WAY]
         );
         
         // Always reset suggested vote
@@ -880,9 +880,9 @@ router.post("/referendum/:referendumId/unassign", requireTeamMember, async (req:
           referendum_id: referendum.id
         });
         
-        // Reset internal status
+        // Reset internal status and clear reason for vote
         await db.run(
-          "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
+          "UPDATE referendums SET internal_status = ?, updated_at = datetime('now'), reason_for_vote = NULL WHERE id = ?",
           [InternalStatus.NotStarted, referendum.id]
         );
         

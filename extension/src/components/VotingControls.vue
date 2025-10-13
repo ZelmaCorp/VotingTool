@@ -105,6 +105,7 @@ import { ref, computed } from 'vue'
 import type { InternalStatus, SuggestedVote, Chain, TeamMember } from '../types'
 import { authStore } from '../stores/authStore'
 import { teamStore } from '../stores/teamStore'
+import { proposalStore } from '../stores/proposalStore'
 import { formatAddress } from '../utils/teamUtils'
 import { ApiService } from '../utils/apiService'
 
@@ -129,6 +130,12 @@ interface VotingControlsProps {
 }
 
 const props = defineProps<VotingControlsProps>()
+const emit = defineEmits<{
+  'update:status': [status: InternalStatus]
+  'update:suggestedVote': [vote: SuggestedVote | undefined]
+  'update:assignedTo': [assignedTo: string | null]
+  'proposal-updated': [data: { type: string; proposal: any; chain: Chain }]
+}>()
 
 // Modal states
 const showStatusModal = ref(false)
@@ -343,8 +350,18 @@ const saveStatusChange = async (data: { newStatus: InternalStatus; reason: strin
     console.log('Status change requested:', changeData)
     closeStatusModal()
     
-    // Emit custom event for parent to handle
-    window.dispatchEvent(new CustomEvent('statusChanged', { detail: changeData }))
+    // Emit events to update parent state
+    emit('update:status', data.newStatus);
+    
+    // Emit full update event
+    emit('proposal-updated', {
+      type: 'status',
+      proposal: {
+        ...changeData,
+        chain: props.chain
+      },
+      chain: props.chain
+    });
     
   } catch (error) {
     console.error('Failed to update status:', error)
@@ -385,16 +402,21 @@ const confirmUnassign = async (unassignNote: string | undefined) => {
     console.log('Successfully unassigned from proposal');
     closeUnassignModal();
     
-    // Emit custom event for parent to handle
-    window.dispatchEvent(new CustomEvent('proposalUnassigned', { 
-      detail: {
-        proposalId: props.proposalId,
-        chain: props.chain
-      }
-    }));
+    // Fetch updated proposal data
+    const updatedProposal = await apiService.getProposal(props.proposalId, props.chain);
+    if (!updatedProposal) {
+      throw new Error('Failed to fetch updated proposal data');
+    }
+    
+    // Update store and emit events
+    proposalStore.updateProposal(updatedProposal);
+    
+    // Emit events to update parent state
+    emit('update:status', updatedProposal.internal_status as InternalStatus);
+    emit('update:suggestedVote', updatedProposal.suggested_vote as SuggestedVote | undefined);
+    emit('update:assignedTo', null);
   } catch (error) {
     console.error('Failed to unassign proposal:', error);
-    // TODO: Show error to user in UI
     alert(error instanceof Error ? error.message : 'Failed to unassign proposal');
   }
 }
@@ -436,20 +458,30 @@ const closeVoteModal = () => {
 
 const saveVoteChange = async (data: { vote: '👍 Aye 👍' | '👎 Nay 👎' | '✌️ Abstain ✌️'; reason: string }) => {
   try {
-    const voteData = {
-      proposalId: props.proposalId,
-      vote: data.vote,
-      reason: data.reason
+    console.log('Suggested vote change requested:', { vote: data.vote, reason: data.reason });
+    closeVoteModal();
+    
+    // First update the vote
+    const result = await apiService.updateSuggestedVote(props.proposalId, props.chain, data.vote, data.reason);
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to update suggested vote');
     }
+
+    // Fetch updated proposal data
+    const updatedProposal = await apiService.getProposal(props.proposalId, props.chain);
+    if (!updatedProposal) {
+      throw new Error('Failed to fetch updated proposal data');
+    }
+
+    // Update store and emit events
+    proposalStore.updateProposal(updatedProposal);
     
-    console.log('Suggested vote change requested:', voteData)
-    closeVoteModal()
-    
-    // Emit custom event for parent to handle
-    window.dispatchEvent(new CustomEvent('suggestedVoteChanged', { detail: voteData }))
+    // Emit events to update parent state
+    emit('update:suggestedVote', updatedProposal.suggested_vote as SuggestedVote | undefined);
     
   } catch (error) {
-    console.error('Failed to update suggested vote:', error)
+    console.error('Failed to update suggested vote:', error);
+    alert(error instanceof Error ? error.message : 'Failed to update suggested vote');
   }
 }
 

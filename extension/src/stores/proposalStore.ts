@@ -149,6 +149,29 @@ export const proposalStore = {
     state.proposals = proposals
   },
 
+  updateProposal(updatedProposal: ProposalData): void {
+    const index = state.proposals.findIndex(p => 
+      p.post_id === updatedProposal.post_id && p.chain === updatedProposal.chain
+    );
+    
+    if (index !== -1) {
+      // Create a new array to trigger reactivity
+      state.proposals = [
+        ...state.proposals.slice(0, index),
+        updatedProposal,
+        ...state.proposals.slice(index + 1)
+      ];
+      
+      // Also update currentProposal if it matches
+      if (state.currentProposal?.post_id === updatedProposal.post_id && 
+          state.currentProposal?.chain === updatedProposal.chain) {
+        state.currentProposal = updatedProposal;
+      }
+    } else {
+      console.warn('Proposal not found in store:', updatedProposal.post_id);
+    }
+  },
+
   async updateProposal(proposalId: string, updates: Partial<ProposalData>): Promise<void> {
     const index = state.proposals.findIndex((p: ProposalData) => p.post_id.toString() === proposalId)
     if (index !== -1) {
