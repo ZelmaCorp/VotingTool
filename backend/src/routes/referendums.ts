@@ -231,6 +231,8 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
           });
         }
       }
+    }
+
     // Return success response
     return res.json({
       success: true,
@@ -239,8 +241,8 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
   } catch (error) {
     logger.error({
       error: formatError(error),
-      postId,
-      chain,
+      postId: req.params.postId,
+      chain: req.params.chain,
       step: 'referendum_update'
     }, "Error updating referendum");
     
@@ -248,38 +250,6 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
       success: false,
       error: "Error updating referendum: " + formatError(error)
     });
-  }
-});
-
-          );
-          
-          if (!noWay && agreementCount && agreementCount.count >= totalTeamMembers) {
-            // All team members have agreed, transition to "Ready to vote"
-            await db.run(
-              "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
-              [InternalStatus.ReadyToVote, referendum.id]
-            );
-            
-            logger.info({
-              referendumId: referendum.id,
-              postId,
-              chain,
-              agreementCount: agreementCount.count,
-              requiredAgreements: totalTeamMembers
-            }, "Auto-transitioned to 'Ready to vote' after reaching agreement threshold");
-          }
-        } catch (transitionError) {
-          logger.warn({ transitionError, postId }, "Failed to check/transition status to Ready to vote");
-        }
-      }
-    }
-
-    // Return the updated referendum with all related data
-    const updatedReferendum = await Referendum.findByPostIdAndChain(postId, chain);
-    res.json(updatedReferendum);
-  } catch (error) {
-    logger.error({ error: formatError(error) }, "Error updating referendum");
-    res.status(500).json({ error: "Error updating referendum: " + formatError(error) });
   }
 });
 
