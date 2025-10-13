@@ -767,16 +767,22 @@ router.delete("/referendum/:referendumId/action", requireTeamMember, async (req:
         });
       }
 
-      // Remove user's action for this referendum
+      // Reset internal status
       await db.run(
-        "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ?",
-        [referendum.id, req.user.address]
-      );
-
-      // Reset proposal values
-      await db.run(
-        "UPDATE referendums SET internal_status = ?, suggested_vote = NULL, updated_at = datetime('now') WHERE id = ?",
+        "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
         [InternalStatus.NotStarted, referendum.id]
+      );
+      
+      // Reset suggested vote
+      await db.run(
+        "UPDATE voting_decisions SET suggested_vote = NULL, updated_at = datetime('now') WHERE referendum_id = ?",
+        [referendum.id]
+      );
+      
+      // Remove team actions (except No Way)
+      await db.run(
+        "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ?",
+        [referendum.id, req.user.address, ReferendumAction.NO_WAY]
       );
       
       // Add unassign note as a comment if provided
