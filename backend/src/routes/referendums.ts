@@ -347,12 +347,20 @@ router.post("/:postId/actions", requireTeamMember, async (req: Request, res: Res
       });
     }
 
-    // Validate action using the enum
-    if (!action || !Object.values(ReferendumAction).includes(action)) {
+    // Map frontend action names to backend enum values
+    const actionMap: Record<string, ReferendumAction> = {
+      'agree': ReferendumAction.AGREE,
+      'to_be_discussed': ReferendumAction.TO_BE_DISCUSSED,
+      'no_way': ReferendumAction.NO_WAY,
+      'recuse': ReferendumAction.RECUSE
+    };
+
+    const backendAction = actionMap[action.toLowerCase()];
+    if (!backendAction) {
       return res.status(400).json({
         success: false,
         error: "Valid action is required",
-        valid_actions: Object.values(ReferendumAction)
+        valid_actions: Object.keys(actionMap)
       });
     }
 
@@ -365,11 +373,25 @@ router.post("/:postId/actions", requireTeamMember, async (req: Request, res: Res
       });
     }
 
-    // Create new action
-    await db.run(
-      "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type, reason) VALUES (?, ?, ?, ?)",
-      [referendum.id, req.user.address, action, reason || null]
+    // Check if action already exists
+    const existingAction = await db.get(
+      "SELECT id FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
+      [referendum.id, req.user.address, backendAction]
     );
+
+    if (existingAction) {
+      // Update existing action
+      await db.run(
+        "UPDATE referendum_team_roles SET reason = ?, updated_at = datetime('now') WHERE id = ?",
+        [reason || null, existingAction.id]
+      );
+    } else {
+      // Create new action
+      await db.run(
+        "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type, reason) VALUES (?, ?, ?, ?)",
+        [referendum.id, req.user.address, backendAction, reason || null]
+      );
+    }
 
     res.json({
       success: true,
@@ -408,11 +430,20 @@ router.delete("/:postId/actions", requireTeamMember, async (req: Request, res: R
       });
     }
 
-    // Validate action parameter
-    if (!action || ![ReferendumAction.AGREE, ReferendumAction.NO_WAY, ReferendumAction.RECUSE, ReferendumAction.TO_BE_DISCUSSED].includes(action)) {
+    // Map frontend action names to backend enum values
+    const actionMap: Record<string, ReferendumAction> = {
+      'agree': ReferendumAction.AGREE,
+      'to_be_discussed': ReferendumAction.TO_BE_DISCUSSED,
+      'no_way': ReferendumAction.NO_WAY,
+      'recuse': ReferendumAction.RECUSE
+    };
+
+    const backendAction = actionMap[action.toLowerCase()];
+    if (!backendAction) {
       return res.status(400).json({
         success: false,
-        error: "Valid action type is required"
+        error: "Valid action type is required",
+        valid_actions: Object.keys(actionMap)
       });
     }
 
@@ -428,7 +459,7 @@ router.delete("/:postId/actions", requireTeamMember, async (req: Request, res: R
     // Remove specific team action
     const result = await db.run(
       "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
-      [referendum.id, req.user.address, action]
+      [referendum.id, req.user.address, backendAction]
     );
 
     if (result.changes === 0) {
@@ -552,6 +583,204 @@ router.post("/:postId/unassign", requireTeamMember, async (req: Request, res: Re
     }
   } catch (error) {
     logger.error({ error: formatError(error), postId: req.params.postId }, "Error unassigning from referendum");
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
+});
+
+/**
+ * GET /referendums/:postId/comments
+ * Get comments for a specific referendum
+ */
+router.get("/:postId/comments", async (req: Request, res: Response) => {
+  try {
+    const postId = parseInt(req.params.postId);
+    const chain = req.query.chain as Chain;
+
+    if (isNaN(postId)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Invalid post ID" 
+      });
+    }
+
+    // Validate chain parameter
+    if (!chain || !Object.values(Chain).includes(chain)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: "Valid chain parameter is required. Must be 'Polkadot' or 'Kusama'" 
+      });
+    }
+
+    // Get the internal referendum ID first
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
+    if (!referendum) {
+      return res.status(404).json({ 
+        success: false, 
+        error: `Referendum ${postId} not found on ${chain} network` 
+      });
+    }
+
+    // Get comments from database
+    const comments = await db.all(`
+      SELECT rc.*
+      FROM referendum_comments rc
+      WHERE rc.referendum_id = ?
+      ORDER BY rc.created_at ASC
+    `, [referendum.id]);
+
+    // Get team members to enrich the data
+    const teamMembers = await multisigService.getCachedTeamMembers();
+
+    // Enrich comments with member information
+    const enrichedComments = comments.map(comment => {
+      const member = teamMembers.find((m: { wallet_address: string }) => m.wallet_address === comment.team_member_id);
+      return {
+        id: comment.id,
+        content: comment.content,
+        user_address: comment.team_member_id,
+        user_name: member?.team_member_name || comment.team_member_id,
+        created_at: comment.created_at,
+        updated_at: comment.updated_at
+      };
+    });
+
+    res.json({
+      success: true,
+      comments: enrichedComments
+    });
+  } catch (error) {
+    logger.error({ error: formatError(error), postId: req.params.postId }, "Error fetching comments");
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
+});
+
+/**
+ * POST /referendums/:postId/comments
+ * Add a comment to a specific referendum
+ */
+router.post("/:postId/comments", requireTeamMember, async (req: Request, res: Response) => {
+  try {
+    const postId = parseInt(req.params.postId);
+    const { chain, content } = req.body;
+
+    if (!req.user?.address) {
+      return res.status(400).json({
+        success: false,
+        error: "User wallet address not found"
+      });
+    }
+
+    // Validate chain parameter
+    if (!chain) {
+      return res.status(400).json({
+        success: false,
+        error: "Chain parameter is required"
+      });
+    }
+
+    // Validate content
+    if (!content?.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: "Comment content is required"
+      });
+    }
+
+    // Get the internal referendum ID first
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
+    if (!referendum) {
+      return res.status(404).json({
+        success: false,
+        error: `Referendum ${postId} not found on ${chain} network`
+      });
+    }
+
+    // Insert comment
+    const result = await db.run(
+      "INSERT INTO referendum_comments (referendum_id, team_member_id, content) VALUES (?, ?, ?)",
+      [referendum.id, req.user.address, content.trim()]
+    );
+
+    res.status(201).json({
+      success: true,
+      message: "Comment added successfully",
+      comment: {
+        id: result.lastID,
+        content: content.trim(),
+        user_address: req.user.address,
+        created_at: new Date().toISOString()
+      }
+    });
+  } catch (error) {
+    logger.error({ error: formatError(error), postId: req.params.postId }, "Error adding comment");
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
+});
+
+/**
+ * DELETE /comments/:commentId
+ * Delete a specific comment (only by the author)
+ */
+router.delete("/comments/:commentId", requireTeamMember, async (req: Request, res: Response) => {
+  try {
+    const { commentId } = req.params;
+
+    if (!req.user?.address) {
+      return res.status(400).json({
+        success: false,
+        error: "User wallet address not found"
+      });
+    }
+
+    // Check if comment exists and belongs to the current user
+    const comment = await db.get(
+      "SELECT id, team_member_id FROM referendum_comments WHERE id = ?",
+      [commentId]
+    );
+
+    if (!comment) {
+      return res.status(404).json({
+        success: false,
+        error: "Comment not found"
+      });
+    }
+
+    // Verify the comment belongs to the current user
+    if (comment.team_member_id !== req.user.address) {
+      return res.status(403).json({
+        success: false,
+        error: "You can only delete your own comments"
+      });
+    }
+
+    // Delete the comment
+    const result = await db.run(
+      "DELETE FROM referendum_comments WHERE id = ?",
+      [commentId]
+    );
+
+    if (result.changes === 0) {
+      return res.status(404).json({
+        success: false,
+        error: "Comment not found or already deleted"
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Comment deleted successfully"
+    });
+  } catch (error) {
+    logger.error({ error: formatError(error), commentId: req.params.commentId }, "Error deleting comment");
     res.status(500).json({
       success: false,
       error: "Internal server error"

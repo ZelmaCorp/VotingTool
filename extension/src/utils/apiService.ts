@@ -676,16 +676,6 @@ export class ApiService {
         }
     }
 
-    async getProposalsNeedingAttention(): Promise<ProposalData[]> {
-        try {
-            const result = await this.request<{ success: boolean; referendums?: ProposalData[]; error?: string }>('/needs-attention');
-            return result.referendums || [];
-        } catch (error) {
-            console.error('Failed to fetch proposals needing attention:', error);
-            return [];
-        }
-    }
-
     // Team workflow data method
     async getTeamWorkflowData(): Promise<{
         needsAgreement: ProposalData[];
@@ -705,7 +695,7 @@ export class ApiService {
                         vetoedProposals: ProposalData[];
                     };
                     error?: string;
-                }>('/dao/workflow');
+                }>('/workflow');
                 
                 if (result.success && result.data) {
                     console.log('✅ Got team workflow data from backend endpoint:', result.data);
