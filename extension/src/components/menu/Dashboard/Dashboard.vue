@@ -49,7 +49,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import { authStore } from '../../../stores/authStore'
 import MyDashboard from './MyDashboard.vue'
 import Workflow from './Workflow.vue'
@@ -58,10 +58,26 @@ interface Props {
   show: boolean
 }
 
-defineProps<Props>()
-defineEmits<{
+const props = defineProps<Props>()
+const emit = defineEmits<{
   close: []
 }>()
+
+// Add ESC key handler
+const handleEscKey = (event: KeyboardEvent) => {
+  if (event.key === 'Escape' && props.show) {
+    emit('close')
+  }
+}
+
+// Add and remove event listener
+onMounted(() => {
+  window.addEventListener('keydown', handleEscKey)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleEscKey)
+})
 
 const activeTab = ref<'dashboard' | 'workflow'>('dashboard')
 </script>

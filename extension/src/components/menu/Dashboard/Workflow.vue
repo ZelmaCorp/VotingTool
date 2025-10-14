@@ -69,82 +69,121 @@
           </div>
           
           <div v-else class="proposals-list">
-            <div 
+            <ProposalItem
               v-for="proposal in needsAgreement" 
               :key="`${proposal.chain}-${proposal.post_id}`"
-              class="proposal-item agreement-item"
-              @click="openProposal(proposal)"
-            >
-              <div class="proposal-header">
-                <span class="proposal-id">#{{ proposal.post_id }}</span>
-                <StatusBadge 
-                  :status="proposal.internal_status" 
-                  :proposal-id="proposal.post_id"
-                  :editable="false" 
-                />
-              </div>
-              <h4 class="proposal-title">{{ proposal.title }}</h4>
-              
-              <div class="agreement-progress">
-                <div class="progress-header">
-                  <span>Agreement Progress</span>
-                  <span class="progress-count">{{ getAgreementCount(proposal) }}/{{ requiredAgreements }}</span>
-                </div>
-                <div class="progress-bar">
-                  <div 
-                    class="progress-fill" 
-                    :style="{ 
-                      width: `${Math.min((getAgreementCount(proposal) / requiredAgreements) * 100, 100)}%`,
-                      backgroundColor: getAgreementCount(proposal) >= requiredAgreements ? '#28a745' : '#ffc107'
-                    }"
-                  ></div>
-                </div>
-              </div>
-
-              <div class="team-status">
-                <div class="status-section">
-                  <h5>Agreed Members</h5>
-                  <div class="member-list">
-                    <span 
-                      v-for="member in getAgreedMembers(proposal)" 
-                      :key="member.address"
-                      class="member-badge agreed"
-                    >
-                      {{ member.name }}
-                    </span>
-                    <span v-if="getAgreedMembers(proposal).length === 0" class="no-members">None yet</span>
-                  </div>
-                </div>
-              </div>
-
-              <div class="proposal-meta">
-                <div class="meta-item">
-                  <strong>Evaluator:</strong> {{ proposal.assigned_to || 'Unassigned' }}
-                </div>
-                <div class="meta-item">
-                  <strong>Suggested Vote:</strong> {{ proposal.suggested_vote || 'Not set' }}
-                </div>
-                <div class="meta-item">
-                  <strong>Updated:</strong> {{ formatDate(proposal.updated_at || proposal.created_at) }}
-                </div>
-              </div>
-            </div>
+              :proposal="proposal"
+              type="agreement"
+              :editable="true"
+              :required-agreements="requiredAgreements"
+              :agreed-members="getAgreedMembers(proposal)"
+              :agreement-count="getAgreementCount(proposal)"
+              @click="openProposal"
+            />
           </div>
         </div>
 
-        <!-- Other tabs (ready, discussion, vetoed) will be moved to separate components -->
+        <div v-if="activeTab === 'ready'" class="content-area">
+          <div class="panel-header">
+            <h3>Proposals Ready for Voting</h3>
+            <p>These proposals have received sufficient team agreement and are ready for on-chain voting.</p>
+            <button 
+              @click="sendToMimir"
+              :disabled="sendingToMimir || readyToVote.length === 0"
+              class="send-to-mimir-btn"
+            >
+              <span v-if="sendingToMimir" class="loading-spinner"></span>
+              <span v-else>Send to Mimir</span>
+            </button>
+          </div>
+          
+          <div v-if="readyToVote.length === 0" class="empty-state">
+            <div class="empty-icon">🗳️</div>
+            <h3>No proposals ready</h3>
+            <p>No proposals are currently ready for voting</p>
+          </div>
+          
+          <div v-else class="proposals-list">
+            <ProposalItem
+              v-for="proposal in readyToVote" 
+              :key="`${proposal.chain}-${proposal.post_id}`"
+              :proposal="proposal"
+              type="ready"
+              :editable="false"
+              @click="openProposal"
+            />
+          </div>
+        </div>
+
+        <div v-if="activeTab === 'discussion'" class="content-area">
+          <div class="panel-header">
+            <h3>Proposals for Team Discussion</h3>
+            <p>These proposals have been marked for team discussion before proceeding.</p>
+          </div>
+          
+          <div v-if="forDiscussion.length === 0" class="empty-state">
+            <div class="empty-icon">💬</div>
+            <h3>No discussions needed</h3>
+            <p>No proposals are marked for discussion</p>
+          </div>
+          
+          <div v-else class="proposals-list">
+            <ProposalItem
+              v-for="proposal in forDiscussion" 
+              :key="`${proposal.chain}-${proposal.post_id}`"
+              :proposal="proposal"
+              type="discussion"
+              :editable="false"
+              :discussion-members="getDiscussionMembers(proposal)"
+              @click="openProposal"
+            />
+          </div>
+        </div>
+
+        <div v-if="activeTab === 'vetoed'" class="content-area">
+          <div class="panel-header">
+            <h3>NO WAYed Proposals</h3>
+            <p>These proposals have been vetoed by team members.</p>
+          </div>
+          
+          <div v-if="vetoed.length === 0" class="empty-state">
+            <div class="empty-icon">🚫</div>
+            <h3>No vetoed proposals</h3>
+            <p>No proposals have been NO WAYed</p>
+          </div>
+          
+          <div v-else class="proposals-list">
+            <ProposalItem
+              v-for="proposal in vetoed" 
+              :key="`${proposal.chain}-${proposal.post_id}`"
+              :proposal="proposal"
+              type="vetoed"
+              :editable="false"
+              @click="openProposal"
+            />
+          </div>
+        </div>
       </div>
     </template>
   </div>
+
+  <!-- Alert Modal for feedback -->
+  <AlertModal
+    :show="showAlertModal"
+    :title="alertModalData.title"
+    :message="alertModalData.message"
+    :type="alertModalData.type"
+    @ok="showAlertModal = false"
+  />
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ApiService } from '../../../utils/apiService'
 import { teamStore } from '../../../stores/teamStore'
-import { formatDate } from '../../../utils/teamUtils'
 import type { ProposalData, TeamMember } from '../../../types'
-import StatusBadge from '../../StatusBadge.vue'
+import ProposalItem from './ProposalItem.vue'
+import AlertModal from '../../modals/AlertModal.vue'
 
 // Tab state
 const activeTab = ref<'agreement' | 'ready' | 'discussion' | 'vetoed'>('agreement')
@@ -234,6 +273,77 @@ const getAgreedMembers = (proposal: ProposalData): TeamMember[] => {
     name: action.team_member_name || teamStore.getTeamMemberName(action.wallet_address),
     address: action.wallet_address
   }))
+}
+
+const getDiscussionMembers = (proposal: ProposalData): TeamMember[] => {
+  const discussionActions = proposal.team_actions?.filter(action => 
+    action.role_type === 'to_be_discussed'
+  ) || []
+  
+  return discussionActions.map(action => ({
+    name: action.team_member_name || teamStore.getTeamMemberName(action.wallet_address),
+    address: action.wallet_address
+  }))
+}
+
+// Alert modal state
+const showAlertModal = ref(false)
+const alertModalData = ref({
+  title: '',
+  message: '',
+  type: 'info' as 'success' | 'error' | 'warning' | 'info'
+})
+
+// Show alert helper
+const showAlert = (title: string, message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') => {
+  alertModalData.value = { title, message, type }
+  showAlertModal.value = true
+}
+
+// Send to Mimir state
+const sendingToMimir = ref(false)
+
+// Send to Mimir functionality
+const sendToMimir = () => {
+  if (sendingToMimir.value) return
+  
+  sendingToMimir.value = true
+  
+  chrome.runtime.sendMessage({
+    type: 'VOTING_TOOL_API_CALL',
+    messageId: Date.now().toString(),
+    endpoint: '/send-to-mimir',
+    method: 'GET',
+    data: undefined,
+    headers: {}
+  }, (response) => {
+    if (chrome.runtime.lastError) {
+      console.error('Error sending to Mimir:', chrome.runtime.lastError)
+      showAlert(
+        'Error',
+        'Failed to send proposals to Mimir. Please try again.',
+        'error'
+      )
+      sendingToMimir.value = false
+      return
+    }
+
+    if (!response?.success) {
+      console.error('Error sending to Mimir:', response?.error)
+      showAlert(
+        'Error',
+        'Failed to send proposals to Mimir. Please try again.',
+        'error'
+      )
+    } else {
+      showAlert(
+        'Success',
+        'Successfully sent proposals to Mimir!',
+        'success'
+      )
+    }
+    sendingToMimir.value = false
+  })
 }
 
 // Initial load
@@ -524,5 +634,30 @@ onMounted(loadData)
 
 .retry-btn:hover {
   background: #0056b3;
+}
+
+.send-to-mimir-btn {
+  background: #e6007a;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 120px;
+  margin-top: 12px;
+  transition: background 0.3s, opacity 0.3s;
+}
+
+.send-to-mimir-btn:hover:not(:disabled) {
+  background: #c40069;
+}
+
+.send-to-mimir-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 </style>
