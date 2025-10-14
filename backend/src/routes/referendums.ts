@@ -7,6 +7,8 @@ import { createSubsystemLogger, formatError } from '../config/logger';
 import { Subsystem } from '../types/logging';
 import { db } from '../database/connection';
 import { ReferendumAction } from '../types/auth';
+import { requireTeamMember } from '../middleware/auth';
+import { multisigService } from '../services/multisig';
 
 const logger = createSubsystemLogger(Subsystem.APP);
 const router = Router();
@@ -299,7 +301,7 @@ router.get("/:postId/actions", async (req: Request, res: Response) => {
 
     // Enrich actions with member information
     const enrichedActions = actions.map(action => {
-      const member = teamMembers.find(m => m.wallet_address === action.team_member_id);
+      const member = teamMembers.find((m: { wallet_address: string }) => m.wallet_address === action.team_member_id);
       return {
         ...action,
         team_member_name: member?.team_member_name || `Multisig Member`,

@@ -6487,7 +6487,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       try {
         console.log(`🔄 Updating status: PUT /referendums/${postId}/${chain}`, { internal_status: status });
         console.log(`🔐 Auth token present: ${!!this.token}`);
-        const updatedReferendum = await this.request(`/referendums/${postId}?chain=${chain}`, {
+        const updatedReferendum = await this.request(`/referendums/${postId}/${chain}`, {
           method: "PUT",
           body: JSON.stringify({
             internal_status: status
@@ -6520,7 +6520,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     async updateSuggestedVote(postId, chain, vote, reason) {
       try {
-        const result = await this.request(`/referendums/${postId}?chain=${chain}`, {
+        const result = await this.request(`/referendums/${postId}/${chain}`, {
           method: "PUT",
           body: JSON.stringify({
             suggested_vote: vote,
@@ -6539,7 +6539,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     async updateFinalVote(postId, chain, vote, reason) {
       try {
-        const result = await this.request(`/referendums/${postId}?chain=${chain}`, {
+        const result = await this.request(`/referendums/${postId}/${chain}`, {
           method: "PUT",
           body: JSON.stringify({
             final_vote: vote,
