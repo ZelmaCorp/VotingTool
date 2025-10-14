@@ -6,15 +6,17 @@
         <button class="close-btn" @click="$emit('close')">×</button>
       </div>
 
-      <div class="dashboard-content">
+      <div class="dashboard-content" :class="{ 'auth-state': !authStore.state.isAuthenticated }">
         <!-- Auth Check -->
-        <div v-if="!authStore.state.isAuthenticated" class="auth-required">
-          <div class="auth-icon">🔐</div>
-          <h3>Authentication Required</h3>
-          <p>Please connect your wallet to view your dashboard</p>
-          <button @click="$emit('close')" class="connect-btn">Connect Wallet</button>
-        </div>
-        <div v-else>
+        <template v-if="!authStore.state.isAuthenticated">
+          <div class="auth-required">
+            <div class="auth-icon">🔐</div>
+            <h3>Authentication Required</h3>
+            <p>Please connect your wallet to view your dashboard</p>
+            <button @click="$emit('close')" class="connect-btn">Connect Wallet</button>
+          </div>
+        </template>
+        <template v-else>
           <!-- Tab Navigation -->
           <div class="tab-navigation">
             <button 
@@ -537,7 +539,7 @@
               </div>
             </template>
           </div>
-        </div>
+        </template>
       </div>
     </div>
 
@@ -992,6 +994,7 @@ onUnmounted(() => {
   justify-content: center;
   z-index: 1000000;
   backdrop-filter: blur(2px);
+  overflow: hidden;
 }
 
 .unified-dashboard-modal {
@@ -1003,6 +1006,7 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden; /* Contain everything */
 }
 
 .modal-header {
@@ -1045,18 +1049,26 @@ onUnmounted(() => {
 
 .dashboard-content {
   flex: 1;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+.dashboard-content.auth-state {
+  justify-content: center;
+  align-items: center;
 }
 
 .auth-required {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 300px;
   text-align: center;
+  padding: 2rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  max-width: 400px;
+  width: 100%;
 }
 
 .auth-icon {
@@ -1133,7 +1145,6 @@ onUnmounted(() => {
 
 .tab-content {
   flex: 1;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -1185,22 +1196,28 @@ onUnmounted(() => {
 }
 
 .content-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   padding: 0 16px;
 }
 
 .content-area {
+  flex: 1;
+  overflow-y: auto;
   background: #ffffff;
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  height: calc(100vh - 250px);
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .proposals-list {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  flex: 1;
 }
 
 .proposal-item {

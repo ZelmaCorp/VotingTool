@@ -68,8 +68,8 @@
       @close="showProposalBrowser = false"
     />
 
-    <!-- Unified Dashboard Modal -->
-    <UnifiedDashboard 
+    <!-- Dashboard Modal -->
+    <Dashboard
       :show="showUnifiedDashboard"
       @close="showUnifiedDashboard = false"
     />
@@ -96,8 +96,8 @@ import { formatAddress } from '../../utils/teamUtils'
 import WalletConnect from '../WalletConnect.vue'
 import DAOConfigModal from '../modals/DAOConfigModal.vue'
 import ProposalBrowser from './ProposalBrowser.vue'
-import UnifiedDashboard from './UnifiedDashboard.vue'
 import SettingsMore from './SettingsMore.vue'
+import Dashboard from './Dashboard/Dashboard.vue'
 
 const showWalletConnect = ref(false)
 const showDAOConfig = ref(false)

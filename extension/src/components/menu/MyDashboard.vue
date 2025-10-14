@@ -558,12 +558,12 @@ onUnmounted(() => {
 }
 
 .content-area {
+  flex: 1;
+  overflow-y: auto;
   background: #ffffff;
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  height: calc(100vh - 250px);
-  overflow-y: auto;
 }
 
 .proposals-list {

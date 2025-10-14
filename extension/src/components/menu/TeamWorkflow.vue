@@ -649,6 +649,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
 }
 
 .modal-header {
@@ -691,7 +692,6 @@ onMounted(() => {
 
 .workflow-content {
   flex: 1;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
@@ -756,16 +756,21 @@ onMounted(() => {
 }
 
 .content-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   padding: 0 16px;
 }
 
 .content-area {
+  flex: 1;
+  overflow-y: auto;
   background: #ffffff;
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  height: calc(100vh - 250px);
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 h3 {
@@ -868,6 +873,7 @@ h3 {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  flex: 1;
 }
 
 .proposal-item {
