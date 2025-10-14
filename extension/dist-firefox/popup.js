@@ -6487,7 +6487,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
       try {
         console.log(`🔄 Updating status: PUT /referendums/${postId}/${chain}`, { internal_status: status });
         console.log(`🔐 Auth token present: ${!!this.token}`);
-        const updatedReferendum = await this.request(`/referendums/${postId}/${chain}`, {
+        const updatedReferendum = await this.request(`/referendums/${postId}?chain=${chain}`, {
           method: "PUT",
           body: JSON.stringify({
             internal_status: status
@@ -6520,7 +6520,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     async updateSuggestedVote(postId, chain, vote, reason) {
       try {
-        const result = await this.request(`/referendums/${postId}/${chain}`, {
+        const result = await this.request(`/referendums/${postId}?chain=${chain}`, {
           method: "PUT",
           body: JSON.stringify({
             suggested_vote: vote,
@@ -6539,7 +6539,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     async updateFinalVote(postId, chain, vote, reason) {
       try {
-        const result = await this.request(`/referendums/${postId}/${chain}`, {
+        const result = await this.request(`/referendums/${postId}?chain=${chain}`, {
           method: "PUT",
           body: JSON.stringify({
             final_vote: vote,
@@ -6634,33 +6634,84 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     }
     async getTeamActions(postId, chain) {
       try {
-        try {
-          const proposal = await this.getProposal(postId, chain);
-          if (proposal == null ? void 0 : proposal.team_actions) {
-            return proposal.team_actions;
-          }
-        } catch (error) {
-          console.warn("Failed to fetch from proposal:", error);
+        const result = await this.request(
+          `/referendums/${postId}/actions?chain=${chain}`
+        );
+        if (!result.success) {
+          console.error("Failed to fetch team actions:", result.error);
+          return [];
         }
-        try {
-          const result = await this.request(`/referendums/${postId}/actions`);
-          if (result.success && result.actions) {
-            return result.actions;
-          }
-        } catch (error) {
-          console.warn("Failed to fetch from /referendums/actions endpoint:", error);
-        }
-        console.warn("All attempts to fetch team actions failed, returning empty array");
-        return [];
+        const mappedActions = (result.actions || []).map((action) => __spreadProps(__spreadValues({}, action), {
+          role_type: this.mapBackendActionToFrontend(action.role_type)
+        }));
+        console.log("📝 Team actions loaded:", {
+          postId,
+          chain,
+          rawActions: result.actions,
+          mappedActions
+        });
+        return mappedActions;
       } catch (error) {
         console.error("Failed to fetch team actions:", error);
         return [];
       }
     }
     async getAgreementSummary(postId, chain) {
+      var _a;
       try {
-        const result = await this.request(`/referendums/${postId}/agreement-summary?chain=${chain}`);
-        return result.summary || null;
+        const actions = await this.getTeamActions(postId, chain);
+        if (!actions) {
+          return null;
+        }
+        const daoConfig = await this.getDAOConfig();
+        if (!daoConfig) {
+          return null;
+        }
+        const agreed_members = actions.filter((a) => a.role_type === "Agree").map((a) => {
+          var _a2;
+          return {
+            address: a.team_member_id,
+            name: a.team_member_name || ((_a2 = daoConfig.team_members.find((m) => m.address === a.team_member_id)) == null ? void 0 : _a2.name) || a.team_member_id
+          };
+        });
+        const recused_members = actions.filter((a) => a.role_type === "Recuse").map((a) => {
+          var _a2;
+          return {
+            address: a.team_member_id,
+            name: a.team_member_name || ((_a2 = daoConfig.team_members.find((m) => m.address === a.team_member_id)) == null ? void 0 : _a2.name) || a.team_member_id
+          };
+        });
+        const to_be_discussed_members = actions.filter((a) => a.role_type === "To be discussed").map((a) => {
+          var _a2;
+          return {
+            address: a.team_member_id,
+            name: a.team_member_name || ((_a2 = daoConfig.team_members.find((m) => m.address === a.team_member_id)) == null ? void 0 : _a2.name) || a.team_member_id
+          };
+        });
+        const vetoAction = actions.find((a) => a.role_type === "NO WAY");
+        const vetoed = !!vetoAction;
+        const veto_by = vetoed ? vetoAction.team_member_name || ((_a = daoConfig.team_members.find((m) => m.address === vetoAction.team_member_id)) == null ? void 0 : _a.name) || vetoAction.team_member_id : null;
+        const veto_reason = vetoed ? vetoAction.reason : null;
+        const actionTakers = /* @__PURE__ */ new Set([
+          ...agreed_members.map((m) => m.address),
+          ...recused_members.map((m) => m.address),
+          ...to_be_discussed_members.map((m) => m.address)
+        ]);
+        const pending_members = daoConfig.team_members.filter((m) => !actionTakers.has(m.address)).map((m) => ({
+          address: m.address,
+          name: m.name
+        }));
+        return {
+          total_agreements: agreed_members.length,
+          required_agreements: daoConfig.required_agreements,
+          agreed_members,
+          pending_members,
+          recused_members,
+          to_be_discussed_members,
+          vetoed,
+          veto_by,
+          veto_reason
+        };
       } catch (error) {
         console.error("Failed to fetch agreement summary:", error);
         return null;
@@ -6702,17 +6753,17 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     // DAO configuration methods
     async getDAOConfig() {
       try {
-        const membersResult = await this.request("/members").catch((error) => {
-          console.warn("Failed to get members from /members:", error);
+        const membersResult = await this.request("/dao/members").catch((error) => {
+          console.warn("Failed to get members from /dao/members:", error);
           return { success: false, error: error instanceof Error ? error.message : "Failed to get members" };
         });
-        if (!membersResult.success || !membersResult.data) {
+        if (!membersResult.success || !membersResult.members) {
           console.error("Failed to get team members:", membersResult.error);
           return null;
         }
-        const requiredAgreements = membersResult.data.length > 0 ? Math.ceil(membersResult.data.length / 2) : 4;
+        const requiredAgreements = membersResult.members.length > 0 ? Math.ceil(membersResult.members.length / 2) : 4;
         const config = {
-          team_members: membersResult.data,
+          team_members: membersResult.members,
           required_agreements: requiredAgreements,
           name: "OpenGov Voting Tool"
         };
@@ -6722,39 +6773,13 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return null;
       }
     }
-    async updateDAOConfig(config) {
-      try {
-        const result = await this.request("/config", {
-          method: "PUT",
-          body: JSON.stringify(config)
-        });
-        return result;
-      } catch (error) {
-        return { success: false, error: error instanceof Error ? error.message : "Failed to update DAO config" };
-      }
-    }
-    async triggerSync(type = "normal") {
-      try {
-        const result = await this.request("/sync", {
-          method: "POST",
-          body: JSON.stringify({ type })
-        });
-        return {
-          success: result.success,
-          message: result.message,
-          error: result.error
-        };
-      } catch (error) {
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : "Failed to trigger sync"
-        };
-      }
-    }
+    // Removed deprecated methods:
+    // - updateDAOConfig (config is now calculated from team members)
+    // - triggerSync (sync is now handled automatically by the backend)
     // List methods for different views
     async getMyAssignments() {
       try {
-        const result = await this.request("/my-assignments");
+        const result = await this.request("/dao/my-assignments");
         if (!result.success) {
           console.warn("API returned success: false", result.error);
           return [];
@@ -6889,7 +6914,7 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
     async getTeamWorkflowData() {
       try {
         try {
-          const result = await this.request("/workflow");
+          const result = await this.request("/dao/workflow");
           if (result.success && result.data) {
             console.log("✅ Got team workflow data from backend endpoint:", result.data);
             return result.data;
