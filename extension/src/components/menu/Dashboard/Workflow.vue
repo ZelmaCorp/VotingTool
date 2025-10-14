@@ -211,79 +211,123 @@ const forDiscussion = computed(() => workflowData.value.forDiscussion)
 const vetoed = computed(() => workflowData.value.vetoed)
 
 // Methods
-const loadData = async () => {
-  loading.value = true
-  error.value = null
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 1000; // 1 second
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const loadData = async (retryCount = 0) => {
+  loading.value = true;
+  error.value = null;
 
   try {
-    const apiService = ApiService.getInstance()
+    const apiService = ApiService.getInstance();
     
-    const [data, daoConfig] = await Promise.all([
-      apiService.getTeamWorkflowData(),
-      apiService.getDAOConfig()
-    ])
+    // First try to get DAO config since we need it for team members
+    const daoConfig = await apiService.getDAOConfig();
+    if (!daoConfig) {
+      if (retryCount < MAX_RETRIES) {
+        console.log(`Retrying DAO config load (attempt ${retryCount + 1}/${MAX_RETRIES})...`);
+        await sleep(RETRY_DELAY);
+        return loadData(retryCount + 1);
+      }
+      throw new Error('Could not load team configuration after multiple attempts.');
+    }
+    
+    // Set team members in store
+    teamStore.setTeamMembers(daoConfig.team_members);
+
+    // Now get workflow data
+    const data = await apiService.getTeamWorkflowData();
+    if (!data) {
+      if (retryCount < MAX_RETRIES) {
+        console.log(`Retrying workflow data load (attempt ${retryCount + 1}/${MAX_RETRIES})...`);
+        await sleep(RETRY_DELAY);
+        return loadData(retryCount + 1);
+      }
+      throw new Error('Could not load workflow data after multiple attempts.');
+    }
 
     workflowData.value = {
       needsAgreement: data.needsAgreement,
       readyToVote: data.readyToVote,
       forDiscussion: data.forDiscussion,
       vetoed: data.vetoedProposals
-    }
-    
-    if (daoConfig) {
-      teamStore.setTeamMembers(daoConfig.team_members)
-    }
+    };
 
   } catch (err) {
-    console.error('Error loading team workflow data:', err)
-    error.value = 'Failed to load data. Please try again.'
+    console.error('Error loading team workflow data:', err);
+    error.value = err instanceof Error ? err.message : 'Failed to load data. Please try again.';
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 const openProposal = async (proposal: ProposalData) => {
   try {
-    const apiService = ApiService.getInstance()
-    
-    const existingProposal = await apiService.getProposal(proposal.post_id, proposal.chain)
-    if (!existingProposal) {
-      await apiService.refreshReferenda()
-    }
-    
     const url = `https://${proposal.chain.toLowerCase()}.polkassembly.io/referenda/${proposal.post_id}`
     window.open(url, '_blank')
   } catch (error) {
     console.error('Failed to open proposal:', error)
+    showAlert(
+      'Error',
+      'Failed to open proposal. Please try again.',
+      'error'
+    )
   }
 }
 
+const parseTeamActions = (proposal: ProposalData) => {
+  if (!proposal.team_actions) return [];
+  
+  // If it's already an array, return as is
+  if (Array.isArray(proposal.team_actions)) {
+    return proposal.team_actions;
+  }
+  
+  // Parse concatenated string format
+  return proposal.team_actions.split(',').map(actionStr => {
+    const [team_member_id, role_type, reason, created_at] = actionStr.split(':');
+    return {
+      team_member_id,
+      wallet_address: team_member_id, // For compatibility
+      role_type,
+      reason,
+      created_at,
+      team_member_name: teamStore.getTeamMemberName(team_member_id)
+    };
+  });
+}
+
 const getAgreementCount = (proposal: ProposalData): number => {
-  return proposal.team_actions?.filter(action => 
+  const actions = parseTeamActions(proposal);
+  return actions.filter(action => 
     action.role_type?.toLowerCase() === 'agree'
-  )?.length || 0
+  ).length;
 }
 
 const getAgreedMembers = (proposal: ProposalData): TeamMember[] => {
-  const agreeActions = proposal.team_actions?.filter(action => 
+  const actions = parseTeamActions(proposal);
+  const agreeActions = actions.filter(action => 
     action.role_type?.toLowerCase() === 'agree'
-  ) || []
+  );
   
   return agreeActions.map(action => ({
-    name: action.team_member_name || teamStore.getTeamMemberName(action.wallet_address),
-    address: action.wallet_address
-  }))
+    name: action.team_member_name || teamStore.getTeamMemberName(action.team_member_id),
+    address: action.team_member_id
+  }));
 }
 
 const getDiscussionMembers = (proposal: ProposalData): TeamMember[] => {
-  const discussionActions = proposal.team_actions?.filter(action => 
+  const actions = parseTeamActions(proposal);
+  const discussionActions = actions.filter(action => 
     action.role_type === 'to_be_discussed'
-  ) || []
+  );
   
   return discussionActions.map(action => ({
-    name: action.team_member_name || teamStore.getTeamMemberName(action.wallet_address),
-    address: action.wallet_address
-  }))
+    name: action.team_member_name || teamStore.getTeamMemberName(action.team_member_id),
+    address: action.team_member_id
+  }));
 }
 
 // Alert modal state

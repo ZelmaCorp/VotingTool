@@ -33,11 +33,13 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import { proposalStore } from '../../stores/proposalStore'
 import { authStore } from '../../stores/authStore'
-import type { ProposalData } from '../../types'
+import { ApiService } from '../../utils/apiService'
+import type { ProposalData, Chain } from '../../types'
 
 interface AssignModalProps {
   show: boolean
   proposalId: number
+  chain: string
 }
 
 const props = defineProps<AssignModalProps>()
@@ -55,6 +57,11 @@ const handleAssign = async () => {
   error.value = ''
   
   try {
+    // Check if user is authenticated
+    if (!authStore.state.isAuthenticated || !authStore.state.user?.address) {
+      throw new Error('Please connect your wallet first')
+    }
+
     // Check if proposal is already assigned
     const proposal = proposalStore.state.proposals.find((p: ProposalData) => p.post_id === props.proposalId)
     if (!proposal) {
@@ -64,11 +71,25 @@ const handleAssign = async () => {
     if (proposal.assigned_to && proposal.assigned_to !== authStore.state.user?.address) {
       throw new Error('This proposal is already assigned to another team member')
     }
+
+    // Make the API call to assign the proposal
+    const apiService = ApiService.getInstance()
+    await apiService.assignProposal(props.proposalId, props.chain as Chain, authStore.state.user.address)
+
+    // Update the store
+    await proposalStore.updateProposal(props.proposalId, props.chain as Chain, {
+      assigned_to: authStore.state.user.address,
+      internal_status: 'Considering'
+    })
+
+    // Force a fresh fetch to ensure we have the latest data
+    await proposalStore.fetchProposals()
     
-    // Emit confirm event - parent component will handle the actual assignment
+    // Emit confirm event and close
     emit('confirm')
     emit('close')
   } catch (err) {
+    console.error('Failed to assign proposal:', err)
     error.value = err instanceof Error ? err.message : 'Failed to assign proposal'
   } finally {
     loading.value = false

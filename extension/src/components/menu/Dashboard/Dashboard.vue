@@ -10,11 +10,11 @@
         <!-- Auth Check -->
         <template v-if="!authStore.state.isAuthenticated">
           <div class="auth-required">
-            <div class="auth-icon">🔐</div>
-            <h3>Authentication Required</h3>
-            <p>Please connect your wallet to view your dashboard</p>
-            <button @click="$emit('close')" class="connect-btn">Connect Wallet</button>
-          </div>
+          <div class="auth-icon">🔐</div>
+          <h3>Authentication Required</h3>
+          <p>Please connect your wallet to view your dashboard</p>
+          <button @click="$emit('close')" class="connect-btn">Connect Wallet</button>
+        </div>
         </template>
         <template v-else>
           <!-- Tab Navigation -->

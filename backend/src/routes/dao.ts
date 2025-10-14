@@ -4,29 +4,34 @@ import { authenticateToken } from '../middleware/auth';
 import { multisigService } from '../services/multisig';
 import { ReferendumAction } from '../types/auth';
 import { InternalStatus } from '../types/properties';
-import fs from 'fs';
-import path from 'path';
 
 const router = Router();
 
-// Load SQL queries
-const commonQueriesPath = path.join(__dirname, '../../database/queries/common_queries.sql');
-const commonQueries = fs.readFileSync(commonQueriesPath, 'utf8');
-
-// Split queries into individual statements
-const queries = commonQueries.split(';').map(q => q.trim()).filter(q => q);
-
-// Extract individual queries
-const [
-  NEEDS_AGREEMENT_QUERY,
-  READY_TO_VOTE_QUERY,
-  FOR_DISCUSSION_QUERY,
-  NO_WAYED_QUERY,
-  MY_ASSIGNMENTS_QUERY,
-  ACTIONS_NEEDED_QUERY,
-  MY_EVALUATIONS_QUERY,
-  MY_ACTIVITY_QUERY
-] = queries;
+/**
+ * GET /dao/members
+ * Get all multisig members from blockchain multisig data
+ */
+router.get("/members", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const members = await multisigService.getCachedTeamMembers();
+    
+    res.json({
+      success: true,
+      members: members.map(member => ({
+        address: member.wallet_address,
+        name: member.team_member_name || `Multisig Member (${member.network})`,
+        network: member.network
+      }))
+    });
+    
+  } catch (error) {
+    console.error('Error fetching multisig members:', error);
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
+});
 
 /**
  * GET /dao/workflow
@@ -39,19 +44,69 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
     const requiredAgreements = teamMembers.length > 0 ? Math.ceil(teamMembers.length / 2) : 4;
 
     // Get proposals waiting for agreement
-    const needsAgreement = await db.all(NEEDS_AGREEMENT_QUERY, [
-      requiredAgreements,
-      requiredAgreements
-    ]);
+    const needsAgreement = await db.all(`
+      SELECT 
+        r.*,
+        COUNT(CASE WHEN rtr.role_type = 'agree' THEN 1 END) as agreement_count,
+        GROUP_CONCAT(DISTINCT rtr.team_member_id || ':' || rtr.role_type || ':' || rtr.reason || ':' || rtr.created_at) as team_actions
+      FROM referendums r
+      LEFT JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id
+      WHERE (r.internal_status = ? OR r.internal_status = ?)
+        AND NOT EXISTS (
+          SELECT 1 
+          FROM referendum_team_roles rtr2 
+          WHERE rtr2.referendum_id = r.id 
+          AND rtr2.role_type = 'no_way'
+        )
+      GROUP BY r.id
+      HAVING agreement_count < ?
+    `, [InternalStatus.WaitingForAgreement, InternalStatus.ReadyForApproval, requiredAgreements]);
 
     // Get proposals ready to vote
-    const readyToVote = await db.all(READY_TO_VOTE_QUERY);
+    const readyToVote = await db.all(`
+      SELECT 
+        r.*,
+        GROUP_CONCAT(DISTINCT rtr.team_member_id || ':' || rtr.role_type || ':' || rtr.reason || ':' || rtr.created_at) as team_actions
+      FROM referendums r
+      LEFT JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id
+      WHERE r.internal_status = ?
+        AND NOT EXISTS (
+          SELECT 1 FROM referendum_team_roles rtr2 
+          WHERE rtr2.referendum_id = r.id 
+          AND rtr2.role_type = 'no_way'
+        )
+      GROUP BY r.id
+    `, [InternalStatus.ReadyToVote]);
 
     // Get proposals for discussion
-    const forDiscussion = await db.all(FOR_DISCUSSION_QUERY);
+    const forDiscussion = await db.all(`
+      SELECT DISTINCT 
+        r.*,
+        GROUP_CONCAT(DISTINCT rtr.team_member_id || ':' || rtr.role_type || ':' || rtr.reason || ':' || rtr.created_at) as team_actions
+      FROM referendums r
+      INNER JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id
+      WHERE rtr.role_type = 'to_be_discussed'
+        AND NOT EXISTS (
+          SELECT 1 FROM referendum_team_roles rtr2 
+          WHERE rtr2.referendum_id = r.id 
+          AND rtr2.role_type = 'no_way'
+        )
+      GROUP BY r.id
+    `);
 
     // Get vetoed proposals
-    const vetoedProposals = await db.all(NO_WAYED_QUERY);
+    const vetoedProposals = await db.all(`
+      SELECT DISTINCT 
+        r.*,
+        rtr_veto.team_member_id as veto_by,
+        rtr_veto.reason as veto_reason,
+        rtr_veto.created_at as veto_date,
+        GROUP_CONCAT(DISTINCT rtr.team_member_id || ':' || rtr.role_type || ':' || rtr.reason || ':' || rtr.created_at) as team_actions
+      FROM referendums r
+      INNER JOIN referendum_team_roles rtr_veto ON r.id = rtr_veto.referendum_id AND rtr_veto.role_type = 'no_way'
+      LEFT JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id
+      GROUP BY r.id
+    `);
 
     res.json({
       success: true,
@@ -86,8 +141,21 @@ router.get("/my-assignments", authenticateToken, async (req: Request, res: Respo
       });
     }
 
-    // Get user's assignments
-    const assignments = await db.all(MY_ASSIGNMENTS_QUERY, [walletAddress]);
+    // Get user's assignments (excluding voted proposals)
+    const assignments = await db.all(`
+      SELECT r.*
+      FROM referendums r
+      INNER JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id
+      WHERE rtr.team_member_id = ?
+        AND rtr.role_type = 'responsible_person'
+        AND r.internal_status NOT IN (?, ?, ?, ?)
+    `, [
+      walletAddress,
+      'Voted 👍 Aye 👍',
+      'Voted 👎 Nay 👎',
+      'Voted ✌️ Abstain ✌️',
+      'Not Voted'
+    ]);
 
     res.json({
       success: true,
@@ -99,71 +167,6 @@ router.get("/my-assignments", authenticateToken, async (req: Request, res: Respo
     res.status(500).json({
       success: false,
       error: 'Failed to get user assignments'
-    });
-  }
-});
-
-/**
- * GET /dao/actions-needed
- * Get proposals needing action from the user
- */
-router.get("/actions-needed", authenticateToken, async (req: Request, res: Response) => {
-  try {
-    const walletAddress = req.user?.address;
-    if (!walletAddress) {
-      return res.status(401).json({
-        success: false,
-        error: "Unauthorized access attempt"
-      });
-    }
-
-    // Get proposals needing action
-    const actionsNeeded = await db.all(ACTIONS_NEEDED_QUERY, [
-      walletAddress, // For agree check
-      walletAddress  // For discussion check
-    ]);
-
-    res.json({
-      success: true,
-      data: actionsNeeded
-    });
-
-  } catch (error) {
-    console.error('Failed to get actions needed:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get actions needed'
-    });
-  }
-});
-
-/**
- * GET /dao/my-evaluations
- * Get proposals evaluated by the user
- */
-router.get("/my-evaluations", authenticateToken, async (req: Request, res: Response) => {
-  try {
-    const walletAddress = req.user?.address;
-    if (!walletAddress) {
-      return res.status(401).json({
-        success: false,
-        error: "Unauthorized access attempt"
-      });
-    }
-
-    // Get user's evaluations
-    const evaluations = await db.all(MY_EVALUATIONS_QUERY, [walletAddress]);
-
-    res.json({
-      success: true,
-      data: evaluations
-    });
-
-  } catch (error) {
-    console.error('Failed to get user evaluations:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get user evaluations'
     });
   }
 });
@@ -183,7 +186,20 @@ router.get("/my-activity", authenticateToken, async (req: Request, res: Response
     }
 
     // Get user's recent activity
-    const activity = await db.all(MY_ACTIVITY_QUERY, [walletAddress]);
+    const activity = await db.all(`
+      SELECT 
+        r.id,
+        r.post_id as proposal_id,
+        r.title,
+        rtr.role_type as action_type,
+        rtr.reason,
+        rtr.created_at
+      FROM referendums r
+      INNER JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id
+      WHERE rtr.team_member_id = ?
+      ORDER BY rtr.created_at DESC
+      LIMIT 10
+    `, [walletAddress]);
 
     res.json({
       success: true,
