@@ -6692,7 +6692,8 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         const actionTakers = /* @__PURE__ */ new Set([
           ...agreed_members.map((m) => m.address),
           ...recused_members.map((m) => m.address),
-          ...to_be_discussed_members.map((m) => m.address)
+          ...to_be_discussed_members.map((m) => m.address),
+          ...vetoed && vetoAction ? [vetoAction.team_member_id] : []
         ]);
         const pending_members = daoConfig.team_members.filter((m) => !actionTakers.has(m.address)).map((m) => ({
           address: m.address,

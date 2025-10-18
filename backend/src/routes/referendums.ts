@@ -380,10 +380,16 @@ router.post("/:postId/actions", requireTeamMember, async (req: Request, res: Res
     );
 
     if (existingAction) {
-      // User already has a team action - update it to the new action
+      // User already has a team action - delete old and insert new (to avoid UNIQUE constraint issues)
       await db.run(
-        "UPDATE referendum_team_roles SET role_type = ?, reason = ? WHERE id = ?",
-        [backendAction, reason || null, existingAction.id]
+        "DELETE FROM referendum_team_roles WHERE id = ?",
+        [existingAction.id]
+      );
+      
+      // Insert the new action
+      await db.run(
+        "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type, reason) VALUES (?, ?, ?, ?)",
+        [referendum.id, req.user.address, backendAction, reason || null]
       );
     } else {
       // Create new action
