@@ -56,41 +56,28 @@
 
     <!-- Content based on active tab -->
     <div class="content-section">
-      <div v-if="activeTab === 'assignments'" class="content-area">
-        <div v-if="myAssignments.length === 0" class="empty-state">
-          <div class="empty-icon">📭</div>
-          <h3>No assignments</h3>
-          <p>You don't have any proposals assigned to you</p>
-        </div>
-        <div v-else class="proposals-list">
-          <div 
-            v-for="proposal in myAssignments" 
-            :key="`${proposal.chain}-${proposal.post_id}`"
-            class="proposal-item"
-            @click="openProposal(proposal)"
-          >
-            <div class="proposal-header">
-              <span class="proposal-id">#{{ proposal.post_id }}</span>
-              <StatusBadge 
-                :status="proposal.internal_status" 
-                :proposal-id="proposal.post_id"
-                :editable="false" 
-              />
-            </div>
-            <h4 class="proposal-title">{{ proposal.title }}</h4>
-            <div class="proposal-meta">
-              <div class="meta-item">
-                <strong>Timeline:</strong> {{ proposal.referendum_timeline || 'Unknown' }}
-              </div>
-              <div class="meta-item">
-                <strong>Updated:</strong> {{ formatDate(proposal.updated_at || proposal.created_at) }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Other tabs (actions, evaluations, activity) will be moved to separate components -->
+      <MyAssignmentsTab
+        v-if="activeTab === 'assignments'"
+        :assignments="myAssignments"
+        @open-proposal="openProposal"
+      />
+      
+      <ActionsNeededTab
+        v-if="activeTab === 'actions'"
+        :actions-needed="actionsNeeded"
+        :current-user-address="authStore.state.user?.address || null"
+        @open-proposal="openProposal"
+      />
+      
+      <MyEvaluationsTab
+        v-if="activeTab === 'evaluations'"
+        :evaluations="myEvaluations"
+        @open-proposal="openProposal"
+      />
+      
+      <MyActivityTab
+        v-if="activeTab === 'activity'"
+      />
     </div>
     </template>
   </div>
@@ -100,15 +87,18 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { ApiService } from '../../../utils/apiService'
 import { authStore } from '../../../stores/authStore'
-import { formatDate } from '../../../utils/teamUtils'
 import type { ProposalData } from '../../../types'
-import StatusBadge from '../../StatusBadge.vue'
+import MyAssignmentsTab from './MyAssignmentsTab.vue'
+import ActionsNeededTab from './ActionsNeededTab.vue'
+import MyEvaluationsTab from './MyEvaluationsTab.vue'
+import MyActivityTab from './MyActivityTab.vue'
 
 // Tab state
 const activeTab = ref<'assignments' | 'actions' | 'evaluations' | 'activity'>('assignments')
 
 // Data
-const dashboardProposals = ref<ProposalData[]>([])
+const dashboardProposals = ref<ProposalData[]>([])  // My assignments
+const allProposals = ref<ProposalData[]>([])  // All proposals for checking actions needed
 const recentActivity = ref<any[]>([])
 
 // Computed
@@ -122,13 +112,24 @@ const actionsNeeded = computed(() => {
   const currentUser = authStore.state.user?.address
   if (!currentUser) return []
   
-  return dashboardProposals.value.filter(p => {
-    const hasNoTeamAction = !p.team_actions?.some(action => action.wallet_address === currentUser)
+  // Check all proposals (not just assignments) for actions needed
+  return allProposals.value.filter(p => {
     const isAssignedToMe = p.assigned_to === currentUser
-    const needsEvaluation = isAssignedToMe && !p.suggested_vote
-    const inActionableStatus = ['Considering', 'Ready for approval', 'Waiting for agreement'].includes(p.internal_status)
     
-    return (hasNoTeamAction && inActionableStatus) || needsEvaluation
+    // Check if user has taken a team action (Agree, NO WAY, Recuse, To be discussed)
+    const hasTeamAction = p.team_actions?.some(action => 
+      action.wallet_address === currentUser && 
+      ['Agree', 'NO WAY', 'Recuse', 'To be discussed', 'agree', 'no_way', 'recuse', 'to_be_discussed'].includes(action.role_type)
+    )
+    
+    // If assigned to me, check if evaluation is needed (no suggested vote yet)
+    const needsEvaluation = isAssignedToMe && !p.suggested_vote
+    
+    // If not assigned to me, check if team action is needed
+    const inActionableStatus = ['Considering', 'Ready for approval', 'Waiting for agreement'].includes(p.internal_status)
+    const needsTeamAction = !isAssignedToMe && inActionableStatus && !hasTeamAction
+    
+    return needsEvaluation || needsTeamAction
   })
 })
 
@@ -174,12 +175,25 @@ const loadData = async (retryCount = 0) => {
       throw new Error('Could not load assignments after multiple attempts.')
     }
     
+    // Get all proposals to check for actions needed
+    const all = await apiService.getAllProposals()
+    if (!all) {
+      if (retryCount < MAX_RETRIES) {
+        console.log(`Retrying all proposals load (attempt ${retryCount + 1}/${MAX_RETRIES})...`)
+        await sleep(RETRY_DELAY)
+        return loadData(retryCount + 1)
+      }
+      throw new Error('Could not load all proposals after multiple attempts.')
+    }
+    
     dashboardProposals.value = assignments
+    allProposals.value = all
     
   } catch (err) {
     console.error('Failed to load dashboard data:', err)
     error.value = err instanceof Error ? err.message : 'Failed to load data. Please try again.'
     dashboardProposals.value = []
+    allProposals.value = []
     recentActivity.value = []
   } finally {
     loading.value = false
@@ -327,77 +341,5 @@ onMounted(() => {
   flex-direction: column;
   overflow: hidden;
   padding: 0 16px;
-}
-
-.content-area {
-  flex: 1;
-  overflow-y: auto;
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.proposals-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.proposal-item {
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.proposal-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.proposal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.proposal-id {
-  font-size: 0.875rem;
-  color: #6b46c1;
-  font-weight: 600;
-}
-
-.proposal-title {
-  margin: 0.5rem 0;
-  font-size: 1rem;
-  color: #2d3748;
-}
-
-.proposal-meta {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.875rem;
-  color: #718096;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 2rem;
-  color: #718096;
-}
-
-.empty-icon {
-  font-size: 2rem;
-  margin-bottom: 1rem;
 }
 </style>
