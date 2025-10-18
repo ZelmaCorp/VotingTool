@@ -1093,182 +1093,100 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
     const teamMembers = await multisigService.getCachedTeamMembers();
     const totalTeamMembers = teamMembers.length;
 
-    // Get proposals waiting for agreement
-    const needsAgreement = await db.all(`
-      WITH member_actions AS (
-        SELECT 
-          r.id as referendum_id,
-          tm.wallet_address as member_address,
-          MAX(CASE 
-            WHEN rtr.role_type = ? THEN 1
-            WHEN rtr.role_type = ? THEN 2
-            WHEN rtr.role_type = ? THEN 3
-            WHEN rtr.role_type = ? THEN 4
-            ELSE 0
-          END) as action_priority
-        FROM referendums r
-        CROSS JOIN (SELECT DISTINCT wallet_address FROM team_members) tm
-        LEFT JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id 
-          AND (rtr.team_member_id = tm.wallet_address 
-            OR EXISTS (
-              SELECT 1 FROM team_members tm2 
-              WHERE tm2.wallet_address = tm.wallet_address 
-              AND rtr.team_member_id = tm2.wallet_address
-            )
-          )
-        WHERE (r.internal_status = ? OR r.internal_status = ?)
-        GROUP BY r.id, tm.wallet_address
-      )
+    // Get all referendums with their actions
+    const allReferendums = await db.all(`
+      SELECT r.*
+      FROM referendums r
+      ORDER BY r.created_at DESC
+    `);
+
+    // Get all team actions
+    const allActions = await db.all(`
       SELECT 
-        r.*,
-        COUNT(CASE WHEN ma.action_priority = 1 THEN 1 END) as agreement_count,
-        ? as required_agreements
-      FROM referendums r
-      LEFT JOIN member_actions ma ON r.id = ma.referendum_id
-      WHERE (r.internal_status = ? OR r.internal_status = ?)
-        AND NOT EXISTS (
-          SELECT 1 
-          FROM member_actions ma2 
-          WHERE ma2.referendum_id = r.id 
-          AND ma2.action_priority = 2
-        )
-      GROUP BY r.id
-      HAVING agreement_count < ?
-    `, [
-      ReferendumAction.AGREE,       // Priority 1
-      ReferendumAction.NO_WAY,      // Priority 2
-      ReferendumAction.RECUSE,      // Priority 3
-      ReferendumAction.TO_BE_DISCUSSED, // Priority 4
-      InternalStatus.WaitingForAgreement,
-      InternalStatus.ReadyForApproval,
-      totalTeamMembers,
-      InternalStatus.WaitingForAgreement,
-      InternalStatus.ReadyForApproval,
-      totalTeamMembers
-    ]);
+        referendum_id,
+        team_member_id,
+        role_type,
+        reason,
+        created_at
+      FROM referendum_team_roles
+    `);
 
-    // Get proposals ready to vote
-    const readyToVote = await db.all(`
-      WITH member_actions AS (
-        SELECT 
-          r.id as referendum_id,
-          tm.wallet_address as member_address,
-          MAX(CASE 
-            WHEN rtr.role_type = ? THEN 1
-            WHEN rtr.role_type = ? THEN 2
-            ELSE 0
-          END) as action_priority
-        FROM referendums r
-        CROSS JOIN (SELECT DISTINCT wallet_address FROM team_members) tm
-        LEFT JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id 
-          AND (rtr.team_member_id = tm.wallet_address 
-            OR EXISTS (
-              SELECT 1 FROM team_members tm2 
-              WHERE tm2.wallet_address = tm.wallet_address 
-              AND rtr.team_member_id = tm2.wallet_address
-            )
-          )
-        WHERE r.internal_status = ?
-        GROUP BY r.id, tm.wallet_address
-      )
-      SELECT DISTINCT r.*
-      FROM referendums r
-      LEFT JOIN member_actions ma ON r.id = ma.referendum_id
-      WHERE r.internal_status = ?
-        AND NOT EXISTS (
-          SELECT 1 
-          FROM member_actions ma2 
-          WHERE ma2.referendum_id = r.id 
-          AND ma2.action_priority = 2
-        )
-    `, [
-      ReferendumAction.AGREE,
-      ReferendumAction.NO_WAY,
-      InternalStatus.ReadyToVote,
-      InternalStatus.ReadyToVote
-    ]);
+    // Group actions by referendum_id
+    const actionsByReferendum = new Map<number, any[]>();
+    allActions.forEach((action: any) => {
+      if (!actionsByReferendum.has(action.referendum_id)) {
+        actionsByReferendum.set(action.referendum_id, []);
+      }
+      actionsByReferendum.get(action.referendum_id)!.push(action);
+    });
 
-    // Get proposals for discussion
-    const forDiscussion = await db.all(`
-      WITH member_actions AS (
-        SELECT 
-          r.id as referendum_id,
-          tm.wallet_address as member_address,
-          MAX(CASE 
-            WHEN rtr.role_type = ? THEN 1
-            WHEN rtr.role_type = ? THEN 2
-            WHEN rtr.role_type = ? THEN 3
-            ELSE 0
-          END) as action_priority
-        FROM referendums r
-        CROSS JOIN (SELECT DISTINCT wallet_address FROM team_members) tm
-        LEFT JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id 
-          AND (rtr.team_member_id = tm.wallet_address 
-            OR EXISTS (
-              SELECT 1 FROM team_members tm2 
-              WHERE tm2.wallet_address = tm.wallet_address 
-              AND rtr.team_member_id = tm2.wallet_address
-            )
-          )
-        GROUP BY r.id, tm.wallet_address
-      )
-      SELECT DISTINCT r.*
-      FROM referendums r
-      INNER JOIN member_actions ma ON r.id = ma.referendum_id
-      WHERE EXISTS (
-        SELECT 1 
-        FROM member_actions ma2 
-        WHERE ma2.referendum_id = r.id 
-        AND ma2.action_priority = 3
-      )
-      AND NOT EXISTS (
-        SELECT 1 
-        FROM member_actions ma3 
-        WHERE ma3.referendum_id = r.id 
-        AND ma3.action_priority = 2
-      )
-    `, [
-      ReferendumAction.AGREE,
-      ReferendumAction.NO_WAY,
-      ReferendumAction.TO_BE_DISCUSSED
-    ]);
+    // Helper to check if referendum has NO WAY action
+    const hasVeto = (referendumId: number) => {
+      const actions = actionsByReferendum.get(referendumId) || [];
+      return actions.some(a => a.role_type === ReferendumAction.NO_WAY);
+    };
 
-    // Get NO WAYed proposals
-    const vetoedProposals = await db.all(`
-      WITH member_actions AS (
-        SELECT 
-          r.id as referendum_id,
-          tm.wallet_address as member_address,
-          rtr.reason as action_reason,
-          rtr.created_at as action_date,
-          MAX(CASE 
-            WHEN rtr.role_type = ? THEN 1
-            ELSE 0
-          END) as action_priority
-        FROM referendums r
-        CROSS JOIN (SELECT DISTINCT wallet_address, team_member_name FROM team_members) tm
-        LEFT JOIN referendum_team_roles rtr ON r.id = rtr.referendum_id 
-          AND (rtr.team_member_id = tm.wallet_address 
-            OR EXISTS (
-              SELECT 1 FROM team_members tm2 
-              WHERE tm2.wallet_address = tm.wallet_address 
-              AND rtr.team_member_id = tm2.wallet_address
-            )
-          )
-        GROUP BY r.id, tm.wallet_address, rtr.reason, rtr.created_at
-        HAVING action_priority = 1
-      )
-      SELECT 
-        r.*,
-        ma.member_address as veto_by,
-        tm.team_member_name as veto_by_name,
-        ma.action_reason as veto_reason,
-        ma.action_date as veto_date
-      FROM referendums r
-      INNER JOIN member_actions ma ON r.id = ma.referendum_id
-      LEFT JOIN team_members tm ON ma.member_address = tm.wallet_address
-      GROUP BY r.id
-    `, [ReferendumAction.NO_WAY]);
+    // Helper to check if referendum has "to_be_discussed" action
+    const hasDiscussionFlag = (referendumId: number) => {
+      const actions = actionsByReferendum.get(referendumId) || [];
+      return actions.some(a => a.role_type === ReferendumAction.TO_BE_DISCUSSED);
+    };
+
+    // Helper to count "agree" actions
+    const countAgreeActions = (referendumId: number) => {
+      const actions = actionsByReferendum.get(referendumId) || [];
+      return actions.filter(a => a.role_type === ReferendumAction.AGREE).length;
+    };
+
+    // Helper to get veto info
+    const getVetoInfo = (referendumId: number) => {
+      const actions = actionsByReferendum.get(referendumId) || [];
+      const vetoAction = actions.find(a => a.role_type === ReferendumAction.NO_WAY);
+      if (vetoAction) {
+        const member = multisigService.findMemberByAddress(teamMembers, vetoAction.team_member_id);
+        return {
+          veto_by: vetoAction.team_member_id,
+          veto_by_name: member?.team_member_name || 'Unknown Member',
+          veto_reason: vetoAction.reason,
+          veto_date: vetoAction.created_at
+        };
+      }
+      return null;
+    };
+
+    // Categorize referendums
+    const needsAgreement: any[] = [];
+    const readyToVote: any[] = [];
+    const forDiscussion: any[] = [];
+    const vetoedProposals: any[] = [];
+
+    allReferendums.forEach((ref: any) => {
+      const refId = ref.id;
+      const agreeCount = countAgreeActions(refId);
+      
+      // Add agreement_count and required_agreements for all
+      ref.agreement_count = agreeCount;
+      ref.required_agreements = totalTeamMembers;
+
+      if (hasVeto(refId)) {
+        // Vetoed proposals
+        const vetoInfo = getVetoInfo(refId);
+        vetoedProposals.push({ ...ref, ...vetoInfo });
+      } else if (hasDiscussionFlag(refId)) {
+        // For discussion
+        forDiscussion.push(ref);
+      } else if (ref.internal_status === InternalStatus.ReadyToVote) {
+        // Ready to vote
+        readyToVote.push(ref);
+      } else if (
+        (ref.internal_status === InternalStatus.WaitingForAgreement ||
+         ref.internal_status === InternalStatus.ReadyForApproval) &&
+        agreeCount < totalTeamMembers
+      ) {
+        // Needs agreement
+        needsAgreement.push(ref);
+      }
+    });
 
     // For each proposal, get team actions separately
     const addTeamActions = async (proposals: any[]) => {

@@ -693,7 +693,7 @@ export class ApiService {
                         vetoedProposals: ProposalData[];
                     };
                     error?: string;
-                }>('/workflow');
+                }>('/dao/workflow');
                 
                 if (result.success && result.data) {
                     console.log('✅ Got team workflow data from backend endpoint:', result.data);

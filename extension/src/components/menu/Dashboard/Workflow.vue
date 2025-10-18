@@ -56,113 +56,32 @@
 
       <!-- Content based on active tab -->
       <div class="content-section">
-        <div v-if="activeTab === 'agreement'" class="content-area">
-          <div class="panel-header">
-            <h3>Proposals Waiting for Team Agreement</h3>
-            <p>These proposals need {{ requiredAgreements }} team member agreements to proceed to voting.</p>
-          </div>
-          
-          <div v-if="needsAgreement.length === 0" class="empty-state">
-            <div class="empty-icon">✅</div>
-            <h3>All caught up!</h3>
-            <p>No proposals are waiting for agreement</p>
-          </div>
-          
-          <div v-else class="proposals-list">
-            <ProposalItem
-              v-for="proposal in needsAgreement" 
-              :key="`${proposal.chain}-${proposal.post_id}`"
-              :proposal="proposal"
-              type="agreement"
-              :editable="true"
-              :required-agreements="requiredAgreements"
-              :agreed-members="getAgreedMembers(proposal)"
-              :agreement-count="getAgreementCount(proposal)"
-              @click="openProposal"
-            />
-          </div>
-        </div>
-
-        <div v-if="activeTab === 'ready'" class="content-area">
-          <div class="panel-header">
-            <h3>Proposals Ready for Voting</h3>
-            <p>These proposals have received sufficient team agreement and are ready for on-chain voting.</p>
-            <button 
-              @click="sendToMimir"
-              :disabled="sendingToMimir || readyToVote.length === 0"
-              class="send-to-mimir-btn"
-            >
-              <span v-if="sendingToMimir" class="loading-spinner"></span>
-              <span v-else>Send to Mimir</span>
-            </button>
-          </div>
-          
-          <div v-if="readyToVote.length === 0" class="empty-state">
-            <div class="empty-icon">🗳️</div>
-            <h3>No proposals ready</h3>
-            <p>No proposals are currently ready for voting</p>
-          </div>
-          
-          <div v-else class="proposals-list">
-            <ProposalItem
-              v-for="proposal in readyToVote" 
-              :key="`${proposal.chain}-${proposal.post_id}`"
-              :proposal="proposal"
-              type="ready"
-              :editable="false"
-              @click="openProposal"
-            />
-          </div>
-        </div>
-
-        <div v-if="activeTab === 'discussion'" class="content-area">
-          <div class="panel-header">
-            <h3>Proposals for Team Discussion</h3>
-            <p>These proposals have been marked for team discussion before proceeding.</p>
-          </div>
-          
-          <div v-if="forDiscussion.length === 0" class="empty-state">
-            <div class="empty-icon">💬</div>
-            <h3>No discussions needed</h3>
-            <p>No proposals are marked for discussion</p>
-          </div>
-          
-          <div v-else class="proposals-list">
-            <ProposalItem
-              v-for="proposal in forDiscussion" 
-              :key="`${proposal.chain}-${proposal.post_id}`"
-              :proposal="proposal"
-              type="discussion"
-              :editable="false"
-              :discussion-members="getDiscussionMembers(proposal)"
-              @click="openProposal"
-            />
-          </div>
-        </div>
-
-        <div v-if="activeTab === 'vetoed'" class="content-area">
-          <div class="panel-header">
-            <h3>NO WAYed Proposals</h3>
-            <p>These proposals have been vetoed by team members.</p>
-          </div>
-          
-          <div v-if="vetoed.length === 0" class="empty-state">
-            <div class="empty-icon">🚫</div>
-            <h3>No vetoed proposals</h3>
-            <p>No proposals have been NO WAYed</p>
-          </div>
-          
-          <div v-else class="proposals-list">
-            <ProposalItem
-              v-for="proposal in vetoed" 
-              :key="`${proposal.chain}-${proposal.post_id}`"
-              :proposal="proposal"
-              type="vetoed"
-              :editable="false"
-              @click="openProposal"
-            />
-          </div>
-        </div>
+        <NeedsAgreementTab
+          v-if="activeTab === 'agreement'"
+          :needs-agreement="needsAgreement"
+          :required-agreements="requiredAgreements"
+          @open-proposal="openProposal"
+        />
+        
+        <ReadyToVoteTab
+          v-if="activeTab === 'ready'"
+          :ready-to-vote="readyToVote"
+          :sending-to-mimir="sendingToMimir"
+          @open-proposal="openProposal"
+          @send-to-mimir="sendToMimir"
+        />
+        
+        <ForDiscussionTab
+          v-if="activeTab === 'discussion'"
+          :for-discussion="forDiscussion"
+          @open-proposal="openProposal"
+        />
+        
+        <VetoedTab
+          v-if="activeTab === 'vetoed'"
+          :vetoed="vetoed"
+          @open-proposal="openProposal"
+        />
       </div>
     </template>
   </div>
@@ -181,8 +100,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { ApiService } from '../../../utils/apiService'
 import { teamStore } from '../../../stores/teamStore'
-import type { ProposalData, TeamMember } from '../../../types'
-import ProposalItem from './ProposalItem.vue'
+import type { ProposalData } from '../../../types'
+import NeedsAgreementTab from './NeedsAgreementTab.vue'
+import ReadyToVoteTab from './ReadyToVoteTab.vue'
+import ForDiscussionTab from './ForDiscussionTab.vue'
+import VetoedTab from './VetoedTab.vue'
 import AlertModal from '../../modals/AlertModal.vue'
 
 // Tab state
@@ -275,59 +197,6 @@ const openProposal = async (proposal: ProposalData) => {
       'error'
     )
   }
-}
-
-const parseTeamActions = (proposal: ProposalData) => {
-  if (!proposal.team_actions) return [];
-  
-  // If it's already an array, return as is
-  if (Array.isArray(proposal.team_actions)) {
-    return proposal.team_actions;
-  }
-  
-  // Parse concatenated string format
-  return proposal.team_actions.split(',').map(actionStr => {
-    const [team_member_id, role_type, reason, created_at] = actionStr.split(':');
-    return {
-      team_member_id,
-      wallet_address: team_member_id, // For compatibility
-      role_type,
-      reason,
-      created_at,
-      team_member_name: teamStore.getTeamMemberName(team_member_id)
-    };
-  });
-}
-
-const getAgreementCount = (proposal: ProposalData): number => {
-  const actions = parseTeamActions(proposal);
-  return actions.filter(action => 
-    action.role_type?.toLowerCase() === 'agree'
-  ).length;
-}
-
-const getAgreedMembers = (proposal: ProposalData): TeamMember[] => {
-  const actions = parseTeamActions(proposal);
-  const agreeActions = actions.filter(action => 
-    action.role_type?.toLowerCase() === 'agree'
-  );
-  
-  return agreeActions.map(action => ({
-    name: action.team_member_name || teamStore.getTeamMemberName(action.team_member_id),
-    address: action.team_member_id
-  }));
-}
-
-const getDiscussionMembers = (proposal: ProposalData): TeamMember[] => {
-  const actions = parseTeamActions(proposal);
-  const discussionActions = actions.filter(action => 
-    action.role_type === 'to_be_discussed'
-  );
-  
-  return discussionActions.map(action => ({
-    name: action.team_member_name || teamStore.getTeamMemberName(action.team_member_id),
-    address: action.team_member_id
-  }));
 }
 
 // Alert modal state
@@ -456,172 +325,6 @@ onMounted(loadData)
   padding: 0 16px;
 }
 
-.content-area {
-  flex: 1;
-  overflow-y: auto;
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.panel-header {
-  margin-bottom: 24px;
-}
-
-.panel-header h3 {
-  margin: 0 0 8px 0;
-  color: #333;
-  font-size: 1.2rem;
-}
-
-.panel-header p {
-  margin: 0;
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.proposals-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.proposal-item {
-  background: #ffffff;
-  border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.proposal-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.agreement-item {
-  border-left: 4px solid #ffc107;
-}
-
-.proposal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
-.proposal-id {
-  font-size: 0.875rem;
-  color: #6b46c1;
-  font-weight: 600;
-}
-
-.proposal-title {
-  margin: 0.5rem 0;
-  font-size: 1rem;
-  color: #2d3748;
-}
-
-.agreement-progress {
-  margin: 16px 0;
-  padding: 16px;
-  background: #f8f9fa;
-  border-radius: 6px;
-}
-
-.progress-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.progress-count {
-  color: #007bff;
-  font-weight: 600;
-}
-
-.progress-bar {
-  height: 8px;
-  background: #e9ecef;
-  border-radius: 4px;
-  overflow: hidden;
-  position: relative;
-}
-
-.progress-fill {
-  height: 100%;
-  transition: width 0.3s ease, background-color 0.3s ease;
-  border-radius: 4px;
-}
-
-.team-status {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  margin: 16px 0;
-}
-
-.status-section h5 {
-  margin: 0 0 8px 0;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.member-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.member-badge {
-  padding: 4px 8px;
-  border-radius: 12px;
-  font-size: 0.8rem;
-  font-weight: 500;
-}
-
-.member-badge.agreed {
-  background: #d4edda;
-  color: #155724;
-}
-
-.no-members {
-  color: #666;
-  font-style: italic;
-  font-size: 0.9rem;
-}
-
-.proposal-meta {
-  display: flex;
-  gap: 1rem;
-  font-size: 0.875rem;
-  color: #718096;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid #e9ecef;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 2rem;
-  color: #718096;
-}
-
-.empty-icon {
-  font-size: 2rem;
-  margin-bottom: 1rem;
-}
 
 .loading-state,
 .error-state {
@@ -678,30 +381,5 @@ onMounted(loadData)
 
 .retry-btn:hover {
   background: #0056b3;
-}
-
-.send-to-mimir-btn {
-  background: #e6007a;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 120px;
-  margin-top: 12px;
-  transition: background 0.3s, opacity 0.3s;
-}
-
-.send-to-mimir-btn:hover:not(:disabled) {
-  background: #c40069;
-}
-
-.send-to-mimir-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
 }
 </style>
