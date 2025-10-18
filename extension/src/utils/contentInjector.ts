@@ -1052,55 +1052,22 @@ export class ContentInjector {
         const customEvent = event as CustomEvent;
         const { proposalId, chain, note } = customEvent.detail;
         
-        console.log('👤 Proposal unassignment requested:', customEvent.detail);
+        console.log('👤 Proposal unassignment event received:', customEvent.detail);
+        console.log('🔄 Refreshing UI after unassignment...');
         
         try {
-            // Check if user is authenticated
-            if (!this.apiService.isAuthenticated()) {
-                console.error('User not authenticated for unassignment');
-                alert('Please authenticate to unassign proposals');
-                return;
-            }
-
-            // Format the unassign note if provided
-            let unassignNote = '';
-            if (note) {
-                const parts = ['[UNASSIGN MESSAGE]'];
-                // Get current proposal to include vote info
-                const currentProposal = await this.apiService.getProposal(proposalId, chain);
-                if (currentProposal?.suggested_vote) {
-                    parts.push(`Previous vote: ${currentProposal.suggested_vote}`);
-                }
-                parts.push(`Note: ${note}`);
-                unassignNote = parts.join('\n');
-            }
-
-            // Call the unassignment API with the note
-            const result = await this.apiService.deleteTeamAction(
-                proposalId, 
-                chain,
-                unassignNote
-            );
+            // Clear cache to ensure fresh data is fetched
+            const cacheKey = `${chain}-${proposalId}`;
+            this.proposalCache.delete(cacheKey);
             
-            if (result.success) {
-                console.log('✅ Proposal unassigned successfully');
-                
-                // Clear cache to ensure fresh data is fetched
-                const cacheKey = `${chain}-${proposalId}`;
-                this.proposalCache.delete(cacheKey);
-                
-                // Get fresh proposal data and update UI immediately
-                const updatedProposalData = await this.getProposalData(proposalId, chain);
-                await this.updateExistingComponents(proposalId, updatedProposalData);
-                
-            } else {
-                console.error('❌ Failed to unassign proposal:', result.error);
-                alert(`Failed to unassign proposal: ${result.error || 'Unknown error'}`);
-            }
+            // Get fresh proposal data and update UI immediately
+            const updatedProposalData = await this.getProposalData(proposalId, chain);
+            await this.updateExistingComponents(proposalId, updatedProposalData);
+            
+            console.log('✅ UI refreshed successfully after unassignment');
             
         } catch (error) {
-            console.error('❌ Failed to unassign proposal:', error);
-            alert('Failed to unassign proposal. Please check your connection and try again.');
+            console.error('❌ Failed to refresh UI after unassignment:', error);
         }
     }
 
