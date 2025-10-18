@@ -1,7 +1,23 @@
 <template>
   <div class="my-dashboard">
-    <!-- Quick Stats -->
-    <div class="stats-section">
+    <!-- Loading State -->
+    <div v-if="loading" class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Loading your assignments...</p>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="error-state">
+      <div class="error-icon">⚠️</div>
+      <h3>Error Loading Data</h3>
+      <p>{{ error }}</p>
+      <button @click="loadData()" class="retry-btn">Try Again</button>
+    </div>
+
+    <!-- Dashboard Content -->
+    <template v-else>
+      <!-- Quick Stats -->
+      <div class="stats-section">
       <div class="stats-section-container">
         <div 
           class="stat-card" 
@@ -76,6 +92,7 @@
 
       <!-- Other tabs (actions, evaluations, activity) will be moved to separate components -->
     </div>
+    </template>
   </div>
 </template>
 
@@ -83,7 +100,6 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { ApiService } from '../../../utils/apiService'
 import { authStore } from '../../../stores/authStore'
-import { proposalStore } from '../../../stores/proposalStore'
 import { formatDate } from '../../../utils/teamUtils'
 import type { ProposalData } from '../../../types'
 import StatusBadge from '../../StatusBadge.vue'
@@ -96,11 +112,6 @@ const dashboardProposals = ref<ProposalData[]>([])
 const recentActivity = ref<any[]>([])
 
 // Computed
-const currentUser = computed(() => {
-  const address = authStore.state.user?.address
-  return address || null
-})
-
 const myAssignments = computed(() => {
   const currentUser = authStore.state.user?.address
   if (!currentUser) return []
@@ -133,7 +144,18 @@ const myEvaluations = computed(() => {
 const activityCount = computed(() => recentActivity.value.length)
 
 // Methods
-const loadData = async () => {
+const loading = ref(false)
+const error = ref<string | null>(null)
+
+const MAX_RETRIES = 3
+const RETRY_DELAY = 1000 // 1 second
+
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+const loadData = async (retryCount = 0) => {
+  loading.value = true
+  error.value = null
+
   try {
     if (!authStore.state.isAuthenticated || !authStore.state.user?.address) {
       return
@@ -141,25 +163,26 @@ const loadData = async () => {
 
     const apiService = ApiService.getInstance()
     
-    try {
-      const assignments = await apiService.getMyAssignments()
-      const needingAttention = await apiService.getProposalsNeedingAttention()
-      
-      const allProposals = [...assignments, ...needingAttention]
-      const uniqueProposals = allProposals.filter((proposal, index, self) => 
-        index === self.findIndex(p => p.post_id === proposal.post_id && p.chain === proposal.chain)
-      )
-      
-      dashboardProposals.value = uniqueProposals
-      
-    } catch (error) {
-      console.error('Failed to load assignments:', error)
-      dashboardProposals.value = []
+    // Get my assignments
+    const assignments = await apiService.getMyAssignments()
+    if (!assignments) {
+      if (retryCount < MAX_RETRIES) {
+        console.log(`Retrying data load (attempt ${retryCount + 1}/${MAX_RETRIES})...`)
+        await sleep(RETRY_DELAY)
+        return loadData(retryCount + 1)
+      }
+      throw new Error('Could not load assignments after multiple attempts.')
     }
-  } catch (error) {
-    console.error('Failed to load dashboard data:', error)
+    
+    dashboardProposals.value = assignments
+    
+  } catch (err) {
+    console.error('Failed to load dashboard data:', err)
+    error.value = err instanceof Error ? err.message : 'Failed to load data. Please try again.'
     dashboardProposals.value = []
     recentActivity.value = []
+  } finally {
+    loading.value = false
   }
 }
 
@@ -200,6 +223,56 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+/* Loading and Error States */
+.loading-state,
+.error-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #6b46c1;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.retry-btn {
+  margin-top: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #6b46c1;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.retry-btn:hover {
+  background: #5a37a1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .stats-section {
