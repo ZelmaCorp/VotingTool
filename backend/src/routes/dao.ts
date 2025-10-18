@@ -1169,22 +1169,28 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
       ref.required_agreements = totalTeamMembers;
 
       if (hasVeto(refId)) {
-        // Vetoed proposals
+        // Vetoed proposals (highest priority)
         const vetoInfo = getVetoInfo(refId);
         vetoedProposals.push({ ...ref, ...vetoInfo });
-      } else if (hasDiscussionFlag(refId)) {
-        // For discussion
-        forDiscussion.push(ref);
       } else if (ref.internal_status === InternalStatus.ReadyToVote) {
-        // Ready to vote
+        // Ready to vote (voted proposals shouldn't be in discussion)
         readyToVote.push(ref);
+      } else if (
+        ref.internal_status.startsWith('Voted') // "Voted 👍 Aye 👍", "Voted 👎 Nay 👎", "Voted ✌️ Abstain ✌️"
+      ) {
+        // Already voted - don't show in any workflow category
+        // These are historical and shouldn't appear in active workflow
       } else if (
         (ref.internal_status === InternalStatus.WaitingForAgreement ||
          ref.internal_status === InternalStatus.ReadyForApproval) &&
         agreeCount < totalTeamMembers
       ) {
-        // Needs agreement
+        // Needs agreement (active proposals in agreement phase)
         needsAgreement.push(ref);
+      } else if (hasDiscussionFlag(refId) && agreeCount === 0) {
+        // For discussion (only if no agreements have been made yet)
+        // Once people start agreeing, it moves out of "discussion" phase
+        forDiscussion.push(ref);
       }
     });
 
@@ -1344,6 +1350,94 @@ router.post("/sync", authenticateToken, async (req: Request, res: Response) => {
       error: formatError(error), 
       requestedBy: req.user?.address 
     }, "Error starting sync operation");
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
+});
+
+/**
+ * POST /dao/cleanup-duplicate-actions
+ * Clean up duplicate team actions (e.g., when user has both "to_be_discussed" and "agree")
+ * This removes "to_be_discussed" entries when a more substantive action exists
+ */
+router.post("/cleanup-duplicate-actions", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    logger.info({ 
+      requestedBy: req.user?.address 
+    }, "Starting cleanup of duplicate team actions");
+
+    // First, find all duplicates to report what will be deleted
+    const duplicates = await db.all(`
+      SELECT 
+        rtr1.id,
+        rtr1.referendum_id,
+        rtr1.team_member_id,
+        rtr1.role_type,
+        r.post_id,
+        r.title
+      FROM referendum_team_roles rtr1
+      INNER JOIN referendums r ON rtr1.referendum_id = r.id
+      WHERE rtr1.role_type = 'to_be_discussed'
+        AND EXISTS (
+          SELECT 1 
+          FROM referendum_team_roles rtr2 
+          WHERE rtr2.referendum_id = rtr1.referendum_id 
+            AND rtr2.team_member_id = rtr1.team_member_id
+            AND rtr2.role_type IN ('agree', 'recuse', 'no_way')
+        )
+    `);
+
+    logger.info({ 
+      duplicateCount: duplicates.length,
+      duplicates: duplicates.map(d => ({ 
+        id: d.id, 
+        post_id: d.post_id, 
+        title: d.title 
+      }))
+    }, "Found duplicate 'to_be_discussed' entries");
+
+    // Now delete them
+    const result = await db.run(`
+      DELETE FROM referendum_team_roles
+      WHERE id IN (
+        SELECT rtr1.id
+        FROM referendum_team_roles rtr1
+        WHERE rtr1.role_type = 'to_be_discussed'
+          AND EXISTS (
+            SELECT 1 
+            FROM referendum_team_roles rtr2 
+            WHERE rtr2.referendum_id = rtr1.referendum_id 
+              AND rtr2.team_member_id = rtr1.team_member_id
+              AND rtr2.role_type IN ('agree', 'recuse', 'no_way')
+          )
+      )
+    `);
+
+    logger.info({ 
+      deletedCount: result.changes,
+      requestedBy: req.user?.address 
+    }, "Cleanup completed successfully");
+
+    res.json({
+      success: true,
+      message: "Duplicate team actions cleaned up successfully",
+      deletedCount: result.changes,
+      duplicatesFound: duplicates.length,
+      details: duplicates.map(d => ({
+        referendum_id: d.referendum_id,
+        post_id: d.post_id,
+        title: d.title,
+        team_member_id: d.team_member_id
+      }))
+    });
+
+  } catch (error) {
+    logger.error({ 
+      error: formatError(error), 
+      requestedBy: req.user?.address 
+    }, "Error during cleanup operation");
     res.status(500).json({
       success: false,
       error: "Internal server error"
