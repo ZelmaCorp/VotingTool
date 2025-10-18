@@ -108,7 +108,6 @@ import { ref, computed } from 'vue'
 import type { InternalStatus, SuggestedVote, Chain, TeamMember } from '../types'
 import { authStore } from '../stores/authStore'
 import { teamStore } from '../stores/teamStore'
-import { proposalStore } from '../stores/proposalStore'
 import { formatAddress } from '../utils/teamUtils'
 import { ApiService } from '../utils/apiService'
 
@@ -401,29 +400,26 @@ const saveStatusChange = async (data: { newStatus: InternalStatus; reason: strin
       return;
     }
 
-    const changeData = {
-      proposalId: props.proposalId,
-      oldStatus: props.status,
-      newStatus: data.newStatus,
-      reason: data.reason
-    }
-    
-    console.log('Status change requested:', changeData)
     closeStatusModal()
     
-    // First update the store
-    await proposalStore.updateProposal(props.proposalId, props.chain, {
-      internal_status: data.newStatus
-    });
+    console.log('Status change requested:', { proposalId: props.proposalId, newStatus: data.newStatus, reason: data.reason })
     
-    // Force a fresh fetch to ensure we have the latest data
-    const freshData = await apiService.getProposal(props.proposalId, props.chain);
-    if (!freshData) {
-      throw new Error('Failed to fetch updated proposal data');
+    // Update status via API
+    const result = await apiService.updateProposalStatus(props.proposalId, props.chain, data.newStatus);
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to update status');
     }
+
+    console.log('✅ Status updated successfully');
     
-    // Emit events to update parent state
-    emit('update:status', freshData.internal_status as InternalStatus);
+    // Emit custom event for contentInjector to handle UI refresh
+    window.dispatchEvent(new CustomEvent('statusChanged', { 
+      detail: { 
+        proposalId: props.proposalId,
+        newStatus: data.newStatus,
+        reason: data.reason
+      } 
+    }))
     
   } catch (error) {
     console.error('Failed to update status:', error)

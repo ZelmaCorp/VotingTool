@@ -838,16 +838,10 @@ export class ContentInjector {
         const customEvent = event as CustomEvent;
         const { proposalId, newStatus, reason } = customEvent.detail;
         
-        console.log('📝 Status change requested:', customEvent.detail);
+        console.log('📝 Status change event received:', customEvent.detail);
+        console.log('🔄 Refreshing UI after status change...');
         
         try {
-            // Check authentication first
-            if (!this.apiService.isAuthenticated()) {
-                console.error('❌ User not authenticated for manual status change');
-                alert('Please connect your wallet to change proposal status.');
-                return;
-            }
-
             // Get the current proposal to determine chain
             const currentProposal = this.detector.detectCurrentProposal();
             if (!currentProposal) {
@@ -855,40 +849,18 @@ export class ContentInjector {
                 return;
             }
 
-            console.log(`🔄 Manual status change: ${proposalId} from "${currentProposal.chain}" to "${newStatus}"`);
-            console.log(`🔐 Authentication status: ${this.apiService.isAuthenticated()}`);
-
-            // Update status via API
-            const result = await this.apiService.updateProposalStatus(
-                proposalId,
-                currentProposal.chain,
-                newStatus
-            );
-
-            console.log(`📊 Manual status change result:`, result);
-
-            if (result.success) {
-                // Update cache
-                const cacheKey = `${currentProposal.chain}-${proposalId}`;
-                const cachedData = this.proposalCache.get(cacheKey);
-                if (cachedData) {
-                    cachedData.internal_status = newStatus;
-                    cachedData.updated_at = new Date().toISOString();
-                    this.proposalCache.set(cacheKey, cachedData);
-                }
-
-                // Get fresh proposal data and update UI immediately
-                const updatedProposalData = await this.getProposalData(proposalId, currentProposal.chain);
-                await this.updateExistingComponents(proposalId, updatedProposalData);
-                
-                console.log('✅ Status updated successfully in database');
-            } else {
-                console.error('❌ Failed to update status in database:', result.error);
-                alert(`Failed to update status: ${result.error || 'Unknown error'}`);
-            }
+            // Clear cache to ensure fresh data is fetched
+            const cacheKey = `${currentProposal.chain}-${proposalId}`;
+            this.proposalCache.delete(cacheKey);
+            
+            // Get fresh proposal data and update UI immediately
+            const updatedProposalData = await this.getProposalData(proposalId, currentProposal.chain);
+            await this.updateExistingComponents(proposalId, updatedProposalData);
+            
+            console.log('✅ UI refreshed successfully after status change');
+            
         } catch (error) {
-            console.error('❌ Error updating status in database:', error);
-            alert('Failed to update status. Please check your connection and try again.');
+            console.error('❌ Failed to refresh UI after status change:', error);
         }
     }
 
@@ -970,7 +942,8 @@ export class ContentInjector {
         const customEvent = event as CustomEvent;
         const { proposalId, vote, reason } = customEvent.detail;
         
-        console.log('🗳️ Suggested vote change requested:', customEvent.detail);
+        console.log('🗳️ Suggested vote change event received:', customEvent.detail);
+        console.log('🔄 Refreshing UI after vote change...');
         
         try {
             // Get the current proposal to determine chain
@@ -980,37 +953,18 @@ export class ContentInjector {
                 return;
             }
 
-            // Update suggested vote via API
-            const result = await this.apiService.updateSuggestedVote(
-                proposalId,
-                currentProposal.chain,
-                vote,
-                reason
-            );
-
-            if (result.success) {
-                // Update cache
-                const cacheKey = `${currentProposal.chain}-${proposalId}`;
-                const cachedData = this.proposalCache.get(cacheKey);
-                if (cachedData) {
-                    cachedData.suggested_vote = vote;
-                    cachedData.reason_for_vote = reason;
-                    cachedData.updated_at = new Date().toISOString();
-                    this.proposalCache.set(cacheKey, cachedData);
-                }
-
-                // Get fresh proposal data and update UI immediately
-                const updatedProposalData = await this.getProposalData(proposalId, currentProposal.chain);
-                await this.updateExistingComponents(proposalId, updatedProposalData);
-                
-                console.log('✅ Suggested vote updated successfully in database');
-            } else {
-                console.error('❌ Failed to update suggested vote in database:', result.error);
-                alert(`Failed to update suggested vote: ${result.error || 'Unknown error'}`);
-            }
+            // Clear cache to ensure fresh data is fetched
+            const cacheKey = `${currentProposal.chain}-${proposalId}`;
+            this.proposalCache.delete(cacheKey);
+            
+            // Get fresh proposal data and update UI immediately
+            const updatedProposalData = await this.getProposalData(proposalId, currentProposal.chain);
+            await this.updateExistingComponents(proposalId, updatedProposalData);
+            
+            console.log('✅ UI refreshed successfully after vote change');
+            
         } catch (error) {
-            console.error('❌ Error updating suggested vote in database:', error);
-            alert('Failed to update suggested vote. Please check your connection and try again.');
+            console.error('❌ Failed to refresh UI after vote change:', error);
         }
     }
 
