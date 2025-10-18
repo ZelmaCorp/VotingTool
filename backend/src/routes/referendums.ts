@@ -380,9 +380,9 @@ router.post("/:postId/actions", requireTeamMember, async (req: Request, res: Res
     );
 
     if (existingAction) {
-      // Update existing action
+      // Update existing action - just update the reason
       await db.run(
-        "UPDATE referendum_team_roles SET reason = ?, updated_at = datetime('now') WHERE id = ?",
+        "UPDATE referendum_team_roles SET reason = ? WHERE id = ?",
         [reason || null, existingAction.id]
       );
     } else {
