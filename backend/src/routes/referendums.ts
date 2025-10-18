@@ -521,31 +521,30 @@ router.post("/:postId/assign", requireTeamMember, async (req: Request, res: Resp
       [referendum.id, ReferendumAction.RESPONSIBLE_PERSON]
     );
 
-    if (existingAssignment && existingAssignment.team_member_id !== req.user.address) {
-      return res.status(400).json({
-        success: false,
-        error: "This proposal is already assigned to another team member"
-      });
+    if (existingAssignment) {
+      if (existingAssignment.team_member_id === req.user.address) {
+        // Already assigned to this user, just return success
+        return res.json({
+          success: true,
+          message: "Already assigned to you"
+        });
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: "This proposal is already assigned to another team member"
+        });
+      }
     }
 
     // Start a transaction to handle all changes atomically
     await db.run('BEGIN TRANSACTION');
 
     try {
-      // Add or update responsible person role
-      if (existingAssignment) {
-        // Update timestamp if already assigned to same user
-        await db.run(
-          "UPDATE referendum_team_roles SET updated_at = datetime('now') WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
-          [referendum.id, req.user.address, ReferendumAction.RESPONSIBLE_PERSON]
-        );
-      } else {
-        // Create new assignment
-        await db.run(
-          "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type) VALUES (?, ?, ?)",
-          [referendum.id, req.user.address, ReferendumAction.RESPONSIBLE_PERSON]
-        );
-      }
+      // Create new assignment
+      await db.run(
+        "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type) VALUES (?, ?, ?)",
+        [referendum.id, req.user.address, ReferendumAction.RESPONSIBLE_PERSON]
+      );
 
       // Update referendum status to Considering if it's not already in a later stage
       await db.run(
