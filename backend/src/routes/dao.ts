@@ -1096,13 +1096,13 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
     // Get all referendums with their actions
     const allReferendums = await db.all(`
       SELECT r.*
-      FROM referendums r
+        FROM referendums r
       ORDER BY r.created_at DESC
     `);
 
     // Get all team actions
     const allActions = await db.all(`
-      SELECT 
+        SELECT 
         referendum_id,
         team_member_id,
         role_type,
@@ -1362,10 +1362,10 @@ router.post("/sync", authenticateToken, async (req: Request, res: Response) => {
  * Clean up duplicate team actions (e.g., when user has both "to_be_discussed" and "agree")
  * This removes "to_be_discussed" entries when a more substantive action exists
  */
-router.post("/cleanup-duplicate-actions", authenticateToken, async (req: Request, res: Response) => {
+router.post("/cleanup-duplicate-actions", async (req: Request, res: Response) => {
   try {
     logger.info({ 
-      requestedBy: req.user?.address 
+      requestedBy: 'public' 
     }, "Starting cleanup of duplicate team actions");
 
     // First, find all duplicates to report what will be deleted
@@ -1417,7 +1417,7 @@ router.post("/cleanup-duplicate-actions", authenticateToken, async (req: Request
 
     logger.info({ 
       deletedCount: result.changes,
-      requestedBy: req.user?.address 
+      requestedBy: 'public' 
     }, "Cleanup completed successfully");
 
     res.json({
@@ -1436,7 +1436,7 @@ router.post("/cleanup-duplicate-actions", authenticateToken, async (req: Request
   } catch (error) {
     logger.error({ 
       error: formatError(error), 
-      requestedBy: req.user?.address 
+      requestedBy: 'public' 
     }, "Error during cleanup operation");
     res.status(500).json({
       success: false,
