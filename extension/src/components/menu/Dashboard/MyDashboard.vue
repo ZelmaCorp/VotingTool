@@ -84,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ApiService } from '../../../utils/apiService'
 import { authStore } from '../../../stores/authStore'
 import type { ProposalData } from '../../../types'
@@ -116,20 +116,24 @@ const actionsNeeded = computed(() => {
   return allProposals.value.filter(p => {
     const isAssignedToMe = p.assigned_to === currentUser
     
-    // Check if user has taken a team action (Agree, NO WAY, Recuse, To be discussed)
+    // If assigned to me, I need to provide an evaluation (suggested vote)
+    if (isAssignedToMe) {
+      return !p.suggested_vote  // Show if no suggested vote yet
+    }
+    
+    // If NOT assigned to me, I need to provide a team action (if in actionable status)
+    const inActionableStatus = ['Considering', 'Ready for approval', 'Waiting for agreement'].includes(p.internal_status)
+    if (!inActionableStatus) {
+      return false  // Not in a status that requires team action
+    }
+    
+    // Check if I've already taken a team action
     const hasTeamAction = p.team_actions?.some(action => 
       action.wallet_address === currentUser && 
       ['Agree', 'NO WAY', 'Recuse', 'To be discussed', 'agree', 'no_way', 'recuse', 'to_be_discussed'].includes(action.role_type)
     )
     
-    // If assigned to me, check if evaluation is needed (no suggested vote yet)
-    const needsEvaluation = isAssignedToMe && !p.suggested_vote
-    
-    // If not assigned to me, check if team action is needed
-    const inActionableStatus = ['Considering', 'Ready for approval', 'Waiting for agreement'].includes(p.internal_status)
-    const needsTeamAction = !isAssignedToMe && inActionableStatus && !hasTeamAction
-    
-    return needsEvaluation || needsTeamAction
+    return !hasTeamAction  // Show if I haven't taken a team action yet
   })
 })
 
@@ -216,6 +220,32 @@ const openProposal = async (proposal: ProposalData) => {
   }
 }
 
+// Event handlers
+const handleTeamActionChanged = () => {
+  console.log('Team action changed - refreshing dashboard data...')
+  loadData()
+}
+
+const handleProposalAssigned = () => {
+  console.log('Proposal assigned - refreshing dashboard data...')
+  loadData()
+}
+
+const handleProposalUnassigned = () => {
+  console.log('Proposal unassigned - refreshing dashboard data...')
+  loadData()
+}
+
+const handleSuggestedVoteChanged = () => {
+  console.log('Suggested vote changed - refreshing dashboard data...')
+  loadData()
+}
+
+const handleStatusChanged = () => {
+  console.log('Status changed - refreshing dashboard data...')
+  loadData()
+}
+
 // Watch for auth state changes
 watch(() => authStore.state.isAuthenticated, (isAuthenticated) => {
   if (isAuthenticated) {
@@ -223,11 +253,27 @@ watch(() => authStore.state.isAuthenticated, (isAuthenticated) => {
   }
 })
 
-// Initial load
+// Initial load and event listeners
 onMounted(() => {
   if (authStore.state.isAuthenticated) {
     loadData()
   }
+  
+  // Listen for events that should trigger a refresh
+  window.addEventListener('teamActionChanged', handleTeamActionChanged)
+  window.addEventListener('proposalAssigned', handleProposalAssigned)
+  window.addEventListener('proposalUnassigned', handleProposalUnassigned)
+  window.addEventListener('suggestedVoteChanged', handleSuggestedVoteChanged)
+  window.addEventListener('statusChanged', handleStatusChanged)
+})
+
+onUnmounted(() => {
+  // Clean up event listeners
+  window.removeEventListener('teamActionChanged', handleTeamActionChanged)
+  window.removeEventListener('proposalAssigned', handleProposalAssigned)
+  window.removeEventListener('proposalUnassigned', handleProposalUnassigned)
+  window.removeEventListener('suggestedVoteChanged', handleSuggestedVoteChanged)
+  window.removeEventListener('statusChanged', handleStatusChanged)
 })
 </script>
 

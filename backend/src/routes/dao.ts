@@ -1333,6 +1333,12 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
         // Add role assignments and action states separately
         proposal.role_assignments = Array.from(roleAssignments.values());
         proposal.team_actions = Array.from(actionStates.values());
+        
+        // Set assigned_to field using the canonical address from role_assignments
+        const responsiblePerson = Array.from(roleAssignments.values()).find(
+          (ra: any) => ra.role_type === ReferendumAction.RESPONSIBLE_PERSON
+        );
+        proposal.assigned_to = responsiblePerson?.wallet_address || null;
       }
     };
 

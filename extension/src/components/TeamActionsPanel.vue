@@ -423,6 +423,15 @@ const submitAction = async (action: TeamAction) => {
     if (result.success) {
       currentUserAction.value = action
       await loadAgreementSummary()
+      
+      // Emit event to notify other components (like MyDashboard) to refresh
+      window.dispatchEvent(new CustomEvent('teamActionChanged', {
+        detail: {
+          proposalId: props.proposalId,
+          chain: props.chain,
+          action: action
+        }
+      }))
     } else {
       showAlert('Action Failed', `Failed to submit action: ${result.error}`, 'error')
     }
@@ -442,6 +451,15 @@ const submitVeto = async () => {
       showVetoModal.value = false
       vetoReason.value = ''
       await loadAgreementSummary()
+      
+      // Emit event to notify other components (like MyDashboard) to refresh
+      window.dispatchEvent(new CustomEvent('teamActionChanged', {
+        detail: {
+          proposalId: props.proposalId,
+          chain: props.chain,
+          action: 'NO WAY'
+        }
+      }))
     } else {
       showAlert('Veto Failed', `Failed to veto proposal: ${result.error}`, 'error')
     }
