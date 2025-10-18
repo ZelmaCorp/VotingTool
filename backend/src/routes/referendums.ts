@@ -373,17 +373,17 @@ router.post("/:postId/actions", requireTeamMember, async (req: Request, res: Res
       });
     }
 
-    // Check if action already exists
+    // Check if user has ANY existing team action (excluding responsible_person)
     const existingAction = await db.get(
-      "SELECT id FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
-      [referendum.id, req.user.address, backendAction]
+      "SELECT id, role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ?",
+      [referendum.id, req.user.address, ReferendumAction.RESPONSIBLE_PERSON]
     );
 
     if (existingAction) {
-      // Update existing action - just update the reason
+      // User already has a team action - update it to the new action
       await db.run(
-        "UPDATE referendum_team_roles SET reason = ? WHERE id = ?",
-        [reason || null, existingAction.id]
+        "UPDATE referendum_team_roles SET role_type = ?, reason = ? WHERE id = ?",
+        [backendAction, reason || null, existingAction.id]
       );
     } else {
       // Create new action

@@ -368,6 +368,23 @@ const loadData = async () => {
 const loadAgreementSummary = async () => {
   const summary = await apiService.getAgreementSummary(props.proposalId, props.chain)
   agreementSummary.value = summary
+  
+  // Determine current user's action by checking all action lists
+  if (summary && authStore.state.user?.address) {
+    const userAddress = authStore.state.user.address
+    
+    if (summary.agreed_members.some(m => m.address === userAddress)) {
+      currentUserAction.value = 'Agree'
+    } else if (summary.recused_members.some(m => m.address === userAddress)) {
+      currentUserAction.value = 'Recuse'
+    } else if (summary.to_be_discussed_members.some(m => m.address === userAddress)) {
+      currentUserAction.value = 'To be discussed'
+    } else if (summary.vetoed && summary.veto_by === authStore.state.user.name) {
+      currentUserAction.value = 'NO WAY'
+    } else {
+      currentUserAction.value = null
+    }
+  }
 }
 
 const loadComments = async () => {

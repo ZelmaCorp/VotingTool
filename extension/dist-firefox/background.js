@@ -19,7 +19,7 @@ var __spreadValues = (a, b) => {
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 (function() {
   "use strict";
-  const version = "1.4.0";
+  const version = "1.4.1";
   const packageJson = {
     version
   };

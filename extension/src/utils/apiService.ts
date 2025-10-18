@@ -421,7 +421,8 @@ export class ApiService {
             const actionTakers = new Set([
                 ...agreed_members.map(m => m.address),
                 ...recused_members.map(m => m.address),
-                ...to_be_discussed_members.map(m => m.address)
+                ...to_be_discussed_members.map(m => m.address),
+                ...(vetoed && vetoAction ? [vetoAction.team_member_id] : [])
             ]);
 
             const pending_members = daoConfig.team_members
