@@ -195,14 +195,11 @@ export class ApiService {
         }
     }
 
-    async assignProposal(postId: number, chain: Chain, action: string): Promise<{ success: boolean; error?: string }> {
+    async assignProposal(postId: number, chain: Chain): Promise<{ success: boolean; error?: string }> {
         try {
-            const result = await this.request<{ success: boolean; error?: string }>(`/referendums/${postId}/actions`, {
+            const result = await this.request<{ success: boolean; error?: string }>(`/referendums/${postId}/assign`, {
                 method: 'POST',
-                body: JSON.stringify({
-                    chain,
-                    action
-                }),
+                body: JSON.stringify({ chain }),
             });
 
             return result;

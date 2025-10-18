@@ -39,7 +39,7 @@ import type { ProposalData, Chain } from '../../types'
 interface AssignModalProps {
   show: boolean
   proposalId: number
-  chain: string
+  chain: Chain  // Using the Chain type from types
 }
 
 const props = defineProps<AssignModalProps>()
@@ -74,10 +74,11 @@ const handleAssign = async () => {
 
     // Make the API call to assign the proposal
     const apiService = ApiService.getInstance()
-    await apiService.assignProposal(props.proposalId, props.chain as Chain, authStore.state.user.address)
+    console.log("Props: ", props);
+    await apiService.assignProposal(props.proposalId, props.chain)
 
     // Update the store
-    await proposalStore.updateProposal(props.proposalId, props.chain as Chain, {
+    await proposalStore.updateProposal(props.proposalId, props.chain, {
       assigned_to: authStore.state.user.address,
       internal_status: 'Considering'
     })

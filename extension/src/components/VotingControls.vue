@@ -58,6 +58,7 @@
     <AssignModal 
       :show="showAssignModal"
       :proposal-id="proposalId"
+      :chain=props.chain
       @close="closeAssignModal"
       @confirm="confirmAssign"
     />

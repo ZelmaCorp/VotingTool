@@ -483,6 +483,96 @@ router.delete("/:postId/actions", requireTeamMember, async (req: Request, res: R
 });
 
 /**
+ * POST /referendums/:postId/assign
+ * Assign the current user as the responsible person for a referendum
+ */
+router.post("/:postId/assign", requireTeamMember, async (req: Request, res: Response) => {
+  try {
+    const postId = parseInt(req.params.postId);
+    const { chain } = req.body;
+
+    if (!req.user?.address) {
+      return res.status(400).json({
+        success: false,
+        error: "User wallet address not found"
+      });
+    }
+
+    // Validate chain parameter
+    if (!chain) {
+      return res.status(400).json({
+        success: false,
+        error: "Chain parameter is required"
+      });
+    }
+
+    // Get the internal referendum ID first
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
+    if (!referendum) {
+      return res.status(404).json({
+        success: false,
+        error: `Referendum ${postId} not found on ${chain} network`
+      });
+    }
+
+    // Check if referendum is already assigned
+    const existingAssignment = await db.get(
+      "SELECT team_member_id FROM referendum_team_roles WHERE referendum_id = ? AND role_type = ?",
+      [referendum.id, ReferendumAction.RESPONSIBLE_PERSON]
+    );
+
+    if (existingAssignment && existingAssignment.team_member_id !== req.user.address) {
+      return res.status(400).json({
+        success: false,
+        error: "This proposal is already assigned to another team member"
+      });
+    }
+
+    // Start a transaction to handle all changes atomically
+    await db.run('BEGIN TRANSACTION');
+
+    try {
+      // Add or update responsible person role
+      if (existingAssignment) {
+        // Update timestamp if already assigned to same user
+        await db.run(
+          "UPDATE referendum_team_roles SET updated_at = datetime('now') WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
+          [referendum.id, req.user.address, ReferendumAction.RESPONSIBLE_PERSON]
+        );
+      } else {
+        // Create new assignment
+        await db.run(
+          "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type) VALUES (?, ?, ?)",
+          [referendum.id, req.user.address, ReferendumAction.RESPONSIBLE_PERSON]
+        );
+      }
+
+      // Update referendum status to Considering if it's not already in a later stage
+      await db.run(
+        "UPDATE referendums SET internal_status = CASE WHEN internal_status = ? THEN ? ELSE internal_status END, updated_at = datetime('now') WHERE id = ?",
+        [InternalStatus.NotStarted, InternalStatus.Considering, referendum.id]
+      );
+
+      await db.run('COMMIT');
+
+      res.json({
+        success: true,
+        message: "Assigned successfully"
+      });
+    } catch (transactionError) {
+      await db.run('ROLLBACK');
+      throw transactionError;
+    }
+  } catch (error) {
+    logger.error({ error: formatError(error), postId: req.params.postId }, "Error assigning to referendum");
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
+});
+
+/**
  * POST /referendums/:postId/unassign
  * Unassign the responsible person from a referendum and reset its state
  */

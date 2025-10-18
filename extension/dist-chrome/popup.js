@@ -6504,14 +6504,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return { success: false, error: error instanceof Error ? error.message : "Failed to update status" };
       }
     }
-    async assignProposal(postId, chain, action) {
+    async assignProposal(postId, chain) {
       try {
-        const result = await this.request(`/referendums/${postId}/actions`, {
+        const result = await this.request(`/referendums/${postId}/assign`, {
           method: "POST",
-          body: JSON.stringify({
-            chain,
-            action
-          })
+          body: JSON.stringify({ chain })
         });
         return result;
       } catch (error) {
@@ -6901,20 +6898,11 @@ var __publicField = (obj, key, value) => __defNormalProp(obj, typeof key !== "sy
         return [];
       }
     }
-    async getProposalsNeedingAttention() {
-      try {
-        const result = await this.request("/needs-attention");
-        return result.referendums || [];
-      } catch (error) {
-        console.error("Failed to fetch proposals needing attention:", error);
-        return [];
-      }
-    }
     // Team workflow data method
     async getTeamWorkflowData() {
       try {
         try {
-          const result = await this.request("/dao/workflow");
+          const result = await this.request("/workflow");
           if (result.success && result.data) {
             console.log("✅ Got team workflow data from backend endpoint:", result.data);
             return result.data;
