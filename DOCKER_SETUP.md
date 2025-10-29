@@ -56,7 +56,7 @@ This guide explains how to build and run the Polkadot Voting Tool backend using 
    ```
 
 7. **Install the browser extension**
-   - Install from Chrome Web Store or Firefox Add-ons (Firefox addon can be installed from [here](https://addons.mozilla.org/en-US/firefox/addon/opengov-votingtool/))
+   - Install from Chrome Web Store or Firefox Add-ons (Firefox addon can be installed from [here](https://addons.mozilla.org/en-US/firefox/addon/opengov-votingtool/), Chrome/Brave can be installed from [here](https://chromewebstore.google.com/detail/opengov-votingtool-browse/lkpjgknmgglbdkeigpecnfghaeengded?authuser=0&hl=en&pli=1) )
    - Configure it to connect to `http://localhost:3000`
 
 ## Configuration
@@ -156,7 +156,7 @@ Once running, the backend exposes these endpoints for the browser extension:
 ## Browser Extension Setup
 
 1. **Install the extension**:
-   - **Chrome**: Install from Chrome Web Store (when available)
+   - **Chrome**: Install from Chrome Web Store (Chrome/Brave extension can be downloaded from [here](https://chromewebstore.google.com/detail/opengov-votingtool-browse/lkpjgknmgglbdkeigpecnfghaeengded?authuser=0&hl=en&pli=1))
    - **Firefox**: Install from Firefox Add-ons (Firefox addon can be installed from [here](https://addons.mozilla.org/en-US/firefox/addon/opengov-votingtool/))
 
 2. **Configure extension**:
