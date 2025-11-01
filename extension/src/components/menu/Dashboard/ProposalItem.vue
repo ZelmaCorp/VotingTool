@@ -100,7 +100,10 @@
         <strong>Evaluator:</strong> {{ evaluatorName }}
       </div>
       <div v-if="showSuggestedVote" class="meta-item">
-        <strong>Suggested Vote:</strong> {{ proposal.suggested_vote || 'Not set' }}
+        <strong>Suggested Vote:</strong> 
+        <span :class="{ 'not-set': !proposal.suggested_vote }">
+          {{ proposal.suggested_vote || 'Not set' }}
+        </span>
       </div>
       <div class="meta-item">
         <strong>Updated:</strong> {{ formatDate(proposal.updated_at || proposal.created_at) }}
@@ -357,5 +360,10 @@ const vetoByName = computed(() => {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+.not-set {
+  color: #dc3545;
+  font-weight: 500;
 }
 </style>

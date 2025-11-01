@@ -1,19 +1,30 @@
 // OpenGov VotingTool Extension - Content Script
 // This will be the main entry point for the extension
-
-// Check if already initialized to prevent duplicates
-if (window.opengovVotingToolInitialized) {
-  throw new Error('Already initialized')
-}
-
-// Mark as initialized
-window.opengovVotingToolInitialized = true
+//
+// KNOWN ISSUE: On F5 page reload, the extension may occasionally not initialize properly.
+// This appears to be a timing issue with how Chrome/Firefox handle content script injection
+// during hard refreshes. Workaround: Reload the page again or reload the extension.
+// The duplicate prevention logic below helps prevent multiple injections, but may
+// occasionally be too aggressive and prevent initialization on reload.
 
 import { createApp } from 'vue'
 import App from './App.vue'
 import { ContentInjector } from './utils/contentInjector'
 import { proposalStore, teamStore } from './stores'
 import '../design-system.css'
+
+// Check if already initialized - check both flag and DOM element
+const existingContainer = document.getElementById('opengov-voting-extension')
+const ALREADY_INITIALIZED = window.opengovVotingToolInitialized === true || existingContainer !== null
+
+if (ALREADY_INITIALIZED) {
+  console.log('ℹ️ OpenGov VotingTool already initialized, skipping duplicate injection')
+  // Stop execution completely
+  throw new Error('Already initialized')
+}
+
+// Mark as initialized immediately
+window.opengovVotingToolInitialized = true
 
 // Extend Window interface
 declare global {
@@ -45,6 +56,8 @@ let contentInjector: ContentInjector | null = null;
 
 async function initializeExtension() {
   try {
+    console.log('🚀 OpenGov VotingTool - Initializing...')
+    
     // Create container for our floating hamburger menu
     const extensionContainer = document.createElement('div');
     extensionContainer.id = 'opengov-voting-extension';
@@ -71,18 +84,19 @@ async function initializeExtension() {
     await proposalStore.initialize();
     await teamStore.initialize();
     
+    console.log('✅ OpenGov VotingTool - Initialized successfully')
   } catch (error) {
-    console.error('❌ OpenGov VotingTool Extension - Initialization failed:', error);
+    console.error('❌ OpenGov VotingTool - Initialization failed:', error);
   }
 }
 
-// Inject the inject.js script into the page context using the proper manifest-based approach
+// Inject the inject.js script into the page context
 const script = document.createElement('script')
 script.src = chrome.runtime.getURL('inject.js')
 script.onload = () => {
   script.remove()
 }
-document.head.appendChild(script)
+;(document.head || document.documentElement).appendChild(script)
 
 // Listen for messages from the page context
 window.addEventListener('message', function(event) {
@@ -111,66 +125,23 @@ window.addEventListener('message', function(event) {
   }
 });
 
-// Test background script connection
-setTimeout(() => {
-  try {
-    chrome.runtime.sendMessage(
-      { type: 'VOTING_TOOL_CONTENT_SCRIPT_READY' },
-      () => {
-      if (chrome.runtime.lastError) {
-          console.warn('Background script not available:', chrome.runtime.lastError.message)
-        }
-      }
-    )
-  } catch (error) {
-    console.error('❌ Error testing background script connection:', error);
-  }
-}, 500);
-
-// Trigger initial check
-setTimeout(() => {
-  window.postMessage({
-    type: 'CHECK_WALLET_EXTENSION'
-  }, '*');
-}, 1000);
-
-// Multiple initialization strategies to handle different loading scenarios
-function ensureInitialization() {
-  // Strategy 1: If DOM is already loaded, initialize immediately
-  if (document.readyState === 'complete') {
-    initializeExtension();
-    return;
-  }
-  
-  // Strategy 2: Wait for DOM to be ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(initializeExtension, 500); // Small delay after DOM ready
-    });
+// Simple, robust initialization - wait for DOM then initialize
+function init() {
+  if (document.body) {
+    initializeExtension()
   } else {
-    setTimeout(initializeExtension, 500);
-  }
-  
-  // Strategy 3: Fallback with window.onload
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      if (!contentInjector) {
-        initializeExtension();
-      }
-      // Don't call initialize() again as it can cause unnecessary cleanup/re-injection
-    }, 1000);
-  });
-  
-  // Strategy 4: Additional fallback after fixed delay
-  setTimeout(() => {
-    if (!contentInjector) {
-      initializeExtension();
+    // DOM not ready, wait for it
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeExtension)
+    } else {
+      // Try again soon
+      setTimeout(init, 100)
     }
-  }, 3000);
+  }
 }
 
-// Start the initialization process
-ensureInitialization();
+// Start initialization
+init()
 
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {

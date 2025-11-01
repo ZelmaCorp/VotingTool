@@ -15,25 +15,41 @@ let API_CONFIG = {
   timeout: 60000 // 60 seconds timeout for API calls
 }
 
-// Load API configuration from storage
-async function loadApiConfig() {
+let configLoaded = false
+
+// Load API configuration from storage - synchronous approach
+function loadApiConfigSync() {
+  if (configLoaded) return
+  
   try {
-    const result = await chrome.storage.sync.get(['backendUrl'])
-    if (result.backendUrl) {
-      API_CONFIG.baseURL = result.backendUrl
-    }
+    // Use sync get without await for immediate availability
+    chrome.storage.sync.get(['backendUrl'], (result) => {
+      if (chrome.runtime.lastError) {
+        console.warn('⚠️ Error loading config:', chrome.runtime.lastError.message)
+        configLoaded = true
+        return
+      }
+      
+      if (result && result.backendUrl) {
+        API_CONFIG.baseURL = result.backendUrl
+        console.log('✅ API config loaded:', result.backendUrl)
+      }
+      configLoaded = true
+    })
   } catch (error) {
-    console.warn('Failed to load API config, using defaults:', error)
+    console.warn('⚠️ Failed to load API config:', error)
+    configLoaded = true
   }
 }
 
-// Initialize API config on startup
-loadApiConfig()
+// Initialize immediately
+loadApiConfigSync()
 
 // Listen for config changes
 chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace === 'sync' && changes.backendUrl) {
+  if (namespace === 'sync' && changes && changes.backendUrl && changes.backendUrl.newValue) {
     API_CONFIG.baseURL = changes.backendUrl.newValue
+    console.log('✅ API config updated:', changes.backendUrl.newValue)
   }
 })
 
@@ -343,8 +359,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Content scripts are automatically injected via manifest.json
 // The content scripts will be injected automatically when users visit supported pages
 
-// Listen for extension installation/update
+// Listen for extension installation/update (runs once per install/update)
+let installListenerFired = false
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('🚀 OpenGov VotingTool Extension installed/updated')
-  console.log('📋 Content scripts will be automatically injected on supported sites')
+  if (installListenerFired) return
+  installListenerFired = true
+  
+  console.log('🚀 OpenGov VotingTool Extension v' + packageJson.version + ' ready')
+  
+  // Load config on install
+  loadApiConfigSync()
 }) 
