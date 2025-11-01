@@ -95,28 +95,8 @@ export const teamStore = {
     }
   },
 
-  async updateDAOConfig(config: { name: string; required_agreements: number; team_members: TeamMember[] }): Promise<void> {
-    try {
-      if (!authStore.state.isAuthenticated) {
-        throw new Error('Not authenticated')
-      }
-
-      const apiService = ApiService.getInstance()
-      await apiService.updateDAOConfig(config)
-      
-      // Update local state
-      state.daoConfig = {
-        name: config.name,
-        required_agreements: config.required_agreements
-      }
-      state.teamMembers = config.team_members
-      state.error = null
-    } catch (err) {
-      state.error = err instanceof Error ? err.message : 'Failed to update DAO config'
-      console.error('Failed to update DAO config:', err)
-      throw err
-    }
-  },
+  // Note: DAO config is now automatically calculated from team members on the backend.
+  // Use fetchTeamData() to refresh the config instead of updating it directly.
 
   // Helper methods
   findTeamMemberByAddress(address: string): TeamMember | null {
