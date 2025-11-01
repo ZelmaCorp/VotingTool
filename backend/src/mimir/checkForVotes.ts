@@ -189,14 +189,13 @@ async function fetchActiveVotes(
         
         // Parse the actual vote data from chain
         const voteData = vote[1];
-        let actualVote: SuggestedVote = SuggestedVote.Aye; // Default fallback
+        let actualVote: SuggestedVote | undefined;
         
         if (voteData && typeof voteData === 'object') {
           if (voteData.Standard) {
             // Standard vote: check the aye field
-            actualVote = voteData.Standard.vote?.aye === 'true' || voteData.Standard.vote?.aye === true 
-              ? SuggestedVote.Aye 
-              : SuggestedVote.Nay;
+            const isAye = voteData.Standard.vote?.aye === 'true' || voteData.Standard.vote?.aye === true;
+            actualVote = isAye ? SuggestedVote.Aye : SuggestedVote.Nay;
           } else if (voteData.Split) {
             // Split vote (Abstain): check if only abstain has value
             const { aye, nay, abstain } = voteData.Split;
@@ -206,7 +205,13 @@ async function fetchActiveVotes(
           }
         }
         
-        voteMap[Number(refId)] = actualVote;
+        // Only add to voteMap if we successfully parsed a vote
+        if (actualVote !== undefined) {
+          voteMap[Number(refId)] = actualVote;
+          logger.debug({ refId, actualVote }, 'Successfully parsed vote from chain');
+        } else {
+          logger.warn({ refId, voteData }, 'Could not determine vote from chain data');
+        }
       });
     }
 
