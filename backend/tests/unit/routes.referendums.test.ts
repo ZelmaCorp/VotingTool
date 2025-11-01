@@ -92,7 +92,7 @@ describe('Referendums Routes', () => {
 
   describe('POST /referendums/:postId/actions', () => {
     beforeEach(() => {
-      mockReferendum.findByPostIdAndChain.mockResolvedValue({ id: 1, post_id: 123, chain: 'Polkadot' } as any);
+      mockReferendum.findByPostIdAndChain.mockResolvedValue({ id: 1, post_id: 123, chain: 'Polkadot', internal_status: 'Considering' } as any);
       mockDb.get.mockResolvedValue(null); // No existing action
       mockDb.run.mockResolvedValue({ lastID: 1, changes: 1 } as any);
       mockMultisigService.getCachedTeamMembers.mockResolvedValue([
@@ -166,7 +166,7 @@ describe('Referendums Routes', () => {
 
   describe('DELETE /referendums/:postId/actions', () => {
     beforeEach(() => {
-      mockReferendum.findByPostIdAndChain.mockResolvedValue({ id: 1, post_id: 123, chain: 'Polkadot' } as any);
+      mockReferendum.findByPostIdAndChain.mockResolvedValue({ id: 1, post_id: 123, chain: 'Polkadot', internal_status: 'WaitingForAgreement' } as any);
       mockMultisigService.getCachedTeamMembers.mockResolvedValue([
         { wallet_address: '1Address1', team_member_name: 'Alice', network: 'Polkadot' as const }
       ]);

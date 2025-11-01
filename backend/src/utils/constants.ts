@@ -1,3 +1,5 @@
+import { TimelineStatus, InternalStatus } from '../types/properties';
+
 export const POLKADOT_SS58_FORMAT = 0;
 export const KUSAMA_SS58_FORMAT = 2;
 
@@ -24,3 +26,25 @@ export const TRACKS = [
 ];
 
 export const READY_FILE = "./readyToVote.json";
+
+/**
+ * TimelineStatus values that indicate the vote is over
+ */
+export const VOTE_OVER_STATUSES: TimelineStatus[] = [
+    TimelineStatus.TimedOut,
+    TimelineStatus.Executed,
+    TimelineStatus.ExecutionFailed,
+    TimelineStatus.Rejected,
+    TimelineStatus.Cancelled,
+    TimelineStatus.Canceled,
+    TimelineStatus.Killed
+];
+
+/**
+ * InternalStatus values that indicate the DAO has voted
+ */
+export const VOTED_STATUSES: InternalStatus[] = [
+    InternalStatus.VotedAye,
+    InternalStatus.VotedNay,
+    InternalStatus.VotedAbstain
+];

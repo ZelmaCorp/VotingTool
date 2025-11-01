@@ -1,4 +1,4 @@
-import { Chain } from "./types/properties";
+import { Chain, TimelineStatus } from "./types/properties";
 import { fetchDataFromAPI, fetchReferendumContent } from "./polkAssembly/fetchReferendas";
 import { fetchDotToUsdRate, fetchKusToUsdRate, calculateReward, getValidatedOrigin, getValidatedStatus } from "./utils/utils";
 import { createSubsystemLogger, formatError } from "./config/logger";
@@ -6,6 +6,7 @@ import { Subsystem } from "./types/logging";
 import { Referendum } from "./database/models/referendum";
 import { ReferendumRecord } from "./database/types";
 import { InternalStatus } from "./types/properties";
+import { isVoteOver, hasVoted } from "./utils/statusTransitions";
 
 // Version will be injected by build script
 // Fallback version for development
@@ -48,13 +49,35 @@ async function updateReferendumFromPolkassembly(referenda: any, exchangeRate: nu
     // Fetch content (description) and reward information
     const contentResp = await fetchReferendumContent(referenda.post_id, referenda.network);
     const requestedAmountUsd = calculateReward(contentResp, exchangeRate, network);
+    const newTimelineStatus = getValidatedStatus(referenda.status);
 
     const updates: Partial<ReferendumRecord> = {
         title: contentResp.title || referenda.title || `Referendum #${referenda.post_id}`, // Use detail API title (updated) over list API title (cached)
         description: contentResp.content || referenda.description,
         requested_amount_usd: requestedAmountUsd,
-        referendum_timeline: getValidatedStatus(referenda.status)
+        referendum_timeline: newTimelineStatus
     };
+
+    // Auto-transition to NotVoted if vote is over and we haven't voted yet
+    const currentReferendum = await Referendum.findByPostIdAndChain(referenda.post_id, network);
+    if (currentReferendum && currentReferendum.internal_status) {
+        const currentInternalStatus = currentReferendum.internal_status;
+        
+        // If the vote is over and we haven't voted yet, automatically mark as NotVoted
+        // Skip if already NotVoted to avoid redundant updates
+        if (isVoteOver(newTimelineStatus) && !hasVoted(currentInternalStatus) && currentInternalStatus !== InternalStatus.NotVoted) {
+            updates.internal_status = InternalStatus.NotVoted;
+            logger.info(
+                { 
+                    postId: referenda.post_id, 
+                    network, 
+                    previousStatus: currentInternalStatus,
+                    timelineStatus: newTimelineStatus 
+                }, 
+                'Auto-transitioning to NotVoted: vote is over and DAO has not voted'
+            );
+        }
+    }
 
     await Referendum.update(referenda.post_id, network, updates);
 }
