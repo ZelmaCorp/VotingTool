@@ -245,7 +245,7 @@ import { authStore } from '../stores/authStore'
 import { formatAddress } from '../utils/teamUtils'
 import ConfirmModal from './modals/ConfirmModal.vue'
 import AlertModal from './modals/AlertModal.vue'
-import type { TeamAction, ProposalAction, ProposalComment, AgreementSummary, SuggestedVote, TeamMember } from '../types'
+import type { TeamAction, ProposalComment, AgreementSummary, TeamMember } from '../types'
 
 // Props
 interface Props {
@@ -290,16 +290,6 @@ const alertModalData = ref({
 
 // Computed
 const currentUserAddress = computed(() => authStore.state.user?.address)
-const currentUserName = computed(() => authStore.state.user?.name || 'Unknown User')
-
-const canTakeAction = computed(() => {
-  return authStore.state.isAuthenticated
-  // Remove veto blocking - interactions should continue even after NO WAY
-})
-
-const canComment = computed(() => {
-  return authStore.state.isAuthenticated
-})
 
 // Modal helper functions
 const showConfirm = (title: string, message: string, onConfirm: () => void, type: 'default' | 'danger' | 'warning' = 'default') => {
