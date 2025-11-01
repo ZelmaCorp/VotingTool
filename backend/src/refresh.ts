@@ -1,4 +1,4 @@
-import { Chain } from "./types/properties";
+import { Chain, TimelineStatus } from "./types/properties";
 import { fetchDataFromAPI, fetchReferendumContent } from "./polkAssembly/fetchReferendas";
 import { fetchDotToUsdRate, fetchKusToUsdRate, calculateReward, getValidatedOrigin, getValidatedStatus } from "./utils/utils";
 import { createSubsystemLogger, formatError } from "./config/logger";
@@ -15,6 +15,42 @@ const logger = createSubsystemLogger(Subsystem.REFRESH);
 
 // Add concurrency protection flag
 let isRefreshing = false;
+
+/**
+ * TimelineStatus values that indicate the vote is over
+ */
+const VOTE_OVER_STATUSES: TimelineStatus[] = [
+    TimelineStatus.TimedOut,
+    TimelineStatus.Executed,
+    TimelineStatus.ExecutionFailed,
+    TimelineStatus.Rejected,
+    TimelineStatus.Cancelled,
+    TimelineStatus.Canceled,
+    TimelineStatus.Killed
+];
+
+/**
+ * InternalStatus values that indicate we have voted
+ */
+const VOTED_STATUSES: InternalStatus[] = [
+    InternalStatus.VotedAye,
+    InternalStatus.VotedNay,
+    InternalStatus.VotedAbstain
+];
+
+/**
+ * Checks if a timeline status indicates the vote is over
+ */
+function isVoteOver(status: TimelineStatus | string): boolean {
+    return VOTE_OVER_STATUSES.includes(status as TimelineStatus);
+}
+
+/**
+ * Checks if an internal status indicates we have voted
+ */
+function hasVoted(status: InternalStatus | string): boolean {
+    return VOTED_STATUSES.includes(status as InternalStatus);
+}
 
 /**
  * Creates a new referendum record in the database from Polkassembly data
@@ -48,13 +84,35 @@ async function updateReferendumFromPolkassembly(referenda: any, exchangeRate: nu
     // Fetch content (description) and reward information
     const contentResp = await fetchReferendumContent(referenda.post_id, referenda.network);
     const requestedAmountUsd = calculateReward(contentResp, exchangeRate, network);
+    const newTimelineStatus = getValidatedStatus(referenda.status);
 
     const updates: Partial<ReferendumRecord> = {
         title: contentResp.title || referenda.title || `Referendum #${referenda.post_id}`, // Use detail API title (updated) over list API title (cached)
         description: contentResp.content || referenda.description,
         requested_amount_usd: requestedAmountUsd,
-        referendum_timeline: getValidatedStatus(referenda.status)
+        referendum_timeline: newTimelineStatus
     };
+
+    // Auto-transition to NotVoted if vote is over and we haven't voted yet
+    const currentReferendum = await Referendum.findByPostIdAndChain(referenda.post_id, network);
+    if (currentReferendum && currentReferendum.internal_status) {
+        const currentInternalStatus = currentReferendum.internal_status;
+        
+        // If the vote is over and we haven't voted yet, automatically mark as NotVoted
+        // Skip if already NotVoted to avoid redundant updates
+        if (isVoteOver(newTimelineStatus) && !hasVoted(currentInternalStatus) && currentInternalStatus !== InternalStatus.NotVoted) {
+            updates.internal_status = InternalStatus.NotVoted;
+            logger.info(
+                { 
+                    postId: referenda.post_id, 
+                    network, 
+                    previousStatus: currentInternalStatus,
+                    timelineStatus: newTimelineStatus 
+                }, 
+                'Auto-transitioning to NotVoted: vote is over and DAO has not voted'
+            );
+        }
+    }
 
     await Referendum.update(referenda.post_id, network, updates);
 }
