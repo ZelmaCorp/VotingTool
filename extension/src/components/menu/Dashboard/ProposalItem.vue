@@ -97,7 +97,7 @@
     <!-- Proposal Meta -->
     <div class="proposal-meta">
       <div v-if="showEvaluator" class="meta-item">
-        <strong>Evaluator:</strong> {{ proposal.assigned_to || 'Unassigned' }}
+        <strong>Evaluator:</strong> {{ evaluatorName }}
       </div>
       <div v-if="showSuggestedVote" class="meta-item">
         <strong>Suggested Vote:</strong> {{ proposal.suggested_vote || 'Not set' }}
@@ -113,7 +113,7 @@
 import { computed } from 'vue'
 import type { ProposalData, TeamMember } from '../../../types'
 import StatusBadge from '../../StatusBadge.vue'
-import { formatDate } from '../../../utils/teamUtils'
+import { formatDate, findTeamMemberByAddress } from '../../../utils/teamUtils'
 
 interface Props {
   proposal: ProposalData
@@ -141,6 +141,16 @@ const props = withDefaults(defineProps<Props>(), {
 defineEmits<{
   click: [proposal: ProposalData]
 }>()
+
+// Convert evaluator address to name
+const evaluatorName = computed(() => {
+  if (!props.proposal.assigned_to) {
+    return 'Unassigned'
+  }
+  
+  const member = findTeamMemberByAddress(props.proposal.assigned_to)
+  return member ? member.name : props.proposal.assigned_to
+})
 </script>
 
 <style scoped>
