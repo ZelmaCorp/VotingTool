@@ -100,8 +100,6 @@ const statusClass = computed(() => {
   }
 })
 
-const statusIcon = computed(() => statusConfig[props.status]?.icon || '⚪')
-
 const handleClick = () => {
   if (props.editable) {
     showModal.value = true
