@@ -399,6 +399,60 @@ router.post("/:postId/actions", requireTeamMember, async (req: Request, res: Res
       );
     }
 
+    // Check if we should auto-transition status based on agreement threshold
+    const currentRef = await db.get(
+      "SELECT id, internal_status FROM referendums WHERE id = ?",
+      [referendum.id]
+    );
+
+    if (currentRef && currentRef.internal_status === InternalStatus.WaitingForAgreement) {
+      const teamMembers = await multisigService.getCachedTeamMembers();
+      const requiredAgreements = teamMembers.length;
+      
+      // Get all actions for this referendum
+      const allActions = await db.all(
+        "SELECT team_member_id, role_type FROM referendum_team_roles WHERE referendum_id = ?",
+        [referendum.id]
+      );
+      
+      // Group actions by member, separating role from action state
+      const memberStates = new Map<string, string>();
+      allActions.forEach(actionItem => {
+        if (actionItem.role_type !== ReferendumAction.RESPONSIBLE_PERSON) {
+          // For action states, always take the latest one
+          memberStates.set(actionItem.team_member_id, actionItem.role_type);
+        }
+      });
+      
+      // Count agreements and check for vetoes
+      let agreementCount = 0;
+      let hasNoWay = false;
+      
+      memberStates.forEach((actionState) => {
+        if (actionState === ReferendumAction.NO_WAY) {
+          hasNoWay = true;
+        } else if (actionState === ReferendumAction.AGREE) {
+          agreementCount++;
+        }
+      });
+      
+      if (!hasNoWay && agreementCount >= requiredAgreements) {
+        // Agreement threshold reached, transition to "Ready to vote"
+        await db.run(
+          "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
+          [InternalStatus.ReadyToVote, referendum.id]
+        );
+        
+        logger.info({
+          referendumId: referendum.id,
+          postId,
+          chain,
+          agreementCount,
+          requiredAgreements
+        }, "Auto-transitioned to 'Ready to vote' after reaching agreement threshold");
+      }
+    }
+
     res.json({
       success: true,
       message: "Team action added successfully"
@@ -473,6 +527,55 @@ router.delete("/:postId/actions", requireTeamMember, async (req: Request, res: R
         success: false,
         error: `No ${action} action found for this user and referendum`
       });
+    }
+
+    // Check if we should transition back to WaitingForAgreement (edge case)
+    const currentRef = await db.get(
+      "SELECT id, internal_status FROM referendums WHERE id = ?",
+      [referendum.id]
+    );
+
+    if (currentRef && currentRef.internal_status === InternalStatus.ReadyToVote) {
+      const teamMembers = await multisigService.getCachedTeamMembers();
+      const requiredAgreements = teamMembers.length;
+      
+      // Get all actions for this referendum
+      const allActions = await db.all(
+        "SELECT team_member_id, role_type FROM referendum_team_roles WHERE referendum_id = ?",
+        [referendum.id]
+      );
+      
+      // Group actions by member
+      const memberStates = new Map<string, string>();
+      allActions.forEach(actionItem => {
+        if (actionItem.role_type !== ReferendumAction.RESPONSIBLE_PERSON) {
+          memberStates.set(actionItem.team_member_id, actionItem.role_type);
+        }
+      });
+      
+      // Count agreements
+      let agreementCount = 0;
+      memberStates.forEach((actionState) => {
+        if (actionState === ReferendumAction.AGREE) {
+          agreementCount++;
+        }
+      });
+      
+      if (agreementCount < requiredAgreements) {
+        // Agreement threshold no longer met, transition back to "Waiting for agreement"
+        await db.run(
+          "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
+          [InternalStatus.WaitingForAgreement, referendum.id]
+        );
+        
+        logger.info({
+          referendumId: referendum.id,
+          postId,
+          chain,
+          agreementCount,
+          requiredAgreements
+        }, "Auto-transitioned back to 'Waiting for agreement' after agreement count dropped below threshold");
+      }
     }
 
     res.json({
