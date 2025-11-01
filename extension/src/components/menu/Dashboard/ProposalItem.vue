@@ -84,13 +84,13 @@
     <div v-if="type === 'vetoed'" class="veto-info">
       <div class="veto-alert">
         <span class="alert-icon">🚫</span>
-        <strong>NO WAYed by:</strong> {{ proposal.veto_by_name || proposal.veto_by }}
+        <strong>NO WAYed by:</strong> {{ vetoByName }}
       </div>
-      <div v-if="proposal.veto_reason" class="veto-reason">
-        <strong>Reason:</strong> {{ proposal.veto_reason }}
+      <div v-if="vetoReason" class="veto-reason">
+        <strong>Reason:</strong> {{ vetoReason }}
       </div>
-      <div v-if="proposal.veto_date" class="veto-date">
-        <strong>NO WAYed on:</strong> {{ formatDate(proposal.veto_date) }}
+      <div v-if="vetoDate" class="veto-date">
+        <strong>NO WAYed on:</strong> {{ formatDate(vetoDate) }}
       </div>
     </div>
 
@@ -125,6 +125,9 @@ interface Props {
   agreedMembers?: TeamMember[]
   agreementCount?: number
   discussionMembers?: TeamMember[]
+  vetoBy?: string
+  vetoReason?: string
+  vetoDate?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -150,6 +153,16 @@ const evaluatorName = computed(() => {
   
   const member = findTeamMemberByAddress(props.proposal.assigned_to)
   return member ? member.name : props.proposal.assigned_to
+})
+
+// Convert veto_by address to name
+const vetoByName = computed(() => {
+  if (!props.vetoBy) {
+    return 'Unknown'
+  }
+  
+  const member = findTeamMemberByAddress(props.vetoBy)
+  return member ? member.name : props.vetoBy
 })
 </script>
 
@@ -313,7 +326,7 @@ const evaluatorName = computed(() => {
 }
 
 .veto-reason {
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
   font-size: 0.875rem;
   color: #718096;
 }
