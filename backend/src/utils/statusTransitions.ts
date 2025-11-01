@@ -1,4 +1,10 @@
-import { InternalStatus } from '../types/properties';
+import { InternalStatus, Chain } from '../types/properties';
+import { db } from '../database/connection';
+import { getAgreementStats } from './teamActions';
+import { createSubsystemLogger, formatError } from '../config/logger';
+import { Subsystem } from '../types/logging';
+
+const logger = createSubsystemLogger(Subsystem.APP);
 
 // Define allowed status transitions
 const allowedTransitions: Record<InternalStatus, InternalStatus[]> = {
@@ -93,4 +99,72 @@ export function getTransitionErrorMessage(currentStatus: InternalStatus, newStat
     }
 
     return `Invalid transition from '${currentStatus}' to '${newStatus}'. Allowed transitions: ${allowed.join(", ")}`;
+}
+
+/**
+ * Check and apply automatic status transitions based on agreement threshold
+ * Handles both forward transition (WaitingForAgreement -> ReadyToVote) 
+ * and backward transition (ReadyToVote -> WaitingForAgreement)
+ */
+export async function checkAndApplyAgreementTransition(
+  referendumId: number,
+  postId: number,
+  chain: Chain
+): Promise<void> {
+  try {
+    const currentRef = await db.get(
+      "SELECT id, internal_status FROM referendums WHERE id = ?",
+      [referendumId]
+    );
+    
+    if (!currentRef) return;
+    
+    const { agreementCount, hasVeto, requiredAgreements } = await getAgreementStats(referendumId);
+    
+    // Transition to ReadyToVote if threshold met
+    if (
+      currentRef.internal_status === InternalStatus.WaitingForAgreement &&
+      !hasVeto &&
+      agreementCount >= requiredAgreements
+    ) {
+      await db.run(
+        "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
+        [InternalStatus.ReadyToVote, referendumId]
+      );
+      
+      logger.info({
+        referendumId,
+        postId,
+        chain,
+        agreementCount,
+        requiredAgreements
+      }, "Auto-transitioned to 'Ready to vote' after reaching agreement threshold");
+    }
+    
+    // Transition back to WaitingForAgreement if threshold no longer met
+    if (
+      currentRef.internal_status === InternalStatus.ReadyToVote &&
+      agreementCount < requiredAgreements
+    ) {
+      await db.run(
+        "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
+        [InternalStatus.WaitingForAgreement, referendumId]
+      );
+      
+      logger.info({
+        referendumId,
+        postId,
+        chain,
+        agreementCount,
+        requiredAgreements
+      }, "Auto-transitioned back to 'Waiting for agreement' after agreement count dropped below threshold");
+    }
+  } catch (error) {
+    logger.error({ 
+      error: formatError(error), 
+      referendumId, 
+      postId, 
+      chain 
+    }, "Error checking agreement transition");
+  }
 }
