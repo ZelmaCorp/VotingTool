@@ -2,161 +2,18 @@ import { Request, Response, Router } from 'express';
 import { Referendum } from '../database/models/referendum';
 import { VotingDecision } from '../database/models/votingDecision';
 import { Chain, InternalStatus } from '../types/properties';
-import { isValidTransition, getNextStatus, canManuallySetStatus, getTransitionErrorMessage } from '../utils/statusTransitions';
+import { isValidTransition, getNextStatus, canManuallySetStatus, getTransitionErrorMessage, checkAndApplyAgreementTransition } from '../utils/statusTransitions';
 import { createSubsystemLogger, formatError } from '../config/logger';
 import { Subsystem } from '../types/logging';
 import { db } from '../database/connection';
 import { ReferendumAction } from '../types/auth';
 import { requireTeamMember } from '../middleware/auth';
 import { multisigService } from '../services/multisig';
+import { ACTION_MAP, parseAction, upsertTeamAction, deleteTeamAction } from '../utils/teamActions';
+import { errorResponse, successResponse, validateUser, validateChain, findReferendum } from '../utils/routeHelpers';
 
 const logger = createSubsystemLogger(Subsystem.APP);
 const router = Router();
-
-// ============================================================================
-// Helper Functions
-// ============================================================================
-
-/**
- * Map frontend action names to backend enum values
- */
-const ACTION_MAP: Record<string, ReferendumAction> = {
-  'agree': ReferendumAction.AGREE,
-  'to_be_discussed': ReferendumAction.TO_BE_DISCUSSED,
-  'no_way': ReferendumAction.NO_WAY,
-  'recuse': ReferendumAction.RECUSE
-};
-
-/**
- * Parse and validate action string
- */
-function parseAction(action: string): ReferendumAction | null {
-  return ACTION_MAP[action.toLowerCase()] || null;
-}
-
-/**
- * Count agreements and check for vetoes in a referendum
- */
-async function getAgreementStats(referendumId: number): Promise<{
-  agreementCount: number;
-  hasVeto: boolean;
-  requiredAgreements: number;
-}> {
-  const teamMembers = await multisigService.getCachedTeamMembers();
-  const requiredAgreements = teamMembers.length;
-  
-  const allActions = await db.all(
-    "SELECT team_member_id, role_type FROM referendum_team_roles WHERE referendum_id = ?",
-    [referendumId]
-  );
-  
-  // Group actions by member (one action per member)
-  const memberStates = new Map<string, string>();
-  allActions.forEach(actionItem => {
-    if (actionItem.role_type !== ReferendumAction.RESPONSIBLE_PERSON) {
-      memberStates.set(actionItem.team_member_id, actionItem.role_type);
-    }
-  });
-  
-  // Count agreements and check for vetoes
-  let agreementCount = 0;
-  let hasVeto = false;
-  
-  memberStates.forEach((actionState) => {
-    if (actionState === ReferendumAction.NO_WAY) {
-      hasVeto = true;
-    } else if (actionState === ReferendumAction.AGREE) {
-      agreementCount++;
-    }
-  });
-  
-  return { agreementCount, hasVeto, requiredAgreements };
-}
-
-/**
- * Check and apply automatic status transitions based on agreement threshold
- */
-async function checkAndApplyAgreementTransition(
-  referendumId: number,
-  postId: number,
-  chain: Chain
-): Promise<void> {
-  const currentRef = await db.get(
-    "SELECT id, internal_status FROM referendums WHERE id = ?",
-    [referendumId]
-  );
-  
-  if (!currentRef) return;
-  
-  const { agreementCount, hasVeto, requiredAgreements } = await getAgreementStats(referendumId);
-  
-  // Transition to ReadyToVote if threshold met
-  if (
-    currentRef.internal_status === InternalStatus.WaitingForAgreement &&
-    !hasVeto &&
-    agreementCount >= requiredAgreements
-  ) {
-    await db.run(
-      "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
-      [InternalStatus.ReadyToVote, referendumId]
-    );
-    
-    logger.info({
-      referendumId,
-      postId,
-      chain,
-      agreementCount,
-      requiredAgreements
-    }, "Auto-transitioned to 'Ready to vote' after reaching agreement threshold");
-  }
-  
-  // Transition back to WaitingForAgreement if threshold no longer met
-  if (
-    currentRef.internal_status === InternalStatus.ReadyToVote &&
-    agreementCount < requiredAgreements
-  ) {
-    await db.run(
-      "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
-      [InternalStatus.WaitingForAgreement, referendumId]
-    );
-    
-    logger.info({
-      referendumId,
-      postId,
-      chain,
-      agreementCount,
-      requiredAgreements
-    }, "Auto-transitioned back to 'Waiting for agreement' after agreement count dropped below threshold");
-  }
-}
-
-/**
- * Upsert a team action (delete old if exists, insert new)
- */
-async function upsertTeamAction(
-  referendumId: number,
-  teamMemberId: string,
-  action: ReferendumAction,
-  reason?: string
-): Promise<void> {
-  const existingAction = await db.get(
-    "SELECT id FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ?",
-    [referendumId, teamMemberId, ReferendumAction.RESPONSIBLE_PERSON]
-  );
-  
-  if (existingAction) {
-    await db.run("DELETE FROM referendum_team_roles WHERE id = ?", [existingAction.id]);
-  }
-  
-  await db.run(
-    "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type, reason) VALUES (?, ?, ?, ?)",
-    [referendumId, teamMemberId, action, reason || null]
-  );
-}
-
-// ============================================================================
-// Route Handlers
-// ============================================================================
 
 // Get all referendums from the database
 router.get("/", async (req: Request, res: Response) => {
@@ -477,38 +334,24 @@ router.post("/:postId/actions", requireTeamMember, async (req: Request, res: Res
     const postId = parseInt(req.params.postId);
     const { chain, action, reason } = req.body;
 
-    if (!req.user?.address) {
-      return res.status(400).json({ success: false, error: "User wallet address not found" });
-    }
-
-    if (!chain) {
-      return res.status(400).json({ success: false, error: "Chain parameter is required" });
-    }
+    if (!validateUser(req.user?.address, res)) return;
+    if (!validateChain(chain, res)) return;
 
     const backendAction = parseAction(action);
     if (!backendAction) {
-      return res.status(400).json({
-        success: false,
-        error: "Valid action is required",
-        valid_actions: Object.keys(ACTION_MAP)
-      });
+      return errorResponse(res, 400, `Valid action is required. Valid actions: ${Object.keys(ACTION_MAP).join(', ')}`);
     }
 
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
-    if (!referendum || !referendum.id) {
-      return res.status(404).json({
-        success: false,
-        error: `Referendum ${postId} not found on ${chain} network`
-      });
-    }
+    const referendum = await findReferendum(postId, chain, res);
+    if (!referendum) return;
 
-    await upsertTeamAction(referendum.id, req.user.address, backendAction, reason);
+    await upsertTeamAction(referendum.id, req.user!.address!, backendAction, reason);
     await checkAndApplyAgreementTransition(referendum.id, postId, chain);
 
-    res.json({ success: true, message: "Team action added successfully" });
+    return successResponse(res, { message: "Team action added successfully" });
   } catch (error) {
     logger.error({ error: formatError(error), postId: req.params.postId }, "Error adding team action");
-    res.status(500).json({ success: false, error: "Internal server error" });
+    return errorResponse(res, 500, "Internal server error");
   }
 });
 
@@ -521,49 +364,28 @@ router.delete("/:postId/actions", requireTeamMember, async (req: Request, res: R
     const postId = parseInt(req.params.postId);
     const { chain, action } = req.body;
 
-    if (!req.user?.address) {
-      return res.status(400).json({ success: false, error: "User wallet address not found" });
-    }
-
-    if (!chain) {
-      return res.status(400).json({ success: false, error: "Chain parameter is required" });
-    }
+    if (!validateUser(req.user?.address, res)) return;
+    if (!validateChain(chain, res)) return;
 
     const backendAction = parseAction(action);
     if (!backendAction) {
-      return res.status(400).json({
-        success: false,
-        error: "Valid action type is required",
-        valid_actions: Object.keys(ACTION_MAP)
-      });
+      return errorResponse(res, 400, `Valid action type is required. Valid actions: ${Object.keys(ACTION_MAP).join(', ')}`);
     }
 
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
-    if (!referendum || !referendum.id) {
-      return res.status(404).json({
-        success: false,
-        error: `Referendum ${postId} not found on ${chain} network`
-      });
-    }
+    const referendum = await findReferendum(postId, chain, res);
+    if (!referendum) return;
 
-    const result = await db.run(
-      "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
-      [referendum.id, req.user.address, backendAction]
-    );
-
-    if (result.changes === 0) {
-      return res.status(404).json({
-        success: false,
-        error: `No ${action} action found for this user and referendum`
-      });
+    const deleted = await deleteTeamAction(referendum.id, req.user!.address!, backendAction);
+    if (!deleted) {
+      return errorResponse(res, 404, `No ${action} action found for this user and referendum`);
     }
 
     await checkAndApplyAgreementTransition(referendum.id, postId, chain);
 
-    res.json({ success: true, message: "Team action removed successfully" });
+    return successResponse(res, { message: "Team action removed successfully" });
   } catch (error) {
     logger.error({ error: formatError(error), postId: req.params.postId }, "Error removing team action");
-    res.status(500).json({ success: false, error: "Internal server error" });
+    return errorResponse(res, 500, "Internal server error");
   }
 });
 
