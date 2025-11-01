@@ -6,7 +6,6 @@ import { Subsystem } from "./types/logging";
 import { Referendum } from "./database/models/referendum";
 import { ReferendumRecord } from "./database/types";
 import { InternalStatus } from "./types/properties";
-import { isVoteOver, hasVoted } from "./utils/statusTransitions";
 import { db } from "./database/connection";
 import { VOTE_OVER_STATUSES, VOTED_STATUSES } from "./utils/constants";
 
@@ -60,47 +59,12 @@ async function updateReferendumFromPolkassembly(referenda: any, exchangeRate: nu
         referendum_timeline: newTimelineStatus
     };
 
-    // Auto-transition to NotVoted if vote is over and we haven't voted yet
-    const currentReferendum = await Referendum.findByPostIdAndChain(referenda.post_id, network);
-    if (currentReferendum && currentReferendum.internal_status) {
-        const currentInternalStatus = currentReferendum.internal_status;
-        
-        // Debug logging
-        logger.debug(
-            { 
-                postId: referenda.post_id, 
-                network,
-                currentStatus: currentInternalStatus,
-                newTimelineStatus,
-                isVoteOverResult: isVoteOver(newTimelineStatus),
-                hasVotedResult: hasVoted(currentInternalStatus),
-                isNotVoted: currentInternalStatus === InternalStatus.NotVoted
-            }, 
-            'Checking auto-transition to NotVoted'
-        );
-        
-        // If the vote is over and we haven't voted yet, automatically mark as NotVoted
-        // Skip if already NotVoted to avoid redundant updates
-        if (isVoteOver(newTimelineStatus) && !hasVoted(currentInternalStatus) && currentInternalStatus !== InternalStatus.NotVoted) {
-            updates.internal_status = InternalStatus.NotVoted;
-            logger.info(
-                { 
-                    postId: referenda.post_id, 
-                    network, 
-                    previousStatus: currentInternalStatus,
-                    timelineStatus: newTimelineStatus 
-                }, 
-                'Auto-transitioning to NotVoted: vote is over and DAO has not voted'
-            );
-        }
-    }
-
     await Referendum.update(referenda.post_id, network, updates);
 }
 
 /**
- * Check all existing referendums in database and auto-transition to NotVoted if needed
- * This handles referendums that are no longer in the recent fetch window but are in the DB
+ * Check all existing referendums in database and auto-transition to NotVoted if needed.
+ * This runs after each refresh to mark any referendums where the vote is over but the DAO hasn't voted.
  */
 async function checkAllReferendumsForNotVoted(): Promise<void> {
     try {
