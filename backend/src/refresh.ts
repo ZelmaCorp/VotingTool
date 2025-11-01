@@ -6,6 +6,7 @@ import { Subsystem } from "./types/logging";
 import { Referendum } from "./database/models/referendum";
 import { ReferendumRecord } from "./database/types";
 import { InternalStatus } from "./types/properties";
+import { isVoteOver, hasVoted } from "./utils/statusTransitions";
 
 // Version will be injected by build script
 // Fallback version for development
@@ -15,42 +16,6 @@ const logger = createSubsystemLogger(Subsystem.REFRESH);
 
 // Add concurrency protection flag
 let isRefreshing = false;
-
-/**
- * TimelineStatus values that indicate the vote is over
- */
-const VOTE_OVER_STATUSES: TimelineStatus[] = [
-    TimelineStatus.TimedOut,
-    TimelineStatus.Executed,
-    TimelineStatus.ExecutionFailed,
-    TimelineStatus.Rejected,
-    TimelineStatus.Cancelled,
-    TimelineStatus.Canceled,
-    TimelineStatus.Killed
-];
-
-/**
- * InternalStatus values that indicate we have voted
- */
-const VOTED_STATUSES: InternalStatus[] = [
-    InternalStatus.VotedAye,
-    InternalStatus.VotedNay,
-    InternalStatus.VotedAbstain
-];
-
-/**
- * Checks if a timeline status indicates the vote is over
- */
-function isVoteOver(status: TimelineStatus | string): boolean {
-    return VOTE_OVER_STATUSES.includes(status as TimelineStatus);
-}
-
-/**
- * Checks if an internal status indicates we have voted
- */
-function hasVoted(status: InternalStatus | string): boolean {
-    return VOTED_STATUSES.includes(status as InternalStatus);
-}
 
 /**
  * Creates a new referendum record in the database from Polkassembly data

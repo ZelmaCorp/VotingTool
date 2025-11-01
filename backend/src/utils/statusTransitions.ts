@@ -1,8 +1,9 @@
-import { InternalStatus, Chain } from '../types/properties';
+import { InternalStatus, Chain, TimelineStatus } from '../types/properties';
 import { db } from '../database/connection';
 import { getAgreementStats } from './teamActions';
 import { createSubsystemLogger, formatError } from '../config/logger';
 import { Subsystem } from '../types/logging';
+import { VOTE_OVER_STATUSES, VOTED_STATUSES } from './constants';
 
 const logger = createSubsystemLogger(Subsystem.APP);
 
@@ -167,4 +168,22 @@ export async function checkAndApplyAgreementTransition(
       chain 
     }, "Error checking agreement transition");
   }
+}
+
+/**
+ * Checks if a timeline status indicates the vote is over
+ * @param status The TimelineStatus to check
+ * @returns true if the vote is over, false otherwise
+ */
+export function isVoteOver(status: TimelineStatus | string): boolean {
+    return VOTE_OVER_STATUSES.includes(status as TimelineStatus);
+}
+
+/**
+ * Checks if an internal status indicates the DAO has voted
+ * @param status The InternalStatus to check
+ * @returns true if the DAO has voted, false otherwise
+ */
+export function hasVoted(status: InternalStatus | string): boolean {
+    return VOTED_STATUSES.includes(status as InternalStatus);
 }
