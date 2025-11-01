@@ -15,25 +15,41 @@ let API_CONFIG = {
   timeout: 60000 // 60 seconds timeout for API calls
 }
 
-// Load API configuration from storage
-async function loadApiConfig() {
+let configLoaded = false
+
+// Load API configuration from storage - synchronous approach
+function loadApiConfigSync() {
+  if (configLoaded) return
+  
   try {
-    const result = await chrome.storage.sync.get(['backendUrl'])
-    if (result.backendUrl) {
-      API_CONFIG.baseURL = result.backendUrl
-    }
+    // Use sync get without await for immediate availability
+    chrome.storage.sync.get(['backendUrl'], (result) => {
+      if (chrome.runtime.lastError) {
+        console.warn('⚠️ Error loading config:', chrome.runtime.lastError.message)
+        configLoaded = true
+        return
+      }
+      
+      if (result && result.backendUrl) {
+        API_CONFIG.baseURL = result.backendUrl
+        console.log('✅ API config loaded:', result.backendUrl)
+      }
+      configLoaded = true
+    })
   } catch (error) {
-    console.warn('Failed to load API config, using defaults:', error)
+    console.warn('⚠️ Failed to load API config:', error)
+    configLoaded = true
   }
 }
 
-// Initialize API config on startup
-loadApiConfig()
+// Initialize immediately
+loadApiConfigSync()
 
 // Listen for config changes
 chrome.storage.onChanged.addListener((changes, namespace) => {
-  if (namespace === 'sync' && changes.backendUrl) {
+  if (namespace === 'sync' && changes && changes.backendUrl && changes.backendUrl.newValue) {
     API_CONFIG.baseURL = changes.backendUrl.newValue
+    console.log('✅ API config updated:', changes.backendUrl.newValue)
   }
 })
 
@@ -210,9 +226,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message?.type === 'REQUEST_PERMISSION') {
-      chrome.permissions.request({
+      // Check if permissions API is available
+      if (!chrome.permissions || !chrome.permissions.request) {
+        console.warn('⚠️ Permissions API not available in this browser')
+        sendResponse({ success: true, granted: true }) // Assume granted if API not available
+        return false
+      }
+      
+      const permissionRequest = chrome.permissions.request({
         origins: [message.origin + '/*']
-      }).then(granted => {
+      })
+      
+      // Check if request returned a Promise
+      if (!permissionRequest || typeof permissionRequest.then !== 'function') {
+        console.warn('⚠️ Permissions request did not return a Promise')
+        sendResponse({ success: true, granted: true }) // Assume granted
+        return false
+      }
+      
+      permissionRequest.then(granted => {
         sendResponse({ success: true, granted })
       }).catch(error => {
         sendResponse({ success: false, error: error.message })
@@ -222,9 +254,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message?.type === 'CHECK_PERMISSION') {
-      chrome.permissions.contains({
+      // Check if permissions API is available
+      if (!chrome.permissions || !chrome.permissions.contains) {
+        console.warn('⚠️ Permissions API not available in this browser')
+        sendResponse({ success: true, hasPermission: true }) // Assume has permission if API not available
+        return false
+      }
+      
+      const permissionCheck = chrome.permissions.contains({
         origins: [message.origin + '/*']
-      }).then(hasPermission => {
+      })
+      
+      // Check if contains returned a Promise
+      if (!permissionCheck || typeof permissionCheck.then !== 'function') {
+        console.warn('⚠️ Permissions check did not return a Promise')
+        sendResponse({ success: true, hasPermission: true }) // Assume has permission
+        return false
+      }
+      
+      permissionCheck.then(hasPermission => {
         sendResponse({ success: true, hasPermission })
       }).catch(error => {
         sendResponse({ success: false, error: error.message })
@@ -311,8 +359,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // Content scripts are automatically injected via manifest.json
 // The content scripts will be injected automatically when users visit supported pages
 
-// Listen for extension installation/update
+// Listen for extension installation/update (runs once per install/update)
+let installListenerFired = false
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('🚀 OpenGov VotingTool Extension installed/updated')
-  console.log('📋 Content scripts will be automatically injected on supported sites')
+  if (installListenerFired) return
+  installListenerFired = true
+  
+  console.log('🚀 OpenGov VotingTool Extension v' + packageJson.version + ' ready')
+  
+  // Load config on install
+  loadApiConfigSync()
 }) 

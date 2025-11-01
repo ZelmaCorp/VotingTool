@@ -6,7 +6,8 @@ import { Subsystem } from "./types/logging";
 import { Referendum } from "./database/models/referendum";
 import { ReferendumRecord } from "./database/types";
 import { InternalStatus } from "./types/properties";
-import { isVoteOver, hasVoted } from "./utils/statusTransitions";
+import { db } from "./database/connection";
+import { VOTE_OVER_STATUSES, VOTED_STATUSES } from "./utils/constants";
 
 // Version will be injected by build script
 // Fallback version for development
@@ -58,28 +59,57 @@ async function updateReferendumFromPolkassembly(referenda: any, exchangeRate: nu
         referendum_timeline: newTimelineStatus
     };
 
-    // Auto-transition to NotVoted if vote is over and we haven't voted yet
-    const currentReferendum = await Referendum.findByPostIdAndChain(referenda.post_id, network);
-    if (currentReferendum && currentReferendum.internal_status) {
-        const currentInternalStatus = currentReferendum.internal_status;
+    await Referendum.update(referenda.post_id, network, updates);
+}
+
+/**
+ * Check all existing referendums in database and auto-transition to NotVoted if needed.
+ * This runs after each refresh to mark any referendums where the vote is over but the DAO hasn't voted.
+ */
+async function checkAllReferendumsForNotVoted(): Promise<void> {
+    try {
+        logger.info('Checking all referendums in database for NotVoted auto-transition');
         
-        // If the vote is over and we haven't voted yet, automatically mark as NotVoted
-        // Skip if already NotVoted to avoid redundant updates
-        if (isVoteOver(newTimelineStatus) && !hasVoted(currentInternalStatus) && currentInternalStatus !== InternalStatus.NotVoted) {
-            updates.internal_status = InternalStatus.NotVoted;
+        // Build the SQL query dynamically based on the constants
+        const voteOverPlaceholders = VOTE_OVER_STATUSES.map(() => '?').join(', ');
+        const votedStatusesWithNotVoted = [...VOTED_STATUSES, InternalStatus.NotVoted];
+        const statusPlaceholders = votedStatusesWithNotVoted.map(() => '?').join(', ');
+        
+        // Get all referendums that have a vote-over status but haven't been marked as voted or NotVoted
+        const referendums = await db.all(
+            `SELECT id, post_id, chain, internal_status, referendum_timeline 
+             FROM referendums 
+             WHERE referendum_timeline IN (${voteOverPlaceholders})
+             AND internal_status NOT IN (${statusPlaceholders})`,
+            [
+                ...VOTE_OVER_STATUSES,
+                ...votedStatusesWithNotVoted
+            ]
+        ) as ReferendumRecord[];
+        
+        logger.info({ count: referendums.length }, 'Found referendums that need NotVoted transition');
+        
+        for (const referendum of referendums) {
             logger.info(
                 { 
-                    postId: referenda.post_id, 
-                    network, 
-                    previousStatus: currentInternalStatus,
-                    timelineStatus: newTimelineStatus 
+                    postId: referendum.post_id, 
+                    chain: referendum.chain,
+                    currentStatus: referendum.internal_status,
+                    timelineStatus: referendum.referendum_timeline
                 }, 
                 'Auto-transitioning to NotVoted: vote is over and DAO has not voted'
             );
+            
+            await db.run(
+                `UPDATE referendums 
+                 SET internal_status = ?, updated_at = datetime('now') 
+                 WHERE id = ?`,
+                [InternalStatus.NotVoted, referendum.id]
+            );
         }
+    } catch (error) {
+        logger.error({ error: formatError(error) }, 'Error checking referendums for NotVoted transition');
     }
-
-    await Referendum.update(referenda.post_id, network, updates);
 }
 
 /**
@@ -139,6 +169,10 @@ export async function refreshReferendas(limit: number = 30) {
                 }
             }
         }
+        
+        // After refreshing recent referendums, check ALL referendums in database for NotVoted transition
+        await checkAllReferendumsForNotVoted();
+        
     } catch (error) {
         logger.error({ error: formatError(error) }, "Error while refreshing Referendas");
     } finally {

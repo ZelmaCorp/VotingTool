@@ -27,7 +27,7 @@ export function configureRoutes(app: Express): void {
   app.use("/", mimirRoutes);
   
   // Administrative endpoints
-  app.use("/", adminRoutes);
+  app.use("/admin", adminRoutes);
 }
 
 // Also export individual route modules for flexibility

@@ -664,7 +664,7 @@ const normalSync = async () => {
   syncing.value = true
   try {
     const apiService = ApiService.getInstance()
-    const result = await apiService.triggerSync('normal')
+    const result = await apiService.refreshReferenda(30)
     if (result.success) {
       console.log('Normal sync started:', result.message)
     } else {
@@ -681,7 +681,7 @@ const deepSync = async () => {
   syncing.value = true
   try {
     const apiService = ApiService.getInstance()
-    const result = await apiService.triggerSync('deep')
+    const result = await apiService.refreshReferenda(100)
     if (result.success) {
       console.log('Deep sync started:', result.message)
     } else {
@@ -691,16 +691,6 @@ const deepSync = async () => {
     console.error('Deep sync failed:', error)
   } finally {
     syncing.value = false
-  }
-}
-
-const manualRefresh = async () => {
-  try {
-    const apiService = ApiService.getInstance()
-    await apiService.refreshReferenda()
-    // Success handled silently
-  } catch (error) {
-    console.error('Refresh failed:', error)
   }
 }
 

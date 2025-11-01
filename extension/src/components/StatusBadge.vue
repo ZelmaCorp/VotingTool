@@ -7,7 +7,6 @@
       :title="editable ? 'Click to change status' : status"
     >
       <span class="status-text">{{ status }}</span>
-      <span v-if="editable" class="edit-icon">edit</span>
     </div>
     
     <!-- Status Change Modal -->
@@ -94,14 +93,11 @@ const statusOptions = Object.keys(statusConfig).map(status => ({
 }))
 
 const statusClass = computed(() => {
-  const config = statusConfig[props.status]
   return {
     'status-clickable': props.editable,
     [`status-${props.status.toLowerCase().replace(/[^a-z0-9]/g, '-')}`]: true
   }
 })
-
-const statusIcon = computed(() => statusConfig[props.status]?.icon || '⚪')
 
 const handleClick = () => {
   if (props.editable) {

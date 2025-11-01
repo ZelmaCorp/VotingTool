@@ -27,8 +27,7 @@ export const formatAddress = (address: string | undefined, options?: {
 export const findTeamMemberByAddress = (address: string): TeamMember | undefined => {
   if (!address) return undefined;
   
-  const store = teamStore();
-  const teamMembers = store.teamMembers;
+  const teamMembers = teamStore.teamMembers;
   
   // Try direct match first
   let member = teamMembers.find((m: TeamMember) => m.address.toLowerCase() === address.toLowerCase());

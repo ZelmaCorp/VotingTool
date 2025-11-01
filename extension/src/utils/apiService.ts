@@ -414,8 +414,8 @@ export class ApiService {
             // Find veto if any
             const vetoAction = actions.find(a => a.role_type === 'NO WAY');
             const vetoed = !!vetoAction;
-            const veto_by = vetoed ? (vetoAction.team_member_name || daoConfig.team_members.find(m => m.address === vetoAction.team_member_id)?.name || vetoAction.team_member_id) : null;
-            const veto_reason = vetoed ? vetoAction.reason : null;
+            const veto_by = vetoed ? (vetoAction.team_member_name || daoConfig.team_members.find(m => m.address === vetoAction.team_member_id)?.name || vetoAction.team_member_id) : undefined;
+            const veto_reason = vetoed ? vetoAction.reason : undefined;
 
             // Calculate pending members (all team members minus those who took action)
             const actionTakers = new Set([
@@ -491,11 +491,14 @@ export class ApiService {
     async getDAOConfig(): Promise<DAOConfig | null> {
         try {
             // Get members from /dao/members endpoint
-            const membersResult = await this.request<{ success: boolean; members?: TeamMember[]; error?: string }>('/dao/members')
-                .catch(error => {
-                    console.warn('Failed to get members from /dao/members:', error);
-                    return { success: false, error: error instanceof Error ? error.message : 'Failed to get members' };
-                });
+            let membersResult: { success: boolean; members?: TeamMember[]; error?: string };
+            
+            try {
+                membersResult = await this.request<{ success: boolean; members?: TeamMember[]; error?: string }>('/dao/members');
+            } catch (error) {
+                console.warn('Failed to get members from /dao/members:', error);
+                return null;
+            }
 
             if (!membersResult.success || !membersResult.members) {
                 console.error('Failed to get team members:', membersResult.error);
@@ -508,14 +511,14 @@ export class ApiService {
                 : 4; // Default if no members found
 
             // Construct config
-                    const config: DAOConfig = {
+            const config: DAOConfig = {
                 team_members: membersResult.members,
                 required_agreements: requiredAgreements,
                 name: 'OpenGov Voting Tool'
             };
 
-                    return config;
-            } catch (error) {
+            return config;
+        } catch (error) {
             console.error('Error getting DAO config:', error);
             return null;
         }
@@ -802,42 +805,26 @@ export class ApiService {
         }
     }
 
-    // Helper method to ensure referendum exists in database
-    private async ensureReferendumExists(postId: number, chain: Chain): Promise<void> {
-        try {
-            // Try to fetch the referendum first
-            const existing = await this.getProposal(postId, chain);
-            
-            if (existing) {
-                return; // Referendum exists, nothing to do
-            }
-            
-            // Referendum doesn't exist, try to refresh from Polkassembly
-            console.log(`Referendum ${postId} not found, attempting to refresh from Polkassembly...`);
-            await this.refreshReferenda();
-            
-        } catch (error) {
-            // If it's a 404, the referendum doesn't exist yet - try to refresh it
-            if (error instanceof Error && error.message.includes('404')) {
-                console.log(`Referendum ${postId} not found (404), attempting to refresh from Polkassembly...`);
-                await this.refreshReferenda();
-            } else {
-                console.warn('Could not ensure referendum exists:', error);
-                throw error;
-            }
-        }
-    }
-
     // Method to trigger referendum refresh from Polkassembly
-    async refreshReferenda(): Promise<void> {
+    async refreshReferenda(limit?: number): Promise<{ success: boolean; message?: string; error?: string }> {
         try {
-            await this.request(`/admin/refresh-referendas`, {
-                method: 'GET'
-            });
-            console.log('Referendum refresh request sent');
+            const queryParam = limit ? `?limit=${limit}` : '';
+            const result = await this.request<{ message: string; timestamp: string; limit: number; status: string }>(
+                `/admin/refresh-referendas${queryParam}`,
+                { method: 'GET' }
+            );
+            console.log('Referendum refresh request sent:', result);
+            return { 
+                success: true, 
+                message: result.message || 'Refresh started successfully' 
+            };
         } catch (refreshError) {
             console.warn('Could not refresh referenda:', refreshError);
-            throw new Error('Referendum not found and could not be refreshed. Please try again in a moment.');
+            const errorMessage = refreshError instanceof Error ? refreshError.message : 'Failed to refresh referenda';
+            return { 
+                success: false, 
+                error: errorMessage 
+            };
         }
     }
 
@@ -863,4 +850,4 @@ export class ApiService {
     setBaseUrl(url: string): void {
         this.baseUrl = url;
     }
-} 
+}

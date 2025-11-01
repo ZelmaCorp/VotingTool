@@ -84,23 +84,26 @@
     <div v-if="type === 'vetoed'" class="veto-info">
       <div class="veto-alert">
         <span class="alert-icon">🚫</span>
-        <strong>NO WAYed by:</strong> {{ proposal.veto_by_name || proposal.veto_by }}
+        <strong>NO WAYed by:</strong> {{ vetoByName }}
       </div>
-      <div v-if="proposal.veto_reason" class="veto-reason">
-        <strong>Reason:</strong> {{ proposal.veto_reason }}
+      <div v-if="vetoReason" class="veto-reason">
+        <strong>Reason:</strong> {{ vetoReason }}
       </div>
-      <div v-if="proposal.veto_date" class="veto-date">
-        <strong>NO WAYed on:</strong> {{ formatDate(proposal.veto_date) }}
+      <div v-if="vetoDate" class="veto-date">
+        <strong>NO WAYed on:</strong> {{ formatDate(vetoDate) }}
       </div>
     </div>
 
     <!-- Proposal Meta -->
     <div class="proposal-meta">
       <div v-if="showEvaluator" class="meta-item">
-        <strong>Evaluator:</strong> {{ proposal.assigned_to || 'Unassigned' }}
+        <strong>Evaluator:</strong> {{ evaluatorName }}
       </div>
       <div v-if="showSuggestedVote" class="meta-item">
-        <strong>Suggested Vote:</strong> {{ proposal.suggested_vote || 'Not set' }}
+        <strong>Suggested Vote:</strong> 
+        <span :class="{ 'not-set': !proposal.suggested_vote }">
+          {{ proposal.suggested_vote || 'Not set' }}
+        </span>
       </div>
       <div class="meta-item">
         <strong>Updated:</strong> {{ formatDate(proposal.updated_at || proposal.created_at) }}
@@ -113,7 +116,7 @@
 import { computed } from 'vue'
 import type { ProposalData, TeamMember } from '../../../types'
 import StatusBadge from '../../StatusBadge.vue'
-import { formatDate } from '../../../utils/teamUtils'
+import { formatDate, findTeamMemberByAddress } from '../../../utils/teamUtils'
 
 interface Props {
   proposal: ProposalData
@@ -125,6 +128,9 @@ interface Props {
   agreedMembers?: TeamMember[]
   agreementCount?: number
   discussionMembers?: TeamMember[]
+  vetoBy?: string
+  vetoReason?: string
+  vetoDate?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -141,6 +147,26 @@ const props = withDefaults(defineProps<Props>(), {
 defineEmits<{
   click: [proposal: ProposalData]
 }>()
+
+// Convert evaluator address to name
+const evaluatorName = computed(() => {
+  if (!props.proposal.assigned_to) {
+    return 'Unassigned'
+  }
+  
+  const member = findTeamMemberByAddress(props.proposal.assigned_to)
+  return member ? member.name : props.proposal.assigned_to
+})
+
+// Convert veto_by address to name
+const vetoByName = computed(() => {
+  if (!props.vetoBy) {
+    return 'Unknown'
+  }
+  
+  const member = findTeamMemberByAddress(props.vetoBy)
+  return member ? member.name : props.vetoBy
+})
 </script>
 
 <style scoped>
@@ -303,7 +329,7 @@ defineEmits<{
 }
 
 .veto-reason {
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
   font-size: 0.875rem;
   color: #718096;
 }
@@ -334,5 +360,10 @@ defineEmits<{
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+.not-set {
+  color: #dc3545;
+  font-weight: 500;
 }
 </style>
