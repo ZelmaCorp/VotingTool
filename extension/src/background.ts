@@ -210,9 +210,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message?.type === 'REQUEST_PERMISSION') {
-      chrome.permissions.request({
+      // Check if permissions API is available
+      if (!chrome.permissions || !chrome.permissions.request) {
+        console.warn('⚠️ Permissions API not available in this browser')
+        sendResponse({ success: true, granted: true }) // Assume granted if API not available
+        return false
+      }
+      
+      const permissionRequest = chrome.permissions.request({
         origins: [message.origin + '/*']
-      }).then(granted => {
+      })
+      
+      // Check if request returned a Promise
+      if (!permissionRequest || typeof permissionRequest.then !== 'function') {
+        console.warn('⚠️ Permissions request did not return a Promise')
+        sendResponse({ success: true, granted: true }) // Assume granted
+        return false
+      }
+      
+      permissionRequest.then(granted => {
         sendResponse({ success: true, granted })
       }).catch(error => {
         sendResponse({ success: false, error: error.message })
@@ -222,9 +238,25 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     }
 
     if (message?.type === 'CHECK_PERMISSION') {
-      chrome.permissions.contains({
+      // Check if permissions API is available
+      if (!chrome.permissions || !chrome.permissions.contains) {
+        console.warn('⚠️ Permissions API not available in this browser')
+        sendResponse({ success: true, hasPermission: true }) // Assume has permission if API not available
+        return false
+      }
+      
+      const permissionCheck = chrome.permissions.contains({
         origins: [message.origin + '/*']
-      }).then(hasPermission => {
+      })
+      
+      // Check if contains returned a Promise
+      if (!permissionCheck || typeof permissionCheck.then !== 'function') {
+        console.warn('⚠️ Permissions check did not return a Promise')
+        sendResponse({ success: true, hasPermission: true }) // Assume has permission
+        return false
+      }
+      
+      permissionCheck.then(hasPermission => {
         sendResponse({ success: true, hasPermission })
       }).catch(error => {
         sendResponse({ success: false, error: error.message })
