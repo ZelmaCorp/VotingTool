@@ -8,6 +8,7 @@ import { ReferendumRecord } from "./database/types";
 import { InternalStatus } from "./types/properties";
 import { isVoteOver, hasVoted } from "./utils/statusTransitions";
 import { db } from "./database/connection";
+import { VOTE_OVER_STATUSES, VOTED_STATUSES } from "./utils/constants";
 
 // Version will be injected by build script
 // Fallback version for development
@@ -105,24 +106,20 @@ async function checkAllReferendumsForNotVoted(): Promise<void> {
     try {
         logger.info('Checking all referendums in database for NotVoted auto-transition');
         
+        // Build the SQL query dynamically based on the constants
+        const voteOverPlaceholders = VOTE_OVER_STATUSES.map(() => '?').join(', ');
+        const votedStatusesWithNotVoted = [...VOTED_STATUSES, InternalStatus.NotVoted];
+        const statusPlaceholders = votedStatusesWithNotVoted.map(() => '?').join(', ');
+        
         // Get all referendums that have a vote-over status but haven't been marked as voted or NotVoted
         const referendums = await db.all(
             `SELECT id, post_id, chain, internal_status, referendum_timeline 
              FROM referendums 
-             WHERE referendum_timeline IN (?, ?, ?, ?, ?, ?, ?)
-             AND internal_status NOT IN (?, ?, ?, ?)`,
+             WHERE referendum_timeline IN (${voteOverPlaceholders})
+             AND internal_status NOT IN (${statusPlaceholders})`,
             [
-                TimelineStatus.TimedOut,
-                TimelineStatus.Executed,
-                TimelineStatus.ExecutionFailed,
-                TimelineStatus.Rejected,
-                TimelineStatus.Cancelled,
-                TimelineStatus.Canceled,
-                TimelineStatus.Killed,
-                InternalStatus.VotedAye,
-                InternalStatus.VotedNay,
-                InternalStatus.VotedAbstain,
-                InternalStatus.NotVoted
+                ...VOTE_OVER_STATUSES,
+                ...votedStatusesWithNotVoted
             ]
         ) as ReferendumRecord[];
         
