@@ -829,15 +829,25 @@ export class ApiService {
     }
 
     // Method to trigger referendum refresh from Polkassembly
-    async refreshReferenda(): Promise<void> {
+    async refreshReferenda(limit?: number): Promise<{ success: boolean; message?: string; error?: string }> {
         try {
-            await this.request(`/admin/refresh-referendas`, {
-                method: 'GET'
-            });
-            console.log('Referendum refresh request sent');
+            const queryParam = limit ? `?limit=${limit}` : '';
+            const result = await this.request<{ message: string; timestamp: string; limit: number; status: string }>(
+                `/admin/refresh-referendas${queryParam}`,
+                { method: 'GET' }
+            );
+            console.log('Referendum refresh request sent:', result);
+            return { 
+                success: true, 
+                message: result.message || 'Refresh started successfully' 
+            };
         } catch (refreshError) {
             console.warn('Could not refresh referenda:', refreshError);
-            throw new Error('Referendum not found and could not be refreshed. Please try again in a moment.');
+            const errorMessage = refreshError instanceof Error ? refreshError.message : 'Failed to refresh referenda';
+            return { 
+                success: false, 
+                error: errorMessage 
+            };
         }
     }
 
