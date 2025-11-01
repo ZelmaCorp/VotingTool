@@ -93,7 +93,6 @@ const statusOptions = Object.keys(statusConfig).map(status => ({
 }))
 
 const statusClass = computed(() => {
-  const config = statusConfig[props.status]
   return {
     'status-clickable': props.editable,
     [`status-${props.status.toLowerCase().replace(/[^a-z0-9]/g, '-')}`]: true
