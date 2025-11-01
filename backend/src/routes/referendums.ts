@@ -2,7 +2,7 @@ import { Request, Response, Router } from 'express';
 import { Referendum } from '../database/models/referendum';
 import { VotingDecision } from '../database/models/votingDecision';
 import { Chain, InternalStatus } from '../types/properties';
-import { isValidTransition, getNextStatus, canManuallySetStatus, getTransitionErrorMessage, checkAndApplyAgreementTransition } from '../utils/statusTransitions';
+import { isValidTransition, canManuallySetStatus, getTransitionErrorMessage, checkAndApplyAgreementTransition } from '../utils/statusTransitions';
 import { createSubsystemLogger, formatError } from '../config/logger';
 import { Subsystem } from '../types/logging';
 import { db } from '../database/connection';
@@ -11,6 +11,23 @@ import { requireTeamMember } from '../middleware/auth';
 import { multisigService } from '../services/multisig';
 import { ACTION_MAP, parseAction, upsertTeamAction, deleteTeamAction } from '../utils/teamActions';
 import { errorResponse, successResponse, validateUser, validateChain, findReferendum } from '../utils/routeHelpers';
+import { 
+  separateUpdateFields, 
+  isUserAssigned, 
+  handleSuggestedVoteUpdate,
+  enrichActionsWithMemberInfo,
+  getReferendumActions,
+  handleAssignment,
+  handleUnassignment
+} from '../utils/referendumHelpers';
+import { 
+  enrichComments,
+  getReferendumCommentsFromDb,
+  createReferendumComment,
+  getReferendumComment,
+  deleteReferendumComment,
+  isCommentAuthor 
+} from '../utils/commentHelpers';
 
 const logger = createSubsystemLogger(Subsystem.APP);
 const router = Router();
@@ -83,177 +100,57 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
     const chain = req.params.chain as Chain;
     const updates = req.body;
 
-    if (isNaN(postId)) {
-      return res.status(400).json({ error: "Invalid post ID" });
-    }
-
-    // Validate chain
+    if (isNaN(postId)) return errorResponse(res, 400, "Invalid post ID");
     if (!Object.values(Chain).includes(chain)) {
-      return res.status(400).json({ error: "Invalid chain. Must be 'Polkadot' or 'Kusama'" });
+      return errorResponse(res, 400, "Invalid chain. Must be 'Polkadot' or 'Kusama'");
     }
 
-    // First, get the referendum to get its database ID
     const referendum = await Referendum.findByPostIdAndChain(postId, chain);
-    if (!referendum) {
-      return res.status(404).json({ error: "Referendum not found" });
-    }
+    if (!referendum) return errorResponse(res, 404, "Referendum not found");
 
-    // Separate referendum fields from voting decision fields
-    const referendumFields: any = {};
-    const votingFields: any = {};
+    const { referendumFields, votingFields } = separateUpdateFields(updates);
 
-    // Fields that go to the referendums table
-    const referendumColumns = [
-      'title', 'description', 'requested_amount_usd', 'origin', 'referendum_timeline',
-      'internal_status', 'link', 'voting_start_date', 'voting_end_date',
-      'last_edited_by', 'public_comment', 'public_comment_made', 'ai_summary',
-      'reason_for_vote', 'reason_for_no_way', 'voted_link'
-    ];
-
-    // Fields that go to the voting_decisions table
-    const votingColumns = ['suggested_vote', 'final_vote', 'vote_executed', 'vote_executed_date'];
-
-    // Separate the fields
-    Object.keys(updates).forEach(key => {
-      if (referendumColumns.includes(key)) {
-        referendumFields[key] = updates[key];
-      } else if (votingColumns.includes(key)) {
-        votingFields[key] = updates[key];
-      }
-    });
-
-    // Update referendum fields if any
+    // Handle referendum fields update
     if (Object.keys(referendumFields).length > 0) {
-      // Check if status is being updated
       if (referendumFields.internal_status) {
         const newStatus = referendumFields.internal_status as InternalStatus;
+        const assigned = await isUserAssigned(referendum.id!, req.user?.address || '');
 
-        // Check if user is assigned to this referendum
-        const isAssigned = await db.get(
-          "SELECT id FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
-          [referendum.id, req.user?.address, ReferendumAction.RESPONSIBLE_PERSON]
-        );
-
-        // Only assigned user can change status (except for special statuses)
-        if (!isAssigned && !canManuallySetStatus(newStatus)) {
-          return res.status(403).json({
-            success: false,
-            error: "Only the assigned user can change the status"
-          });
+        if (!assigned && !canManuallySetStatus(newStatus)) {
+          return errorResponse(res, 403, "Only the assigned user can change the status");
         }
 
-        // Validate status transition
-        const currentStatus = referendum.internal_status as InternalStatus;
-        if (!isValidTransition(currentStatus, newStatus)) {
-          return res.status(400).json({
-            success: false,
-            error: getTransitionErrorMessage(currentStatus, newStatus)
-          });
+        if (!isValidTransition(referendum.internal_status as InternalStatus, newStatus)) {
+          return errorResponse(res, 400, getTransitionErrorMessage(referendum.internal_status as InternalStatus, newStatus));
         }
       }
-
       await Referendum.update(postId, chain, referendumFields);
     }
 
-    // Update voting decision fields if any
+    // Handle voting fields update
     if (Object.keys(votingFields).length > 0) {
       await VotingDecision.upsert(referendum.id!, votingFields);
       
-      // If suggested_vote is being updated, handle automatic transitions and updates
       if (votingFields.suggested_vote && req.user?.address) {
-        try {
-          // Check if user is assigned as responsible person for this referendum
-          const existingAssignment = await db.get(
-            "SELECT role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
-            [referendum.id, req.user.address, ReferendumAction.RESPONSIBLE_PERSON]
-          );
-          
-          if (!existingAssignment) {
-            return res.status(403).json({
-              success: false,
-              error: "Only the assigned responsible person can set a suggested vote"
-            });
-          }
-
-          // Start a transaction for all the changes
-          await db.run('BEGIN TRANSACTION');
-
-          try {
-            // If we're in Considering status, auto-transition to ReadyForApproval
-            if (referendum.internal_status === InternalStatus.Considering) {
-              await db.run(
-                "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
-                [InternalStatus.ReadyForApproval, referendum.id]
-              );
-              
-              logger.info({
-                referendumId: referendum.id,
-                postId: referendum.post_id,
-                chain: referendum.chain,
-                oldStatus: InternalStatus.Considering,
-                newStatus: InternalStatus.ReadyForApproval,
-                suggestedVote: votingFields.suggested_vote
-              }, "Auto-transitioned to Ready for approval after setting suggested vote");
-            }
-
-            // Get all current action states for this user
-            const existingActions = await db.all(
-              "SELECT id, role_type FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ?",
-              [referendum.id, req.user.address, ReferendumAction.RESPONSIBLE_PERSON]
-            );
-
-            // Delete all existing action states (but keep RESPONSIBLE_PERSON)
-            for (const action of existingActions) {
-              await db.run(
-                "DELETE FROM referendum_team_roles WHERE id = ?",
-                [action.id]
-              );
-            }
-
-            // Add AGREE action for the responsible person
-            await db.run(
-              "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type, created_at) VALUES (?, ?, ?, datetime('now'))",
-              [referendum.id, req.user.address, ReferendumAction.AGREE]
-            );
-
-            await db.run('COMMIT');
-          } catch (error) {
-            await db.run('ROLLBACK');
-            throw error;
-          }
-        } catch (error) {
-          logger.error({
-            error: formatError(error),
-            referendumId: referendum.id,
-            userId: req.user?.address,
-            step: 'suggested_vote_update'
-          }, "Error updating suggested vote and status");
-          
-          return res.status(500).json({
-            success: false,
-            error: "Failed to update suggested vote: " + formatError(error)
-          });
+        const assigned = await isUserAssigned(referendum.id!, req.user.address);
+        if (!assigned) {
+          return errorResponse(res, 403, "Only the assigned responsible person can set a suggested vote");
         }
+
+        await handleSuggestedVoteUpdate(
+          referendum.id!,
+          req.user.address,
+          referendum.internal_status as InternalStatus,
+          referendum.post_id,
+          referendum.chain
+        );
       }
     }
 
-    // Return success response
-    return res.json({
-      success: true,
-      message: "Referendum updated successfully"
-    });
+    return successResponse(res, { message: "Referendum updated successfully" });
   } catch (error) {
-    logger.error({
-      error: formatError(error),
-      postId: req.params.postId,
-      chain: req.params.chain,
-      step: 'referendum_update'
-    }, "Error updating referendum");
-    
-    return res.status(500).json({
-      success: false,
-      error: "Error updating referendum: " + formatError(error)
-    });
+    logger.error({ error: formatError(error), postId: req.params.postId, chain: req.params.chain }, "Error updating referendum");
+    return errorResponse(res, 500, "Error updating referendum: " + formatError(error));
   }
 });
 
@@ -266,62 +163,24 @@ router.get("/:postId/actions", async (req: Request, res: Response) => {
     const postId = parseInt(req.params.postId);
     const chain = req.query.chain as Chain;
 
-    if (isNaN(postId)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "Invalid post ID" 
-      });
-    }
-
-    // Validate chain parameter
+    if (isNaN(postId)) return errorResponse(res, 400, "Invalid post ID");
     if (!chain || !Object.values(Chain).includes(chain)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "Valid chain parameter is required. Must be 'Polkadot' or 'Kusama'" 
-      });
+      return errorResponse(res, 400, "Valid chain parameter is required. Must be 'Polkadot' or 'Kusama'");
     }
 
-    // Get the internal referendum ID first
     const referendum = await Referendum.findByPostIdAndChain(postId, chain);
     if (!referendum) {
-      return res.status(404).json({ 
-        success: false, 
-        error: `Referendum ${postId} not found on ${chain} network` 
-      });
+      return errorResponse(res, 404, `Referendum ${postId} not found on ${chain} network`);
     }
 
-    // Get actions from the database using the internal referendum ID
-    const actions = await db.all(`
-      SELECT rtr.*
-      FROM referendum_team_roles rtr
-      WHERE rtr.referendum_id = ?
-      ORDER BY rtr.created_at DESC
-    `, [referendum.id]);
-
-    // Get current multisig members to enrich the data
+    const actions = await getReferendumActions(referendum.id!);
     const teamMembers = await multisigService.getCachedTeamMembers();
+    const enrichedActions = enrichActionsWithMemberInfo(actions, teamMembers);
 
-    // Enrich actions with member information
-    const enrichedActions = actions.map(action => {
-      const member = teamMembers.find((m: { wallet_address: string }) => m.wallet_address === action.team_member_id);
-      return {
-        ...action,
-        team_member_name: member?.team_member_name || `Multisig Member`,
-        wallet_address: action.team_member_id,
-        network: member?.network || "Unknown"
-      };
-    });
-
-    res.json({
-      success: true,
-      actions: enrichedActions
-    });
+    return successResponse(res, { actions: enrichedActions });
   } catch (error) {
     logger.error({ error: formatError(error), postId: req.params.postId }, "Error retrieving team actions");
-    res.status(500).json({
-      success: false,
-      error: "Internal server error"
-    });
+    return errorResponse(res, 500, "Internal server error");
   }
 });
 
@@ -398,83 +257,30 @@ router.post("/:postId/assign", requireTeamMember, async (req: Request, res: Resp
     const postId = parseInt(req.params.postId);
     const { chain } = req.body;
 
-    if (!req.user?.address) {
-      return res.status(400).json({
-        success: false,
-        error: "User wallet address not found"
-      });
-    }
+    if (!validateUser(req.user?.address, res)) return;
+    if (!validateChain(chain, res)) return;
 
-    // Validate chain parameter
-    if (!chain) {
-      return res.status(400).json({
-        success: false,
-        error: "Chain parameter is required"
-      });
-    }
+    const referendum = await findReferendum(postId, chain, res);
+    if (!referendum) return;
 
-    // Get the internal referendum ID first
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
-    if (!referendum) {
-      return res.status(404).json({
-        success: false,
-        error: `Referendum ${postId} not found on ${chain} network`
-      });
-    }
-
-    // Check if referendum is already assigned
-    const existingAssignment = await db.get(
+    // Check if already assigned
+    const existing = await db.get(
       "SELECT team_member_id FROM referendum_team_roles WHERE referendum_id = ? AND role_type = ?",
       [referendum.id, ReferendumAction.RESPONSIBLE_PERSON]
     );
 
-    if (existingAssignment) {
-      if (existingAssignment.team_member_id === req.user.address) {
-        // Already assigned to this user, just return success
-        return res.json({
-          success: true,
-          message: "Already assigned to you"
-        });
-      } else {
-        return res.status(400).json({
-          success: false,
-          error: "This proposal is already assigned to another team member"
-        });
+    if (existing) {
+      if (existing.team_member_id === req.user!.address) {
+        return successResponse(res, { message: "Already assigned to you" });
       }
+      return errorResponse(res, 400, "This proposal is already assigned to another team member");
     }
 
-    // Start a transaction to handle all changes atomically
-    await db.run('BEGIN TRANSACTION');
-
-    try {
-      // Create new assignment
-      await db.run(
-        "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type) VALUES (?, ?, ?)",
-        [referendum.id, req.user.address, ReferendumAction.RESPONSIBLE_PERSON]
-      );
-
-      // Update referendum status to Considering if it's not already in a later stage
-      await db.run(
-        "UPDATE referendums SET internal_status = CASE WHEN internal_status = ? THEN ? ELSE internal_status END, updated_at = datetime('now') WHERE id = ?",
-        [InternalStatus.NotStarted, InternalStatus.Considering, referendum.id]
-      );
-
-      await db.run('COMMIT');
-
-      res.json({
-        success: true,
-        message: "Assigned successfully"
-      });
-    } catch (transactionError) {
-      await db.run('ROLLBACK');
-      throw transactionError;
-    }
+    await handleAssignment(referendum.id, req.user!.address!);
+    return successResponse(res, { message: "Assigned successfully" });
   } catch (error) {
     logger.error({ error: formatError(error), postId: req.params.postId }, "Error assigning to referendum");
-    res.status(500).json({
-      success: false,
-      error: "Internal server error"
-    });
+    return errorResponse(res, 500, "Internal server error");
   }
 });
 
@@ -487,102 +293,23 @@ router.post("/:postId/unassign", requireTeamMember, async (req: Request, res: Re
     const postId = parseInt(req.params.postId);
     const { chain, unassignNote } = req.body;
 
-    if (!req.user?.address) {
-      return res.status(400).json({
-        success: false,
-        error: "User wallet address not found"
-      });
-    }
+    if (!validateUser(req.user?.address, res)) return;
+    if (!validateChain(chain, res)) return;
 
-    // Validate chain parameter
-    if (!chain) {
-      return res.status(400).json({
-        success: false,
-        error: "Chain parameter is required"
-      });
-    }
-
-    // Get the internal referendum ID first
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
-    if (!referendum) {
-      return res.status(404).json({
-        success: false,
-        error: `Referendum ${postId} not found on ${chain} network`
-      });
-    }
+    const referendum = await findReferendum(postId, chain, res);
+    if (!referendum) return;
 
     // Check if user is the responsible person
-    const responsibleRole = await db.get(
-      "SELECT id FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
-      [referendum.id, req.user.address, ReferendumAction.RESPONSIBLE_PERSON]
-    );
-
-    if (!responsibleRole) {
-      return res.status(403).json({
-        success: false,
-        error: "Only the responsible person can unassign themselves"
-      });
+    const assigned = await isUserAssigned(referendum.id, req.user!.address!);
+    if (!assigned) {
+      return errorResponse(res, 403, "Only the responsible person can unassign themselves");
     }
 
-    // Start a transaction to handle all changes atomically
-    await db.run('BEGIN TRANSACTION');
-
-    try {
-      // Get current voting decision before removing role
-      const votingDecision = await db.get(
-        "SELECT suggested_vote FROM voting_decisions WHERE referendum_id = ?",
-        [referendum.id]
-      );
-      const previousVote = votingDecision?.suggested_vote;
-
-      // Remove responsible person role AND any team actions (except NO WAY)
-      await db.run(
-        "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ?",
-        [referendum.id, req.user.address, ReferendumAction.NO_WAY]
-      );
-
-      // Always reset suggested vote
-      await db.run(
-        "UPDATE voting_decisions SET suggested_vote = NULL WHERE referendum_id = ?",
-        [referendum.id]
-      );
-
-      // Reset internal status and clear reason for vote
-      await db.run(
-        "UPDATE referendums SET internal_status = ?, updated_at = datetime('now'), reason_for_vote = NULL WHERE id = ?",
-        [InternalStatus.NotStarted, referendum.id]
-      );
-
-      // Always add an unassign message, optionally with note and previous vote
-      const noteLines = ['[UNASSIGN MESSAGE]'];
-      if (previousVote) {
-        noteLines.push(`Previous vote: ${previousVote}`);
-      }
-      if (unassignNote?.trim()) {
-        noteLines.push(`Note: ${unassignNote.trim()}`);
-      }
-
-      await db.run(
-        "INSERT INTO referendum_comments (referendum_id, team_member_id, content) VALUES (?, ?, ?)",
-        [referendum.id, req.user.address, noteLines.join('\n')]
-      );
-
-      await db.run('COMMIT');
-
-      res.json({
-        success: true,
-        message: "Unassigned successfully"
-      });
-    } catch (transactionError) {
-      await db.run('ROLLBACK');
-      throw transactionError;
-    }
+    await handleUnassignment(referendum.id, req.user!.address!, unassignNote);
+    return successResponse(res, { message: "Unassigned successfully" });
   } catch (error) {
     logger.error({ error: formatError(error), postId: req.params.postId }, "Error unassigning from referendum");
-    res.status(500).json({
-      success: false,
-      error: "Internal server error"
-    });
+    return errorResponse(res, 500, "Internal server error");
   }
 });
 
@@ -595,64 +322,24 @@ router.get("/:postId/comments", async (req: Request, res: Response) => {
     const postId = parseInt(req.params.postId);
     const chain = req.query.chain as Chain;
 
-    if (isNaN(postId)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "Invalid post ID" 
-      });
-    }
-
-    // Validate chain parameter
+    if (isNaN(postId)) return errorResponse(res, 400, "Invalid post ID");
     if (!chain || !Object.values(Chain).includes(chain)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "Valid chain parameter is required. Must be 'Polkadot' or 'Kusama'" 
-      });
+      return errorResponse(res, 400, "Valid chain parameter is required. Must be 'Polkadot' or 'Kusama'");
     }
 
-    // Get the internal referendum ID first
     const referendum = await Referendum.findByPostIdAndChain(postId, chain);
     if (!referendum) {
-      return res.status(404).json({ 
-        success: false, 
-        error: `Referendum ${postId} not found on ${chain} network` 
-      });
+      return errorResponse(res, 404, `Referendum ${postId} not found on ${chain} network`);
     }
 
-    // Get comments from database
-    const comments = await db.all(`
-      SELECT rc.*
-      FROM referendum_comments rc
-      WHERE rc.referendum_id = ?
-      ORDER BY rc.created_at ASC
-    `, [referendum.id]);
-
-    // Get team members to enrich the data
+    const comments = await getReferendumCommentsFromDb(referendum.id!);
     const teamMembers = await multisigService.getCachedTeamMembers();
+    const enrichedComments = enrichComments(comments, teamMembers);
 
-    // Enrich comments with member information
-    const enrichedComments = comments.map(comment => {
-      const member = teamMembers.find((m: { wallet_address: string }) => m.wallet_address === comment.team_member_id);
-      return {
-        id: comment.id,
-        content: comment.content,
-        user_address: comment.team_member_id,
-        user_name: member?.team_member_name || comment.team_member_id,
-        created_at: comment.created_at,
-        updated_at: comment.updated_at
-      };
-    });
-
-    res.json({
-      success: true,
-      comments: enrichedComments
-    });
+    return successResponse(res, { comments: enrichedComments });
   } catch (error) {
     logger.error({ error: formatError(error), postId: req.params.postId }, "Error fetching comments");
-    res.status(500).json({
-      success: false,
-      error: "Internal server error"
-    });
+    return errorResponse(res, 500, "Internal server error");
   }
 });
 
@@ -665,60 +352,28 @@ router.post("/:postId/comments", requireTeamMember, async (req: Request, res: Re
     const postId = parseInt(req.params.postId);
     const { chain, content } = req.body;
 
-    if (!req.user?.address) {
-      return res.status(400).json({
-        success: false,
-        error: "User wallet address not found"
-      });
-    }
+    if (!validateUser(req.user?.address, res)) return;
+    if (!validateChain(chain, res)) return;
+    if (!content?.trim()) return errorResponse(res, 400, "Comment content is required");
 
-    // Validate chain parameter
-    if (!chain) {
-      return res.status(400).json({
-        success: false,
-        error: "Chain parameter is required"
-      });
-    }
+    const referendum = await findReferendum(postId, chain, res);
+    if (!referendum) return;
 
-    // Validate content
-    if (!content?.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: "Comment content is required"
-      });
-    }
+    const commentId = await createReferendumComment(referendum.id, req.user!.address!, content);
 
-    // Get the internal referendum ID first
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
-    if (!referendum) {
-      return res.status(404).json({
-        success: false,
-        error: `Referendum ${postId} not found on ${chain} network`
-      });
-    }
-
-    // Insert comment
-    const result = await db.run(
-      "INSERT INTO referendum_comments (referendum_id, team_member_id, content) VALUES (?, ?, ?)",
-      [referendum.id, req.user.address, content.trim()]
-    );
-
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "Comment added successfully",
       comment: {
-        id: result.lastID,
+        id: commentId,
         content: content.trim(),
-        user_address: req.user.address,
+        user_address: req.user!.address,
         created_at: new Date().toISOString()
       }
     });
   } catch (error) {
     logger.error({ error: formatError(error), postId: req.params.postId }, "Error adding comment");
-    res.status(500).json({
-      success: false,
-      error: "Internal server error"
-    });
+    return errorResponse(res, 500, "Internal server error");
   }
 });
 
@@ -728,59 +383,24 @@ router.post("/:postId/comments", requireTeamMember, async (req: Request, res: Re
  */
 router.delete("/comments/:commentId", requireTeamMember, async (req: Request, res: Response) => {
   try {
-    const { commentId } = req.params;
+    const commentId = parseInt(req.params.commentId);
 
-    if (!req.user?.address) {
-      return res.status(400).json({
-        success: false,
-        error: "User wallet address not found"
-      });
+    if (!validateUser(req.user?.address, res)) return;
+
+    const comment = await getReferendumComment(commentId);
+    if (!comment) return errorResponse(res, 404, "Comment not found");
+
+    if (!isCommentAuthor(comment, req.user!.address!)) {
+      return errorResponse(res, 403, "You can only delete your own comments");
     }
 
-    // Check if comment exists and belongs to the current user
-    const comment = await db.get(
-      "SELECT id, team_member_id FROM referendum_comments WHERE id = ?",
-      [commentId]
-    );
+    const deleted = await deleteReferendumComment(commentId);
+    if (!deleted) return errorResponse(res, 404, "Comment not found or already deleted");
 
-    if (!comment) {
-      return res.status(404).json({
-        success: false,
-        error: "Comment not found"
-      });
-    }
-
-    // Verify the comment belongs to the current user
-    if (comment.team_member_id !== req.user.address) {
-      return res.status(403).json({
-        success: false,
-        error: "You can only delete your own comments"
-      });
-    }
-
-    // Delete the comment
-    const result = await db.run(
-      "DELETE FROM referendum_comments WHERE id = ?",
-      [commentId]
-    );
-
-    if (result.changes === 0) {
-      return res.status(404).json({
-        success: false,
-        error: "Comment not found or already deleted"
-      });
-    }
-
-    res.json({
-      success: true,
-      message: "Comment deleted successfully"
-    });
+    return successResponse(res, { message: "Comment deleted successfully" });
   } catch (error) {
     logger.error({ error: formatError(error), commentId: req.params.commentId }, "Error deleting comment");
-    res.status(500).json({
-      success: false,
-      error: "Internal server error"
-    });
+    return errorResponse(res, 500, "Internal server error");
   }
 });
 
