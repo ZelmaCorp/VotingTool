@@ -2,7 +2,8 @@
   <div 
     class="proposal-item"
     :class="{ 
-    'agreement-item': type === 'agreement',
+    'agreement-item': type === 'agreement' && agreementCount < requiredAgreements,
+    'agreement-item-complete': type === 'agreement' && agreementCount >= requiredAgreements,
     'ready-item': type === 'ready',
     'discussion-item': type === 'discussion',
     'vetoed-item': type === 'vetoed'
@@ -195,6 +196,10 @@ const vetoByName = computed(() => {
 
 .agreement-item {
   border-left: 4px solid #ffc107;
+}
+
+.agreement-item-complete {
+  border-left: 4px solid #28a745;
 }
 
 .ready-item {
