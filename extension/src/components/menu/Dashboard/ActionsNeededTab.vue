@@ -17,7 +17,8 @@
           <StatusBadge 
             :status="proposal.internal_status" 
             :proposal-id="proposal.post_id"
-            :editable="false" 
+            :editable="proposal.assigned_to === currentUserAddress"
+            @status-click="handleStatusClick(proposal)"
           />
         </div>
         <h4 class="proposal-title">{{ proposal.title }}</h4>
@@ -37,13 +38,27 @@
         </div>
       </div>
     </div>
+    
+    <!-- Status Change Modal -->
+    <StatusChangeModal 
+      :show="showStatusModal"
+      :proposal-id="selectedProposal?.post_id || 0"
+      :current-status="selectedProposal?.internal_status || 'Not started'"
+      @close="closeStatusModal"
+      @save="saveStatusChange"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import type { ProposalData } from '../../../types'
+import { ref } from 'vue'
+import type { ProposalData, InternalStatus } from '../../../types'
 import StatusBadge from '../../StatusBadge.vue'
+import StatusChangeModal from '../../modals/StatusChangeModal.vue'
 import { formatDate } from '../../../utils/teamUtils'
+import { ApiService } from '../../../utils/apiService'
+
+const apiService = ApiService.getInstance()
 
 interface Props {
   actionsNeeded: ProposalData[]
@@ -52,9 +67,52 @@ interface Props {
 
 defineProps<Props>()
 
-defineEmits<{
+const emit = defineEmits<{
   'open-proposal': [proposal: ProposalData]
 }>()
+
+// Status change modal state
+const showStatusModal = ref(false)
+const selectedProposal = ref<ProposalData | null>(null)
+
+const handleStatusClick = (proposal: ProposalData) => {
+  selectedProposal.value = proposal
+  showStatusModal.value = true
+}
+
+const closeStatusModal = () => {
+  showStatusModal.value = false
+  selectedProposal.value = null
+}
+
+const saveStatusChange = async ({ newStatus, reason }: { newStatus: InternalStatus; reason: string }) => {
+  if (!selectedProposal.value) return
+  
+  try {
+    const proposalId = selectedProposal.value.post_id
+    const chain = selectedProposal.value.chain
+    const oldStatus = selectedProposal.value.internal_status
+    
+    // Call API to update status
+    await apiService.updateProposalStatus(proposalId, chain, newStatus)
+    
+    // Close modal
+    closeStatusModal()
+    
+    // Dispatch event for global refresh
+    window.dispatchEvent(new CustomEvent('statusChanged', { 
+      detail: { 
+        proposalId, 
+        oldStatus, 
+        newStatus, 
+        reason 
+      } 
+    }))
+  } catch (error) {
+    console.error('Failed to update status:', error)
+    alert('Failed to update status. Please try again.')
+  }
+}
 </script>
 
 <style scoped>

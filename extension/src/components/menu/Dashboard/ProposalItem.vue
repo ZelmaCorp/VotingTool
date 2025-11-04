@@ -2,7 +2,8 @@
   <div 
     class="proposal-item"
     :class="{ 
-    'agreement-item': type === 'agreement',
+    'agreement-item': type === 'agreement' && agreementCount < requiredAgreements,
+    'agreement-item-complete': type === 'agreement' && agreementCount >= requiredAgreements,
     'ready-item': type === 'ready',
     'discussion-item': type === 'discussion',
     'vetoed-item': type === 'vetoed'
@@ -14,7 +15,8 @@
       <StatusBadge 
         :status="proposal.internal_status" 
         :proposal-id="proposal.post_id"
-        :editable="editable" 
+        :editable="editable"
+        @status-click="handleStatusClick"
       />
     </div>
     <h4 class="proposal-title">{{ proposal.title }}</h4>
@@ -144,9 +146,17 @@ const props = withDefaults(defineProps<Props>(), {
   discussionMembers: () => []
 })
 
-defineEmits<{
+const emit = defineEmits<{
   click: [proposal: ProposalData]
+  'status-click': [proposal: ProposalData]
 }>()
+
+const handleStatusClick = (event?: Event) => {
+  if (event) {
+    event.stopPropagation()
+  }
+  emit('status-click', props.proposal)
+}
 
 // Convert evaluator address to name
 const evaluatorName = computed(() => {
@@ -186,6 +196,10 @@ const vetoByName = computed(() => {
 
 .agreement-item {
   border-left: 4px solid #ffc107;
+}
+
+.agreement-item-complete {
+  border-left: 4px solid #28a745;
 }
 
 .ready-item {
