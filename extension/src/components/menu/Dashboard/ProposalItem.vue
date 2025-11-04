@@ -14,7 +14,8 @@
       <StatusBadge 
         :status="proposal.internal_status" 
         :proposal-id="proposal.post_id"
-        :editable="editable" 
+        :editable="editable"
+        @status-click="handleStatusClick"
       />
     </div>
     <h4 class="proposal-title">{{ proposal.title }}</h4>
@@ -144,9 +145,17 @@ const props = withDefaults(defineProps<Props>(), {
   discussionMembers: () => []
 })
 
-defineEmits<{
+const emit = defineEmits<{
   click: [proposal: ProposalData]
+  'status-click': [proposal: ProposalData]
 }>()
+
+const handleStatusClick = (event?: Event) => {
+  if (event) {
+    event.stopPropagation()
+  }
+  emit('status-click', props.proposal)
+}
 
 // Convert evaluator address to name
 const evaluatorName = computed(() => {

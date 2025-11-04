@@ -1,6 +1,6 @@
 {
   "name": "opengov-votingtool-extension",
-  "version": "1.4.1",
+  "version": "1.4.3",
   "description": "OpenGov VotingTool Browser Extension",
   "type": "module",
   "scripts": {
