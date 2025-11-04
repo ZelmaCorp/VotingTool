@@ -77,10 +77,11 @@ const saveStatusChange = async ({ newStatus, reason }: { newStatus: InternalStat
   
   try {
     const proposalId = selectedProposal.value.post_id
+    const chain = selectedProposal.value.chain
     const oldStatus = selectedProposal.value.internal_status
     
     // Call API to update status
-    await apiService.updateProposalStatus(proposalId, newStatus, reason)
+    await apiService.updateProposalStatus(proposalId, chain, newStatus)
     
     // Close modal
     closeStatusModal()
