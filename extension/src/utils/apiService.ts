@@ -490,7 +490,18 @@ export class ApiService {
     // DAO configuration methods
     async getDAOConfig(): Promise<DAOConfig | null> {
         try {
-            // Get members from /dao/members endpoint
+            // Try the new /dao/config endpoint first
+            try {
+                const configResult = await this.request<{ success: boolean; config?: DAOConfig; error?: string }>('/dao/config');
+                
+                if (configResult.success && configResult.config) {
+                    return configResult.config;
+                }
+            } catch (error) {
+                console.warn('Failed to get config from /dao/config, falling back to /dao/members:', error);
+            }
+
+            // Fallback: Get members from /dao/members endpoint (for backwards compatibility)
             let membersResult: { success: boolean; members?: TeamMember[]; error?: string };
             
             try {

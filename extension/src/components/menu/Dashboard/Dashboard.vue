@@ -2,7 +2,17 @@
   <div v-if="show" class="modal-overlay" @click="$emit('close')">
     <div class="dashboard-modal" @click.stop>
       <div class="modal-header">
-        <h2>Dashboard & Workflow</h2>
+        <div class="header-content">
+          <h2>
+            Dashboard & Workflow
+          </h2>
+          <div v-if="teamStore.daoConfig?.multisig_address" class="multisig-info">
+            <span class="multisig-label">Multisig:</span>
+            <span class="multisig-address" :title="teamStore.daoConfig.multisig_address">
+              {{teamStore.daoConfig.multisig_address}}
+            </span>
+          </div>
+        </div>
         <button class="close-btn" @click="$emit('close')">×</button>
       </div>
 
@@ -51,6 +61,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import { authStore } from '../../../stores/authStore'
+import { teamStore } from '../../../stores/teamStore'
 import MyDashboard from './MyDashboard.vue'
 import Workflow from './Workflow.vue'
 
@@ -118,11 +129,48 @@ const activeTab = ref<'dashboard' | 'workflow'>('dashboard')
   border-radius: 12px 12px 0 0;
 }
 
+.header-content {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+
 .modal-header h2 {
   margin: 0;
   font-size: 1.5rem;
   font-weight: 600;
   color: #333;
+}
+
+.dao-name {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #666;
+  margin-left: 8px;
+}
+
+.multisig-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.multisig-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.multisig-address {
+  color: #e6007a;
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  background: rgba(230, 0, 122, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
 }
 
 .close-btn {
