@@ -61,6 +61,52 @@ router.get("/parent", authenticateToken, async (req: Request, res: Response) => 
   }
 });
 
+/**
+ * GET /dao/config
+ * Get DAO configuration including multisig addresses and team info
+ */
+router.get("/config", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    // Get team members
+    const members = await multisigService.getCachedTeamMembers();
+    
+    // Calculate required agreements based on team size
+    const requiredAgreements = members.length > 0 
+      ? Math.ceil(members.length / 2) 
+      : 4;
+    
+    // Get multisig addresses from environment
+    const polkadotMultisig = process.env.POLKADOT_MULTISIG;
+    const kusamaMultisig = process.env.KUSAMA_MULTISIG;
+    
+    // Determine primary multisig (use Polkadot if available, otherwise Kusama)
+    const multisigAddress = polkadotMultisig || kusamaMultisig;
+    
+    res.json({
+      success: true,
+      config: {
+        name: 'OpenGov Voting Tool',
+        team_members: members.map(member => ({
+          address: member.wallet_address,
+          name: member.team_member_name || `Multisig Member (${member.network})`,
+          network: member.network
+        })),
+        required_agreements: requiredAgreements,
+        multisig_address: multisigAddress,
+        polkadot_multisig: polkadotMultisig,
+        kusama_multisig: kusamaMultisig
+      }
+    });
+    
+  } catch (error) {
+    logger.error({ error: formatError(error) }, "Error fetching DAO config");
+    res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
+});
+
 // DELETED: GET /dao/referendum/:referendumId - Use GET /referendums/:postId instead
 
 // DELETED: GET /dao/referendum/:referendumId/actions - Use GET /referendums/:postId/actions instead
