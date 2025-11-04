@@ -143,7 +143,7 @@
                     <StatusBadge :status="proposal.internal_status" :proposal-id="proposal.post_id" :editable="false" />
                   </div>
                   <div class="proposal-assignment">
-                    <span>{{ proposal.assigned_to || 'Unassigned' }}</span>
+                    <span>{{ teamStore.getTeamMemberName(proposal.assigned_to) || formatAddress(proposal.assigned_to) || 'Unassigned' }}</span>
                     <button 
                       v-if="!proposal.assigned_to" 
                       @click="assignToMe(proposal, $event)"
@@ -407,7 +407,7 @@ const assignToMe = async (proposal: ProposalData, event: Event) => {
   event.stopPropagation() // Prevent opening the proposal
   
   try {
-    const result = await apiService.assignProposal(proposal.post_id, proposal.chain, 'responsible_person')
+    const result = await apiService.assignProposal(proposal.post_id, proposal.chain)
     
     if (result.success) {
       // Refresh the proposal list to show updated assignment
