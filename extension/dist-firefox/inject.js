@@ -1,5 +1,13 @@
 (function() {
   "use strict";
+  const SUPPORTED_WALLETS = [
+    "polkadot-js",
+    "talisman",
+    "subwallet",
+    "subwallet-js",
+    "SubWallet",
+    "nova-wallet"
+  ];
   window.opengovVotingTool = {
     // Check if wallet extensions are available
     checkWalletExtension: function() {
@@ -73,16 +81,8 @@
     // Sign a message
     signMessage: async function(address, message) {
       try {
-        const wallets = [
-          "polkadot-js",
-          "talisman",
-          "subwallet",
-          "subwallet-js",
-          "SubWallet",
-          "nova-wallet"
-        ];
         const injectedWeb3 = window.injectedWeb3;
-        for (const walletKey of wallets) {
+        for (const walletKey of SUPPORTED_WALLETS) {
           try {
             if (!(injectedWeb3 == null ? void 0 : injectedWeb3[walletKey])) {
               continue;
@@ -110,45 +110,6 @@
         throw new Error("Could not find or enable wallet for this address");
       } catch (error) {
         console.error("❌ Page context: Failed to sign message:", error);
-        return {
-          success: false,
-          error: error.message
-        };
-      }
-    },
-    // Sign a transaction (for future use)
-    signTransaction: async function(address, transaction) {
-      try {
-        const wallets = ["polkadot-js", "talisman", "subwallet", "subwallet-js", "SubWallet"];
-        const injectedWeb3 = window.injectedWeb3;
-        for (const walletKey of wallets) {
-          try {
-            if (!(injectedWeb3 == null ? void 0 : injectedWeb3[walletKey])) {
-              continue;
-            }
-            const enabledWallet = await injectedWeb3[walletKey].enable();
-            const accounts = await enabledWallet.accounts.get();
-            const hasAddress = accounts.some((acc) => acc.address === address);
-            if (hasAddress) {
-              const { signature } = await enabledWallet.signer.signRaw({
-                address,
-                data: transaction,
-                type: "bytes"
-              });
-              return {
-                success: true,
-                signature,
-                message: "Transaction signed successfully",
-                wallet: walletKey
-              };
-            }
-          } catch (walletError) {
-            continue;
-          }
-        }
-        throw new Error("Could not find or enable wallet for this address");
-      } catch (error) {
-        console.error("❌ Page context: Failed to sign transaction:", error);
         return {
           success: false,
           error: error.message
@@ -183,15 +144,6 @@
         }, "*");
       });
     }
-    if (event.data.type === "SIGN_TRANSACTION") {
-      const { address, transaction } = event.data;
-      window.opengovVotingTool.signTransaction(address, transaction).then((result) => {
-        window.postMessage({
-          type: "TRANSACTION_SIGNATURE_RESULT",
-          data: result
-        }, "*");
-      });
-    }
   });
   function performWalletCheck() {
     const result = window.opengovVotingTool.checkWalletExtension();
@@ -209,16 +161,12 @@
     }
     return result;
   }
-  performWalletCheck();
-  setTimeout(() => {
-    performWalletCheck();
-  }, 500);
-  setTimeout(() => {
-    performWalletCheck();
-  }, 1e3);
-  setTimeout(() => {
-    performWalletCheck();
-  }, 2e3);
+  const initialResult = performWalletCheck();
+  if (!initialResult.hasPolkadotExtension) {
+    setTimeout(() => {
+      performWalletCheck();
+    }, 1e3);
+  }
   window.postMessage({
     type: "INJECTOR_READY",
     data: { timestamp: Date.now() }
