@@ -1,11 +1,5 @@
 // OpenGov VotingTool Extension - Content Script
 // This will be the main entry point for the extension
-//
-// KNOWN ISSUE: On F5 page reload, the extension may occasionally not initialize properly.
-// This appears to be a timing issue with how Chrome/Firefox handle content script injection
-// during hard refreshes. Workaround: Reload the page again or reload the extension.
-// The duplicate prevention logic below helps prevent multiple injections, but may
-// occasionally be too aggressive and prevent initialization on reload.
 
 import { createApp } from 'vue'
 import App from './App.vue'
@@ -13,23 +7,9 @@ import { ContentInjector } from './utils/contentInjector'
 import { proposalStore, teamStore } from './stores'
 import '../design-system.css'
 
-// Check if already initialized - check both flag and DOM element
-const existingContainer = document.getElementById('opengov-voting-extension')
-const ALREADY_INITIALIZED = window.opengovVotingToolInitialized === true || existingContainer !== null
-
-if (ALREADY_INITIALIZED) {
-  console.log('ℹ️ OpenGov VotingTool already initialized, skipping duplicate injection')
-  // Stop execution completely
-  throw new Error('Already initialized')
-}
-
-// Mark as initialized immediately
-window.opengovVotingToolInitialized = true
-
 // Extend Window interface
 declare global {
   interface Window {
-    opengovVotingToolInitialized?: boolean;
     opengovVotingToolResult?: {
       hasPolkadotExtension?: boolean;
       injectedWeb3?: any;
@@ -50,6 +30,26 @@ declare global {
     };
   }
 }
+
+// Smart duplicate prevention - only trust the DOM, not flags
+// Check if container already exists in DOM
+const existingContainer = document.getElementById('opengov-voting-extension')
+
+if (existingContainer) {
+  console.log('⚠️ OpenGov VotingTool: Found existing container, cleaning up for reinitialization...')
+  
+  // Clean up the old container
+  try {
+    existingContainer.remove()
+    console.log('✅ Old container removed, will reinitialize')
+  } catch (error) {
+    console.warn('⚠️ Failed to remove old container:', error)
+  }
+}
+
+// Always proceed with initialization - DOM is source of truth
+// Don't rely on window flags as they can have stale/incorrect state
+console.log('🚀 OpenGov VotingTool: Starting initialization...')
 
 // Initialize content injector
 let contentInjector: ContentInjector | null = null;
