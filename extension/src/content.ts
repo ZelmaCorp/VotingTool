@@ -55,6 +55,72 @@ console.log('🚀 OpenGov VotingTool: Starting initialization...')
 let contentInjector: ContentInjector | null = null;
 let vueApp: any = null;
 let removalObserver: MutationObserver | null = null;
+let reinjectionTimeout: number | null = null;
+let removalCount = 0;
+let lastRemovalTime = 0;
+
+/**
+ * Re-inject the main container
+ */
+async function reinjectContainer() {
+  // Clear any pending re-injection
+  if (reinjectionTimeout) {
+    clearTimeout(reinjectionTimeout);
+    reinjectionTimeout = null;
+  }
+  
+  const existing = document.getElementById('opengov-voting-extension');
+  if (existing) {
+    console.log('ℹ️ Container already exists, skipping re-injection');
+    return;
+  }
+  
+  try {
+    console.log('🔄 Re-injecting extension container...');
+    
+    const extensionContainer = document.createElement('div');
+    extensionContainer.id = 'opengov-voting-extension';
+    extensionContainer.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 999999;
+    `;
+    
+    // Append to body - this will trigger our observer again, but that's ok
+    document.body.appendChild(extensionContainer);
+    
+    // ALWAYS create a fresh Vue app instance - can't re-mount a removed app
+    try {
+      console.log('🔧 Creating fresh Vue app instance...');
+      const { createApp } = await import('vue');
+      const App = (await import('./App.vue')).default;
+      
+      // Create new instance
+      vueApp = createApp(App);
+      
+      // Mount to container
+      vueApp.mount('#opengov-voting-extension');
+      console.log('✅ Fresh Vue app created and mounted');
+      
+      // Verify it rendered
+      const menuButton = document.querySelector('.floating-button');
+      if (menuButton) {
+        console.log('✅ Menu button found in DOM - rendering successful!');
+      } else {
+        console.error('❌ Menu button NOT found in DOM after mounting!');
+      }
+    } catch (mountError) {
+      console.error('❌ Failed to create/mount Vue app:', mountError);
+      console.error('Error details:', mountError);
+    }
+  } catch (error) {
+    console.error('❌ Error re-injecting container:', error);
+  }
+}
 
 /**
  * Protect main container from removal by page's DOM manipulations
@@ -66,32 +132,40 @@ function setupContainerProtection() {
       if (mutation.type === 'childList' && mutation.removedNodes.length > 0) {
         mutation.removedNodes.forEach((node) => {
           if (node instanceof Element && node.id === 'opengov-voting-extension') {
-            console.warn('⚠️ Main extension container was removed! Re-injecting...');
+            const now = Date.now();
             
-            // Re-create and re-mount
-            setTimeout(() => {
-              const existing = document.getElementById('opengov-voting-extension');
-              if (!existing) {
-                const extensionContainer = document.createElement('div');
-                extensionContainer.id = 'opengov-voting-extension';
-                extensionContainer.style.cssText = `
-                  position: fixed;
-                  top: 0;
-                  left: 0;
-                  width: 100%;
-                  height: 100%;
-                  pointer-events: none;
-                  z-index: 999999;
-                `;
-                document.body.appendChild(extensionContainer);
-                
-                // Re-mount Vue app
-                if (vueApp) {
-                  vueApp.mount('#opengov-voting-extension');
-                  console.log('✅ Extension container restored');
-                }
-              }
-            }, 100);
+            // Track removal frequency
+            if (now - lastRemovalTime < 1000) {
+              removalCount++;
+            } else {
+              removalCount = 1;
+            }
+            lastRemovalTime = now;
+            
+            console.warn(`⚠️ Main extension container was removed! (${removalCount} times in last second)`);
+            
+            // Use longer delays to let page finish its initialization
+            // First removal: wait 1 second for page to settle
+            // Multiple removals: wait even longer
+            const delay = removalCount > 3 ? 3000 : removalCount > 1 ? 2000 : 1000;
+            console.log(`⏱️ Scheduling re-injection with ${delay}ms delay...`);
+            
+            // Debounce re-injection
+            if (reinjectionTimeout) {
+              clearTimeout(reinjectionTimeout);
+              console.log('🔄 Cancelled previous scheduled re-injection');
+            }
+            
+            reinjectionTimeout = window.setTimeout(() => {
+              console.log('⏰ Re-injection timeout fired, calling reinjectContainer()...');
+              reinjectContainer().then(() => {
+                console.log('✅ reinjectContainer() completed');
+              }).catch(error => {
+                console.error('❌ reinjectContainer() failed:', error);
+              });
+            }, delay);
+            
+            console.log(`✅ Re-injection scheduled (timeout ID: ${reinjectionTimeout})`);
           }
         });
       }
@@ -104,7 +178,19 @@ function setupContainerProtection() {
     subtree: false // Only direct children of body
   });
   
-  console.log('🛡️ Container protection activated');
+  // Also set up a continuous monitor that checks every 3 seconds
+  // This catches cases where setTimeout might have failed or been cleared
+  setInterval(() => {
+    const container = document.getElementById('opengov-voting-extension');
+    if (!container) {
+      console.warn('🔍 Periodic check: Container missing! Forcing re-injection...');
+      reinjectContainer().catch(error => {
+        console.error('❌ Periodic re-injection failed:', error);
+      });
+    }
+  }, 3000);
+  
+  console.log('🛡️ Container protection activated with adaptive debouncing + periodic monitoring');
 }
 
 async function initializeExtension() {
