@@ -125,23 +125,14 @@ window.addEventListener('message', function(event) {
   }
 });
 
-// Simple, robust initialization - wait for DOM then initialize
-function init() {
-  if (document.body) {
-    initializeExtension()
-  } else {
-    // DOM not ready, wait for it
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', initializeExtension)
-    } else {
-      // Try again soon
-      setTimeout(init, 100)
-    }
-  }
+// Simple initialization - one clear path
+if (document.readyState === 'loading') {
+  // DOM not ready, wait for it
+  document.addEventListener('DOMContentLoaded', initializeExtension)
+} else {
+  // DOM already ready, initialize immediately
+  initializeExtension()
 }
-
-// Start initialization
-init()
 
 // Cleanup on page unload
 window.addEventListener('beforeunload', () => {
