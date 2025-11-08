@@ -2,6 +2,16 @@
 // This script runs in the page context, not the extension context
 // It has access to window.injectedWeb3 and can interact with wallet extensions
 
+// Supported wallet extensions (in order of priority for signing)
+const SUPPORTED_WALLETS = [
+  'polkadot-js',
+  'talisman',
+  'subwallet',
+  'subwallet-js',
+  'SubWallet',
+  'nova-wallet'
+] as const;
+
 // Global object to store results
 ;(window as any).opengovVotingTool = {
   // Check if wallet extensions are available
@@ -98,17 +108,9 @@
     try {
       // We need to re-enable the wallet for signing since we don't store the enabled state
       // Let's try all available wallets to see which one has this address
-      const wallets = [
-        'polkadot-js', 
-        'talisman', 
-        'subwallet', 
-        'subwallet-js', 
-        'SubWallet',
-        'nova-wallet'
-      ]
       const injectedWeb3 = (window as any).injectedWeb3
       
-      for (const walletKey of wallets) {
+      for (const walletKey of SUPPORTED_WALLETS) {
         try {
           if (!injectedWeb3?.[walletKey]) {
             continue // Try next wallet
@@ -156,10 +158,9 @@
   signTransaction: async function(address: string, transaction: any) {
     try {
       // Similar logic to signMessage but for transactions
-      const wallets = ['polkadot-js', 'talisman', 'subwallet', 'subwallet-js', 'SubWallet']
       const injectedWeb3 = (window as any).injectedWeb3
       
-      for (const walletKey of wallets) {
+      for (const walletKey of SUPPORTED_WALLETS) {
         try {
           if (!injectedWeb3?.[walletKey]) {
             continue
@@ -267,20 +268,15 @@ function performWalletCheck() {
 }
 
 // Initial check and notification
-performWalletCheck()
+const initialResult = performWalletCheck()
 
-// Check again after delays to catch late injections
-setTimeout(() => {
-  performWalletCheck()
-}, 500)
-
-setTimeout(() => {
-  performWalletCheck()
-}, 1000)
-
-setTimeout(() => {
-  performWalletCheck()
-}, 2000)
+// Only retry once if no wallets found initially
+// Some wallets inject themselves slightly delayed
+if (!initialResult.hasPolkadotExtension) {
+  setTimeout(() => {
+    performWalletCheck()
+  }, 1000) // Single retry after 1 second
+}
 
 // Notify that the injector is ready
 window.postMessage({
