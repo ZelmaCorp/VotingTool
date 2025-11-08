@@ -152,53 +152,6 @@ const SUPPORTED_WALLETS = [
         error: error.message
       }
     }
-  },
-  
-  // Sign a transaction (for future use)
-  signTransaction: async function(address: string, transaction: any) {
-    try {
-      // Similar logic to signMessage but for transactions
-      const injectedWeb3 = (window as any).injectedWeb3
-      
-      for (const walletKey of SUPPORTED_WALLETS) {
-        try {
-          if (!injectedWeb3?.[walletKey]) {
-            continue
-          }
-          
-          const enabledWallet = await injectedWeb3[walletKey].enable()
-          const accounts = await enabledWallet.accounts.get()
-          const hasAddress = accounts.some((acc: any) => acc.address === address)
-          
-          if (hasAddress) {
-            // Sign the transaction
-            const { signature } = await enabledWallet.signer.signRaw({
-              address: address,
-              data: transaction,
-              type: 'bytes'
-            })
-            
-            return {
-              success: true,
-              signature: signature,
-              message: 'Transaction signed successfully',
-              wallet: walletKey
-            }
-          }
-        } catch (walletError) {
-          continue
-        }
-      }
-      
-      throw new Error('Could not find or enable wallet for this address')
-      
-    } catch (error: any) {
-      console.error('❌ Page context: Failed to sign transaction:', error)
-      return {
-        success: false,
-        error: error.message
-      }
-    }
   }
 }
 
@@ -229,16 +182,6 @@ window.addEventListener('message', function(event) {
     (window as any).opengovVotingTool.signMessage(address, message).then((result: any) => {
       window.postMessage({
         type: 'SIGNATURE_RESULT',
-        data: result
-      }, '*')
-    })
-  }
-  
-  if (event.data.type === 'SIGN_TRANSACTION') {
-    const { address, transaction } = event.data;
-    (window as any).opengovVotingTool.signTransaction(address, transaction).then((result: any) => {
-      window.postMessage({
-        type: 'TRANSACTION_SIGNATURE_RESULT',
         data: result
       }, '*')
     })
