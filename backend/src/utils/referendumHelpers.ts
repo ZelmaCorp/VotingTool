@@ -3,6 +3,7 @@ import { ReferendumAction } from '../types/auth';
 import { InternalStatus } from '../types/properties';
 import { createSubsystemLogger, formatError } from '../config/logger';
 import { Subsystem } from '../types/logging';
+import { applyStatusTransition } from './statusTransitions';
 
 const logger = createSubsystemLogger(Subsystem.APP);
 
@@ -69,10 +70,7 @@ export async function handleSuggestedVoteUpdate(
   try {
     // Auto-transition from Considering to ReadyForApproval
     if (currentStatus === InternalStatus.Considering) {
-      await db.run(
-        "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
-        [InternalStatus.ReadyForApproval, referendumId]
-      );
+      await applyStatusTransition(referendumId, InternalStatus.ReadyForApproval);
 
       logger.info({
         referendumId,

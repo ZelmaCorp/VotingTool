@@ -103,6 +103,71 @@ export function getTransitionErrorMessage(currentStatus: InternalStatus, newStat
 }
 
 /**
+ * Check if referendum should transition to ReadyToVote
+ */
+function shouldTransitionToReadyToVote(
+  currentStatus: InternalStatus,
+  agreementCount: number,
+  requiredAgreements: number,
+  hasVeto: boolean
+): boolean {
+  return (
+    (currentStatus === InternalStatus.WaitingForAgreement ||
+     currentStatus === InternalStatus.ReadyForApproval) &&
+    !hasVeto &&
+    agreementCount >= requiredAgreements
+  );
+}
+
+/**
+ * Check if referendum should transition back to WaitingForAgreement
+ */
+function shouldTransitionBackToWaiting(
+  currentStatus: InternalStatus,
+  agreementCount: number,
+  requiredAgreements: number
+): boolean {
+  return (
+    currentStatus === InternalStatus.ReadyToVote &&
+    agreementCount < requiredAgreements
+  );
+}
+
+/**
+ * Apply status transition to database
+ */
+export async function applyStatusTransition(
+  referendumId: number,
+  newStatus: InternalStatus
+): Promise<void> {
+  await db.run(
+    "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
+    [newStatus, referendumId]
+  );
+}
+
+/**
+ * Determine the target status for a referendum based on agreement stats
+ * @returns New status if transition needed, null otherwise
+ */
+function determineTargetStatus(
+  currentStatus: InternalStatus,
+  agreementCount: number,
+  requiredAgreements: number,
+  hasVeto: boolean
+): InternalStatus | null {
+  if (shouldTransitionToReadyToVote(currentStatus, agreementCount, requiredAgreements, hasVeto)) {
+    return InternalStatus.ReadyToVote;
+  }
+  
+  if (shouldTransitionBackToWaiting(currentStatus, agreementCount, requiredAgreements)) {
+    return InternalStatus.WaitingForAgreement;
+  }
+  
+  return null;
+}
+
+/**
  * Check and apply automatic status transitions based on agreement threshold
  * Handles both forward transition (WaitingForAgreement -> ReadyToVote) 
  * and backward transition (ReadyToVote -> WaitingForAgreement)
@@ -121,45 +186,25 @@ export async function checkAndApplyAgreementTransition(
     if (!currentRef) return;
     
     const { agreementCount, hasVeto, requiredAgreements } = await getAgreementStats(referendumId);
+    const targetStatus = determineTargetStatus(
+      currentRef.internal_status,
+      agreementCount,
+      requiredAgreements,
+      hasVeto
+    );
     
-    // Transition to ReadyToVote if threshold met
-    if (
-      (currentRef.internal_status === InternalStatus.WaitingForAgreement ||
-       currentRef.internal_status === InternalStatus.ReadyForApproval) &&
-      !hasVeto &&
-      agreementCount >= requiredAgreements
-    ) {
-      await db.run(
-        "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
-        [InternalStatus.ReadyToVote, referendumId]
-      );
+    if (targetStatus) {
+      await applyStatusTransition(referendumId, targetStatus);
       
       logger.info({
         referendumId,
         postId,
         chain,
+        oldStatus: currentRef.internal_status,
+        newStatus: targetStatus,
         agreementCount,
         requiredAgreements
-      }, "Auto-transitioned to 'Ready to vote' after reaching agreement threshold");
-    }
-    
-    // Transition back to WaitingForAgreement if threshold no longer met
-    if (
-      currentRef.internal_status === InternalStatus.ReadyToVote &&
-      agreementCount < requiredAgreements
-    ) {
-      await db.run(
-        "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
-        [InternalStatus.WaitingForAgreement, referendumId]
-      );
-      
-      logger.info({
-        referendumId,
-        postId,
-        chain,
-        agreementCount,
-        requiredAgreements
-      }, "Auto-transitioned back to 'Waiting for agreement' after agreement count dropped below threshold");
+      }, `Auto-transitioned to '${targetStatus}'`);
     }
   } catch (error) {
     logger.error({ 
@@ -169,6 +214,43 @@ export async function checkAndApplyAgreementTransition(
       chain 
     }, "Error checking agreement transition");
   }
+}
+
+/**
+ * Process a single referendum's pending transition
+ */
+async function processSingleReferendumTransition(
+  ref: { id: number; post_id: number; chain: string; internal_status: InternalStatus }
+): Promise<{ referendumId: number; postId: number; chain: string; oldStatus: string; newStatus: string } | null> {
+  const { agreementCount, hasVeto, requiredAgreements } = await getAgreementStats(ref.id);
+  const targetStatus = determineTargetStatus(
+    ref.internal_status,
+    agreementCount,
+    requiredAgreements,
+    hasVeto
+  );
+  
+  if (!targetStatus) return null;
+  
+  await applyStatusTransition(ref.id, targetStatus);
+  
+  logger.info({
+    referendumId: ref.id,
+    postId: ref.post_id,
+    chain: ref.chain,
+    oldStatus: ref.internal_status,
+    newStatus: targetStatus,
+    agreementCount,
+    requiredAgreements
+  }, `Processed pending transition to '${targetStatus}'`);
+  
+  return {
+    referendumId: ref.id,
+    postId: ref.post_id,
+    chain: ref.chain,
+    oldStatus: ref.internal_status,
+    newStatus: targetStatus
+  };
 }
 
 /**
@@ -182,12 +264,9 @@ export async function processAllPendingTransitions(): Promise<{
   transitioned: number,
   details: Array<{ referendumId: number, postId: number, chain: string, oldStatus: string, newStatus: string }>
 }> {
-  let processed = 0;
-  let transitioned = 0;
   const details: Array<{ referendumId: number, postId: number, chain: string, oldStatus: string, newStatus: string }> = [];
 
   try {
-    // Get all referendums that are in WaitingForAgreement or ReadyForApproval
     const referendums = await db.all(
       `SELECT id, post_id, chain, internal_status 
        FROM referendums 
@@ -198,85 +277,26 @@ export async function processAllPendingTransitions(): Promise<{
     logger.info({ count: referendums.length }, 'Processing pending status transitions');
 
     for (const ref of referendums) {
-      processed++;
-      const oldStatus = ref.internal_status;
-      
-      const { agreementCount, hasVeto, requiredAgreements } = await getAgreementStats(ref.id);
-
-      // Forward transition: WaitingForAgreement/ReadyForApproval -> ReadyToVote
-      if (
-        (ref.internal_status === InternalStatus.WaitingForAgreement ||
-         ref.internal_status === InternalStatus.ReadyForApproval) &&
-        !hasVeto &&
-        agreementCount >= requiredAgreements
-      ) {
-        await db.run(
-          "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
-          [InternalStatus.ReadyToVote, ref.id]
-        );
-        
-        transitioned++;
-        details.push({
-          referendumId: ref.id,
-          postId: ref.post_id,
-          chain: ref.chain,
-          oldStatus,
-          newStatus: InternalStatus.ReadyToVote
-        });
-        
-        logger.info({
-          referendumId: ref.id,
-          postId: ref.post_id,
-          chain: ref.chain,
-          agreementCount,
-          requiredAgreements,
-          oldStatus,
-          newStatus: InternalStatus.ReadyToVote
-        }, "Processed pending transition to 'Ready to vote'");
-      }
-      
-      // Backward transition: ReadyToVote -> WaitingForAgreement
-      else if (
-        ref.internal_status === InternalStatus.ReadyToVote &&
-        agreementCount < requiredAgreements
-      ) {
-        await db.run(
-          "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
-          [InternalStatus.WaitingForAgreement, ref.id]
-        );
-        
-        transitioned++;
-        details.push({
-          referendumId: ref.id,
-          postId: ref.post_id,
-          chain: ref.chain,
-          oldStatus,
-          newStatus: InternalStatus.WaitingForAgreement
-        });
-        
-        logger.info({
-          referendumId: ref.id,
-          postId: ref.post_id,
-          chain: ref.chain,
-          agreementCount,
-          requiredAgreements,
-          oldStatus,
-          newStatus: InternalStatus.WaitingForAgreement
-        }, "Processed pending transition back to 'Waiting for agreement'");
+      const result = await processSingleReferendumTransition(ref);
+      if (result) {
+        details.push(result);
       }
     }
 
     logger.info({ 
-      processed, 
-      transitioned 
+      processed: referendums.length, 
+      transitioned: details.length 
     }, 'Completed processing pending status transitions');
 
-    return { processed, transitioned, details };
+    return { 
+      processed: referendums.length, 
+      transitioned: details.length, 
+      details 
+    };
   } catch (error) {
     logger.error({ 
       error: formatError(error),
-      processed,
-      transitioned
+      processed: details.length
     }, "Error processing pending transitions");
     throw error;
   }
