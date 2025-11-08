@@ -77,6 +77,7 @@ export const authStore = {
                 // Store token in localStorage for persistence
                 localStorage.setItem('opengov-auth-token', response.token)
                 localStorage.setItem('opengov-auth-user', JSON.stringify(response.user))
+                localStorage.setItem('opengov-auth-last-verified', Date.now().toString())
                 
                 // Refresh ApiService token
                 ApiService.getInstance().refreshToken()
@@ -124,6 +125,7 @@ export const authStore = {
             // Clear localStorage
             localStorage.removeItem('opengov-auth-token')
             localStorage.removeItem('opengov-auth-user')
+            localStorage.removeItem('opengov-auth-last-verified')
             
             // Refresh ApiService token
             ApiService.getInstance().refreshToken()
@@ -135,7 +137,7 @@ export const authStore = {
         }
     },
 
-    async verifyToken(): Promise<boolean> {
+    async verifyToken(silentFail: boolean = false): Promise<boolean> {
         try {
             if (!state.token) return false
             
@@ -148,14 +150,20 @@ export const authStore = {
                 }
                 return true
             } else {
-                // Token invalid, clear state
-                this.logout()
+                // Token invalid, clear state only if not silent
+                if (!silentFail) {
+                    console.warn('Token verification failed:', response.error)
+                    this.logout()
+                }
                 return false
             }
         } catch (error) {
             console.error('Token verification error:', error)
-            // Token verification failed, clear state
-            this.logout()
+            // Only logout on verification failure if not silent mode
+            // Silent mode allows temporary network issues without logging out
+            if (!silentFail) {
+                this.logout()
+            }
             return false
         }
     },
@@ -164,6 +172,7 @@ export const authStore = {
     initializeFromStorage(): void {
         const token = localStorage.getItem('opengov-auth-token')
         const userStr = localStorage.getItem('opengov-auth-user')
+        const lastVerifiedStr = localStorage.getItem('opengov-auth-last-verified')
         
         if (token && userStr) {
             try {
@@ -172,8 +181,21 @@ export const authStore = {
                 state.user = user
                 state.isAuthenticated = true
                 
-                // Verify token is still valid
-                this.verifyToken()
+                // Only verify token if it hasn't been verified recently (within last hour)
+                const lastVerified = lastVerifiedStr ? parseInt(lastVerifiedStr) : 0
+                const hourInMs = 60 * 60 * 1000
+                const shouldVerify = Date.now() - lastVerified > hourInMs
+                
+                if (shouldVerify) {
+                    // Verify in background, but don't logout on failure (silent mode)
+                    // This allows the user to stay logged in even with temporary network issues
+                    this.verifyToken(true).then(valid => {
+                        if (valid) {
+                            localStorage.setItem('opengov-auth-last-verified', Date.now().toString())
+                        }
+                        // Don't logout on failure - let API calls handle 401s naturally
+                    })
+                }
             } catch (error) {
                 console.error('Error parsing stored auth data:', error)
                 this.logout()
