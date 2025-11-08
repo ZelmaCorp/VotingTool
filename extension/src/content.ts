@@ -53,6 +53,59 @@ console.log('🚀 OpenGov VotingTool: Starting initialization...')
 
 // Initialize content injector
 let contentInjector: ContentInjector | null = null;
+let vueApp: any = null;
+let removalObserver: MutationObserver | null = null;
+
+/**
+ * Protect main container from removal by page's DOM manipulations
+ */
+function setupContainerProtection() {
+  removalObserver = new MutationObserver((mutations) => {
+    for (const mutation of mutations) {
+      // Check if our container was removed
+      if (mutation.type === 'childList' && mutation.removedNodes.length > 0) {
+        mutation.removedNodes.forEach((node) => {
+          if (node instanceof Element && node.id === 'opengov-voting-extension') {
+            console.warn('⚠️ Main extension container was removed! Re-injecting...');
+            
+            // Re-create and re-mount
+            setTimeout(() => {
+              const existing = document.getElementById('opengov-voting-extension');
+              if (!existing) {
+                const extensionContainer = document.createElement('div');
+                extensionContainer.id = 'opengov-voting-extension';
+                extensionContainer.style.cssText = `
+                  position: fixed;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 100%;
+                  pointer-events: none;
+                  z-index: 999999;
+                `;
+                document.body.appendChild(extensionContainer);
+                
+                // Re-mount Vue app
+                if (vueApp) {
+                  vueApp.mount('#opengov-voting-extension');
+                  console.log('✅ Extension container restored');
+                }
+              }
+            }, 100);
+          }
+        });
+      }
+    }
+  });
+  
+  // Watch the body for removal of our container
+  removalObserver.observe(document.body, {
+    childList: true,
+    subtree: false // Only direct children of body
+  });
+  
+  console.log('🛡️ Container protection activated');
+}
 
 async function initializeExtension() {
   try {
@@ -73,8 +126,11 @@ async function initializeExtension() {
     document.body.appendChild(extensionContainer);
 
     // Initialize Vue app
-    const app = createApp(App);
-    app.mount('#opengov-voting-extension');
+    vueApp = createApp(App);
+    vueApp.mount('#opengov-voting-extension');
+    
+    // Set up protection against removal
+    setupContainerProtection();
     
     // Initialize content injector for status badges
     contentInjector = ContentInjector.getInstance();

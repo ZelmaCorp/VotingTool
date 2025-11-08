@@ -20,6 +20,9 @@ export class ContentInjector {
     private isInjecting: boolean = false;
     private isInitialized: boolean = false;
     private currentProposalId: number | null = null;
+    private controlsObserver: MutationObserver | null = null;
+    private lastProposal: DetectedProposal | null = null;
+    private lastProposalData: ProposalData | null = null;
 
     constructor() {
         this.detector = ProposalDetector.getInstance();
@@ -319,6 +322,13 @@ export class ContentInjector {
         // Store the app instance for cleanup
         this.injectedComponents.set(proposal.postId, app);
 
+        // Store last injection data for recovery
+        this.lastProposal = proposal;
+        this.lastProposalData = proposalData;
+
+        // Set up protection against removal
+        this.setupVotingControlsProtection();
+
         console.log('✅ Injected voting controls for proposal', proposal.postId);
         
         } catch (error) {
@@ -326,6 +336,46 @@ export class ContentInjector {
         } finally {
             this.isInjecting = false;
         }
+    }
+
+    /**
+     * Protect voting controls from removal by page's DOM manipulations
+     */
+    private setupVotingControlsProtection(): void {
+        // Disconnect existing observer if any
+        if (this.controlsObserver) {
+            this.controlsObserver.disconnect();
+        }
+
+        this.controlsObserver = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                if (mutation.type === 'childList' && mutation.removedNodes.length > 0) {
+                    mutation.removedNodes.forEach((node) => {
+                        // Check if our voting controls container was removed
+                        if (node instanceof Element && node.id === 'voting-tool-controls-container') {
+                            console.warn('⚠️ Voting controls container was removed! Attempting recovery...');
+                            
+                            // Re-inject after a short delay
+                            setTimeout(async () => {
+                                const existing = document.getElementById('voting-tool-controls-container');
+                                if (!existing && this.lastProposal && this.currentProposalId === this.lastProposal.postId) {
+                                    console.log('🔄 Re-injecting voting controls...');
+                                    await this.injectVotingControls(this.lastProposal, this.lastProposalData);
+                                }
+                            }, 200);
+                        }
+                    });
+                }
+            }
+        });
+
+        // Watch the entire page for removal
+        this.controlsObserver.observe(document.body, {
+            childList: true,
+            subtree: true // Watch deeply for nested removals
+        });
+
+        console.log('🛡️ Voting controls protection activated');
     }
 
     /**
@@ -884,6 +934,12 @@ export class ContentInjector {
     cleanup(): void {
         this.cleanupExistingInjections();
         
+        // Disconnect protection observer
+        if (this.controlsObserver) {
+            this.controlsObserver.disconnect();
+            this.controlsObserver = null;
+        }
+        
         // Clean up event listeners and watchers
         this.cleanupFunctions.forEach(cleanup => cleanup());
         this.cleanupFunctions = [];
@@ -905,6 +961,8 @@ export class ContentInjector {
         // Reset initialization state
         this.isInitialized = false;
         this.currentProposalId = null;
+        this.lastProposal = null;
+        this.lastProposalData = null;
         
         console.log('🧹 Content injector cleaned up');
     }
