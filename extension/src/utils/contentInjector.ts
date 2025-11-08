@@ -174,119 +174,65 @@ export class ContentInjector {
     }
 
     /**
-     * Inject voting controls component for referenda detail pages
+     * Find wrapper with retry logic
      */
-    private async injectVotingControls(proposal: DetectedProposal, proposalData: ProposalData | null): Promise<void> {
-        try {
-            console.log('🎯 Injecting voting controls for proposal', proposal.postId);
-            console.log('🔍 Current URL:', window.location.href);
-
-            // Prevent multiple simultaneous injections
-            if (this.isInjecting) {
-                console.log('⚠️ Already injecting voting controls, skipping to prevent race condition');
-                return;
-            }
-
-            // Check if already injected for this specific proposal
-            const existingControls = document.querySelector('#voting-tool-controls') || 
-                                    document.querySelector('#voting-tool-controls-container') ||
-                                    document.querySelector(`[data-opengov-proposal="${proposal.postId}"]`);
-            if (existingControls) {
-                console.log('⚠️ Voting controls already exist for proposal', proposal.postId, ', skipping');
-                return;
-            }
-
-            this.isInjecting = true;
-
-        // Since we're on a referenda page, the element MUST exist - retry aggressively
-        let rightWrapper: HTMLElement | null = null;
-        let retryCount = 0;
-        const maxRetries = 10; // Increased to 10 retries
-        
+    private async findRightWrapperWithRetry(): Promise<HTMLElement | null> {
         console.log('🔄 Starting aggressive retry mechanism for referenda page...');
+        const maxRetries = 10;
         
-        while (!rightWrapper && retryCount < maxRetries) {
-            retryCount++;
+        for (let retryCount = 1; retryCount <= maxRetries; retryCount++) {
             console.log(`🔄 Attempt ${retryCount}/${maxRetries} to find PostDetails_rightWrapper...`);
             
             if (retryCount > 1) {
-                await sleep(1000); // Wait 1 second before retry (except first attempt)
+                await sleep(1000);
             }
             
-            rightWrapper = this.findPostDetailsRightWrapper();
-            
-            if (rightWrapper) {
+            const wrapper = this.findPostDetailsRightWrapper();
+            if (wrapper) {
                 console.log(`✅ Found element on attempt ${retryCount}!`);
-                break;
-            } else {
-                console.log(`❌ Attempt ${retryCount} failed, element not found`);
-                
+                return wrapper;
             }
+            
+            console.log(`❌ Attempt ${retryCount} failed, element not found`);
         }
-
-        // If still not found after all retries, this is a critical issue
-        if (!rightWrapper) {
-            console.error('💥 CRITICAL: PostDetails_rightWrapper not found after 10 retries on referenda page!');
-            console.error('💥 This should never happen on a valid referenda page');
-            console.error('💥 URL:', window.location.href);
-            console.error('💥 Page title:', document.title);
-            console.error('💥 Body HTML preview:', document.body.innerHTML.substring(0, 500));
-            
-            // Last resort: create fallback container but log it as an error
-            console.log('🆘 Creating emergency fallback container...');
-            rightWrapper = document.createElement('div');
-            rightWrapper.style.cssText = `
-                position: fixed;
-                top: 80px;
-                right: 20px;
-                z-index: 1000000;
-                max-width: 400px;
-                background: rgba(255, 0, 0, 0.9);
-                color: white;
-                backdrop-filter: blur(10px);
-                border-radius: 12px;
-                padding: 16px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-                border: 2px solid red;
-            `;
-            
-            // Add error message
-            const errorMsg = document.createElement('div');
-            errorMsg.innerHTML = `
-                <strong>⚠️ FALLBACK MODE</strong><br>
-                Could not find page element.<br>
-                Please report this issue.
-            `;
-            rightWrapper.appendChild(errorMsg);
-            
-            document.body.appendChild(rightWrapper);
-            console.log('🆘 Emergency fallback container created');
-        }
-
-        console.log('✅ Using wrapper element:', rightWrapper.className || 'fallback-container');
-
-        // Create container for voting controls
-        const container = document.createElement('div');
-        container.id = 'voting-tool-controls-container';
-        container.setAttribute('data-opengov-proposal', proposal.postId.toString());
         
-        // Insert at the top of the right wrapper
-        rightWrapper.insertBefore(container, rightWrapper.firstChild);
+        return null;
+    }
 
-        // Fetch current assignment data from the database (single source of truth)
-        let assignedTo: string | null = null;
+    /**
+     * Create emergency fallback container
+     */
+    private createFallbackWrapper(): HTMLElement {
+        console.error('💥 CRITICAL: PostDetails_rightWrapper not found after retries!');
+        console.log('🆘 Creating emergency fallback container...');
+        
+        const fallback = document.createElement('div');
+        fallback.style.cssText = `
+            position: fixed; top: 80px; right: 20px; z-index: 1000000;
+            max-width: 400px; background: rgba(255, 0, 0, 0.9); color: white;
+            backdrop-filter: blur(10px); border-radius: 12px; padding: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); border: 2px solid red;
+        `;
+        
+        fallback.innerHTML = `<strong>⚠️ FALLBACK MODE</strong><br>Could not find page element.<br>Please report this issue.`;
+        document.body.appendChild(fallback);
+        
+        return fallback;
+    }
+
+    /**
+     * Fetch proposal metadata (assignment + team members)
+     */
+    private async fetchProposalMetadata(proposal: DetectedProposal, proposalData: ProposalData | null): Promise<{
+        assignedTo: string | null;
+        teamMembers: TeamMember[];
+    }> {
+        let assignedTo: string | null = proposalData?.assigned_to || null;
         let teamMembers: TeamMember[] = [];
+        
         try {
-            // Get assignment from proposal data
-            assignedTo = proposalData?.assigned_to || null;
-            if (assignedTo) {
-                console.log(`📋 Proposal ${proposal.postId} is assigned to:`, assignedTo);
-            }
-            
-            // Fetch team members for name resolution
             const agreementSummary = await this.apiService.getAgreementSummary(proposal.postId, proposal.chain);
             if (agreementSummary) {
-                // Collect all unique team members from different arrays
                 const allMembers = [
                     ...agreementSummary.agreed_members,
                     ...agreementSummary.pending_members,
@@ -294,17 +240,28 @@ export class ContentInjector {
                     ...agreementSummary.to_be_discussed_members
                 ];
                 
-                // Remove duplicates by address
                 teamMembers = allMembers.filter((member, index, self) => 
                     index === self.findIndex(m => m.address === member.address)
                 );
-                console.log(`👥 Found ${teamMembers.length} team members for name resolution`);
+                console.log(`👥 Found ${teamMembers.length} team members`);
             }
         } catch (error) {
-            console.warn('⚠️ Could not fetch assignment data:', error);
+            console.warn('⚠️ Could not fetch metadata:', error);
         }
+        
+        return { assignedTo, teamMembers };
+    }
 
-        // Create Vue app and mount the VotingControls component
+    /**
+     * Mount voting controls Vue app
+     */
+    private mountVotingControls(
+        container: HTMLElement,
+        proposal: DetectedProposal,
+        proposalData: ProposalData | null,
+        assignedTo: string | null,
+        teamMembers: TeamMember[]
+    ): void {
         const app = createApp(VotingControls, {
             status: proposalData?.internal_status || 'Not started',
             proposalId: proposal.postId,
@@ -312,27 +269,60 @@ export class ContentInjector {
             isAuthenticated: this.apiService.isAuthenticated(),
             suggestedVote: proposalData?.suggested_vote || null,
             reasonForVote: proposalData?.reason_for_vote || null,
-            assignedTo: assignedTo,
-            teamMembers: teamMembers,
+            assignedTo,
+            teamMembers,
             chain: proposal.chain
         });
-
-        app.mount(container);
-
-        // Store the app instance for cleanup
-        this.injectedComponents.set(proposal.postId, app);
-
-        // Store last injection data for recovery
-        this.lastProposal = proposal;
-        this.lastProposalData = proposalData;
-
-        // Set up protection against removal
-        this.setupVotingControlsProtection();
-
-        console.log('✅ Injected voting controls for proposal', proposal.postId);
         
+        app.mount(container);
+        this.injectedComponents.set(proposal.postId, app);
+    }
+
+    /**
+     * Inject voting controls component for referenda detail pages
+     */
+    private async injectVotingControls(proposal: DetectedProposal, proposalData: ProposalData | null): Promise<void> {
+        try {
+            console.log('🎯 Injecting voting controls for proposal', proposal.postId);
+
+            // Prevent duplicate injection
+            if (this.isInjecting) {
+                console.log('⚠️ Already injecting, skipping');
+                return;
+            }
+            
+            const existingControls = document.querySelector(`[data-opengov-proposal="${proposal.postId}"]`);
+            if (existingControls) {
+                console.log('⚠️ Controls already exist, skipping');
+                return;
+            }
+
+            this.isInjecting = true;
+
+            // Find or create wrapper
+            let rightWrapper = await this.findRightWrapperWithRetry();
+            if (!rightWrapper) {
+                rightWrapper = this.createFallbackWrapper();
+            }
+
+            // Create container
+            const container = document.createElement('div');
+            container.id = 'voting-tool-controls-container';
+            container.setAttribute('data-opengov-proposal', proposal.postId.toString());
+            rightWrapper.insertBefore(container, rightWrapper.firstChild);
+
+            // Fetch metadata and mount
+            const { assignedTo, teamMembers } = await this.fetchProposalMetadata(proposal, proposalData);
+            this.mountVotingControls(container, proposal, proposalData, assignedTo, teamMembers);
+
+            // Store and protect
+            this.lastProposal = proposal;
+            this.lastProposalData = proposalData;
+            this.setupVotingControlsProtection();
+
+            console.log('✅ Injected voting controls');
         } catch (error) {
-            console.error('❌ Error injecting voting controls:', error);
+            console.error('❌ Error injecting controls:', error);
         } finally {
             this.isInjecting = false;
         }
