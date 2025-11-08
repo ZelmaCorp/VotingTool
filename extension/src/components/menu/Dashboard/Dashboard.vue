@@ -9,7 +9,7 @@
           <div v-if="teamStore.daoConfig?.multisig_address" class="multisig-info">
             <span class="multisig-label">Multisig:</span>
             <span class="multisig-address" :title="teamStore.daoConfig.multisig_address">
-              {{ formatAddress(teamStore.daoConfig.multisig_address) }}
+              {{ teamStore.daoConfig.multisig_address }}
             </span>
           </div>
         </div>
