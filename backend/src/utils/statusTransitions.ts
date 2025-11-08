@@ -124,7 +124,8 @@ export async function checkAndApplyAgreementTransition(
     
     // Transition to ReadyToVote if threshold met
     if (
-      currentRef.internal_status === InternalStatus.WaitingForAgreement &&
+      (currentRef.internal_status === InternalStatus.WaitingForAgreement ||
+       currentRef.internal_status === InternalStatus.ReadyForApproval) &&
       !hasVeto &&
       agreementCount >= requiredAgreements
     ) {
@@ -167,6 +168,117 @@ export async function checkAndApplyAgreementTransition(
       postId, 
       chain 
     }, "Error checking agreement transition");
+  }
+}
+
+/**
+ * Processes all pending status transitions for referendums
+ * This is a failsafe that checks all referendums that should transition to ReadyToVote
+ * or back to WaitingForAgreement based on agreement counts
+ * @returns Number of transitions processed
+ */
+export async function processAllPendingTransitions(): Promise<{ 
+  processed: number, 
+  transitioned: number,
+  details: Array<{ referendumId: number, postId: number, chain: string, oldStatus: string, newStatus: string }>
+}> {
+  let processed = 0;
+  let transitioned = 0;
+  const details: Array<{ referendumId: number, postId: number, chain: string, oldStatus: string, newStatus: string }> = [];
+
+  try {
+    // Get all referendums that are in WaitingForAgreement or ReadyForApproval
+    const referendums = await db.all(
+      `SELECT id, post_id, chain, internal_status 
+       FROM referendums 
+       WHERE internal_status IN (?, ?, ?)`,
+      [InternalStatus.WaitingForAgreement, InternalStatus.ReadyForApproval, InternalStatus.ReadyToVote]
+    );
+
+    logger.info({ count: referendums.length }, 'Processing pending status transitions');
+
+    for (const ref of referendums) {
+      processed++;
+      const oldStatus = ref.internal_status;
+      
+      const { agreementCount, hasVeto, requiredAgreements } = await getAgreementStats(ref.id);
+
+      // Forward transition: WaitingForAgreement/ReadyForApproval -> ReadyToVote
+      if (
+        (ref.internal_status === InternalStatus.WaitingForAgreement ||
+         ref.internal_status === InternalStatus.ReadyForApproval) &&
+        !hasVeto &&
+        agreementCount >= requiredAgreements
+      ) {
+        await db.run(
+          "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
+          [InternalStatus.ReadyToVote, ref.id]
+        );
+        
+        transitioned++;
+        details.push({
+          referendumId: ref.id,
+          postId: ref.post_id,
+          chain: ref.chain,
+          oldStatus,
+          newStatus: InternalStatus.ReadyToVote
+        });
+        
+        logger.info({
+          referendumId: ref.id,
+          postId: ref.post_id,
+          chain: ref.chain,
+          agreementCount,
+          requiredAgreements,
+          oldStatus,
+          newStatus: InternalStatus.ReadyToVote
+        }, "Processed pending transition to 'Ready to vote'");
+      }
+      
+      // Backward transition: ReadyToVote -> WaitingForAgreement
+      else if (
+        ref.internal_status === InternalStatus.ReadyToVote &&
+        agreementCount < requiredAgreements
+      ) {
+        await db.run(
+          "UPDATE referendums SET internal_status = ?, updated_at = datetime('now') WHERE id = ?",
+          [InternalStatus.WaitingForAgreement, ref.id]
+        );
+        
+        transitioned++;
+        details.push({
+          referendumId: ref.id,
+          postId: ref.post_id,
+          chain: ref.chain,
+          oldStatus,
+          newStatus: InternalStatus.WaitingForAgreement
+        });
+        
+        logger.info({
+          referendumId: ref.id,
+          postId: ref.post_id,
+          chain: ref.chain,
+          agreementCount,
+          requiredAgreements,
+          oldStatus,
+          newStatus: InternalStatus.WaitingForAgreement
+        }, "Processed pending transition back to 'Waiting for agreement'");
+      }
+    }
+
+    logger.info({ 
+      processed, 
+      transitioned 
+    }, 'Completed processing pending status transitions');
+
+    return { processed, transitioned, details };
+  } catch (error) {
+    logger.error({ 
+      error: formatError(error),
+      processed,
+      transitioned
+    }, "Error processing pending transitions");
+    throw error;
   }
 }
 
