@@ -1,5 +1,6 @@
 import { Request, Response, Router } from 'express';
 import { refreshReferendas } from '../refresh';
+import { processAllPendingTransitions } from '../utils/statusTransitions';
 import { createSubsystemLogger, formatError } from '../config/logger';
 import { Subsystem } from '../types/logging';
 
@@ -25,6 +26,28 @@ router.get('/refresh-referendas', async (req: Request, res: Response) => {
     });
   } catch (error) {
     res.status(500).json({ error: "Error starting refresh: " + (error as any).message });
+  }
+});
+
+// Process pending status transitions (failsafe)
+router.get('/process-pending-transitions', async (req: Request, res: Response) => {
+  try {
+    logger.info('Processing pending status transitions (manual trigger)');
+    
+    const result = await processAllPendingTransitions();
+    
+    res.json({
+      message: 'Pending transitions processed successfully',
+      timestamp: new Date().toISOString(),
+      processed: result.processed,
+      transitioned: result.transitioned,
+      details: result.details
+    });
+  } catch (error) {
+    logger.error({ error: formatError(error) }, 'Error processing pending transitions');
+    res.status(500).json({ 
+      error: "Error processing pending transitions: " + (error as any).message 
+    });
   }
 });
 
