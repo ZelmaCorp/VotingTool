@@ -2,7 +2,6 @@
 // Handles injection of UI components into Polkassembly/Subsquare pages
 
 import { createApp, App as VueApp } from 'vue';
-import StatusBadge from '../components/StatusBadge.vue';
 import VotingControls from '../components/VotingControls.vue';
 import { ProposalDetector, type DetectedProposal } from './proposalDetector';
 import { TabDetector, type ActiveTabInfo } from './tabDetector';
@@ -18,10 +17,12 @@ export class ContentInjector {
     private injectedComponents: Map<number, VueApp> = new Map();
     private proposalCache: Map<string, ProposalData> = new Map();
     private cleanupFunctions: (() => void)[] = [];
-    private currentActiveTab: ActiveTabInfo | null = null;
     private isInjecting: boolean = false;
     private isInitialized: boolean = false;
     private currentProposalId: number | null = null;
+    private controlsObserver: MutationObserver | null = null;
+    private lastProposal: DetectedProposal | null = null;
+    private lastProposalData: ProposalData | null = null;
 
     constructor() {
         this.detector = ProposalDetector.getInstance();
@@ -54,8 +55,7 @@ export class ContentInjector {
 
         this.isInitialized = true;
 
-        // Check initial page and tab state
-        this.currentActiveTab = this.tabDetector.detectActiveTab();
+        // Check initial page state
         await this.handlePageChange();
 
         // Watch for navigation changes
@@ -63,14 +63,6 @@ export class ContentInjector {
             await this.handlePageChange();
         });
         this.cleanupFunctions.push(cleanup);
-
-        // Watch for tab changes
-        const tabCleanup = this.tabDetector.watchForTabChanges(async (tabInfo) => {
-            console.log('🔄 Tab change detected:', tabInfo);
-            this.currentActiveTab = tabInfo;
-            await this.handleTabChange(tabInfo);
-        });
-        this.cleanupFunctions.push(tabCleanup);
 
         // Mutation observer removed - it was causing re-injection loops and blinking
         // The multiple initialization strategies (DOMContentLoaded, window.onload, retries) 
@@ -152,36 +144,11 @@ export class ContentInjector {
                 }
             }
         } else {
-            // Check for proposal lists
-            console.log('🔍 Searching for table rows with selectors: tr.border-b, tr[class*="border"]');
-            const tableRows = document.querySelectorAll('tr.border-b, tr[class*="border"]');
-            console.log('📊 Found table rows:', tableRows.length);
-            
-            while (this.detector.isStillLoading()) {
-                // wait for 1 second
-                await sleep(1000);
-                console.log('🔍 Still loading, waiting for 1 second...');
-            }
-
-            const proposals = this.detector.detectProposalsOnListPage();
-            
-            if (proposals.length > 0) {
-                console.log('📋 Detected proposals on list page:', proposals.length);
-                proposals.forEach((p, index) => {
-                    console.log(`  Proposal ${index}: #${p.postId} - ${p.title.substring(0, 50)}...`);
-                });
-                // For list pages, we need to cleanup and re-inject as the list might have changed
+            // Not on a proposal detail page, cleanup any existing injections
+            if (this.currentProposalId !== null || this.injectedComponents.size > 0) {
+                console.log('🧹 Not on a proposal detail page, cleaning up injections');
                 this.cleanupExistingInjections();
                 this.currentProposalId = null;
-                await this.injectListPageComponents(proposals);
-            } else {
-                console.log('❌ No proposals detected on list page');
-                // If we're not on any recognizable page, cleanup
-                if (this.currentProposalId !== null || this.injectedComponents.size > 0) {
-                    console.log('🧹 Not on a recognized page, cleaning up all injections');
-                    this.cleanupExistingInjections();
-                    this.currentProposalId = null;
-                }
             }
         }
     }
@@ -197,60 +164,118 @@ export class ContentInjector {
         const referendaDetailPattern = /\/referenda\/\d+/;
         if (referendaDetailPattern.test(window.location.pathname)) {
             console.log('📋 Detected referenda detail page, injecting voting controls');
-            console.log('🔍 URL:', window.location.pathname);
-            console.log('✅ Referenda detail pages always show voting controls, ignoring tab restrictions');
             
             // Add a small delay to ensure the page is fully rendered
             await sleep(500);
             
             await this.injectVotingControls(proposal, proposalData);
-        } else {
-            // For other proposal pages (list pages), check tab restrictions
-            if (this.tabDetector.isOnCategoryPage()) {
-                const currentTab = this.currentActiveTab || this.tabDetector.detectActiveTab();
-                if (!currentTab.shouldShowBadges) {
-                    console.log(`⏸️ Not showing badge for list page - active tab "${currentTab.activeCategory}" is not tracked`);
-                    return;
-                }
-            }
-            
-            // Inject status badge for list pages
-            await this.injectStatusBadge(proposal, proposalData);
         }
+        // Note: We no longer inject badges on list pages
     }
 
     /**
-     * Inject components for proposal list pages
+     * Find wrapper with retry logic
      */
-    private async injectListPageComponents(proposals: DetectedProposal[]): Promise<void> {
-        console.log(`🚀 Starting injection for ${proposals.length} proposals`);
+    private async findRightWrapperWithRetry(): Promise<HTMLElement | null> {
+        console.log('🔄 Starting aggressive retry mechanism for referenda page...');
+        const maxRetries = 10;
         
-        // Check if we should show badges based on current active tab
-        const currentTab = this.currentActiveTab || this.tabDetector.detectActiveTab();
-        
-        if (!currentTab.shouldShowBadges) {
-            console.log(`⏸️ Not showing badges - active tab "${currentTab.activeCategory}" is not tracked`);
-            return;
-        }
-        
-        console.log(`✅ Showing badges - active tab "${currentTab.activeCategory}" is tracked`);
-        
-        for (let i = 0; i < proposals.length; i++) {
-            const proposal = proposals[i];
-            console.log(`📌 Processing proposal ${i + 1}/${proposals.length}: #${proposal.postId}`);
+        for (let retryCount = 1; retryCount <= maxRetries; retryCount++) {
+            console.log(`🔄 Attempt ${retryCount}/${maxRetries} to find PostDetails_rightWrapper...`);
             
-            try {
-                const proposalData = await this.getProposalData(proposal.postId, proposal.chain);
-                
-                // Inject status badge for each proposal in the list
-                await this.injectStatusBadge(proposal, proposalData);
-                console.log(`✅ Successfully injected badge for proposal #${proposal.postId}`);
-            } catch (error) {
-                console.error(`❌ Failed to inject badge for proposal #${proposal.postId}:`, error);
+            if (retryCount > 1) {
+                await sleep(1000);
             }
+            
+            const wrapper = this.findPostDetailsRightWrapper();
+            if (wrapper) {
+                console.log(`✅ Found element on attempt ${retryCount}!`);
+                return wrapper;
+            }
+            
+            console.log(`❌ Attempt ${retryCount} failed, element not found`);
         }
         
-        console.log(`🎉 Completed injection for all ${proposals.length} proposals`);
+        return null;
+    }
+
+    /**
+     * Create emergency fallback container
+     */
+    private createFallbackWrapper(): HTMLElement {
+        console.error('💥 CRITICAL: PostDetails_rightWrapper not found after retries!');
+        console.log('🆘 Creating emergency fallback container...');
+        
+        const fallback = document.createElement('div');
+        fallback.style.cssText = `
+            position: fixed; top: 80px; right: 20px; z-index: 1000000;
+            max-width: 400px; background: rgba(255, 0, 0, 0.9); color: white;
+            backdrop-filter: blur(10px); border-radius: 12px; padding: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); border: 2px solid red;
+        `;
+        
+        fallback.innerHTML = `<strong>⚠️ FALLBACK MODE</strong><br>Could not find page element.<br>Please report this issue.`;
+        document.body.appendChild(fallback);
+        
+        return fallback;
+    }
+
+    /**
+     * Fetch proposal metadata (assignment + team members)
+     */
+    private async fetchProposalMetadata(proposal: DetectedProposal, proposalData: ProposalData | null): Promise<{
+        assignedTo: string | null;
+        teamMembers: TeamMember[];
+    }> {
+        let assignedTo: string | null = proposalData?.assigned_to || null;
+        let teamMembers: TeamMember[] = [];
+        
+        try {
+            const agreementSummary = await this.apiService.getAgreementSummary(proposal.postId, proposal.chain);
+            if (agreementSummary) {
+                const allMembers = [
+                    ...agreementSummary.agreed_members,
+                    ...agreementSummary.pending_members,
+                    ...agreementSummary.recused_members,
+                    ...agreementSummary.to_be_discussed_members
+                ];
+                
+                teamMembers = allMembers.filter((member, index, self) => 
+                    index === self.findIndex(m => m.address === member.address)
+                );
+                console.log(`👥 Found ${teamMembers.length} team members`);
+            }
+        } catch (error) {
+            console.warn('⚠️ Could not fetch metadata:', error);
+        }
+        
+        return { assignedTo, teamMembers };
+    }
+
+    /**
+     * Mount voting controls Vue app
+     */
+    private mountVotingControls(
+        container: HTMLElement,
+        proposal: DetectedProposal,
+        proposalData: ProposalData | null,
+        assignedTo: string | null,
+        teamMembers: TeamMember[]
+    ): void {
+        const app = createApp(VotingControls, {
+            status: proposalData?.internal_status || 'Not started',
+            proposalId: proposal.postId,
+            editable: this.apiService.isAuthenticated(),
+            isAuthenticated: this.apiService.isAuthenticated(),
+            suggestedVote: proposalData?.suggested_vote || null,
+            reasonForVote: proposalData?.reason_for_vote || null,
+            assignedTo,
+            teamMembers,
+            chain: proposal.chain
+        });
+        
+        app.mount(container);
+        this.injectedComponents.set(proposal.postId, app);
     }
 
     /**
@@ -259,156 +284,88 @@ export class ContentInjector {
     private async injectVotingControls(proposal: DetectedProposal, proposalData: ProposalData | null): Promise<void> {
         try {
             console.log('🎯 Injecting voting controls for proposal', proposal.postId);
-            console.log('🔍 Current URL:', window.location.href);
 
-            // Prevent multiple simultaneous injections
+            // Prevent duplicate injection
             if (this.isInjecting) {
-                console.log('⚠️ Already injecting voting controls, skipping to prevent race condition');
+                console.log('⚠️ Already injecting, skipping');
                 return;
             }
-
-            // Check if already injected for this specific proposal
-            const existingControls = document.querySelector('#voting-tool-controls') || 
-                                    document.querySelector('#voting-tool-controls-container') ||
-                                    document.querySelector(`[data-opengov-proposal="${proposal.postId}"]`);
+            
+            const existingControls = document.querySelector(`[data-opengov-proposal="${proposal.postId}"]`);
             if (existingControls) {
-                console.log('⚠️ Voting controls already exist for proposal', proposal.postId, ', skipping');
+                console.log('⚠️ Controls already exist, skipping');
                 return;
             }
 
             this.isInjecting = true;
 
-        // Since we're on a referenda page, the element MUST exist - retry aggressively
-        let rightWrapper: HTMLElement | null = null;
-        let retryCount = 0;
-        const maxRetries = 10; // Increased to 10 retries
-        
-        console.log('🔄 Starting aggressive retry mechanism for referenda page...');
-        
-        while (!rightWrapper && retryCount < maxRetries) {
-            retryCount++;
-            console.log(`🔄 Attempt ${retryCount}/${maxRetries} to find PostDetails_rightWrapper...`);
-            
-            if (retryCount > 1) {
-                await sleep(1000); // Wait 1 second before retry (except first attempt)
+            // Find or create wrapper
+            let rightWrapper = await this.findRightWrapperWithRetry();
+            if (!rightWrapper) {
+                rightWrapper = this.createFallbackWrapper();
             }
-            
-            rightWrapper = this.findPostDetailsRightWrapper();
-            
-            if (rightWrapper) {
-                console.log(`✅ Found element on attempt ${retryCount}!`);
-                break;
-            } else {
-                console.log(`❌ Attempt ${retryCount} failed, element not found`);
-                
-            }
-        }
 
-        // If still not found after all retries, this is a critical issue
-        if (!rightWrapper) {
-            console.error('💥 CRITICAL: PostDetails_rightWrapper not found after 10 retries on referenda page!');
-            console.error('💥 This should never happen on a valid referenda page');
-            console.error('💥 URL:', window.location.href);
-            console.error('💥 Page title:', document.title);
-            console.error('💥 Body HTML preview:', document.body.innerHTML.substring(0, 500));
-            
-            // Last resort: create fallback container but log it as an error
-            console.log('🆘 Creating emergency fallback container...');
-            rightWrapper = document.createElement('div');
-            rightWrapper.style.cssText = `
-                position: fixed;
-                top: 80px;
-                right: 20px;
-                z-index: 1000000;
-                max-width: 400px;
-                background: rgba(255, 0, 0, 0.9);
-                color: white;
-                backdrop-filter: blur(10px);
-                border-radius: 12px;
-                padding: 16px;
-                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-                border: 2px solid red;
-            `;
-            
-            // Add error message
-            const errorMsg = document.createElement('div');
-            errorMsg.innerHTML = `
-                <strong>⚠️ FALLBACK MODE</strong><br>
-                Could not find page element.<br>
-                Please report this issue.
-            `;
-            rightWrapper.appendChild(errorMsg);
-            
-            document.body.appendChild(rightWrapper);
-            console.log('🆘 Emergency fallback container created');
-        }
+            // Create container
+            const container = document.createElement('div');
+            container.id = 'voting-tool-controls-container';
+            container.setAttribute('data-opengov-proposal', proposal.postId.toString());
+            rightWrapper.insertBefore(container, rightWrapper.firstChild);
 
-        console.log('✅ Using wrapper element:', rightWrapper.className || 'fallback-container');
+            // Fetch metadata and mount
+            const { assignedTo, teamMembers } = await this.fetchProposalMetadata(proposal, proposalData);
+            this.mountVotingControls(container, proposal, proposalData, assignedTo, teamMembers);
 
-        // Create container for voting controls
-        const container = document.createElement('div');
-        container.id = 'voting-tool-controls-container';
-        container.setAttribute('data-opengov-proposal', proposal.postId.toString());
-        
-        // Insert at the top of the right wrapper
-        rightWrapper.insertBefore(container, rightWrapper.firstChild);
+            // Store and protect
+            this.lastProposal = proposal;
+            this.lastProposalData = proposalData;
+            this.setupVotingControlsProtection();
 
-        // Fetch current assignment data from the database (single source of truth)
-        let assignedTo: string | null = null;
-        let teamMembers: TeamMember[] = [];
-        try {
-            // Get assignment from proposal data
-            assignedTo = proposalData?.assigned_to || null;
-            if (assignedTo) {
-                console.log(`📋 Proposal ${proposal.postId} is assigned to:`, assignedTo);
-            }
-            
-            // Fetch team members for name resolution
-            const agreementSummary = await this.apiService.getAgreementSummary(proposal.postId, proposal.chain);
-            if (agreementSummary) {
-                // Collect all unique team members from different arrays
-                const allMembers = [
-                    ...agreementSummary.agreed_members,
-                    ...agreementSummary.pending_members,
-                    ...agreementSummary.recused_members,
-                    ...agreementSummary.to_be_discussed_members
-                ];
-                
-                // Remove duplicates by address
-                teamMembers = allMembers.filter((member, index, self) => 
-                    index === self.findIndex(m => m.address === member.address)
-                );
-                console.log(`👥 Found ${teamMembers.length} team members for name resolution`);
-            }
+            console.log('✅ Injected voting controls');
         } catch (error) {
-            console.warn('⚠️ Could not fetch assignment data:', error);
-        }
-
-        // Create Vue app and mount the VotingControls component
-        const app = createApp(VotingControls, {
-            status: proposalData?.internal_status || 'Not started',
-            proposalId: proposal.postId,
-            editable: this.apiService.isAuthenticated(),
-            isAuthenticated: this.apiService.isAuthenticated(),
-            suggestedVote: proposalData?.suggested_vote || null,
-            reasonForVote: proposalData?.reason_for_vote || null,
-            assignedTo: assignedTo,
-            teamMembers: teamMembers,
-            chain: proposal.chain
-        });
-
-        app.mount(container);
-
-        // Store the app instance for cleanup
-        this.injectedComponents.set(proposal.postId, app);
-
-        console.log('✅ Injected voting controls for proposal', proposal.postId);
-        
-        } catch (error) {
-            console.error('❌ Error injecting voting controls:', error);
+            console.error('❌ Error injecting controls:', error);
         } finally {
             this.isInjecting = false;
         }
+    }
+
+    /**
+     * Protect voting controls from removal by page's DOM manipulations
+     */
+    private setupVotingControlsProtection(): void {
+        // Disconnect existing observer if any
+        if (this.controlsObserver) {
+            this.controlsObserver.disconnect();
+        }
+
+        this.controlsObserver = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                if (mutation.type === 'childList' && mutation.removedNodes.length > 0) {
+                    mutation.removedNodes.forEach((node) => {
+                        // Check if our voting controls container was removed
+                        if (node instanceof Element && node.id === 'voting-tool-controls-container') {
+                            console.warn('⚠️ Voting controls container was removed! Attempting recovery...');
+                            
+                            // Re-inject after a short delay
+                            setTimeout(async () => {
+                                const existing = document.getElementById('voting-tool-controls-container');
+                                if (!existing && this.lastProposal && this.currentProposalId === this.lastProposal.postId) {
+                                    console.log('🔄 Re-injecting voting controls...');
+                                    await this.injectVotingControls(this.lastProposal, this.lastProposalData);
+                                }
+                            }, 200);
+                        }
+                    });
+                }
+            }
+        });
+
+        // Watch the entire page for removal
+        this.controlsObserver.observe(document.body, {
+            childList: true,
+            subtree: true // Watch deeply for nested removals
+        });
+
+        console.log('🛡️ Voting controls protection activated');
     }
 
     /**
@@ -566,186 +523,6 @@ export class ContentInjector {
     }
 
     /**
-     * Inject status badge component
-     */
-    private async injectStatusBadge(proposal: DetectedProposal, proposalData: ProposalData | null): Promise<void> {
-        // StatusBadges have been disabled due to rendering issues - September 2025
-        return;
-
-        if (!proposal.headerElement) {
-            console.warn('No header element found for proposal', proposal.postId);
-            return;
-        }
-
-        // Check if already injected
-        const existingBadge = document.querySelector(`#voting-tool-badge-${proposal.postId}`);
-        if (existingBadge) {
-            console.log(`⚠️ Badge already exists for proposal #${proposal.postId}, skipping`);
-            return;
-        }
-
-        // Create wrapper that will be positioned relative to the table row
-        const wrapper = document.createElement('div');
-        wrapper.style.cssText = `
-            position: absolute;
-            left: -100px;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 10000;
-            pointer-events: none;
-        `;
-
-        // Create container for the status badge
-        const container = document.createElement('div');
-        container.className = 'opengov-status-badge-floating';
-        container.id = `voting-tool-badge-${proposal.postId}`;
-        container.setAttribute('data-opengov-proposal', proposal.postId.toString());
-        container.style.cssText = `
-            pointer-events: auto;
-        `;
-        
-        wrapper.appendChild(container);
-
-        // Find the best parent for positioning (should be the table row itself or its direct parent)
-        const positioningParent = this.findRowPositioningParent(proposal.headerElement);
-        
-        // Make the positioning parent relative if it's not already
-        const parentStyle = window.getComputedStyle(positioningParent);
-        if (parentStyle.position === 'static') {
-            positioningParent.style.position = 'relative';
-        }
-
-        // Fix overflow issues that would clip the badge (look higher up the DOM tree)
-        this.fixOverflowClipping(proposal.headerElement);
-
-        // Insert the wrapper
-        positioningParent.appendChild(wrapper);
-
-        console.log('🎯 Positioning badge for proposal', proposal.postId, {
-            targetElement: proposal.headerElement.tagName + '.' + proposal.headerElement.className,
-            positioningParent: positioningParent.tagName + '.' + positioningParent.className,
-            parentPosition: parentStyle.position,
-            sameElement: proposal.headerElement === positioningParent
-        });
-
-        // Create Vue app and mount the StatusBadge component
-        const app = createApp(StatusBadge, {
-            status: proposalData?.internal_status || 'Not started',
-            proposalId: proposal.postId,
-            editable: this.apiService.isAuthenticated()
-        });
-
-        app.mount(container);
-
-        // Store the app instance for cleanup
-        this.injectedComponents.set(proposal.postId, app);
-
-        console.log('✅ Injected status badge for proposal', proposal.postId);
-    }
-
-    /**
-     * Find the best parent element for positioning the badge (focused on row-level positioning)
-     */
-    private findRowPositioningParent(targetElement: HTMLElement): HTMLElement {
-        // If the target element is an <a> wrapper, look for the <tr> inside it
-        if (targetElement.tagName.toLowerCase() === 'a') {
-            const tr = targetElement.querySelector('tr');
-            if (tr) {
-                console.log('🔗 Found TR inside A tag, using TR for positioning');
-                return tr;
-            }
-        }
-        
-        // Start with the target element and work our way up
-        let current: HTMLElement | null = targetElement;
-        
-        while (current && current !== document.body) {
-            // If we find a table row, use it directly
-            if (current.tagName.toLowerCase() === 'tr') {
-                console.log('🔗 Found TR, using TR for positioning');
-                return current;
-            }
-            
-            current = current.parentElement;
-        }
-        
-        // Fallback to the target element itself
-        return targetElement;
-    }
-
-    /**
-     * Find the best parent element for positioning the badge (legacy method)
-     */
-    private findPositioningParent(targetElement: HTMLElement): HTMLElement {
-        // Start with the target element and work our way up
-        let current: HTMLElement | null = targetElement;
-        
-        while (current && current !== document.body) {
-            // If we find a table row, use its parent (likely tbody or table)
-            if (current.tagName.toLowerCase() === 'tr') {
-                return current.parentElement as HTMLElement || current;
-            }
-            
-            // If we find a positioned element, use it
-            const style = window.getComputedStyle(current);
-            if (style.position !== 'static') {
-                return current;
-            }
-            
-            current = current.parentElement;
-        }
-        
-        // Fallback to the target element itself
-        return targetElement;
-    }
-
-    /**
-     * Fix overflow clipping that would hide badges positioned outside the container
-     */
-    private fixOverflowClipping(positioningParent: HTMLElement): void {
-        // Look for overflow containers that might clip our badge
-        let current: HTMLElement | null = positioningParent;
-        
-        while (current && current !== document.body) {
-            const style = window.getComputedStyle(current);
-            
-            // Check for containers with overflow that would clip left-positioned elements
-            const hasClippingOverflow = 
-                style.overflowX === 'auto' || style.overflowX === 'scroll' || style.overflowX === 'hidden' ||
-                style.overflow === 'auto' || style.overflow === 'scroll' || style.overflow === 'hidden';
-            
-            if (hasClippingOverflow) {
-                console.log('🔧 Found overflow container, adjusting:', {
-                    element: current.tagName + '.' + current.className,
-                    originalOverflow: { 
-                        overflow: style.overflow, 
-                        overflowX: style.overflowX, 
-                        overflowY: style.overflowY 
-                    }
-                });
-                
-                // Store original values for cleanup
-                if (!current.hasAttribute('data-opengov-original-overflow-x')) {
-                    current.setAttribute('data-opengov-original-overflow-x', style.overflowX);
-                    current.setAttribute('data-opengov-original-overflow', style.overflow);
-                    current.setAttribute('data-opengov-original-overflow-y', style.overflowY);
-                }
-                
-                // Apply comprehensive overflow fix with !important to override any CSS
-                current.style.setProperty('overflow-x', 'visible', 'important');
-                current.style.setProperty('overflow', 'visible', 'important');
-                
-                // Preserve overflow-y if it was specifically set to something useful
-                if (style.overflowY === 'visible' || style.overflowY === 'auto' || style.overflowY === 'scroll') {
-                    current.style.setProperty('overflow-y', style.overflowY, 'important');
-                }
-            }
-            
-            current = current.parentElement;
-        }
-    }
-
-    /**
      * Update existing components with fresh data without full re-injection
      */
     private async updateExistingComponents(proposalId: number, proposalData: ProposalData | null): Promise<void> {
@@ -891,8 +668,7 @@ export class ContentInjector {
             // Call the assignment API
             const result = await this.apiService.assignProposal(
                 proposalId, 
-                currentProposal.chain, 
-                action
+                currentProposal.chain
             );
             
             if (result.success) {
@@ -1148,6 +924,12 @@ export class ContentInjector {
     cleanup(): void {
         this.cleanupExistingInjections();
         
+        // Disconnect protection observer
+        if (this.controlsObserver) {
+            this.controlsObserver.disconnect();
+            this.controlsObserver = null;
+        }
+        
         // Clean up event listeners and watchers
         this.cleanupFunctions.forEach(cleanup => cleanup());
         this.cleanupFunctions = [];
@@ -1169,6 +951,8 @@ export class ContentInjector {
         // Reset initialization state
         this.isInitialized = false;
         this.currentProposalId = null;
+        this.lastProposal = null;
+        this.lastProposalData = null;
         
         console.log('🧹 Content injector cleaned up');
     }

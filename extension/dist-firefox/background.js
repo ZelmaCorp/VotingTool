@@ -19,7 +19,7 @@ var __spreadValues = (a, b) => {
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 (function() {
   "use strict";
-  const version = "1.4.6";
+  const version = "1.4.8";
   const packageJson = {
     version
   };
@@ -59,6 +59,107 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
       console.log("✅ API config updated:", changes.backendUrl.newValue);
     }
   });
+  function validateFetchEnvironment(debugInfo) {
+    debugInfo.step = "fetch_available_check";
+    if (typeof fetch === "undefined") {
+      debugInfo.error = "Fetch API is not available in this context";
+      debugInfo.step = "fetch_not_available";
+      return {
+        success: false,
+        error: "Fetch API is not available in this context"
+      };
+    }
+    return { success: true };
+  }
+  function constructApiUrl(endpoint, testUrl, debugInfo) {
+    debugInfo.step = "url_construction";
+    const baseUrl = testUrl || API_CONFIG.baseURL;
+    const url = `${baseUrl}${endpoint}`;
+    debugInfo.fullUrl = url;
+    debugInfo.baseUrl = baseUrl;
+    debugInfo.usingTestUrl = !!testUrl;
+    try {
+      new URL(url);
+      debugInfo.urlConstructionSuccess = true;
+      return { success: true, url };
+    } catch (urlError) {
+      debugInfo.urlConstructionError = urlError instanceof Error ? urlError.message : "Unknown URL error";
+      return {
+        success: false,
+        error: `Invalid URL: ${url}`
+      };
+    }
+  }
+  function prepareFetchOptions(method, data, headers, debugInfo) {
+    debugInfo.step = "prepare_fetch_options";
+    const options = {
+      method: method.toUpperCase(),
+      headers: __spreadValues(__spreadValues({
+        "Content-Type": "application/json"
+      }, API_CONFIG.baseURL.includes("ngrok") && { "ngrok-skip-browser-warning": "true" }), headers),
+      body: data ? JSON.stringify(data) : void 0
+    };
+    debugInfo.fetchOptions = options;
+    debugInfo.step = "about_to_fetch";
+    return options;
+  }
+  async function handleErrorResponse(response, debugInfo) {
+    debugInfo.step = "response_not_ok";
+    try {
+      const errorResponse = await response.json();
+      debugInfo.errorResponseBody = errorResponse;
+      if (errorResponse.error) {
+        const error = new Error(errorResponse.error);
+        if (response.status === 403 && errorResponse.details) {
+          ;
+          error.details = errorResponse.details;
+          error.status = response.status;
+        }
+        return error;
+      }
+    } catch (jsonError) {
+      debugInfo.jsonParseError = jsonError instanceof Error ? jsonError.message : "Unknown JSON error";
+    }
+    return new Error(`HTTP ${response.status}: ${response.statusText}`);
+  }
+  async function executeFetchWithTimeout(url, options, debugInfo) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      debugInfo.timeout = true;
+      controller.abort();
+    }, API_CONFIG.timeout);
+    try {
+      debugInfo.step = "executing_fetch";
+      const response = await fetch(url, __spreadProps(__spreadValues({}, options), {
+        signal: controller.signal
+      }));
+      clearTimeout(timeoutId);
+      debugInfo.step = "fetch_completed";
+      debugInfo.responseStatus = response.status;
+      debugInfo.responseStatusText = response.statusText;
+      if (!response.ok) {
+        const error = await handleErrorResponse(response, debugInfo);
+        throw error;
+      }
+      debugInfo.step = "parsing_response";
+      const responseData = await response.json();
+      debugInfo.step = "success";
+      return {
+        success: true,
+        data: responseData,
+        status: response.status
+      };
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      debugInfo.step = "fetch_error";
+      debugInfo.fetchError = fetchError instanceof Error ? fetchError.message : "Unknown fetch error";
+      debugInfo.fetchErrorName = fetchError instanceof Error ? fetchError.name : "Unknown";
+      return {
+        success: false,
+        error: fetchError instanceof Error ? fetchError.message : "Unknown fetch error"
+      };
+    }
+  }
   async function makeApiCall(endpoint, method, data, headers, testUrl) {
     const debugInfo = {
       step: "starting",
@@ -70,96 +171,17 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
       testUrl
     };
     try {
-      debugInfo.step = "fetch_available_check";
-      if (typeof fetch === "undefined") {
-        debugInfo.error = "Fetch API is not available in this context";
-        debugInfo.step = "fetch_not_available";
-        return {
-          success: false,
-          error: "Fetch API is not available in this context",
-          debugInfo
-        };
+      const envCheck = validateFetchEnvironment(debugInfo);
+      if (!envCheck.success) {
+        return { success: false, error: envCheck.error, debugInfo };
       }
-      debugInfo.step = "url_construction";
-      const baseUrl = testUrl || API_CONFIG.baseURL;
-      const url = `${baseUrl}${endpoint}`;
-      debugInfo.fullUrl = url;
-      debugInfo.baseUrl = baseUrl;
-      debugInfo.usingTestUrl = !!testUrl;
-      try {
-        new URL(url);
-        debugInfo.urlConstructionSuccess = true;
-      } catch (urlError) {
-        debugInfo.urlConstructionError = urlError instanceof Error ? urlError.message : "Unknown URL error";
-        return {
-          success: false,
-          error: `Invalid URL: ${url}`,
-          debugInfo
-        };
+      const urlResult = constructApiUrl(endpoint, testUrl, debugInfo);
+      if (!urlResult.success) {
+        return { success: false, error: urlResult.error, debugInfo };
       }
-      debugInfo.step = "prepare_fetch_options";
-      const options = {
-        method: method.toUpperCase(),
-        headers: __spreadValues(__spreadValues({
-          "Content-Type": "application/json"
-        }, API_CONFIG.baseURL.includes("ngrok") && { "ngrok-skip-browser-warning": "true" }), headers),
-        body: data ? JSON.stringify(data) : void 0
-      };
-      debugInfo.fetchOptions = options;
-      debugInfo.step = "about_to_fetch";
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => {
-        debugInfo.timeout = true;
-        controller.abort();
-      }, API_CONFIG.timeout);
-      try {
-        debugInfo.step = "executing_fetch";
-        const response = await fetch(url, __spreadProps(__spreadValues({}, options), {
-          signal: controller.signal
-        }));
-        clearTimeout(timeoutId);
-        debugInfo.step = "fetch_completed";
-        debugInfo.responseStatus = response.status;
-        debugInfo.responseStatusText = response.statusText;
-        if (!response.ok) {
-          debugInfo.step = "response_not_ok";
-          try {
-            const errorResponse = await response.json();
-            debugInfo.errorResponseBody = errorResponse;
-            if (errorResponse.error) {
-              const error = new Error(errorResponse.error);
-              if (response.status === 403 && errorResponse.details) {
-                ;
-                error.details = errorResponse.details;
-                error.status = response.status;
-              }
-              throw error;
-            }
-          } catch (jsonError) {
-            debugInfo.jsonParseError = jsonError instanceof Error ? jsonError.message : "Unknown JSON error";
-          }
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        debugInfo.step = "parsing_response";
-        const responseData = await response.json();
-        debugInfo.step = "success";
-        return {
-          success: true,
-          data: responseData,
-          status: response.status,
-          debugInfo
-        };
-      } catch (fetchError) {
-        clearTimeout(timeoutId);
-        debugInfo.step = "fetch_error";
-        debugInfo.fetchError = fetchError instanceof Error ? fetchError.message : "Unknown fetch error";
-        debugInfo.fetchErrorName = fetchError instanceof Error ? fetchError.name : "Unknown";
-        return {
-          success: false,
-          error: fetchError instanceof Error ? fetchError.message : "Unknown fetch error",
-          debugInfo
-        };
-      }
+      const options = prepareFetchOptions(method, data, headers, debugInfo);
+      const result = await executeFetchWithTimeout(urlResult.url, options, debugInfo);
+      return __spreadProps(__spreadValues({}, result), { debugInfo });
     } catch (outerError) {
       debugInfo.step = "outer_error";
       debugInfo.outerError = outerError instanceof Error ? outerError.message : "Unknown outer error";
@@ -170,114 +192,118 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
       };
     }
   }
+  function handlePing(message, currentCount, sendResponse) {
+    sendResponse({
+      success: true,
+      message: "Background script is alive and responding!",
+      messageCount: currentCount,
+      timestamp: Date.now(),
+      buildId: BUILD_ID
+    });
+    return false;
+  }
+  function handleTest(message, currentCount, sendResponse) {
+    sendResponse({
+      success: true,
+      message: "Background script is working!",
+      messageCount: currentCount,
+      timestamp: Date.now(),
+      buildId: BUILD_ID
+    });
+    return false;
+  }
+  function handleRequestPermission(message, currentCount, sendResponse) {
+    if (!chrome.permissions || !chrome.permissions.request) {
+      console.warn("⚠️ Permissions API not available in this browser");
+      sendResponse({ success: true, granted: true });
+      return false;
+    }
+    const permissionRequest = chrome.permissions.request({
+      origins: [message.origin + "/*"]
+    });
+    if (!permissionRequest || typeof permissionRequest.then !== "function") {
+      console.warn("⚠️ Permissions request did not return a Promise");
+      sendResponse({ success: true, granted: true });
+      return false;
+    }
+    permissionRequest.then((granted) => sendResponse({ success: true, granted })).catch((error) => sendResponse({ success: false, error: error.message }));
+    return true;
+  }
+  function handleCheckPermission(message, currentCount, sendResponse) {
+    if (!chrome.permissions || !chrome.permissions.contains) {
+      console.warn("⚠️ Permissions API not available in this browser");
+      sendResponse({ success: true, hasPermission: true });
+      return false;
+    }
+    const permissionCheck = chrome.permissions.contains({
+      origins: [message.origin + "/*"]
+    });
+    if (!permissionCheck || typeof permissionCheck.then !== "function") {
+      console.warn("⚠️ Permissions check did not return a Promise");
+      sendResponse({ success: true, hasPermission: true });
+      return false;
+    }
+    permissionCheck.then((hasPermission) => sendResponse({ success: true, hasPermission })).catch((error) => sendResponse({ success: false, error: error.message }));
+    return true;
+  }
+  function handleApiCall(message, currentCount, sendResponse) {
+    makeApiCall(message.endpoint, message.method, message.data, message.headers, message.testUrl).then((result) => {
+      try {
+        sendResponse(__spreadProps(__spreadValues({}, result), {
+          messageCount: currentCount,
+          messageId: message.messageId
+        }));
+      } catch (error) {
+        console.error(`❌ Background: Failed to send response for message #${currentCount}:`, error);
+        try {
+          sendResponse({
+            success: false,
+            error: "Failed to send response",
+            details: error instanceof Error ? error.message : "Unknown error",
+            messageCount: currentCount,
+            messageId: message.messageId,
+            responseError: true
+          });
+        } catch (sendError) {
+          console.error(`❌ Background: Completely failed to send any response for message #${currentCount}:`, sendError);
+        }
+      }
+    }).catch((error) => {
+      console.error(`❌ Background: Error in API call for message #${currentCount}:`, error);
+      try {
+        sendResponse({
+          success: false,
+          error: error.message || "Unknown error",
+          details: error instanceof Error ? error.stack : void 0,
+          backgroundError: true,
+          messageCount: currentCount,
+          messageId: message.messageId
+        });
+      } catch (responseError) {
+        console.error(`❌ Background: Failed to send error response for message #${currentCount}:`, responseError);
+      }
+    });
+    return true;
+  }
+  const MESSAGE_HANDLERS = {
+    "PING": handlePing,
+    "TEST": handleTest,
+    "REQUEST_PERMISSION": handleRequestPermission,
+    "CHECK_PERMISSION": handleCheckPermission,
+    "VOTING_TOOL_API_CALL": handleApiCall
+  };
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     messageCounter++;
     const currentCount = messageCounter;
     try {
-      if ((message == null ? void 0 : message.type) === "PING") {
-        sendResponse({
-          success: true,
-          message: "Background script is alive and responding!",
-          messageCount: currentCount,
-          timestamp: Date.now(),
-          buildId: BUILD_ID
-        });
-        return false;
-      }
-      if ((message == null ? void 0 : message.type) === "TEST") {
-        sendResponse({
-          success: true,
-          message: "Background script is working!",
-          messageCount: currentCount,
-          timestamp: Date.now(),
-          buildId: BUILD_ID
-        });
-        return false;
-      }
-      if ((message == null ? void 0 : message.type) === "REQUEST_PERMISSION") {
-        if (!chrome.permissions || !chrome.permissions.request) {
-          console.warn("⚠️ Permissions API not available in this browser");
-          sendResponse({ success: true, granted: true });
-          return false;
-        }
-        const permissionRequest = chrome.permissions.request({
-          origins: [message.origin + "/*"]
-        });
-        if (!permissionRequest || typeof permissionRequest.then !== "function") {
-          console.warn("⚠️ Permissions request did not return a Promise");
-          sendResponse({ success: true, granted: true });
-          return false;
-        }
-        permissionRequest.then((granted) => {
-          sendResponse({ success: true, granted });
-        }).catch((error) => {
-          sendResponse({ success: false, error: error.message });
-        });
-        return true;
-      }
-      if ((message == null ? void 0 : message.type) === "CHECK_PERMISSION") {
-        if (!chrome.permissions || !chrome.permissions.contains) {
-          console.warn("⚠️ Permissions API not available in this browser");
-          sendResponse({ success: true, hasPermission: true });
-          return false;
-        }
-        const permissionCheck = chrome.permissions.contains({
-          origins: [message.origin + "/*"]
-        });
-        if (!permissionCheck || typeof permissionCheck.then !== "function") {
-          console.warn("⚠️ Permissions check did not return a Promise");
-          sendResponse({ success: true, hasPermission: true });
-          return false;
-        }
-        permissionCheck.then((hasPermission) => {
-          sendResponse({ success: true, hasPermission });
-        }).catch((error) => {
-          sendResponse({ success: false, error: error.message });
-        });
-        return true;
-      }
-      if ((message == null ? void 0 : message.type) === "VOTING_TOOL_API_CALL") {
-        makeApiCall(message.endpoint, message.method, message.data, message.headers, message.testUrl).then((result) => {
-          try {
-            sendResponse(__spreadProps(__spreadValues({}, result), {
-              messageCount: currentCount,
-              messageId: message.messageId
-            }));
-          } catch (error) {
-            console.error(`❌ Background: Failed to send response for message #${currentCount}:`, error);
-            try {
-              sendResponse({
-                success: false,
-                error: "Failed to send response",
-                details: error instanceof Error ? error.message : "Unknown error",
-                messageCount: currentCount,
-                messageId: message.messageId,
-                responseError: true
-              });
-            } catch (sendError) {
-              console.error(`❌ Background: Completely failed to send any response for message #${currentCount}:`, sendError);
-            }
-          }
-        }).catch((error) => {
-          console.error(`❌ Background: Error in API call for message #${currentCount}:`, error);
-          try {
-            sendResponse({
-              success: false,
-              error: error.message || "Unknown error",
-              details: error instanceof Error ? error.stack : void 0,
-              backgroundError: true,
-              messageCount: currentCount,
-              messageId: message.messageId
-            });
-          } catch (responseError) {
-            console.error(`❌ Background: Failed to send error response for message #${currentCount}:`, responseError);
-          }
-        });
-        return true;
+      const messageType = message == null ? void 0 : message.type;
+      const handler = MESSAGE_HANDLERS[messageType];
+      if (handler) {
+        return handler(message, currentCount, sendResponse);
       }
       sendResponse({
         success: false,
-        error: `Unknown message type: ${(message == null ? void 0 : message.type) || "undefined"}`,
+        error: `Unknown message type: ${messageType || "undefined"}`,
         messageCount: currentCount
       });
       return false;
