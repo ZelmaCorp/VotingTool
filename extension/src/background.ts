@@ -255,150 +255,182 @@ async function makeApiCall(endpoint: string, method: string, data?: any, headers
   }
 }
 
-// Message handler for content script communication
+// ============================================================================
+// Message Handler Routing Pattern
+// ============================================================================
+
+/**
+ * Handler for PING messages - health check
+ */
+function handlePing(message: any, currentCount: number, sendResponse: Function): boolean {
+  sendResponse({ 
+    success: true, 
+    message: 'Background script is alive and responding!',
+    messageCount: currentCount,
+    timestamp: Date.now(),
+    buildId: BUILD_ID
+  })
+  return false // Synchronous response
+}
+
+/**
+ * Handler for TEST messages - basic connectivity test
+ */
+function handleTest(message: any, currentCount: number, sendResponse: Function): boolean {
+  sendResponse({ 
+    success: true, 
+    message: 'Background script is working!',
+    messageCount: currentCount,
+    timestamp: Date.now(),
+    buildId: BUILD_ID
+  })
+  return false // Synchronous response
+}
+
+/**
+ * Handler for REQUEST_PERMISSION messages
+ */
+function handleRequestPermission(message: any, currentCount: number, sendResponse: Function): boolean {
+  // Check if permissions API is available
+  if (!chrome.permissions || !chrome.permissions.request) {
+    console.warn('⚠️ Permissions API not available in this browser')
+    sendResponse({ success: true, granted: true }) // Assume granted if API not available
+    return false
+  }
+  
+  const permissionRequest = chrome.permissions.request({
+    origins: [message.origin + '/*']
+  })
+  
+  // Check if request returned a Promise
+  if (!permissionRequest || typeof permissionRequest.then !== 'function') {
+    console.warn('⚠️ Permissions request did not return a Promise')
+    sendResponse({ success: true, granted: true }) // Assume granted
+    return false
+  }
+  
+  permissionRequest
+    .then(granted => sendResponse({ success: true, granted }))
+    .catch(error => sendResponse({ success: false, error: error.message }))
+  
+  return true // Asynchronous response
+}
+
+/**
+ * Handler for CHECK_PERMISSION messages
+ */
+function handleCheckPermission(message: any, currentCount: number, sendResponse: Function): boolean {
+  // Check if permissions API is available
+  if (!chrome.permissions || !chrome.permissions.contains) {
+    console.warn('⚠️ Permissions API not available in this browser')
+    sendResponse({ success: true, hasPermission: true }) // Assume has permission if API not available
+    return false
+  }
+  
+  const permissionCheck = chrome.permissions.contains({
+    origins: [message.origin + '/*']
+  })
+  
+  // Check if contains returned a Promise
+  if (!permissionCheck || typeof permissionCheck.then !== 'function') {
+    console.warn('⚠️ Permissions check did not return a Promise')
+    sendResponse({ success: true, hasPermission: true }) // Assume has permission
+    return false
+  }
+  
+  permissionCheck
+    .then(hasPermission => sendResponse({ success: true, hasPermission }))
+    .catch(error => sendResponse({ success: false, error: error.message }))
+  
+  return true // Asynchronous response
+}
+
+/**
+ * Handler for API call messages
+ */
+function handleApiCall(message: any, currentCount: number, sendResponse: Function): boolean {
+  makeApiCall(message.endpoint, message.method, message.data, message.headers, message.testUrl)
+    .then(result => {
+      try {
+        sendResponse({
+          ...result,
+          messageCount: currentCount,
+          messageId: message.messageId
+        })
+      } catch (error) {
+        console.error(`❌ Background: Failed to send response for message #${currentCount}:`, error)
+        try {
+          sendResponse({
+            success: false,
+            error: 'Failed to send response',
+            details: error instanceof Error ? error.message : 'Unknown error',
+            messageCount: currentCount,
+            messageId: message.messageId,
+            responseError: true
+          })
+        } catch (sendError) {
+          console.error(`❌ Background: Completely failed to send any response for message #${currentCount}:`, sendError)
+        }
+      }
+    })
+    .catch(error => {
+      console.error(`❌ Background: Error in API call for message #${currentCount}:`, error)
+      try {
+        sendResponse({
+          success: false,
+          error: error.message || 'Unknown error',
+          details: error instanceof Error ? error.stack : undefined,
+          backgroundError: true,
+          messageCount: currentCount,
+          messageId: message.messageId
+        })
+      } catch (responseError) {
+        console.error(`❌ Background: Failed to send error response for message #${currentCount}:`, responseError)
+      }
+    })
+  
+  return true // Asynchronous response
+}
+
+/**
+ * Message type router - maps message types to handlers
+ */
+type MessageHandler = (message: any, currentCount: number, sendResponse: Function) => boolean
+
+const MESSAGE_HANDLERS: Record<string, MessageHandler> = {
+  'PING': handlePing,
+  'TEST': handleTest,
+  'REQUEST_PERMISSION': handleRequestPermission,
+  'CHECK_PERMISSION': handleCheckPermission,
+  'VOTING_TOOL_API_CALL': handleApiCall
+}
+
+/**
+ * Main message dispatcher with routing
+ */
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   messageCounter++
   const currentCount = messageCounter
   
   try {
-    // Add immediate response for connection testing
-    if (message?.type === 'PING') {
-      sendResponse({ 
-        success: true, 
-        message: 'Background script is alive and responding!',
-        messageCount: currentCount,
-        timestamp: Date.now(),
-        buildId: BUILD_ID
-      })
-      return false // Synchronous response
+    const messageType = message?.type
+    const handler = MESSAGE_HANDLERS[messageType]
+    
+    if (handler) {
+      return handler(message, currentCount, sendResponse)
     }
     
-    if (message?.type === 'TEST') {
-      sendResponse({ 
-        success: true, 
-        message: 'Background script is working!',
-        messageCount: currentCount,
-        timestamp: Date.now(),
-        buildId: BUILD_ID
-      })
-      return false // Synchronous response
-    }
-
-    if (message?.type === 'REQUEST_PERMISSION') {
-      // Check if permissions API is available
-      if (!chrome.permissions || !chrome.permissions.request) {
-        console.warn('⚠️ Permissions API not available in this browser')
-        sendResponse({ success: true, granted: true }) // Assume granted if API not available
-        return false
-      }
-      
-      const permissionRequest = chrome.permissions.request({
-        origins: [message.origin + '/*']
-      })
-      
-      // Check if request returned a Promise
-      if (!permissionRequest || typeof permissionRequest.then !== 'function') {
-        console.warn('⚠️ Permissions request did not return a Promise')
-        sendResponse({ success: true, granted: true }) // Assume granted
-        return false
-      }
-      
-      permissionRequest.then(granted => {
-        sendResponse({ success: true, granted })
-      }).catch(error => {
-        sendResponse({ success: false, error: error.message })
-      })
-      
-      return true // Asynchronous response
-    }
-
-    if (message?.type === 'CHECK_PERMISSION') {
-      // Check if permissions API is available
-      if (!chrome.permissions || !chrome.permissions.contains) {
-        console.warn('⚠️ Permissions API not available in this browser')
-        sendResponse({ success: true, hasPermission: true }) // Assume has permission if API not available
-        return false
-      }
-      
-      const permissionCheck = chrome.permissions.contains({
-        origins: [message.origin + '/*']
-      })
-      
-      // Check if contains returned a Promise
-      if (!permissionCheck || typeof permissionCheck.then !== 'function') {
-        console.warn('⚠️ Permissions check did not return a Promise')
-        sendResponse({ success: true, hasPermission: true }) // Assume has permission
-        return false
-      }
-      
-      permissionCheck.then(hasPermission => {
-        sendResponse({ success: true, hasPermission })
-      }).catch(error => {
-        sendResponse({ success: false, error: error.message })
-      })
-      
-      return true // Asynchronous response
-    }
-    
-    if (message?.type === 'VOTING_TOOL_API_CALL') {
-      // Handle API calls from content script asynchronously
-      makeApiCall(message.endpoint, message.method, message.data, message.headers, message.testUrl)
-        .then(result => {
-          try {
-            sendResponse({
-              ...result,
-              messageCount: currentCount,
-              messageId: message.messageId
-            })
-          } catch (error) {
-            console.error(`❌ Background: Failed to send response for message #${currentCount}:`, error)
-            try {
-              sendResponse({
-                success: false,
-                error: 'Failed to send response',
-                details: error instanceof Error ? error.message : 'Unknown error',
-                messageCount: currentCount,
-                messageId: message.messageId,
-                responseError: true
-              })
-            } catch (sendError) {
-              console.error(`❌ Background: Completely failed to send any response for message #${currentCount}:`, sendError)
-            }
-          }
-        })
-        .catch(error => {
-          console.error(`❌ Background: Error in API call for message #${currentCount}:`, error)
-          try {
-            sendResponse({
-              success: false,
-              error: error.message || 'Unknown error',
-              details: error instanceof Error ? error.stack : undefined,
-              backgroundError: true,
-              messageCount: currentCount,
-              messageId: message.messageId
-            })
-          } catch (responseError) {
-            console.error(`❌ Background: Failed to send error response for message #${currentCount}:`, responseError)
-          }
-        })
-      
-      // Return true to indicate we'll send response asynchronously
-      return true
-    }
-    
-    // Send a default error response for unknown message types
+    // Unknown message type
     sendResponse({
       success: false,
-      error: `Unknown message type: ${message?.type || 'undefined'}`,
+      error: `Unknown message type: ${messageType || 'undefined'}`,
       messageCount: currentCount
     })
-    
-    return false // Synchronous response
+    return false
     
   } catch (outerError) {
     console.error(`💥 Background: Critical error in message handler for message #${currentCount}:`, outerError)
     
-    // Try to send error response even if everything else failed
     try {
       sendResponse({
         success: false,
