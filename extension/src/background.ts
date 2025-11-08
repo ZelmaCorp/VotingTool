@@ -54,6 +54,167 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 })
 
 // Function to make API calls from background script context (bypasses CSP)
+/**
+ * Validates that the fetch API is available in the current context
+ */
+function validateFetchEnvironment(debugInfo: any): { success: boolean; error?: string } {
+  debugInfo.step = 'fetch_available_check'
+  
+  if (typeof fetch === 'undefined') {
+    debugInfo.error = 'Fetch API is not available in this context'
+    debugInfo.step = 'fetch_not_available'
+    return {
+      success: false,
+      error: 'Fetch API is not available in this context'
+    }
+  }
+  
+  return { success: true }
+}
+
+/**
+ * Constructs and validates the API URL
+ */
+function constructApiUrl(endpoint: string, testUrl: string | undefined, debugInfo: any): { 
+  success: boolean; 
+  url?: string; 
+  error?: string 
+} {
+  debugInfo.step = 'url_construction'
+  
+  const baseUrl = testUrl || API_CONFIG.baseURL
+  const url = `${baseUrl}${endpoint}`
+  
+  debugInfo.fullUrl = url
+  debugInfo.baseUrl = baseUrl
+  debugInfo.usingTestUrl = !!testUrl
+  
+  // Validate URL construction
+  try {
+    new URL(url)
+    debugInfo.urlConstructionSuccess = true
+    return { success: true, url }
+  } catch (urlError) {
+    debugInfo.urlConstructionError = urlError instanceof Error ? urlError.message : 'Unknown URL error'
+    return {
+      success: false,
+      error: `Invalid URL: ${url}`
+    }
+  }
+}
+
+/**
+ * Prepares fetch options including headers and body
+ */
+function prepareFetchOptions(method: string, data: any, headers: any, debugInfo: any): RequestInit {
+  debugInfo.step = 'prepare_fetch_options'
+  
+  const options: RequestInit = {
+    method: method.toUpperCase(),
+    headers: {
+      'Content-Type': 'application/json',
+      // Add ngrok bypass header if using ngrok
+      ...(API_CONFIG.baseURL.includes('ngrok') && { 'ngrok-skip-browser-warning': 'true' }),
+      ...headers
+    },
+    body: data ? JSON.stringify(data) : undefined
+  }
+  
+  debugInfo.fetchOptions = options
+  debugInfo.step = 'about_to_fetch'
+  
+  return options
+}
+
+/**
+ * Handles error responses from the API
+ */
+async function handleErrorResponse(response: Response, debugInfo: any): Promise<Error> {
+  debugInfo.step = 'response_not_ok'
+  
+  // Try to extract structured error from response body
+  try {
+    const errorResponse = await response.json()
+    debugInfo.errorResponseBody = errorResponse
+    
+    if (errorResponse.error) {
+      const error = new Error(errorResponse.error)
+      
+      // Attach additional details for 403 errors (multisig access denied)
+      if (response.status === 403 && errorResponse.details) {
+        ;(error as any).details = errorResponse.details
+        ;(error as any).status = response.status
+      }
+      
+      return error
+    }
+  } catch (jsonError) {
+    // If we can't parse JSON, fall back to status text
+    debugInfo.jsonParseError = jsonError instanceof Error ? jsonError.message : 'Unknown JSON error'
+  }
+  
+  return new Error(`HTTP ${response.status}: ${response.statusText}`)
+}
+
+/**
+ * Executes the fetch request with timeout handling
+ */
+async function executeFetchWithTimeout(
+  url: string, 
+  options: RequestInit, 
+  debugInfo: any
+): Promise<{ success: boolean; data?: any; status?: number; error?: string }> {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => {
+    debugInfo.timeout = true
+    controller.abort()
+  }, API_CONFIG.timeout)
+  
+  try {
+    debugInfo.step = 'executing_fetch'
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    })
+    
+    clearTimeout(timeoutId)
+    debugInfo.step = 'fetch_completed'
+    debugInfo.responseStatus = response.status
+    debugInfo.responseStatusText = response.statusText
+    
+    // Handle error responses
+    if (!response.ok) {
+      const error = await handleErrorResponse(response, debugInfo)
+      throw error
+    }
+    
+    // Parse successful response
+    debugInfo.step = 'parsing_response'
+    const responseData = await response.json()
+    debugInfo.step = 'success'
+    
+    return {
+      success: true,
+      data: responseData,
+      status: response.status
+    }
+    
+  } catch (fetchError) {
+    clearTimeout(timeoutId)
+    debugInfo.step = 'fetch_error'
+    debugInfo.fetchError = fetchError instanceof Error ? fetchError.message : 'Unknown fetch error'
+    debugInfo.fetchErrorName = fetchError instanceof Error ? fetchError.name : 'Unknown'
+    
+    return {
+      success: false,
+      error: fetchError instanceof Error ? fetchError.message : 'Unknown fetch error'
+    }
+  }
+}
+
+/**
+ * Main API call orchestrator - delegates to smaller helper functions
+ */
 async function makeApiCall(endpoint: string, method: string, data?: any, headers?: any, testUrl?: string) {
   const debugInfo: any = {
     step: 'starting',
@@ -66,123 +227,21 @@ async function makeApiCall(endpoint: string, method: string, data?: any, headers
   }
   
   try {
-    debugInfo.step = 'fetch_available_check'
-    
-    // Test if fetch is available
-    if (typeof fetch === 'undefined') {
-      debugInfo.error = 'Fetch API is not available in this context'
-      debugInfo.step = 'fetch_not_available'
-      return {
-        success: false,
-        error: 'Fetch API is not available in this context',
-        debugInfo
-      }
+    const envCheck = validateFetchEnvironment(debugInfo)
+    if (!envCheck.success) {
+      return { success: false, error: envCheck.error, debugInfo }
     }
     
-    debugInfo.step = 'url_construction'
-    // Use testUrl if provided (for connection testing), otherwise use configured baseURL
-    const baseUrl = testUrl || API_CONFIG.baseURL
-    const url = `${baseUrl}${endpoint}`
-    debugInfo.fullUrl = url
-    debugInfo.baseUrl = baseUrl
-    debugInfo.usingTestUrl = !!testUrl
-    
-    // Test if we can construct a URL
-    try {
-      new URL(url)
-      debugInfo.urlConstructionSuccess = true
-    } catch (urlError) {
-      debugInfo.urlConstructionError = urlError instanceof Error ? urlError.message : 'Unknown URL error'
-      return {
-        success: false,
-        error: `Invalid URL: ${url}`,
-        debugInfo
-      }
+    const urlResult = constructApiUrl(endpoint, testUrl, debugInfo)
+    if (!urlResult.success) {
+      return { success: false, error: urlResult.error, debugInfo }
     }
     
-    debugInfo.step = 'prepare_fetch_options'
-    const options: RequestInit = {
-      method: method.toUpperCase(),
-      headers: {
-        'Content-Type': 'application/json',
-        // Add ngrok bypass header if using ngrok
-        ...(API_CONFIG.baseURL.includes('ngrok') && { 'ngrok-skip-browser-warning': 'true' }),
-        ...headers
-      },
-      body: data ? JSON.stringify(data) : undefined
-    }
+    const options = prepareFetchOptions(method, data, headers, debugInfo)
     
-    debugInfo.fetchOptions = options
-    debugInfo.step = 'about_to_fetch'
+    const result = await executeFetchWithTimeout(urlResult.url!, options, debugInfo)
     
-    // Add timeout handling
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => {
-      debugInfo.timeout = true
-      controller.abort()
-    }, API_CONFIG.timeout)
-    
-    try {
-      debugInfo.step = 'executing_fetch'
-      const response = await fetch(url, {
-        ...options,
-        signal: controller.signal
-      })
-      
-      clearTimeout(timeoutId)
-      debugInfo.step = 'fetch_completed'
-      debugInfo.responseStatus = response.status
-      debugInfo.responseStatusText = response.statusText
-      
-      if (!response.ok) {
-        debugInfo.step = 'response_not_ok'
-        
-        // For HTTP errors, try to extract the error response body for better error messages
-        try {
-          const errorResponse = await response.json()
-          debugInfo.errorResponseBody = errorResponse
-          
-          // If there's a structured error response, use it
-          if (errorResponse.error) {
-            const error = new Error(errorResponse.error)
-            // Attach additional details for 403 errors (multisig access denied)
-            if (response.status === 403 && errorResponse.details) {
-              ;(error as any).details = errorResponse.details
-              ;(error as any).status = response.status
-            }
-            throw error
-          }
-        } catch (jsonError) {
-          // If we can't parse JSON, fall back to status text
-          debugInfo.jsonParseError = jsonError instanceof Error ? jsonError.message : 'Unknown JSON error'
-        }
-        
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-      }
-      
-      debugInfo.step = 'parsing_response'
-      const responseData = await response.json()
-      debugInfo.step = 'success'
-      
-      return {
-        success: true,
-        data: responseData,
-        status: response.status,
-        debugInfo
-      }
-      
-    } catch (fetchError) {
-      clearTimeout(timeoutId)
-      debugInfo.step = 'fetch_error'
-      debugInfo.fetchError = fetchError instanceof Error ? fetchError.message : 'Unknown fetch error'
-      debugInfo.fetchErrorName = fetchError instanceof Error ? fetchError.name : 'Unknown'
-      
-      return {
-        success: false,
-        error: fetchError instanceof Error ? fetchError.message : 'Unknown fetch error',
-        debugInfo
-      }
-    }
+    return { ...result, debugInfo }
     
   } catch (outerError) {
     debugInfo.step = 'outer_error'
