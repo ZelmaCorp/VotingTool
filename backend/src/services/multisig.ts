@@ -11,13 +11,20 @@ export interface MultisigMember {
   network: "Polkadot" | "Kusama" | "Unknown";
 }
 
+export interface MultisigInfo {
+  members: MultisigMember[];
+  threshold: number;
+}
+
 export class MultisigService {
     private subscanApiKey: string;
     private polkadotMultisig: string;
     private kusamaMultisig: string;
   private cache: Map<string, MultisigMember[]> = new Map();
+  private thresholdCache: Map<string, number> = new Map();
   private cacheExpiry: Map<string, number> = new Map();
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+  private readonly DEFAULT_THRESHOLD = parseInt(process.env.MULTISIG_THRESHOLD || '4');
 
   /**
    * Convert a generic address to network-specific format
@@ -60,6 +67,39 @@ export class MultisigService {
     this.cacheExpiry.set(cacheKey, now + this.CACHE_DURATION);
     
     return members;
+  }
+
+  /**
+   * Get multisig approval threshold
+   * Returns cached threshold from API or falls back to environment variable/default
+   */
+  async getMultisigThreshold(network: "Polkadot" | "Kusama" = "Polkadot"): Promise<number> {
+    // Ensure members are cached (which also caches threshold if available)
+    await this.getCachedTeamMembers(network);
+    
+    const cacheKey = `threshold_${network}`;
+    const cachedThreshold = this.thresholdCache.get(cacheKey);
+    
+    if (cachedThreshold) {
+      logger.info({ network, threshold: cachedThreshold, source: 'api' }, 'Using threshold from API');
+      return cachedThreshold;
+    }
+    
+    logger.info({ network, threshold: this.DEFAULT_THRESHOLD, source: 'env/default' }, 'Using threshold from environment variable or default');
+    return this.DEFAULT_THRESHOLD;
+  }
+
+  /**
+   * Get complete multisig info including members and threshold
+   */
+  async getMultisigInfo(network: "Polkadot" | "Kusama" = "Polkadot"): Promise<MultisigInfo> {
+    const members = await this.getCachedTeamMembers(network);
+    const threshold = await this.getMultisigThreshold(network);
+    
+    return {
+      members,
+      threshold
+    };
   }
 
   /**
@@ -188,6 +228,14 @@ export class MultisigService {
         }
 
         if (accountData.multisig?.multi_account_member) {
+          // Extract threshold if available
+          const threshold = accountData.multisig.threshold || accountData.multisig.threshold_value;
+          if (threshold) {
+            const cacheKey = `threshold_${network}`;
+            this.thresholdCache.set(cacheKey, parseInt(threshold));
+            logger.info({ network, threshold }, 'Extracted multisig threshold from API');
+          }
+          
           for (const entry of accountData.multisig.multi_account_member) {
             if (entry.address) {
               members.push({
@@ -198,7 +246,7 @@ export class MultisigService {
             }
           }
           
-          logger.info({ network, targetAddress, membersCount: members.length }, 'Successfully extracted members from direct multisig account');
+          logger.info({ network, targetAddress, membersCount: members.length, threshold }, 'Successfully extracted members from direct multisig account');
           return members;
         }
 

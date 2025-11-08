@@ -135,21 +135,6 @@
               </div>
               
               <div class="form-group">
-                <label>Multisig Address</label>
-                <div class="readonly-field">
-                  <input 
-                    v-model="daoConfig.multisigAddress" 
-                    type="text" 
-                    class="form-input monospace" 
-                    readonly 
-                    :placeholder="daoConfig.multisigAddress ? '' : 'Not configured'"
-                  />
-                  <span class="multisig-badge">🔒 Controlled by Backend</span>
-                </div>
-                <small>The multisig address configured on your backend server</small>
-              </div>
-              
-              <div class="form-group">
                 <label>Team Members</label>
                 <div class="readonly-field-header">
                   <span class="multisig-badge">🔒 Controlled by Multisig</span>
@@ -476,8 +461,7 @@ const daoConfig = computed({
   get: () => ({
     name: teamStore.daoConfig?.name || '',
     requiredAgreements: teamStore.daoConfig?.required_agreements || 4,
-    teamMembers: teamStore.teamMembers,
-    multisigAddress: teamStore.daoConfig?.multisig_address || ''
+    teamMembers: teamStore.teamMembers
   }),
   set: () => {
     // This will be handled by the save method
@@ -917,12 +901,6 @@ const formatDate = (dateString: string) => {
   outline: none;
   border-color: #007bff;
   box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-}
-
-.form-input.monospace {
-  font-family: 'Courier New', monospace;
-  font-size: 0.85rem;
-  letter-spacing: 0.02em;
 }
 
 .form-group small {

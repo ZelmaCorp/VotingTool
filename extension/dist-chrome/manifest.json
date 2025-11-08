@@ -1,10 +1,9 @@
 {
   "manifest_version": 3,
   "name": "OpenGov VotingTool Browser Extension",
-  "version": "1.4.1",
+  "version": "1.4.6",
   "description": "A browser extension that overlays on Polkassembly and Subsquare to help you vote on OpenGov proposals",
   "permissions": [
-    "scripting",
     "storage"
   ],
   "host_permissions": [
@@ -61,9 +60,9 @@
     "service_worker": "background.js"
   },
   "icons": {
-    "16": "icons/icon16.svg",
-    "48": "icons/icon48.svg",
-    "128": "icons/icon128.svg"
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
   },
   "browser_specific_settings": {
     "gecko": {

@@ -67,13 +67,9 @@ router.get("/parent", authenticateToken, async (req: Request, res: Response) => 
  */
 router.get("/config", authenticateToken, async (req: Request, res: Response) => {
   try {
-    // Get team members
+    // Get team members and threshold from multisig
     const members = await multisigService.getCachedTeamMembers();
-    
-    // Calculate required agreements based on team size
-    const requiredAgreements = members.length > 0 
-      ? Math.ceil(members.length / 2) 
-      : 4;
+    const requiredAgreements = await multisigService.getMultisigThreshold();
     
     // Get multisig addresses from environment
     const polkadotMultisig = process.env.POLKADOT_MULTISIG;

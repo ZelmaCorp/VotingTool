@@ -32,8 +32,8 @@ export async function getAgreementStats(referendumId: number): Promise<{
   hasVeto: boolean;
   requiredAgreements: number;
 }> {
-  const teamMembers = await multisigService.getCachedTeamMembers();
-  const requiredAgreements = teamMembers.length;
+  // Get the actual multisig threshold (not team size!)
+  const requiredAgreements = await multisigService.getMultisigThreshold();
   
   const allActions = await db.all(
     "SELECT team_member_id, role_type FROM referendum_team_roles WHERE referendum_id = ?",
