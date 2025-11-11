@@ -1,6 +1,6 @@
 {
   "name": "OpenGov Voting Tool",
-  "version": "2.2.3",
+  "version": "2.3.0",
   "description": "A helper tool for small DAOs to vote on proposals",
   "main": "api/rss.js",
   "scripts": {
