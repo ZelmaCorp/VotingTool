@@ -122,7 +122,7 @@ export class MimirTransaction {
             UPDATE mimir_transactions 
             SET status = 'failed'
             WHERE status = 'pending' 
-              AND created_at < datetime('now', '-${olderThanDays} days')
+              
         `;
         
         const result = await db.run(sql);
@@ -137,7 +137,7 @@ export class MimirTransaction {
             SELECT COUNT(*) as count
             FROM mimir_transactions 
             WHERE status = 'pending' 
-              
+              AND created_at < datetime('now', '-${olderThanDays} days')
         `;
         
         const result = await db.get(sql);
