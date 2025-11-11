@@ -153,8 +153,8 @@ export async function checkForVotes(): Promise<void> {
  */
 function buildSubscanLink(extrinsicHash: string, chain: Chain): string {
   const baseUrl = chain === Chain.Polkadot 
-    ? 'https://polkadot.subscan.io' 
-    : 'https://kusama.subscan.io';
+    ? 'https://assethub-polkadot.subscan.io' 
+    : 'https://assethub-kusama.subscan.io';
   return `${baseUrl}/extrinsic/${extrinsicHash}`;
 }
 
@@ -231,8 +231,8 @@ export async function checkSubscan(votedList: ReferendumId[]): Promise<Record<nu
   try {
     let extrinsicVoteMap: Record<number, ExtrinsicVoteData> = {};
 
-    const polkadotSubscanUrl = `https://polkadot.api.subscan.io/api/scan/proxy/extrinsics`;
-    const kusamaSubscanUrl = `https://kusama.api.subscan.io/api/scan/proxy/extrinsics`;
+    const polkadotSubscanUrl = `https://assethub-polkadot.api.subscan.io/api/scan/proxy/extrinsics`;
+    const kusamaSubscanUrl = `https://assethub-kusama.api.subscan.io/api/scan/proxy/extrinsics`;
     
     const polkadotData = {
       account: process.env.POLKADOT_MULTISIG as string,
