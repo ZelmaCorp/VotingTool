@@ -81,7 +81,15 @@ export async function proposeVoteTransaction(
     const chain = network.toLowerCase();
 
     const mimirUrl = `${MIMIR_URL}/v1/chains/${chain}/${multisig}/transactions/batch`;
-    logger.info({ mimirUrl, chain, multisig, referendumId: id }, "Sending transaction to Mimir");
+    
+    // Log the full request we're about to send
+    logger.info({ 
+      mimirUrl, 
+      chain, 
+      multisig, 
+      referendumId: id,
+      requestBody: request
+    }, "Sending transaction to Mimir");
 
     const response = await fetch(mimirUrl, {
       method: "POST",
@@ -103,14 +111,32 @@ export async function proposeVoteTransaction(
     }
 
     if (!response.ok) {
+      // Log the full error details
       logger.error({ 
         status: response.status, 
         statusText: response.statusText,
         responseBody: text,
         referendumId: id,
         chain,
-        multisig
-      }, "Mimir API returned error");
+        multisig,
+        mimirUrl,
+        requestCalldata: request.calldata,
+        requestTimestamp: request.timestamp,
+        requestSigner: request.signer,
+        requestAllowDuplicates: request.allowDuplicates
+      }, `Mimir API returned ${response.status} error`);
+      
+      // Log the error again in a super visible way
+      logger.error(`MIMIR ERROR DETAILS`);
+      logger.error(`Status: ${response.status} ${response.statusText}`);
+      logger.error(`Referendum ID: ${id}`);
+      logger.error(`Chain: ${chain}`);
+      logger.error(`Multisig: ${multisig}`);
+      logger.error(`URL: ${mimirUrl}`);
+      logger.error(`Response Body: ${text}`);
+      logger.error(`Request Calldata: ${request.calldata}`);
+      logger.error(`Request Signer: ${request.signer}`);
+      
       throw new Error(
         `HTTP error! status: ${response.status} ${response.statusText}. Response: ${text}`
       );
