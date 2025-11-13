@@ -47,7 +47,18 @@ export async function proposeVoteTransaction(
     const wsProvider = new WsProvider(
       network === Chain.Kusama ? KUSAMA_PROVIDER : POLKADOT_PROVIDER
     );
+    
+    // Suppress Polkadot API console warnings that break JSON logging
+    const originalConsoleLog = console.log;
+    const originalConsoleWarn = console.warn;
+    console.log = () => {};
+    console.warn = () => {};
+    
     const api = await ApiPromise.create({ provider: wsProvider });
+    
+    // Restore console methods
+    console.log = originalConsoleLog;
+    console.warn = originalConsoleWarn;
     const keyring = new Keyring({ type: "sr25519" });
     const sender = keyring.addFromMnemonic(MNEMONIC);
     const senderAddress = encodeAddress(sender.address, ss58Format);
@@ -57,10 +68,14 @@ export async function proposeVoteTransaction(
     const payload = prepareRequestPayload(vote, id, conviction, api);
 
     const request = prepareRequest(payload, multisig, sender, senderAddress);
-    logger.debug({ 
+    logger.info({ 
+      referendumId: id,
+      network,
+      multisig,
       calldata: request.calldata, 
       timestamp: request.timestamp,
-      allowDuplicates: request.allowDuplicates 
+      allowDuplicates: request.allowDuplicates,
+      signer: request.signer
     }, "Request prepared for Mimir")
 
     const chain = network.toLowerCase();
