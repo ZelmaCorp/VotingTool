@@ -78,7 +78,15 @@ export async function proposeVoteTransaction(
       signer: request.signer
     }, "Request prepared for Mimir")
 
-    const chain = network.toLowerCase();
+    // Map network to Mimir chain identifier
+    // Since referendum voting migrated to Asset Hub, use assethub-* identifiers
+    const chain = network === Chain.Kusama ? 'assethub-kusama' : 'assethub-polkadot';
+    
+    logger.info({ 
+      network, 
+      chain, 
+      note: "Using Asset Hub chain identifier for Mimir" 
+    }, "Chain identifier mapping");
 
     const mimirUrl = `${MIMIR_URL}/v1/chains/${chain}/${multisig}/transactions/batch`;
     
@@ -88,7 +96,10 @@ export async function proposeVoteTransaction(
       chain, 
       multisig, 
       referendumId: id,
-      requestBody: request
+      requestBody: request,
+      signatureLength: request.signature.length,
+      calldataLength: request.calldata.length,
+      hasAllRequiredFields: !!(request.calldata && request.timestamp && request.signature && request.signer && request.allowDuplicates !== undefined)
     }, "Sending transaction to Mimir");
 
     const response = await fetch(mimirUrl, {
