@@ -1,6 +1,10 @@
 import axios from "axios";
 import { FetchReferendaReturnType, PolkassemblyReferenda, PostType } from "./types/polkassemly";
 import { Chain } from "./types/properties";
+import { createSubsystemLogger, formatError } from "./config/logger";
+import { Subsystem } from "./types/logging";
+
+const logger = createSubsystemLogger(Subsystem.POLKASSEMBLY);
 
 
 /** Function to fetch data from Polkassembly API */
@@ -36,7 +40,7 @@ export async function fetchDataFromAPI(limit: number = 200, network: Chain): Pro
     }
 
   } catch (error) {
-    console.error("Error fetching data from Polkassembly API:", (error as any).message);
+    logger.error({ error: formatError(error), network, limit }, "Error fetching data from Polkassembly API");
     return {
         referendas: [],
         discussions: []
@@ -66,7 +70,7 @@ export async function fetchReferendumContent(postId: number, network: Chain) {
         return response.data;
 
     } catch (error) {
-        console.error('Error fetching referendum content:', (error as any).message);
+        logger.error({ error: formatError(error), postId, network }, 'Error fetching referendum content');
         return { content: 'No content available' };
     }
 }

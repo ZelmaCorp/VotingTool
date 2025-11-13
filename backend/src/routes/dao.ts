@@ -174,7 +174,7 @@ router.get("/referendum/:referendumId/agreement-summary", async (req: Request, r
     
     // Debug: Log actions for proposal 1752
     if (referendumId === '1752') {
-      console.log('🔍 Debug proposal 1752 actions:', actions);
+      logger.debug({ referendumId, actions }, 'Debug proposal 1752 actions');
     }
     
     allMembers.forEach(member => {
@@ -189,11 +189,12 @@ router.get("/referendum/:referendumId/agreement-summary", async (req: Request, r
             memberActions = actionsData;
             // Debug: Log flexible matching for proposal 1752
             if (referendumId === '1752') {
-              console.log('🔄 Flexible match found:', {
+              logger.debug({ 
+                referendumId,
                 searchAddress: actionAddress,
                 foundMember: member.name,
                 actionsData: actionsData
-              });
+              }, 'Flexible match found');
             }
             break;
           }
@@ -220,11 +221,12 @@ router.get("/referendum/:referendumId/agreement-summary", async (req: Request, r
           veto_reason = noWayAction?.reason || null;
           // Debug: Log veto details for proposal 1752
           if (referendumId === '1752') {
-            console.log('🚫 Debug veto action:', {
+            logger.debug({ 
+              referendumId,
               member: member.name,
               action_reason: noWayAction?.reason,
               veto_reason: veto_reason
-            });
+            }, 'Debug veto action');
           }
         } else if (hasAgree) {
           agreed_members.push(member);
@@ -556,7 +558,7 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
     });
 
   } catch (error) {
-    console.error('Failed to get workflow data:', error);
+    logger.error({ error: formatError(error) }, 'Failed to get workflow data');
     res.status(500).json({
       success: false,
       error: 'Failed to get workflow data'

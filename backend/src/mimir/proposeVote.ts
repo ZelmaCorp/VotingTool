@@ -13,6 +13,10 @@ import {
 import { Chain, ReferendumId, SuggestedVote } from "../types/properties";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { ReadyProposal, VotingPayload } from "../types/mimir";
+import { createSubsystemLogger, formatError } from "../config/logger";
+import { Subsystem } from "../types/logging";
+
+const logger = createSubsystemLogger(Subsystem.MIMIR);
 
 /**
  * Sends transaction to Mimir, where it can be batched with other transactions, then signed.
@@ -48,49 +52,60 @@ export async function proposeVoteTransaction(
     const sender = keyring.addFromMnemonic(MNEMONIC);
     const senderAddress = encodeAddress(sender.address, ss58Format);
 
-    console.log("Multisig address: ", multisig);
-    console.log("Proposer address: ", senderAddress);
+    logger.debug({ multisig, senderAddress, network, referendumId: id }, "Preparing vote transaction");
 
     const payload = prepareRequestPayload(vote, id, conviction, api);
 
     const request = prepareRequest(payload, multisig, sender, senderAddress);
-    console.log("Request: ", request)
+    logger.debug({ 
+      calldata: request.calldata, 
+      timestamp: request.timestamp,
+      allowDuplicates: request.allowDuplicates 
+    }, "Request prepared for Mimir")
 
     const chain = network.toLowerCase();
 
-    const response = await fetch(
-      `${MIMIR_URL}/v1/chains/${chain}/${multisig}/transactions/batch`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(request),
-      }
-    );
+    const mimirUrl = `${MIMIR_URL}/v1/chains/${chain}/${multisig}/transactions/batch`;
+    logger.info({ mimirUrl, chain, multisig, referendumId: id }, "Sending transaction to Mimir");
+
+    const response = await fetch(mimirUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
 
     wsProvider.disconnect();
 
     let result;
-
     const text = await response.text();
 
     try {
       result = JSON.parse(text);
     } catch (error) {
-      //throw new Error(`Response was not JSON. Text content: ${text}`);
-      console.error(`Response was not JSON. Text content: ${text}`);
+      logger.warn({ responseText: text, referendumId: id }, "Mimir response was not JSON");
     }
 
     if (!response.ok) {
+      logger.error({ 
+        status: response.status, 
+        statusText: response.statusText,
+        responseBody: text,
+        referendumId: id,
+        chain,
+        multisig
+      }, "Mimir API returned error");
       throw new Error(
-        `HTTP error! status: ${response.status} ${response.statusText}`
+        `HTTP error! status: ${response.status} ${response.statusText}. Response: ${text}`
       );
     }
 
-    console.log("Transaction result: ", result);
-    console.log("HTTP response.ok: ", response.ok)
-    console.log("response.status: ", response.status)
+    logger.info({ 
+      referendumId: id, 
+      status: response.status,
+      hasResult: !!result 
+    }, "Transaction successfully sent to Mimir")
 
     return {
       ready: {
@@ -101,7 +116,7 @@ export async function proposeVoteTransaction(
       payload
     };
   } catch (error) {
-    console.error("Failed to upload transaction: ", error);
+    logger.error({ error: formatError(error), referendumId: id, network, vote }, "Failed to upload transaction to Mimir");
     throw error;
   }
 }

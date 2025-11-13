@@ -1,5 +1,6 @@
 export enum Subsystem {
   // Core application
+  DATABASE = 'database',
   APP = 'app',
   REFRESH = 'refresh',
   
