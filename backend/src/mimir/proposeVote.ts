@@ -63,44 +63,16 @@ export async function proposeVoteTransaction(
     const sender = keyring.addFromMnemonic(MNEMONIC);
     const senderAddress = encodeAddress(sender.address, ss58Format);
 
-    logger.debug({ multisig, senderAddress, network, referendumId: id }, "Preparing vote transaction");
-
     const payload = prepareRequestPayload(vote, id, conviction, api);
 
     const request = prepareRequest(payload, multisig, sender, senderAddress);
-    logger.info({ 
-      referendumId: id,
-      network,
-      multisig,
-      calldata: request.calldata, 
-      timestamp: request.timestamp,
-      allowDuplicates: request.allowDuplicates,
-      signer: request.signer
-    }, "Request prepared for Mimir")
 
     // Map network to Mimir chain identifier
     // Since referendum voting migrated to Asset Hub, use assethub-* identifiers
     const chain = network === Chain.Kusama ? 'assethub-kusama' : 'assethub-polkadot';
-    
-    logger.info({ 
-      network, 
-      chain, 
-      note: "Using Asset Hub chain identifier for Mimir" 
-    }, "Chain identifier mapping");
-
     const mimirUrl = `${MIMIR_URL}/v1/chains/${chain}/${multisig}/transactions/batch`;
     
-    // Log the full request we're about to send
-    logger.info({ 
-      mimirUrl, 
-      chain, 
-      multisig, 
-      referendumId: id,
-      requestBody: request,
-      signatureLength: request.signature.length,
-      calldataLength: request.calldata.length,
-      hasAllRequiredFields: !!(request.calldata && request.timestamp && request.signature && request.signer && request.allowDuplicates !== undefined)
-    }, "Sending transaction to Mimir");
+    logger.info({ referendumId: id, chain, vote }, "Sending transaction to Mimir");
 
     const response = await fetch(mimirUrl, {
       method: "POST",
@@ -122,7 +94,6 @@ export async function proposeVoteTransaction(
     }
 
     if (!response.ok) {
-      // Log the full error details
       logger.error({ 
         status: response.status, 
         statusText: response.statusText,
@@ -130,34 +101,15 @@ export async function proposeVoteTransaction(
         referendumId: id,
         chain,
         multisig,
-        mimirUrl,
-        requestCalldata: request.calldata,
-        requestTimestamp: request.timestamp,
-        requestSigner: request.signer,
-        requestAllowDuplicates: request.allowDuplicates
+        mimirUrl
       }, `Mimir API returned ${response.status} error`);
-      
-      // Log the error again in a super visible way
-      logger.error(`MIMIR ERROR DETAILS`);
-      logger.error(`Status: ${response.status} ${response.statusText}`);
-      logger.error(`Referendum ID: ${id}`);
-      logger.error(`Chain: ${chain}`);
-      logger.error(`Multisig: ${multisig}`);
-      logger.error(`URL: ${mimirUrl}`);
-      logger.error(`Response Body: ${text}`);
-      logger.error(`Request Calldata: ${request.calldata}`);
-      logger.error(`Request Signer: ${request.signer}`);
       
       throw new Error(
         `HTTP error! status: ${response.status} ${response.statusText}. Response: ${text}`
       );
     }
 
-    logger.info({ 
-      referendumId: id, 
-      status: response.status,
-      hasResult: !!result 
-    }, "Transaction successfully sent to Mimir")
+    logger.info({ referendumId: id, vote, chain }, "Transaction successfully sent to Mimir")
 
     return {
       ready: {
