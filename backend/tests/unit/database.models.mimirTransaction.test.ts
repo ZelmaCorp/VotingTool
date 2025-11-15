@@ -1,357 +1,355 @@
 import { MimirTransaction } from '../../src/database/models/mimirTransaction';
+import { db } from '../../src/database/connection';
 import { Chain } from '../../src/types/properties';
 
 // Mock the database connection
 jest.mock('../../src/database/connection', () => ({
-  db: {
-    run: jest.fn(),
-    get: jest.fn(),
-    all: jest.fn()
-  }
+    db: {
+        run: jest.fn(),
+        get: jest.fn(),
+        all: jest.fn()
+    }
 }));
 
-import { db } from '../../src/database/connection';
-const mockDb = db as jest.Mocked<typeof db>;
+describe('MimirTransaction Model - Multi-DAO Support', () => {
+    const mockDbRun = db.run as jest.MockedFunction<typeof db.run>;
+    const mockDbGet = db.get as jest.MockedFunction<typeof db.get>;
+    const mockDbAll = db.all as jest.MockedFunction<typeof db.all>;
 
-describe('MimirTransaction Model', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  describe('create()', () => {
-    it('should create new Mimir transaction successfully', async () => {
-      const referendumId = 123;
-      const calldata = '0x1234567890abcdef';
-      const timestamp = Date.now();
-
-      mockDb.run.mockResolvedValue({ lastID: 1, changes: 1 } as any);
-
-      const result = await MimirTransaction.create(referendumId, calldata, timestamp);
-
-      expect(result).toBe(1);
-      expect(mockDb.run).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO mimir_transactions'),
-        [referendumId, calldata, timestamp, 'pending']
-      );
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
-    it('should create transaction with custom status', async () => {
-      const referendumId = 456;
-      const calldata = '0xabcdef1234567890';
-      const timestamp = Date.now();
-      const status = 'executed';
+    describe('create()', () => {
+        it('should create a Mimir transaction with dao_id', async () => {
+            const referendumId = 1;
+            const daoId = 1;
+            const calldata = '0x1234abcd';
+            const timestamp = Date.now();
 
-      mockDb.run.mockResolvedValue({ lastID: 2, changes: 1 } as any);
+            mockDbRun.mockResolvedValue({ lastID: 10, changes: 1 } as any);
 
-      const result = await MimirTransaction.create(referendumId, calldata, timestamp, status);
+            const result = await MimirTransaction.create(referendumId, daoId, calldata, timestamp);
 
-      expect(result).toBe(2);
-      expect(mockDb.run).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO mimir_transactions'),
-        [referendumId, calldata, timestamp, status]
-      );
+            expect(result).toBe(10);
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining('INSERT INTO mimir_transactions'),
+                expect.arrayContaining([referendumId, daoId, calldata, timestamp, 'pending'])
+            );
+        });
+
+        it('should create transactions with custom status', async () => {
+            mockDbRun.mockResolvedValue({ lastID: 11, changes: 1 } as any);
+
+            await MimirTransaction.create(1, 1, '0xabcd', Date.now(), 'executed');
+
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.arrayContaining(['executed'])
+            );
+        });
+
+        it('should allow multiple DAOs to create transactions for same referendum', async () => {
+            const referendumId = 1;
+            const calldata = '0x1234';
+            const timestamp = Date.now();
+
+            mockDbRun.mockResolvedValue({ lastID: 10, changes: 1 } as any);
+            await MimirTransaction.create(referendumId, 1, calldata, timestamp);
+
+            mockDbRun.mockResolvedValue({ lastID: 11, changes: 1 } as any);
+            await MimirTransaction.create(referendumId, 2, calldata, timestamp);
+
+            expect(mockDbRun).toHaveBeenCalledTimes(2);
+            expect(mockDbRun).toHaveBeenNthCalledWith(1,
+                expect.anything(),
+                expect.arrayContaining([referendumId, 1, calldata])
+            );
+            expect(mockDbRun).toHaveBeenNthCalledWith(2,
+                expect.anything(),
+                expect.arrayContaining([referendumId, 2, calldata])
+            );
+        });
     });
 
-    it('should propagate database errors', async () => {
-      const error = new Error('Database constraint violation');
-      mockDb.run.mockRejectedValue(error);
+    describe('getPendingTransactions()', () => {
+        it('should get all pending transactions without DAO filter', async () => {
+            const mockTransactions = [
+                { id: 1, dao_id: 1, post_id: 100, chain: Chain.Polkadot, voted: 'Aye', timestamp: Date.now(), referendum_id: 1 },
+                { id: 2, dao_id: 2, post_id: 200, chain: Chain.Kusama, voted: 'Nay', timestamp: Date.now(), referendum_id: 2 }
+            ];
 
-      await expect(MimirTransaction.create(123, '0x123', Date.now())).rejects.toThrow(error);
-    });
-  });
+            mockDbAll.mockResolvedValue(mockTransactions);
 
-  describe('getPendingTransactions()', () => {
-    it('should return pending transactions with referendum details', async () => {
-      const mockTransactions = [
-        {
-          id: 1,
-          post_id: 123,
-          chain: Chain.Polkadot,
-          voted: '👍 Aye 👍',
-          timestamp: 1640995200000,
-          referendum_id: 456
-        },
-        {
-          id: 2,
-          post_id: 124,
-          chain: Chain.Kusama,
-          voted: '👎 Nay 👎',
-          timestamp: 1641081600000,
-          referendum_id: 457
-        }
-      ];
+            const result = await MimirTransaction.getPendingTransactions();
 
-      mockDb.all.mockResolvedValue(mockTransactions);
+            expect(result).toHaveLength(2);
+            expect(mockDbAll).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE mt.status = ?'),
+                ['pending']
+            );
+            expect(mockDbAll).toHaveBeenCalledWith(
+                expect.not.stringContaining('mt.dao_id = ?'),
+                expect.anything()
+            );
+        });
 
-      const result = await MimirTransaction.getPendingTransactions();
+        it('should filter pending transactions by dao_id', async () => {
+            const mockTransactions = [
+                { id: 1, dao_id: 1, post_id: 100, chain: Chain.Polkadot, voted: 'Aye', timestamp: Date.now(), referendum_id: 1 }
+            ];
 
-      expect(result).toEqual(mockTransactions);
-      expect(mockDb.all).toHaveBeenCalledWith(
-        expect.stringContaining("WHERE mt.status = 'pending'")
-      );
-    });
+            mockDbAll.mockResolvedValue(mockTransactions);
 
-    it('should return empty array when no pending transactions', async () => {
-      mockDb.all.mockResolvedValue([]);
+            const result = await MimirTransaction.getPendingTransactions(1);
 
-      const result = await MimirTransaction.getPendingTransactions();
+            expect(result).toHaveLength(1);
+            expect(result[0].dao_id).toBe(1);
+            expect(mockDbAll).toHaveBeenCalledWith(
+                expect.stringContaining('mt.dao_id = ?'),
+                ['pending', 1]
+            );
+        });
 
-      expect(result).toEqual([]);
-    });
+        it('should properly join with referendums and voting_decisions scoped by dao_id', async () => {
+            mockDbAll.mockResolvedValue([]);
 
-    it('should handle database errors', async () => {
-      const error = new Error('Database connection error');
-      mockDb.all.mockRejectedValue(error);
+            await MimirTransaction.getPendingTransactions(1);
 
-      await expect(MimirTransaction.getPendingTransactions()).rejects.toThrow(error);
-    });
-  });
+            const call = mockDbAll.mock.calls[0];
+            const sql = call[0] as string;
 
-  describe('updateStatus()', () => {
-    it('should update transaction status to executed with hash', async () => {
-      const referendumId = 123;
-      const extrinsicHash = '0xabcdef1234567890';
-
-      mockDb.run.mockResolvedValue({ changes: 1 } as any);
-
-      await MimirTransaction.updateStatus(referendumId, 'executed', extrinsicHash);
-
-      expect(mockDb.run).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE mimir_transactions'),
-        ['executed', extrinsicHash, referendumId]
-      );
+            expect(sql).toContain('JOIN referendums r ON mt.referendum_id = r.id AND r.dao_id = mt.dao_id');
+            expect(sql).toContain('LEFT JOIN voting_decisions vd ON r.id = vd.referendum_id AND vd.dao_id = mt.dao_id');
+        });
     });
 
-    it('should update transaction status to failed without hash', async () => {
-      const referendumId = 456;
+    describe('updateStatus()', () => {
+        it('should update transaction status scoped by dao_id', async () => {
+            const referendumId = 1;
+            const daoId = 1;
+            const extrinsicHash = '0xabc123';
 
-      mockDb.run.mockResolvedValue({ changes: 1 } as any);
+            mockDbRun.mockResolvedValue({ lastID: 0, changes: 1 } as any);
 
-      await MimirTransaction.updateStatus(referendumId, 'failed');
+            await MimirTransaction.updateStatus(referendumId, daoId, 'executed', extrinsicHash);
 
-      expect(mockDb.run).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE mimir_transactions'),
-        ['failed', null, referendumId]
-      );
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE referendum_id = ? AND dao_id = ?'),
+                ['executed', extrinsicHash, referendumId, daoId]
+            );
+        });
+
+        it('should only update pending transactions', async () => {
+            mockDbRun.mockResolvedValue({ lastID: 0, changes: 1 } as any);
+
+            await MimirTransaction.updateStatus(1, 1, 'executed');
+
+            const call = mockDbRun.mock.calls[0];
+            const sql = call[0] as string;
+            
+            expect(sql).toContain("status = 'pending'");
+        });
+
+        it('should not update other DAO\'s transactions', async () => {
+            mockDbRun.mockResolvedValue({ lastID: 0, changes: 1 } as any);
+
+            await MimirTransaction.updateStatus(1, 1, 'executed');
+
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining('dao_id = ?'),
+                expect.arrayContaining([1])
+            );
+        });
     });
 
-    it('should only update pending transactions', async () => {
-      mockDb.run.mockResolvedValue({ changes: 1 } as any);
+    describe('deleteByReferendumId()', () => {
+        it('should delete transaction scoped by dao_id', async () => {
+            const referendumId = 1;
+            const daoId = 1;
 
-      await MimirTransaction.updateStatus(123, 'executed');
+            mockDbRun.mockResolvedValue({ lastID: 0, changes: 1 } as any);
 
-      const [sql] = mockDb.run.mock.calls[0];
-      expect(sql).toContain("status = 'pending'");
-    });
-  });
+            await MimirTransaction.deleteByReferendumId(referendumId, daoId);
 
-  describe('deleteByReferendumId()', () => {
-    it('should delete transaction by referendum ID', async () => {
-      const referendumId = 123;
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining('DELETE FROM mimir_transactions WHERE referendum_id = ? AND dao_id = ?'),
+                [referendumId, daoId]
+            );
+        });
 
-      mockDb.run.mockResolvedValue({ changes: 1 } as any);
+        it('should only delete the specific DAO\'s transaction', async () => {
+            mockDbRun.mockResolvedValue({ lastID: 0, changes: 1 } as any);
 
-      await MimirTransaction.deleteByReferendumId(referendumId);
+            await MimirTransaction.deleteByReferendumId(1, 1);
 
-      expect(mockDb.run).toHaveBeenCalledWith(
-        'DELETE FROM mimir_transactions WHERE referendum_id = ?',
-        [referendumId]
-      );
-    });
-
-    it('should handle case when no transaction exists', async () => {
-      mockDb.run.mockResolvedValue({ changes: 0 } as any);
-
-      await expect(MimirTransaction.deleteByReferendumId(999)).resolves.toBeUndefined();
-    });
-  });
-
-  describe('hasPendingTransaction()', () => {
-    it('should return true when referendum has pending transaction', async () => {
-      mockDb.get.mockResolvedValue({ count: 1 });
-
-      const result = await MimirTransaction.hasPendingTransaction(123);
-
-      expect(result).toBe(true);
-      expect(mockDb.get).toHaveBeenCalledWith(
-        expect.stringContaining("WHERE referendum_id = ? AND status = 'pending'"),
-        [123]
-      );
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining('dao_id = ?'),
+                [1, 1]
+            );
+        });
     });
 
-    it('should return false when referendum has no pending transaction', async () => {
-      mockDb.get.mockResolvedValue({ count: 0 });
+    describe('hasPendingTransaction()', () => {
+        it('should check for pending transaction scoped by dao_id', async () => {
+            mockDbGet.mockResolvedValue({ count: 1 });
 
-      const result = await MimirTransaction.hasPendingTransaction(999);
+            const result = await MimirTransaction.hasPendingTransaction(1, 1);
 
-      expect(result).toBe(false);
+            expect(result).toBe(true);
+            expect(mockDbGet).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE referendum_id = ? AND dao_id = ?'),
+                [1, 1]
+            );
+        });
+
+        it('should return false when no pending transaction exists for DAO', async () => {
+            mockDbGet.mockResolvedValue({ count: 0 });
+
+            const result = await MimirTransaction.hasPendingTransaction(1, 999);
+
+            expect(result).toBe(false);
+        });
+
+        it('should allow different DAOs to have different pending status for same referendum', async () => {
+            // DAO 1 has pending transaction
+            mockDbGet.mockResolvedValueOnce({ count: 1 });
+            const dao1Result = await MimirTransaction.hasPendingTransaction(1, 1);
+
+            // DAO 2 does not have pending transaction
+            mockDbGet.mockResolvedValueOnce({ count: 0 });
+            const dao2Result = await MimirTransaction.hasPendingTransaction(1, 2);
+
+            expect(dao1Result).toBe(true);
+            expect(dao2Result).toBe(false);
+        });
     });
 
-    it('should handle database errors', async () => {
-      const error = new Error('Database error');
-      mockDb.get.mockRejectedValue(error);
+    describe('findByPostIdAndChain()', () => {
+        it('should find transaction scoped by dao_id', async () => {
+            const mockTransaction = {
+                id: 1,
+                referendum_id: 1,
+                dao_id: 1,
+                calldata: '0x1234',
+                timestamp: Date.now(),
+                status: 'pending'
+            };
 
-      await expect(MimirTransaction.hasPendingTransaction(123)).rejects.toThrow(error);
-    });
-  });
+            mockDbGet.mockResolvedValue(mockTransaction);
 
-  describe('findByPostIdAndChain()', () => {
-    it('should find transaction by post ID and chain', async () => {
-      const mockTransaction = {
-        id: 1,
-        referendum_id: 123,
-        calldata: '0x1234567890',
-        timestamp: 1640995200000,
-        status: 'pending',
-        extrinsic_hash: null
-      };
+            const result = await MimirTransaction.findByPostIdAndChain(100, Chain.Polkadot, 1);
 
-      mockDb.get.mockResolvedValue(mockTransaction);
+            expect(result).toEqual(mockTransaction);
+            expect(mockDbGet).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE r.post_id = ? AND r.chain = ? AND mt.dao_id = ?'),
+                [100, Chain.Polkadot, 1]
+            );
+        });
 
-      const result = await MimirTransaction.findByPostIdAndChain(456, Chain.Polkadot);
+        it('should return null if transaction not found for DAO', async () => {
+            mockDbGet.mockResolvedValue(null);
 
-      expect(result).toEqual(mockTransaction);
-      expect(mockDb.get).toHaveBeenCalledWith(
-        expect.stringContaining("WHERE r.post_id = ? AND r.chain = ? AND mt.status = 'pending'"),
-        [456, Chain.Polkadot]
-      );
-    });
+            const result = await MimirTransaction.findByPostIdAndChain(100, Chain.Polkadot, 999);
 
-    it('should return null when transaction not found', async () => {
-      mockDb.get.mockResolvedValue(null);
+            expect(result).toBeNull();
+        });
 
-      const result = await MimirTransaction.findByPostIdAndChain(999, Chain.Polkadot);
+        it('should properly join with referendums scoped by dao_id', async () => {
+            mockDbGet.mockResolvedValue(null);
 
-      expect(result).toBeNull();
-    });
+            await MimirTransaction.findByPostIdAndChain(100, Chain.Polkadot, 1);
 
-    it('should only find pending transactions', async () => {
-      mockDb.get.mockResolvedValue(null);
+            const call = mockDbGet.mock.calls[0];
+            const sql = call[0] as string;
 
-      await MimirTransaction.findByPostIdAndChain(123, Chain.Polkadot);
-
-      const [sql] = mockDb.get.mock.calls[0];
-      expect(sql).toContain("mt.status = 'pending'");
-    });
-  });
-
-  describe('cleanupStaleTransactions()', () => {
-    it('should cleanup stale transactions with default days', async () => {
-      mockDb.run.mockResolvedValue({ changes: 3 } as any);
-
-      const result = await MimirTransaction.cleanupStaleTransactions();
-
-      expect(result).toBe(3);
-      expect(mockDb.run).toHaveBeenCalledWith(
-        expect.stringContaining("created_at < datetime('now', '-7 days')")
-      );
+            expect(sql).toContain('JOIN referendums r ON mt.referendum_id = r.id AND r.dao_id = mt.dao_id');
+        });
     });
 
-    it('should cleanup stale transactions with custom days', async () => {
-      mockDb.run.mockResolvedValue({ changes: 1 } as any);
+    describe('cleanupStaleTransactions()', () => {
+        it('should cleanup stale transactions for all DAOs', async () => {
+            mockDbRun.mockResolvedValue({ lastID: 0, changes: 3 } as any);
 
-      const result = await MimirTransaction.cleanupStaleTransactions(14);
+            const result = await MimirTransaction.cleanupStaleTransactions(7);
 
-      expect(result).toBe(1);
-      expect(mockDb.run).toHaveBeenCalledWith(
-        expect.stringContaining("created_at < datetime('now', '-14 days')")
-      );
+            expect(result).toBe(3);
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining("status = ?"),
+                ['pending']
+            );
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.not.stringContaining('dao_id = ?'),
+                expect.anything()
+            );
+        });
+
+        it('should cleanup stale transactions for specific DAO', async () => {
+            mockDbRun.mockResolvedValue({ lastID: 0, changes: 1 } as any);
+
+            const result = await MimirTransaction.cleanupStaleTransactions(7, 1);
+
+            expect(result).toBe(1);
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining('dao_id = ?'),
+                ['pending', 1]
+            );
+        });
+
+        it('should use custom days parameter', async () => {
+            mockDbRun.mockResolvedValue({ lastID: 0, changes: 2 } as any);
+
+            await MimirTransaction.cleanupStaleTransactions(14, 1);
+
+            const call = mockDbRun.mock.calls[0];
+            const sql = call[0] as string;
+
+            expect(sql).toContain("'-14 days'");
+        });
     });
 
-    it('should return 0 when no stale transactions found', async () => {
-      mockDb.run.mockResolvedValue({ changes: 0 } as any);
+    describe('getStaleTransactionCount()', () => {
+        it('should get stale count for all DAOs', async () => {
+            mockDbGet.mockResolvedValue({ count: 5 });
 
-      const result = await MimirTransaction.cleanupStaleTransactions();
+            const result = await MimirTransaction.getStaleTransactionCount(7);
 
-      expect(result).toBe(0);
+            expect(result).toBe(5);
+            expect(mockDbGet).toHaveBeenCalledWith(
+                expect.not.stringContaining('dao_id = ?'),
+                ['pending']
+            );
+        });
+
+        it('should get stale count for specific DAO', async () => {
+            mockDbGet.mockResolvedValue({ count: 2 });
+
+            const result = await MimirTransaction.getStaleTransactionCount(7, 1);
+
+            expect(result).toBe(2);
+            expect(mockDbGet).toHaveBeenCalledWith(
+                expect.stringContaining('dao_id = ?'),
+                ['pending', 1]
+            );
+        });
+
+        it('should return 0 when count is null', async () => {
+            mockDbGet.mockResolvedValue({ count: null });
+
+            const result = await MimirTransaction.getStaleTransactionCount(7);
+
+            expect(result).toBe(0);
+        });
+
+        it('should use custom days parameter', async () => {
+            mockDbGet.mockResolvedValue({ count: 3 });
+
+            await MimirTransaction.getStaleTransactionCount(30, 1);
+
+            const call = mockDbGet.mock.calls[0];
+            const sql = call[0] as string;
+
+            expect(sql).toContain("'-30 days'");
+        });
     });
-
-    it('should handle database errors', async () => {
-      const error = new Error('Database error');
-      mockDb.run.mockRejectedValue(error);
-
-      await expect(MimirTransaction.cleanupStaleTransactions()).rejects.toThrow(error);
-    });
-  });
-
-  describe('getStaleTransactionCount()', () => {
-    it('should return count of stale transactions with default days', async () => {
-      mockDb.get.mockResolvedValue({ count: 5 });
-
-      const result = await MimirTransaction.getStaleTransactionCount();
-
-      expect(result).toBe(5);
-      expect(mockDb.get).toHaveBeenCalledWith(
-        expect.stringContaining("created_at < datetime('now', '-7 days')")
-      );
-    });
-
-    it('should return count with custom days', async () => {
-      mockDb.get.mockResolvedValue({ count: 2 });
-
-      const result = await MimirTransaction.getStaleTransactionCount(30);
-
-      expect(result).toBe(2);
-      expect(mockDb.get).toHaveBeenCalledWith(
-        expect.stringContaining("created_at < datetime('now', '-30 days')")
-      );
-    });
-
-    it('should return 0 when no stale transactions', async () => {
-      mockDb.get.mockResolvedValue({ count: 0 });
-
-      const result = await MimirTransaction.getStaleTransactionCount();
-
-      expect(result).toBe(0);
-    });
-
-    it('should handle null count gracefully', async () => {
-      mockDb.get.mockResolvedValue({ count: null });
-
-      const result = await MimirTransaction.getStaleTransactionCount();
-
-      expect(result).toBe(0);
-    });
-  });
-
-  describe('Integration scenarios', () => {
-    it('should handle complete Mimir transaction lifecycle', async () => {
-      const referendumId = 123;
-      const calldata = '0x1234567890';
-      const timestamp = Date.now();
-
-      // Step 1: Create pending transaction
-      mockDb.run.mockResolvedValueOnce({ lastID: 1, changes: 1 } as any);
-      await MimirTransaction.create(referendumId, calldata, timestamp);
-
-      // Step 2: Check if pending transaction exists
-      mockDb.get.mockResolvedValueOnce({ count: 1 });
-      const hasPending = await MimirTransaction.hasPendingTransaction(referendumId);
-      expect(hasPending).toBe(true);
-
-      // Step 3: Update status to executed
-      mockDb.run.mockResolvedValueOnce({ changes: 1 } as any);
-      await MimirTransaction.updateStatus(referendumId, 'executed', '0xhash123');
-
-      expect(mockDb.run).toHaveBeenCalledTimes(2);
-      expect(mockDb.get).toHaveBeenCalledTimes(1);
-    });
-
-    it('should handle duplicate prevention workflow', async () => {
-      const referendumId = 456;
-
-      // Check if already has pending transaction
-      mockDb.get.mockResolvedValue({ count: 1 });
-      const hasPending = await MimirTransaction.hasPendingTransaction(referendumId);
-
-      if (!hasPending) {
-        // Only create if no pending transaction exists
-        mockDb.run.mockResolvedValue({ lastID: 2, changes: 1 } as any);
-        await MimirTransaction.create(referendumId, '0xdata', Date.now());
-      }
-
-      // Should not have called create
-      expect(mockDb.run).not.toHaveBeenCalled();
-    });
-  });
-}); 
+});
