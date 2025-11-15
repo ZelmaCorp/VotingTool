@@ -1,6 +1,10 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { ReadyProposal } from "../types/mimir";
+import { createSubsystemLogger, formatError } from "../config/logger";
+import { Subsystem } from "../types/logging";
+
+const logger = createSubsystemLogger(Subsystem.MIMIR);
 
 /* Saves readyProposals to a file, as JSON */
 export async function saveReadyProposalsToFile(
@@ -14,7 +18,7 @@ export async function saveReadyProposalsToFile(
 
     await fs.writeFile(filePath, JSON.stringify(readyProposals, null, 2));
   } catch (error) {
-    console.error("Error saving ready proposals to file:", error);
+    logger.error({ error: formatError(error), filePath }, "Error saving ready proposals to file");
     throw error;
   }
 }
@@ -33,7 +37,7 @@ export async function loadReadyProposalsFromFile(
       await fs.writeFile(filePath, "[]", "utf8");
       return [];
     } else {
-      console.error("Error loading ready proposals from file:", error);
+      logger.error({ error: formatError(error), filePath }, "Error loading ready proposals from file");
       throw error;
     }
   }

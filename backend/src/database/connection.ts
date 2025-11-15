@@ -2,6 +2,10 @@ import sqlite3 from 'sqlite3';
 import { promisify } from 'util';
 import path from 'path';
 import fs from 'fs';
+import { createSubsystemLogger, formatError } from '../config/logger';
+import { Subsystem } from '../types/logging';
+
+const logger = createSubsystemLogger(Subsystem.DATABASE);
 
 // Enable verbose mode for debugging (can be disabled in production)
 const sqlite = sqlite3.verbose();
@@ -30,10 +34,10 @@ export class DatabaseConnection {
         return new Promise((resolve, reject) => {
             this.db = new sqlite.Database(this.dbPath, (err) => {
                 if (err) {
-                    console.error('Error opening database:', err.message);
+                    logger.error({ error: formatError(err), dbPath: this.dbPath }, 'Error opening database');
                     reject(err);
                 } else {
-                    console.log(`Connected to SQLite database at ${this.dbPath}`);
+                    logger.info({ dbPath: this.dbPath }, 'Connected to SQLite database');
                     this.setupDatabase()
                         .then(() => resolve())
                         .catch(reject);
@@ -58,10 +62,10 @@ export class DatabaseConnection {
         `);
 
         if (tables.length === 0) {
-            console.log('Database is empty, creating schema...');
+            logger.info('Database is empty, creating schema...');
             await this.createSchema();
         } else {
-            console.log(`Database has ${tables.length} tables:`, tables.map(t => t.name).join(', '));
+            logger.info({ tableCount: tables.length, tables: tables.map(t => t.name) }, 'Database schema loaded');
         }
     }
 
@@ -92,11 +96,10 @@ export class DatabaseConnection {
         await new Promise<void>((resolve, reject) => {
             exec(command, (error: any, stdout: any, stderr: any) => {
                 if (error) {
-                    console.error('Error executing schema:', error.message);
-                    console.error('stderr:', stderr);
+                    logger.error({ error: formatError(error), stderr, schemaPath }, 'Error executing schema');
                     reject(error);
                 } else {
-                    console.log('Database schema created successfully');
+                    logger.info({ schemaPath }, 'Database schema created successfully');
                     resolve();
                 }
             });
@@ -120,8 +123,7 @@ export class DatabaseConnection {
         return new Promise((resolve, reject) => {
             this.db!.run(sql, params, function(err) {
                 if (err) {
-                    console.error('SQL Error:', err.message);
-                    console.error('Query:', sql);
+                    logger.error({ error: formatError(err), sql, params }, 'SQL execution error');
                     reject(err);
                 } else {
                     resolve(this);
@@ -139,8 +141,7 @@ export class DatabaseConnection {
         return new Promise((resolve, reject) => {
             this.db!.get(sql, params, (err, row) => {
                 if (err) {
-                    console.error('SQL Error:', err.message);
-                    console.error('Query:', sql);
+                    logger.error({ error: formatError(err), sql, params }, 'SQL query error');
                     reject(err);
                 } else {
                     resolve(row);
@@ -158,8 +159,7 @@ export class DatabaseConnection {
         return new Promise((resolve, reject) => {
             this.db!.all(sql, params, (err, rows) => {
                 if (err) {
-                    console.error('SQL Error:', err.message);
-                    console.error('Query:', sql);
+                    logger.error({ error: formatError(err), sql, params }, 'SQL query error');
                     reject(err);
                 } else {
                     resolve(rows);
@@ -196,9 +196,9 @@ export class DatabaseConnection {
         return new Promise((resolve) => {
             this.db!.close((err) => {
                 if (err) {
-                    console.error('Error closing database:', err.message);
+                    logger.error({ error: formatError(err) }, 'Error closing database');
                 } else {
-                    console.log('Database connection closed');
+                    logger.info('Database connection closed');
                 }
                 this.db = null;
                 resolve();

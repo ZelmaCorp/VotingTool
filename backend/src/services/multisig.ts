@@ -118,7 +118,7 @@ export class MultisigService {
 
     try {
       const response = await axios.post(
-        `https://${network.toLowerCase()}.api.subscan.io/api/v2/scan/search`,
+        `https://assethub-${network.toLowerCase()}.api.subscan.io/api/v2/scan/search`,
         { key: multisigAddress },
         {
           headers: {
@@ -198,7 +198,7 @@ export class MultisigService {
       }
 
       const response = await axios.post(
-        `https://${network.toLowerCase()}.api.subscan.io/api/v2/scan/search`,
+        `https://assethub-${network.toLowerCase()}.api.subscan.io/api/v2/scan/search`,
         { key: targetAddress },
         {
           headers: {

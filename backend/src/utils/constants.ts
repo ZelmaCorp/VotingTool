@@ -5,9 +5,12 @@ export const KUSAMA_SS58_FORMAT = 2;
 
 export const MNEMONIC = process.env.PROPOSER_MNEMONIC as string;
 
-export const PASEO_PROVIDER = "wss://paseo.rpc.amforc.com";
-export const POLKADOT_PROVIDER = "wss://rpc.polkadot.io";
-export const KUSAMA_PROVIDER = "wss://kusama-rpc.polkadot.io";
+export const PASEO_PROVIDER = "wss://sys.turboflakes.io";
+
+// Asset Hub RPC - Referendum voting migrated to Asset Hub
+// These RPCs are used with Mimir chain identifiers: assethub-polkadot, assethub-kusama
+export const POLKADOT_PROVIDER = "wss://polkadot-asset-hub-rpc.polkadot.io";
+export const KUSAMA_PROVIDER = "wss://kusama-asset-hub-rpc.polkadot.io";
 
 export const BALANCE = 1000000000;
 

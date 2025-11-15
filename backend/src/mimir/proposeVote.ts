@@ -13,15 +13,111 @@ import {
 import { Chain, ReferendumId, SuggestedVote } from "../types/properties";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { ReadyProposal, VotingPayload } from "../types/mimir";
+import { createSubsystemLogger, formatError } from "../config/logger";
+import { Subsystem } from "../types/logging";
+
+const logger = createSubsystemLogger(Subsystem.MIMIR);
 
 /**
- * Sends transaction to Mimir, where it can be batched with other transactions, then signed.
- * The transaction should be created by a [Proposer](https://docs.mimir.global/advanced/proposer).
- * @param multisig - Array of addresses that are part of the multisig.
- * @param network - Network to send the transaction to. Can be Kusama or Polkadot.
- * @param id - Referendum ID.
- * @param vote - Aye | Nay | Abstain (contains emojis, see types).
- * @param conviction - Conviction value for the vote. Default is 1.
+ * Validates required configuration
+ */
+function validateConfig(multisig: string): void {
+  if (!MNEMONIC) throw new Error("Please specify MNEMONIC in .env!");
+  if (!multisig) throw new Error("Please specify POLKADOT_MULTISIG and/or KUSAMA_MULTISIG in .env!");
+}
+
+/**
+ * Suppresses console output during callback execution
+ */
+async function suppressConsole<T>(callback: () => Promise<T>): Promise<T> {
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  console.log = () => {};
+  console.warn = () => {};
+  
+  try {
+    return await callback();
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+  }
+}
+
+/**
+ * Gets network-specific configuration
+ */
+function getNetworkConfig(network: Chain) {
+  const isKusama = network === Chain.Kusama;
+  return {
+    provider: isKusama ? KUSAMA_PROVIDER : POLKADOT_PROVIDER,
+    ss58Format: isKusama ? KUSAMA_SS58_FORMAT : POLKADOT_SS58_FORMAT,
+    chain: isKusama ? 'assethub-kusama' : 'assethub-polkadot',
+  };
+}
+
+/**
+ * Initializes Polkadot API connection
+ */
+async function initializeApi(network: Chain): Promise<{ api: ApiPromise; provider: WsProvider }> {
+  await cryptoWaitReady();
+  const { provider: providerUrl } = getNetworkConfig(network);
+  const wsProvider = new WsProvider(providerUrl);
+  const api = await suppressConsole(() => ApiPromise.create({ provider: wsProvider }));
+  return { api, provider: wsProvider };
+}
+
+/**
+ * Creates signer from mnemonic
+ */
+function createSigner(network: Chain): { sender: KeyringPair; address: string } {
+  const { ss58Format } = getNetworkConfig(network);
+  const keyring = new Keyring({ type: "sr25519" });
+  const sender = keyring.addFromMnemonic(MNEMONIC);
+  const address = encodeAddress(sender.address, ss58Format);
+  return { sender, address };
+}
+
+/**
+ * Sends request to Mimir API
+ */
+async function sendToMimir(
+  request: any,
+  multisig: string,
+  chain: string,
+  id: ReferendumId,
+  vote: SuggestedVote
+): Promise<void> {
+  const mimirUrl = `${MIMIR_URL}/v1/chains/${chain}/${multisig}/transactions/batch`;
+  logger.info({ referendumId: id, chain, vote }, "Sending transaction to Mimir");
+
+  const response = await fetch(mimirUrl, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  });
+
+  const text = await response.text();
+
+  if (!response.ok) {
+    logger.error({ 
+      status: response.status,
+      statusText: response.statusText,
+      responseBody: text,
+      referendumId: id,
+      chain,
+      multisig,
+      mimirUrl
+    }, `Mimir API returned ${response.status} error`);
+    
+    throw new Error(`HTTP error! status: ${response.status} ${response.statusText}. Response: ${text}`);
+  }
+
+  logger.info({ referendumId: id, vote, chain }, "Transaction successfully sent to Mimir");
+}
+
+/**
+ * Sends transaction to Mimir for batch voting.
+ * The transaction should be created by a Proposer (https://docs.mimir.global/advanced/proposer).
  */
 export async function proposeVoteTransaction(
   multisig: string,
@@ -30,79 +126,30 @@ export async function proposeVoteTransaction(
   vote: SuggestedVote,
   conviction: number = 1
 ): Promise<{ ready: ReadyProposal; payload: VotingPayload }> {
+  validateConfig(multisig);
+
+  let provider: WsProvider | undefined;
+
   try {
-    if (!MNEMONIC) throw "Please specify MNEMONIC in .env!";
-    if (!multisig)
-      throw "Please specify POLKADOT_MULTISIG and/or KUSAMA_MULTISIG in .env!";
+    const { api, provider: wsProvider } = await initializeApi(network);
+    provider = wsProvider;
 
-    await cryptoWaitReady();
-
-    let ss58Format = POLKADOT_SS58_FORMAT;
-    if (network === Chain.Kusama) ss58Format = KUSAMA_SS58_FORMAT;
-
-    const wsProvider = new WsProvider(
-      network === Chain.Kusama ? KUSAMA_PROVIDER : POLKADOT_PROVIDER
-    );
-    const api = await ApiPromise.create({ provider: wsProvider });
-    const keyring = new Keyring({ type: "sr25519" });
-    const sender = keyring.addFromMnemonic(MNEMONIC);
-    const senderAddress = encodeAddress(sender.address, ss58Format);
-
-    console.log("Multisig address: ", multisig);
-    console.log("Proposer address: ", senderAddress);
-
+    const { sender, address } = createSigner(network);
     const payload = prepareRequestPayload(vote, id, conviction, api);
+    const request = prepareRequest(payload, multisig, sender, address);
+    const { chain } = getNetworkConfig(network);
 
-    const request = prepareRequest(payload, multisig, sender, senderAddress);
-    console.log("Request: ", request)
-
-    const chain = network.toLowerCase();
-
-    const response = await fetch(
-      `${MIMIR_URL}/v1/chains/${chain}/${multisig}/transactions/batch`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(request),
-      }
-    );
-
-    wsProvider.disconnect();
-
-    let result;
-
-    const text = await response.text();
-
-    try {
-      result = JSON.parse(text);
-    } catch (error) {
-      //throw new Error(`Response was not JSON. Text content: ${text}`);
-      console.error(`Response was not JSON. Text content: ${text}`);
-    }
-
-    if (!response.ok) {
-      throw new Error(
-        `HTTP error! status: ${response.status} ${response.statusText}`
-      );
-    }
-
-    console.log("Transaction result: ", result);
-    console.log("HTTP response.ok: ", response.ok)
-    console.log("response.status: ", response.status)
+    await sendToMimir(request, multisig, chain, id, vote);
 
     return {
-      ready: {
-        id,
-        voted: vote,
-        timestamp: payload.timestamp,
-      },
+      ready: { id, voted: vote, timestamp: payload.timestamp },
       payload
     };
   } catch (error) {
-    console.error("Failed to upload transaction: ", error);
+    logger.error({ error: formatError(error), referendumId: id, network, vote }, "Failed to upload transaction to Mimir");
     throw error;
+  } finally {
+    provider?.disconnect();
   }
 }
 

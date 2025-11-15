@@ -20,7 +20,7 @@ router.get("/send-to-mimir", async (req: Request, res: Response) => {
     res.status(500).json({ 
       success: false,
       error: "Error sending referendas to Mimir: " + (error as any).message 
-    });
+    }); 
   }
 });
 
