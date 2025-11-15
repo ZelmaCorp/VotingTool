@@ -284,7 +284,6 @@ export class DAO {
     
     /**
      * Get multisig members from on-chain (via MultisigService)
-     * Note: Currently uses environment-based MultisigService. Will be updated in Task 2.2.
      */
     public static async getMembers(id: number, chain: Chain): Promise<MultisigMember[]> {
         const multisigAddress = await this.getDecryptedMultisig(id, chain);
@@ -293,10 +292,9 @@ export class DAO {
             return [];
         }
         
-        // TODO: Task 2.2 - Update MultisigService to accept multisig address parameter
         const network = chain === Chain.Polkadot ? 'Polkadot' : 'Kusama';
         const multisigService = new MultisigService();
-        const members = await multisigService.getCachedTeamMembers(network as "Polkadot" | "Kusama");
+        const members = await multisigService.getCachedTeamMembers(multisigAddress, network as "Polkadot" | "Kusama");
         
         logger.debug({ daoId: id, chain, memberCount: members.length }, 'Retrieved multisig members');
         return members;
@@ -304,7 +302,6 @@ export class DAO {
     
     /**
      * Get multisig info including members and threshold
-     * Note: Currently uses environment-based MultisigService. Will be updated in Task 2.2.
      */
     public static async getMultisigInfo(id: number, chain: Chain): Promise<MultisigInfo | null> {
         const multisigAddress = await this.getDecryptedMultisig(id, chain);
@@ -313,10 +310,9 @@ export class DAO {
             return null;
         }
         
-        // TODO: Task 2.2 - Update MultisigService to accept multisig address parameter
         const network = chain === Chain.Polkadot ? 'Polkadot' : 'Kusama';
         const multisigService = new MultisigService();
-        const info = await multisigService.getMultisigInfo(network as "Polkadot" | "Kusama");
+        const info = await multisigService.getMultisigInfo(multisigAddress, network as "Polkadot" | "Kusama");
         
         logger.debug({ daoId: id, chain, threshold: info.threshold, memberCount: info.members.length }, 
             'Retrieved multisig info');
@@ -325,7 +321,6 @@ export class DAO {
     
     /**
      * Check if a wallet address is a member of the DAO's multisig
-     * Note: Currently uses environment-based MultisigService. Will be updated in Task 2.2.
      */
     public static async isValidMember(id: number, walletAddress: string, chain: Chain): Promise<boolean> {
         const multisigAddress = await this.getDecryptedMultisig(id, chain);
@@ -334,10 +329,9 @@ export class DAO {
             return false;
         }
         
-        // TODO: Task 2.2 - Update MultisigService to accept multisig address parameter
         const network = chain === Chain.Polkadot ? 'Polkadot' : 'Kusama';
         const multisigService = new MultisigService();
-        const isMember = await multisigService.isTeamMember(walletAddress, network as "Polkadot" | "Kusama");
+        const isMember = await multisigService.isTeamMember(walletAddress, multisigAddress, network as "Polkadot" | "Kusama");
         
         logger.debug({ daoId: id, walletAddress, chain, isMember }, 'Checked multisig membership');
         return isMember;
@@ -345,7 +339,6 @@ export class DAO {
     
     /**
      * Refresh the multisig members cache
-     * Note: Currently uses environment-based MultisigService. Will be updated in Task 2.2.
      */
     public static async refreshMembersCache(id: number, chain: Chain): Promise<void> {
         const multisigAddress = await this.getDecryptedMultisig(id, chain);
@@ -354,13 +347,38 @@ export class DAO {
             return;
         }
         
-        // TODO: Task 2.2 - Update MultisigService to accept multisig address parameter
         // Force a fresh fetch by getting members (which will update the cache)
         const network = chain === Chain.Polkadot ? 'Polkadot' : 'Kusama';
         const multisigService = new MultisigService();
-        await multisigService.getCachedTeamMembers(network as "Polkadot" | "Kusama");
+        await multisigService.getCachedTeamMembers(multisigAddress, network as "Polkadot" | "Kusama");
         
         logger.info({ daoId: id, chain }, 'Refreshed multisig members cache');
+    }
+    
+    /**
+     * Find DAO by multisig address
+     * @param multisigAddress - The multisig address to search for
+     * @param chain - The chain (Polkadot or Kusama)
+     * @returns DAO record or null if not found
+     */
+    public static async findByMultisig(multisigAddress: string, chain: Chain): Promise<DaoRecord | null> {
+        const fieldName = chain === Chain.Polkadot 
+            ? 'polkadot_multisig_encrypted' 
+            : 'kusama_multisig_encrypted';
+        
+        // Get all active DAOs
+        const daos = await this.getAll(true);
+        
+        // Check each DAO's decrypted multisig
+        for (const dao of daos) {
+            const decryptedMultisig = await this.getDecryptedMultisig(dao.id, chain);
+            if (decryptedMultisig && decryptedMultisig.toLowerCase() === multisigAddress.toLowerCase()) {
+                return dao;
+            }
+        }
+        
+        logger.debug({ multisigAddress, chain }, 'No DAO found for multisig address');
+        return null;
     }
     
     /**
