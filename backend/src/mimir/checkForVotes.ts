@@ -25,6 +25,7 @@ import { Subsystem, ErrorType } from "../types/logging";
 import { Referendum } from "../database/models/referendum";
 import { VotingDecision } from "../database/models/votingDecision";
 import { MimirTransaction } from "../database/models/mimirTransaction";
+import { DAO } from "../database/models/dao";
 
 const logger = createSubsystemLogger(Subsystem.MIMIR);
 
@@ -64,20 +65,38 @@ export async function checkForVotes(): Promise<void> {
     }
     logger.info({ transactionsCount: pendingTransactions.length, pendingTransactions }, "Pending Mimir transactions found");
 
-    const votedPolkadot = await fetchActiveVotes(
-      process.env.POLKADOT_MULTISIG as string,
-      Chain.Polkadot
-    );
-    const votedKusama = await fetchActiveVotes(
-      process.env.KUSAMA_MULTISIG as string,
-      Chain.Kusama
-    );
+    // Get all active DAOs
+    const daos = await DAO.getAll(true);
+    if (daos.length === 0) {
+      logger.warn("No active DAOs found");
+      return;
+    }
     
-    // Combine vote data from both chains
-    const allVotesWithData = { ...votedPolkadot, ...votedKusama };
+    // Fetch votes for all DAOs
+    let allVotesWithData: Record<number, SuggestedVote> = {};
+    
+    for (const dao of daos) {
+      // Check Polkadot multisig
+      const polkadotMultisig = await DAO.getDecryptedMultisig(dao.id, Chain.Polkadot);
+      if (polkadotMultisig) {
+        logger.debug({ daoId: dao.id, daoName: dao.name, chain: 'Polkadot' }, "Fetching votes for DAO");
+        const votedPolkadot = await fetchActiveVotes(polkadotMultisig, Chain.Polkadot);
+        allVotesWithData = { ...allVotesWithData, ...votedPolkadot };
+      }
+      
+      // Check Kusama multisig
+      const kusamaMultisig = await DAO.getDecryptedMultisig(dao.id, Chain.Kusama);
+      if (kusamaMultisig) {
+        logger.debug({ daoId: dao.id, daoName: dao.name, chain: 'Kusama' }, "Fetching votes for DAO");
+        const votedKusama = await fetchActiveVotes(kusamaMultisig, Chain.Kusama);
+        allVotesWithData = { ...allVotesWithData, ...votedKusama };
+      }
+    }
+    
     const votedList = Object.keys(allVotesWithData).map(Number);
+    logger.info({ votedCount: votedList.length }, "Total voted referendums found across all DAOs");
 
-    const extrinsicVoteMap = await checkSubscan(votedList);
+    const extrinsicVoteMap = await checkSubscan(votedList, daos);
 
     // Process each pending transaction to check if it has been voted on
     for (const transaction of pendingTransactions) {
@@ -222,9 +241,10 @@ async function fetchActiveVotes(
  * Fetches extrinsic hashes and vote data for voted referendums using Subscan API.
  * 
  * @param votedList - The list of referendum IDs to get transaction hashes for
+ * @param daos - List of all DAOs to check
  * @returns A map of referendum IDs to their corresponding extrinsic hashes and vote data
  */
-export async function checkSubscan(votedList: ReferendumId[]): Promise<Record<number, ExtrinsicVoteData>> {
+export async function checkSubscan(votedList: ReferendumId[], daos: Awaited<ReturnType<typeof DAO.getAll>>): Promise<Record<number, ExtrinsicVoteData>> {
   let polkadotExtrinsics: any[] = [];
   let kusamaExtrinsics: any[] = [];
   
@@ -234,66 +254,78 @@ export async function checkSubscan(votedList: ReferendumId[]): Promise<Record<nu
     const polkadotSubscanUrl = `https://assethub-polkadot.api.subscan.io/api/scan/proxy/extrinsics`;
     const kusamaSubscanUrl = `https://assethub-kusama.api.subscan.io/api/scan/proxy/extrinsics`;
     
-    const polkadotData = {
-      account: process.env.POLKADOT_MULTISIG as string,
-      row: SUBSCAN_ROW_COUNT,
-      page: 0,
-      order: 'desc'
-    }
-
-    const kusamaData = {
-      account: process.env.KUSAMA_MULTISIG as string,
-      row: SUBSCAN_ROW_COUNT,
-      page: 0,
-      order: 'desc'
-    }
-    
     const apiKey = process.env.SUBSCAN_API_KEY;
     if (!apiKey) {
       throw new Error('SUBSCAN_API_KEY is not set in environment variables');
     }
 
-    // Fetch Polkadot extrinsics with error handling
-    try {
-      const polkadotResp = await axios.post(polkadotSubscanUrl, polkadotData, {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey
-        }
-      });
+    // Fetch Polkadot extrinsics for all DAOs
+    for (const dao of daos) {
+      const polkadotMultisig = await DAO.getDecryptedMultisig(dao.id, Chain.Polkadot);
+      if (!polkadotMultisig) continue;
+      
+      try {
+        const polkadotData = {
+          account: polkadotMultisig,
+          row: SUBSCAN_ROW_COUNT,
+          page: 0,
+          order: 'desc'
+        };
+        
+        const polkadotResp = await axios.post(polkadotSubscanUrl, polkadotData, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey
+          }
+        });
 
-      if (polkadotResp.data && polkadotResp.data.data && Array.isArray(polkadotResp.data.data.extrinsics)) {
-        polkadotExtrinsics = polkadotResp.data.data.extrinsics;
-      } else {
-        logger.warn({ responseData: polkadotResp.data }, "Invalid Polkadot Subscan response structure");
-      }
-    } catch (polkadotError: any) {
-      if (polkadotError.response?.status === 429) {
-        logger.warn("Polkadot Subscan API rate limit exceeded, continuing with empty results");
-      } else {
-        logger.error({ error: formatError(polkadotError) }, "Error fetching Polkadot extrinsics from Subscan");
+        if (polkadotResp.data && polkadotResp.data.data && Array.isArray(polkadotResp.data.data.extrinsics)) {
+          polkadotExtrinsics.push(...polkadotResp.data.data.extrinsics);
+          logger.debug({ daoId: dao.id, daoName: dao.name, extrinsicsCount: polkadotResp.data.data.extrinsics.length }, "Fetched Polkadot extrinsics for DAO");
+        } else {
+          logger.warn({ daoId: dao.id, responseData: polkadotResp.data }, "Invalid Polkadot Subscan response structure");
+        }
+      } catch (polkadotError: any) {
+        if (polkadotError.response?.status === 429) {
+          logger.warn({ daoId: dao.id }, "Polkadot Subscan API rate limit exceeded for DAO");
+        } else {
+          logger.error({ error: formatError(polkadotError), daoId: dao.id }, "Error fetching Polkadot extrinsics from Subscan");
+        }
       }
     }
 
-    // Fetch Kusama extrinsics with error handling
-    try {
-      const kusamaResp = await axios.post(kusamaSubscanUrl, kusamaData, {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey
-        }
-      });
+    // Fetch Kusama extrinsics for all DAOs
+    for (const dao of daos) {
+      const kusamaMultisig = await DAO.getDecryptedMultisig(dao.id, Chain.Kusama);
+      if (!kusamaMultisig) continue;
+      
+      try {
+        const kusamaData = {
+          account: kusamaMultisig,
+          row: SUBSCAN_ROW_COUNT,
+          page: 0,
+          order: 'desc'
+        };
+        
+        const kusamaResp = await axios.post(kusamaSubscanUrl, kusamaData, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey
+          }
+        });
 
-      if (kusamaResp.data && kusamaResp.data.data && Array.isArray(kusamaResp.data.data.extrinsics)) {
-        kusamaExtrinsics = kusamaResp.data.data.extrinsics;
-      } else {
-        logger.warn({ responseData: kusamaResp.data }, "Invalid Kusama Subscan response structure");
-      }
-    } catch (kusamaError: any) {
-      if (kusamaError.response?.status === 429) {
-        logger.warn("Kusama Subscan API rate limit exceeded, continuing with empty results");
-      } else {
-        logger.error({ error: formatError(kusamaError) }, "Error fetching Kusama extrinsics from Subscan");
+        if (kusamaResp.data && kusamaResp.data.data && Array.isArray(kusamaResp.data.data.extrinsics)) {
+          kusamaExtrinsics.push(...kusamaResp.data.data.extrinsics);
+          logger.debug({ daoId: dao.id, daoName: dao.name, extrinsicsCount: kusamaResp.data.data.extrinsics.length }, "Fetched Kusama extrinsics for DAO");
+        } else {
+          logger.warn({ daoId: dao.id, responseData: kusamaResp.data }, "Invalid Kusama Subscan response structure");
+        }
+      } catch (kusamaError: any) {
+        if (kusamaError.response?.status === 429) {
+          logger.warn({ daoId: dao.id }, "Kusama Subscan API rate limit exceeded for DAO");
+        } else {
+          logger.error({ error: formatError(kusamaError), daoId: dao.id }, "Error fetching Kusama extrinsics from Subscan");
+        }
       }
     }
 

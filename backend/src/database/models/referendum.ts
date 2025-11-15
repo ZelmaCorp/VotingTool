@@ -249,14 +249,10 @@ export class Referendum {
                 r.*,
                 vd.suggested_vote, vd.final_vote, vd.vote_executed
             FROM referendums r
-            LEFT JOIN voting_decisions vd ON r.id = vd.referendum_id${daoId !== undefined ? ' AND vd.dao_id = ?' : ''}
+            LEFT JOIN voting_decisions vd ON r.id = vd.referendum_id AND vd.dao_id = r.dao_id
             WHERE ${whereClauses.join(' AND ')}
             ORDER BY r.voting_end_date
         `;
-
-        if (daoId !== undefined) {
-            params.push(daoId);
-        }
 
         return await db.all(sql, params);
     }

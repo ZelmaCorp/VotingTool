@@ -25,7 +25,7 @@ export async function sendReadyProposalsToMimir(): Promise<void> {
       const postId = referendum.post_id;
 
       // Skip if already has pending Mimir transaction
-      if (referendum.id && await MimirTransaction.hasPendingTransaction(referendum.id)) {
+      if (referendum.id && await MimirTransaction.hasPendingTransaction(referendum.id, referendum.dao_id)) {
         logger.info({ postId, network, referendumId: referendum.id }, "Referendum already has pending Mimir transaction, skipping");
         continue;
       }
