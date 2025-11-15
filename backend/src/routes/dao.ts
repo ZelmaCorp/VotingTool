@@ -30,6 +30,45 @@ import {
   addTeamActionsToProposals
 } from '../utils/daoWorkflow';
 
+/**
+ * GET /dao/:daoId
+ * Get DAO information (authenticated users only)
+ * Returns DAO details without exposing encrypted fields
+ */
+router.get("/:daoId", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const daoId = parseInt(req.params.daoId, 10);
+    
+    if (isNaN(daoId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid DAO ID'
+      });
+    }
+    
+    const daoInfo = await DAO.getSafeInfo(daoId);
+    
+    if (!daoInfo) {
+      return res.status(404).json({
+        success: false,
+        error: 'DAO not found'
+      });
+    }
+    
+    logger.info({ daoId, requestedBy: req.user?.address }, 'Retrieved DAO info');
+    res.json({
+      success: true,
+      dao: daoInfo
+    });
+  } catch (error) {
+    logger.error({ error: formatError(error), daoId: req.params.daoId }, 'Error retrieving DAO info');
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
 /** POST /dao/register - Register a new DAO with wallet-based authentication */
 router.post("/register", authenticateToken, async (req: Request, res: Response) => {
   try {
