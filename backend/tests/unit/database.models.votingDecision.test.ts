@@ -1,317 +1,268 @@
 import { VotingDecision } from '../../src/database/models/votingDecision';
 import { db } from '../../src/database/connection';
 import { VotingRecord } from '../../src/database/types';
+import { SuggestedVote } from '../../src/types/properties';
 
 // Mock the database connection
 jest.mock('../../src/database/connection', () => ({
-  db: {
-    run: jest.fn(),
-    get: jest.fn(),
-    all: jest.fn()
-  }
+    db: {
+        run: jest.fn(),
+        get: jest.fn(),
+        all: jest.fn()
+    }
 }));
 
-describe('VotingDecision Model', () => {
-  const mockDb = db as jest.Mocked<typeof db>;
+describe('VotingDecision Model - Multi-DAO Support', () => {
+    const mockDbRun = db.run as jest.MockedFunction<typeof db.run>;
+    const mockDbGet = db.get as jest.MockedFunction<typeof db.get>;
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  describe('upsert()', () => {
-    const mockVotingData: Partial<VotingRecord> = {
-      suggested_vote: '👍 Aye 👍',
-      final_vote: '👍 Aye 👍',
-      vote_executed: false,
-      vote_executed_date: undefined
-    };
-
-    it('should create new voting decision when none exists', async () => {
-      // Mock no existing record
-      mockDb.get.mockResolvedValue(null);
-      mockDb.run.mockResolvedValue({ lastID: 1, changes: 1 } as any);
-
-      const result = await VotingDecision.upsert(123, mockVotingData);
-
-      expect(result).toBe(1);
-      expect(mockDb.get).toHaveBeenCalledWith(
-        'SELECT * FROM voting_decisions WHERE referendum_id = ?',
-        [123]
-      );
-      expect(mockDb.run).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO voting_decisions'),
-        expect.arrayContaining([
-          123,
-          mockVotingData.suggested_vote,
-          mockVotingData.final_vote,
-          mockVotingData.vote_executed,
-          null
-        ])
-      );
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
-    it('should update existing voting decision', async () => {
-      const existingRecord: VotingRecord = {
-        id: 1,
-        referendum_id: 123,
-        suggested_vote: '👎 Nay 👎',
-        final_vote: undefined,
-        vote_executed: false,
-        vote_executed_date: undefined
-      };
+    describe('upsert()', () => {
+        it('should create a new voting decision with dao_id', async () => {
+            const referendumId = 1;
+            const daoId = 1;
+            const votingData: Partial<VotingRecord> = {
+                suggested_vote: SuggestedVote.Aye,
+                final_vote: undefined,
+                vote_executed: false,
+                vote_executed_date: undefined
+            };
 
-      mockDb.get.mockResolvedValue(existingRecord);
-      mockDb.run.mockResolvedValue({ changes: 1 } as any);
+            // Mock that no existing record exists
+            mockDbGet.mockResolvedValue(null);
+            mockDbRun.mockResolvedValue({ lastID: 10, changes: 1 } as any);
 
-      const result = await VotingDecision.upsert(123, mockVotingData);
+            const result = await VotingDecision.upsert(referendumId, daoId, votingData);
 
-      expect(result).toBe(1);
-      expect(mockDb.run).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE voting_decisions'),
-        expect.arrayContaining([
-          mockVotingData.suggested_vote,
-          mockVotingData.final_vote,
-          mockVotingData.vote_executed,
-          mockVotingData.vote_executed_date,
-          123
-        ])
-      );
+            expect(result).toBe(10);
+            expect(mockDbGet).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE referendum_id = ? AND dao_id = ?'),
+                [referendumId, daoId]
+            );
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining('INSERT INTO voting_decisions'),
+                expect.arrayContaining([referendumId, daoId, SuggestedVote.Aye])
+            );
+        });
+
+        it('should update existing voting decision scoped by dao_id', async () => {
+            const referendumId = 1;
+            const daoId = 1;
+            const existingRecord: VotingRecord = {
+                id: 10,
+                referendum_id: referendumId,
+                dao_id: daoId,
+                suggested_vote: SuggestedVote.Aye,
+                final_vote: undefined,
+                vote_executed: false,
+                vote_executed_date: undefined,
+                created_at: '2025-01-01T00:00:00Z',
+                updated_at: '2025-01-01T00:00:00Z'
+            };
+
+            const updateData: Partial<VotingRecord> = {
+                final_vote: SuggestedVote.Aye,
+                vote_executed: true,
+                vote_executed_date: '2025-01-02T00:00:00Z'
+            };
+
+            mockDbGet.mockResolvedValue(existingRecord);
+            mockDbRun.mockResolvedValue({ lastID: 10, changes: 1 } as any);
+
+            const result = await VotingDecision.upsert(referendumId, daoId, updateData);
+
+            expect(result).toBe(10);
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining('UPDATE voting_decisions'),
+                expect.arrayContaining([
+                    SuggestedVote.Aye, // suggested_vote (from existing)
+                    SuggestedVote.Aye, // final_vote (from update)
+                    true, // vote_executed
+                    '2025-01-02T00:00:00Z', // vote_executed_date
+                    referendumId,
+                    daoId
+                ])
+            );
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE referendum_id = ? AND dao_id = ?'),
+                expect.anything()
+            );
+        });
+
+        it('should allow multiple DAOs to have different voting decisions for same referendum', async () => {
+            const referendumId = 1;
+            
+            // DAO 1 votes Aye
+            mockDbGet.mockResolvedValue(null);
+            mockDbRun.mockResolvedValue({ lastID: 10, changes: 1 } as any);
+            await VotingDecision.upsert(referendumId, 1, { suggested_vote: SuggestedVote.Aye });
+
+            // DAO 2 votes Nay
+            mockDbGet.mockResolvedValue(null);
+            mockDbRun.mockResolvedValue({ lastID: 11, changes: 1 } as any);
+            await VotingDecision.upsert(referendumId, 2, { suggested_vote: SuggestedVote.Nay });
+
+            // Verify both calls included dao_id
+            expect(mockDbRun).toHaveBeenCalledTimes(2);
+            expect(mockDbRun).toHaveBeenNthCalledWith(1,
+                expect.stringContaining('INSERT INTO voting_decisions'),
+                expect.arrayContaining([referendumId, 1, SuggestedVote.Aye])
+            );
+            expect(mockDbRun).toHaveBeenNthCalledWith(2,
+                expect.stringContaining('INSERT INTO voting_decisions'),
+                expect.arrayContaining([referendumId, 2, SuggestedVote.Nay])
+            );
+        });
+
+        it('should preserve existing values when updating with partial data', async () => {
+            const referendumId = 1;
+            const daoId = 1;
+            const existingRecord: VotingRecord = {
+                id: 10,
+                referendum_id: referendumId,
+                dao_id: daoId,
+                suggested_vote: SuggestedVote.Aye,
+                final_vote: SuggestedVote.Aye,
+                vote_executed: true,
+                vote_executed_date: '2025-01-01T00:00:00Z',
+                created_at: '2025-01-01T00:00:00Z',
+                updated_at: '2025-01-01T00:00:00Z'
+            };
+
+            // Only update suggested_vote, everything else should be preserved
+            mockDbGet.mockResolvedValue(existingRecord);
+            mockDbRun.mockResolvedValue({ lastID: 10, changes: 1 } as any);
+
+            await VotingDecision.upsert(referendumId, daoId, { suggested_vote: SuggestedVote.Nay });
+
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.anything(),
+                expect.arrayContaining([
+                    SuggestedVote.Nay, // new suggested_vote
+                    SuggestedVote.Aye, // preserved final_vote
+                    true, // preserved vote_executed
+                    '2025-01-01T00:00:00Z', // preserved vote_executed_date
+                    referendumId,
+                    daoId
+                ])
+            );
+        });
     });
 
-    it('should preserve existing values when partial update provided', async () => {
-      const existingRecord: VotingRecord = {
-        id: 1,
-        referendum_id: 123,
-        suggested_vote: '👍 Aye 👍',
-        final_vote: '👍 Aye 👍',
-        vote_executed: false,
-        vote_executed_date: undefined
-      };
+    describe('getByReferendumId()', () => {
+        it('should get voting decision scoped by dao_id', async () => {
+            const referendumId = 1;
+            const daoId = 1;
+            const mockRecord: VotingRecord = {
+                id: 10,
+                referendum_id: referendumId,
+                dao_id: daoId,
+                suggested_vote: SuggestedVote.Aye,
+                final_vote: undefined,
+                vote_executed: false,
+                vote_executed_date: undefined,
+                created_at: '2025-01-01T00:00:00Z',
+                updated_at: '2025-01-01T00:00:00Z'
+            };
 
-      const partialUpdate = {
-        vote_executed: true,
-        vote_executed_date: '2024-01-15T10:30:00Z'
-      };
+            mockDbGet.mockResolvedValue(mockRecord);
 
-      mockDb.get.mockResolvedValue(existingRecord);
-      mockDb.run.mockResolvedValue({ changes: 1 } as any);
+            const result = await VotingDecision.getByReferendumId(referendumId, daoId);
 
-      await VotingDecision.upsert(123, partialUpdate);
+            expect(result).toEqual(mockRecord);
+            expect(mockDbGet).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE referendum_id = ? AND dao_id = ?'),
+                [referendumId, daoId]
+            );
+        });
 
-      expect(mockDb.run).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE voting_decisions'),
-        [
-          existingRecord.suggested_vote, // Preserved from existing
-          existingRecord.final_vote, // Preserved from existing
-          true, // Updated
-          '2024-01-15T10:30:00Z', // Updated
-          123
-        ]
-      );
+        it('should return null if voting decision does not exist for DAO', async () => {
+            mockDbGet.mockResolvedValue(null);
+
+            const result = await VotingDecision.getByReferendumId(1, 999);
+
+            expect(result).toBeNull();
+        });
+
+        it('should return different decisions for different DAOs on same referendum', async () => {
+            const referendumId = 1;
+
+            // DAO 1's decision
+            const dao1Record: VotingRecord = {
+                id: 10,
+                referendum_id: referendumId,
+                dao_id: 1,
+                suggested_vote: SuggestedVote.Aye,
+                final_vote: undefined,
+                vote_executed: false,
+                vote_executed_date: undefined,
+                created_at: '2025-01-01T00:00:00Z',
+                updated_at: '2025-01-01T00:00:00Z'
+            };
+
+            // DAO 2's decision
+            const dao2Record: VotingRecord = {
+                id: 11,
+                referendum_id: referendumId,
+                dao_id: 2,
+                suggested_vote: SuggestedVote.Nay,
+                final_vote: undefined,
+                vote_executed: false,
+                vote_executed_date: undefined,
+                created_at: '2025-01-01T00:00:00Z',
+                updated_at: '2025-01-01T00:00:00Z'
+            };
+
+            mockDbGet.mockResolvedValueOnce(dao1Record).mockResolvedValueOnce(dao2Record);
+
+            const dao1Result = await VotingDecision.getByReferendumId(referendumId, 1);
+            const dao2Result = await VotingDecision.getByReferendumId(referendumId, 2);
+
+            expect(dao1Result?.suggested_vote).toBe(SuggestedVote.Aye);
+            expect(dao2Result?.suggested_vote).toBe(SuggestedVote.Nay);
+        });
     });
 
-    it('should handle boolean values correctly', async () => {
-      mockDb.get.mockResolvedValue(null);
-      mockDb.run.mockResolvedValue({ lastID: 2, changes: 1 } as any);
+    describe('deleteByReferendumId()', () => {
+        it('should delete voting decision scoped by dao_id', async () => {
+            const referendumId = 1;
+            const daoId = 1;
 
-      const dataWithFalse = {
-        suggested_vote: '👍 Aye 👍',
-        vote_executed: false // Explicitly false
-      };
+            mockDbRun.mockResolvedValue({ lastID: 0, changes: 1 } as any);
 
-      await VotingDecision.upsert(456, dataWithFalse);
+            await VotingDecision.deleteByReferendumId(referendumId, daoId);
 
-      expect(mockDb.run).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO voting_decisions'),
-        expect.arrayContaining([
-          456,
-          '👍 Aye 👍',
-          null,
-          false, // Should be false, not falsy
-          null
-        ])
-      );
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining('DELETE FROM voting_decisions WHERE referendum_id = ? AND dao_id = ?'),
+                [referendumId, daoId]
+            );
+        });
+
+        it('should only delete the specific DAO\'s voting decision', async () => {
+            const referendumId = 1;
+
+            mockDbRun.mockResolvedValue({ lastID: 0, changes: 1 } as any);
+
+            // Delete DAO 1's decision
+            await VotingDecision.deleteByReferendumId(referendumId, 1);
+
+            // Verify it's scoped by dao_id
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE referendum_id = ? AND dao_id = ?'),
+                [referendumId, 1]
+            );
+
+            // DAO 2's decision should still exist (different dao_id)
+            mockDbRun.mockClear();
+            await VotingDecision.deleteByReferendumId(referendumId, 2);
+
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE referendum_id = ? AND dao_id = ?'),
+                [referendumId, 2]
+            );
+        });
     });
-
-    it('should handle null values correctly in create', async () => {
-      mockDb.get.mockResolvedValue(null);
-      mockDb.run.mockResolvedValue({ lastID: 3, changes: 1 } as any);
-
-      const minimalData = {
-        suggested_vote: '✌️ Abstain ✌️'
-      };
-
-      await VotingDecision.upsert(789, minimalData);
-
-      expect(mockDb.run).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO voting_decisions'),
-        [
-          789,
-          '✌️ Abstain ✌️',
-          null, // final_vote
-          false, // vote_executed default
-          null // vote_executed_date
-        ]
-      );
-    });
-
-    it('should propagate database errors', async () => {
-      const error = new Error('Database constraint violation');
-      mockDb.get.mockRejectedValue(error);
-
-      await expect(VotingDecision.upsert(123, mockVotingData)).rejects.toThrow(error);
-    });
-  });
-
-  describe('getByReferendumId()', () => {
-    it('should return voting decision when found', async () => {
-      const mockVotingRecord: VotingRecord = {
-        id: 1,
-        referendum_id: 123,
-        suggested_vote: '👍 Aye 👍',
-        final_vote: '👍 Aye 👍',
-        vote_executed: true,
-        vote_executed_date: '2024-01-15T10:30:00Z',
-        created_at: '2024-01-01T00:00:00Z',
-        updated_at: '2024-01-15T10:30:00Z'
-      };
-
-      mockDb.get.mockResolvedValue(mockVotingRecord);
-
-      const result = await VotingDecision.getByReferendumId(123);
-
-      expect(result).toEqual(mockVotingRecord);
-      expect(mockDb.get).toHaveBeenCalledWith(
-        'SELECT * FROM voting_decisions WHERE referendum_id = ?',
-        [123]
-      );
-    });
-
-    it('should return null when voting decision not found', async () => {
-      mockDb.get.mockResolvedValue(null);
-
-      const result = await VotingDecision.getByReferendumId(999);
-
-      expect(result).toBeNull();
-      expect(mockDb.get).toHaveBeenCalledWith(
-        'SELECT * FROM voting_decisions WHERE referendum_id = ?',
-        [999]
-      );
-    });
-
-    it('should handle database errors', async () => {
-      const error = new Error('Database connection error');
-      mockDb.get.mockRejectedValue(error);
-
-      await expect(VotingDecision.getByReferendumId(123)).rejects.toThrow(error);
-    });
-  });
-
-  describe('deleteByReferendumId()', () => {
-    it('should delete voting decision successfully', async () => {
-      mockDb.run.mockResolvedValue({ changes: 1 } as any);
-
-      await VotingDecision.deleteByReferendumId(123);
-
-      expect(mockDb.run).toHaveBeenCalledWith(
-        'DELETE FROM voting_decisions WHERE referendum_id = ?',
-        [123]
-      );
-    });
-
-    it('should handle case when no record exists to delete', async () => {
-      mockDb.run.mockResolvedValue({ changes: 0 } as any);
-
-      await expect(VotingDecision.deleteByReferendumId(999)).resolves.toBeUndefined();
-      expect(mockDb.run).toHaveBeenCalledWith(
-        'DELETE FROM voting_decisions WHERE referendum_id = ?',
-        [999]
-      );
-    });
-
-    it('should propagate database errors', async () => {
-      const error = new Error('Foreign key constraint error');
-      mockDb.run.mockRejectedValue(error);
-
-      await expect(VotingDecision.deleteByReferendumId(123)).rejects.toThrow(error);
-    });
-  });
-
-  describe('Integration scenarios', () => {
-    it('should handle complete voting workflow', async () => {
-      const referendumId = 123;
-
-      // Step 1: Create initial suggested vote
-      mockDb.get.mockResolvedValueOnce(null); // No existing record
-      mockDb.run.mockResolvedValueOnce({ lastID: 1, changes: 1 } as any);
-
-      await VotingDecision.upsert(referendumId, { 
-        suggested_vote: '👍 Aye 👍' 
-      });
-
-      // Step 2: Update with final vote
-      const existingRecord = {
-        id: 1,
-        referendum_id: referendumId,
-        suggested_vote: '👍 Aye 👍',
-        final_vote: undefined,
-        vote_executed: false
-      };
-
-      mockDb.get.mockResolvedValueOnce(existingRecord);
-      mockDb.run.mockResolvedValueOnce({ changes: 1 } as any);
-
-      await VotingDecision.upsert(referendumId, { 
-        final_vote: '👍 Aye 👍' 
-      });
-
-      // Step 3: Mark as executed
-      const updatedRecord = {
-        ...existingRecord,
-        final_vote: '👍 Aye 👍'
-      };
-
-      mockDb.get.mockResolvedValueOnce(updatedRecord);
-      mockDb.run.mockResolvedValueOnce({ changes: 1 } as any);
-
-      await VotingDecision.upsert(referendumId, { 
-        vote_executed: true,
-        vote_executed_date: '2024-01-15T10:30:00Z'
-      });
-
-      expect(mockDb.run).toHaveBeenCalledTimes(3);
-      expect(mockDb.get).toHaveBeenCalledTimes(3);
-    });
-
-    it('should handle vote change scenarios', async () => {
-      const referendumId = 456;
-      const existingRecord = {
-        id: 2,
-        referendum_id: referendumId,
-        suggested_vote: '👍 Aye 👍',
-        final_vote: '👍 Aye 👍',
-        vote_executed: false,
-        vote_executed_date: undefined
-      };
-
-      // Change vote before execution
-      mockDb.get.mockResolvedValue(existingRecord);
-      mockDb.run.mockResolvedValue({ changes: 1 } as any);
-
-      await VotingDecision.upsert(referendumId, { 
-        final_vote: '👎 Nay 👎' 
-      });
-
-      expect(mockDb.run).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE voting_decisions'),
-        expect.arrayContaining([
-          '👍 Aye 👍', // suggested_vote preserved
-          '👎 Nay 👎', // final_vote changed
-          false, // vote_executed preserved
-          existingRecord.vote_executed_date, // preserved
-          referendumId
-        ])
-      );
-    });
-  });
-}); 
+});

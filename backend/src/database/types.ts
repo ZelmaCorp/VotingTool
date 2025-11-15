@@ -89,6 +89,7 @@ export interface ScoringRecord {
 export interface VotingRecord {
     id?: number;
     referendum_id: number;
+    dao_id: number;
     suggested_vote?: string;            // 'AYE' | 'NAY' | 'ABSTAIN'
     final_vote?: string;
     vote_executed?: boolean;
