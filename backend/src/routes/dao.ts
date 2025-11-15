@@ -1,41 +1,226 @@
 import { Router, Request, Response } from "express";
 import { db } from "../database/connection";
-import { VotingDecision } from "../database/models/votingDecision";
-import { requireTeamMember, authenticateToken } from "../middleware/auth";
+import { requireTeamMember, authenticateToken, addDaoContext, requireDaoMembership } from "../middleware/auth";
 import { ReferendumAction } from "../types/auth";
-import { InternalStatus } from "../types/properties";
+import { InternalStatus, Chain } from "../types/properties";
 import { multisigService } from "../services/multisig";
 import { createSubsystemLogger, formatError } from "../config/logger";
 import { Subsystem } from "../types/logging";
 import { Referendum } from "../database/models/referendum";
 import { refreshReferendas } from "../refresh";
+import { DAO } from "../database/models/dao";
 
 const router = Router();
 const logger = createSubsystemLogger(Subsystem.APP);
 
 /**
+ * Helper: Get default chain from query or default to Polkadot
+ * In the future, this could be enhanced to remember user's last selected chain
+ */
+const getChainFromQuery = (query: any): Chain => {
+  const chain = query.chain as string;
+  return chain && Object.values(Chain).includes(chain as Chain) 
+    ? (chain as Chain) 
+    : Chain.Polkadot;
+};
+
+/**
+ * Helper: Get team members with their formatted info
+ */
+const getTeamMembersInfo = async (daoId: number, chain: Chain) => {
+  const members = await DAO.getMembers(daoId, chain);
+  return members.map(member => ({
+    address: member.wallet_address,
+    name: member.team_member_name || `Multisig Member (${member.network})`,
+    network: member.network
+  }));
+};
+
+/**
+ * Helper: Get action checkers for workflow categorization
+ */
+const createActionCheckers = (actionsByReferendum: Map<number, any[]>, teamMembers: any[]) => ({
+  hasVeto: (refId: number) => {
+    const actions = actionsByReferendum.get(refId) || [];
+    return actions.some(a => a.role_type === ReferendumAction.NO_WAY);
+  },
+  hasDiscussionFlag: (refId: number) => {
+    const actions = actionsByReferendum.get(refId) || [];
+    return actions.some(a => a.role_type === ReferendumAction.TO_BE_DISCUSSED);
+  },
+  countAgreeActions: (refId: number) => {
+    const actions = actionsByReferendum.get(refId) || [];
+    return actions.filter(a => a.role_type === ReferendumAction.AGREE).length;
+  },
+  getVetoInfo: (refId: number) => {
+    const actions = actionsByReferendum.get(refId) || [];
+    const vetoAction = actions.find(a => a.role_type === ReferendumAction.NO_WAY);
+    if (vetoAction) {
+      const member = multisigService.findMemberByAddress(teamMembers, vetoAction.team_member_id);
+      return {
+        veto_by: vetoAction.team_member_id,
+        veto_by_name: member?.team_member_name || 'Unknown Member',
+        veto_reason: vetoAction.reason,
+        veto_date: vetoAction.created_at
+      };
+    }
+    return null;
+  }
+});
+
+/**
+ * Helper: Categorize referendums into workflow categories
+ */
+const categorizeReferendums = (
+  referendums: any[], 
+  checkers: ReturnType<typeof createActionCheckers>,
+  totalTeamMembers: number
+) => {
+  const needsAgreement: any[] = [];
+  const readyToVote: any[] = [];
+  const forDiscussion: any[] = [];
+  const vetoedProposals: any[] = [];
+
+  referendums.forEach((ref: any) => {
+    const refId = ref.id;
+    const agreeCount = checkers.countAgreeActions(refId);
+    
+    ref.agreement_count = agreeCount;
+    ref.required_agreements = totalTeamMembers;
+
+    if (checkers.hasVeto(refId)) {
+      const vetoInfo = checkers.getVetoInfo(refId);
+      vetoedProposals.push({ ...ref, ...vetoInfo });
+    } else if (ref.internal_status === InternalStatus.ReadyToVote) {
+      readyToVote.push(ref);
+    } else if (ref.internal_status.startsWith('Voted')) {
+      // Skip voted referendums
+    } else if (
+      (ref.internal_status === InternalStatus.WaitingForAgreement ||
+       ref.internal_status === InternalStatus.ReadyForApproval) &&
+      agreeCount < totalTeamMembers
+    ) {
+      needsAgreement.push(ref);
+    } else if (checkers.hasDiscussionFlag(refId) && agreeCount === 0) {
+      forDiscussion.push(ref);
+    }
+  });
+
+  return { needsAgreement, readyToVote, forDiscussion, vetoedProposals };
+};
+
+/**
+ * Helper: Find duplicate "to_be_discussed" actions
+ */
+const findDuplicateDiscussionActions = async () => {
+  return await db.all(`
+    SELECT 
+      rtr1.id,
+      rtr1.referendum_id,
+      rtr1.team_member_id,
+      rtr1.role_type,
+      r.post_id,
+      r.title
+    FROM referendum_team_roles rtr1
+    INNER JOIN referendums r ON rtr1.referendum_id = r.id
+    WHERE rtr1.role_type = 'to_be_discussed'
+      AND EXISTS (
+        SELECT 1 
+        FROM referendum_team_roles rtr2 
+        WHERE rtr2.referendum_id = rtr1.referendum_id 
+          AND rtr2.team_member_id = rtr1.team_member_id
+          AND rtr2.role_type IN ('agree', 'recuse', 'no_way')
+      )
+  `);
+};
+
+/**
+ * Helper: Delete duplicate "to_be_discussed" actions
+ */
+const deleteDuplicateDiscussionActions = async () => {
+  return await db.run(`
+    DELETE FROM referendum_team_roles
+    WHERE id IN (
+      SELECT rtr1.id
+      FROM referendum_team_roles rtr1
+      WHERE rtr1.role_type = 'to_be_discussed'
+        AND EXISTS (
+          SELECT 1 
+          FROM referendum_team_roles rtr2 
+          WHERE rtr2.referendum_id = rtr1.referendum_id 
+            AND rtr2.team_member_id = rtr1.team_member_id
+            AND rtr2.role_type IN ('agree', 'recuse', 'no_way')
+        )
+    )
+  `);
+};
+
+/**
+ * Helper: Add team actions to proposals
+ */
+const addTeamActionsToProposals = async (proposals: any[], teamMembers: any[]) => {
+  for (const proposal of proposals) {
+    const actions = await db.all(`
+      SELECT team_member_id, role_type, reason, created_at
+      FROM referendum_team_roles
+      WHERE referendum_id = ?
+    `, [proposal.id]);
+
+    const roleAssignments = new Map<string, any>();
+    const actionStates = new Map<string, any>();
+    const memberActions = new Map<string, { action: any, timestamp: Date }[]>();
+    
+    actions.forEach((action: any) => {
+      const member = multisigService.findMemberByAddress(teamMembers, action.team_member_id);
+      const canonicalAddress = member?.wallet_address || action.team_member_id;
+      
+      const actionData = {
+        team_member_id: canonicalAddress,
+        wallet_address: canonicalAddress,
+        role_type: action.role_type,
+        reason: action.reason,
+        created_at: action.created_at,
+        team_member_name: member?.team_member_name || 'Unknown Member'
+      };
+      
+      const existing = memberActions.get(canonicalAddress) || [];
+      existing.push({ action: actionData, timestamp: new Date(action.created_at) });
+      memberActions.set(canonicalAddress, existing);
+    });
+    
+    memberActions.forEach((memberActionList, canonicalAddress) => {
+      memberActionList.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+      
+      const roleAction = memberActionList.find(a => a.action.role_type === ReferendumAction.RESPONSIBLE_PERSON);
+      if (roleAction) roleAssignments.set(canonicalAddress, roleAction.action);
+      
+      const latestActionState = memberActionList.find(a => a.action.role_type !== ReferendumAction.RESPONSIBLE_PERSON);
+      if (latestActionState) actionStates.set(canonicalAddress, latestActionState.action);
+    });
+
+    proposal.role_assignments = Array.from(roleAssignments.values());
+    proposal.team_actions = Array.from(actionStates.values());
+    
+    const responsiblePerson = Array.from(roleAssignments.values()).find(
+      (ra: any) => ra.role_type === ReferendumAction.RESPONSIBLE_PERSON
+    );
+    proposal.assigned_to = responsiblePerson?.wallet_address || null;
+  }
+};
+
+/**
  * GET /dao/members
  * Get all multisig members from blockchain multisig data
  */
-router.get("/members", authenticateToken, async (req: Request, res: Response) => {
+router.get("/members", authenticateToken, addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
-    const members = await multisigService.getCachedTeamMembers();
+    const chain = getChainFromQuery(req.query);
+    const members = await getTeamMembersInfo(req.daoId!, chain);
     
-    res.json({
-      success: true,
-      members: members.map(member => ({
-        address: member.wallet_address,
-        name: member.team_member_name || `Multisig Member (${member.network})`,
-        network: member.network
-      }))
-    });
-    
+    res.json({ success: true, members });
   } catch (error) {
     logger.error({ error: formatError(error) }, "Error fetching multisig members");
-    res.status(500).json({
-      success: false,
-      error: "Internal server error"
-    });
+    res.status(500).json({ success: false, error: "Internal server error" });
   }
 });
 
@@ -43,21 +228,20 @@ router.get("/members", authenticateToken, async (req: Request, res: Response) =>
  * GET /dao/parent
  * Get the parent address if this is a proxy/delegate account
  */
-router.get("/parent", authenticateToken, async (req: Request, res: Response) => {
+router.get("/parent", authenticateToken, addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
-    const parentInfo = await multisigService.getParentAddress();
+    const chain = getChainFromQuery(req.query);
+    const multisigAddress = await DAO.getDecryptedMultisig(req.daoId!, chain);
     
-    res.json({
-      success: true,
-      parent: parentInfo
-    });
+    if (!multisigAddress) {
+      return res.status(404).json({ success: false, error: 'No multisig configured for this chain' });
+    }
     
+    const parentInfo = await multisigService.getParentAddress(multisigAddress, chain);
+    res.json({ success: true, parent: parentInfo });
   } catch (error) {
     logger.error({ error: formatError(error) }, "Error fetching parent address");
-    res.status(500).json({
-      success: false,
-      error: "Internal server error"
-    });
+    res.status(500).json({ success: false, error: "Internal server error" });
   }
 });
 
@@ -65,257 +249,42 @@ router.get("/parent", authenticateToken, async (req: Request, res: Response) => 
  * GET /dao/config
  * Get DAO configuration including multisig addresses and team info
  */
-router.get("/config", authenticateToken, async (req: Request, res: Response) => {
+router.get("/config", authenticateToken, addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
-    // Get team members and threshold from multisig
-    const members = await multisigService.getCachedTeamMembers();
-    const requiredAgreements = await multisigService.getMultisigThreshold();
+    const daoId = req.daoId!;
+    const dao = await DAO.getById(daoId);
+    if (!dao) {
+      return res.status(404).json({ success: false, error: 'DAO not found' });
+    }
     
-    // Get multisig addresses from environment
-    const polkadotMultisig = process.env.POLKADOT_MULTISIG;
-    const kusamaMultisig = process.env.KUSAMA_MULTISIG;
+    const chain = getChainFromQuery(req.query);
+    const info = await DAO.getMultisigInfo(daoId, chain);
+    const teamMembers = await getTeamMembersInfo(daoId, chain);
     
-    // Determine primary multisig (use Polkadot if available, otherwise Kusama)
-    const multisigAddress = polkadotMultisig || kusamaMultisig;
+    // Get multisig addresses
+    const polkadotMultisig = await DAO.getDecryptedMultisig(daoId, Chain.Polkadot);
+    const kusamaMultisig = await DAO.getDecryptedMultisig(daoId, Chain.Kusama);
     
     res.json({
       success: true,
       config: {
-        name: 'OpenGov Voting Tool',
-        team_members: members.map(member => ({
-          address: member.wallet_address,
-          name: member.team_member_name || `Multisig Member (${member.network})`,
-          network: member.network
-        })),
-        required_agreements: requiredAgreements,
-        multisig_address: multisigAddress,
+        name: dao.name,
+        team_members: teamMembers,
+        required_agreements: info?.threshold || 4,
+        multisig_address: polkadotMultisig || kusamaMultisig,
         polkadot_multisig: polkadotMultisig,
         kusama_multisig: kusamaMultisig
       }
     });
-    
   } catch (error) {
     logger.error({ error: formatError(error) }, "Error fetching DAO config");
-    res.status(500).json({
-      success: false,
-      error: "Internal server error"
-    });
+    res.status(500).json({ success: false, error: "Internal server error" });
   }
 });
 
 // DELETED: GET /dao/referendum/:referendumId - Use GET /referendums/:postId instead
-
 // DELETED: GET /dao/referendum/:referendumId/actions - Use GET /referendums/:postId/actions instead
-
-/**
- * GET /dao/referendum/:referendumId/agreement-summary
- * Get agreement summary for a specific referendum during discussion period
- */
-router.get("/referendum/:referendumId/agreement-summary", async (req: Request, res: Response) => {
-  try {
-    const { referendumId } = req.params;
-    const { chain } = req.query;
-    
-    // Validate chain parameter
-    if (!chain) {
-      return res.status(400).json({
-        success: false,
-        error: "Chain parameter is required"
-      });
-    }
-    
-    // Check if referendum exists using post_id and chain
-    const referendum = await db.get(
-      "SELECT id, title FROM referendums WHERE post_id = ? AND chain = ?",
-      [referendumId, chain]
-    );
-    
-    if (!referendum) {
-      return res.status(404).json({
-        success: false,
-        error: `Referendum ${referendumId} not found on ${chain} network`
-      });
-    }
-    
-    // Get all team actions for this referendum
-    const actions = await db.all(`
-      SELECT rtr.team_member_id as wallet_address, rtr.role_type, rtr.reason, rtr.created_at
-      FROM referendum_team_roles rtr
-      WHERE rtr.referendum_id = ?
-      ORDER BY rtr.created_at DESC
-    `, [referendum.id]);
-    
-    // Get team members from multisig service for member names
-    const teamMembers = await multisigService.getCachedTeamMembers();
-    
-    // Process actions into agreement summary
-    const agreed_members: Array<{ address: string; name: string }> = [];
-    const pending_members: Array<{ address: string; name: string }> = [];
-    const recused_members: Array<{ address: string; name: string }> = [];
-    const to_be_discussed_members: Array<{ address: string; name: string }> = [];
-    let vetoed = false;
-    let veto_by: string | null = null;
-    let veto_reason: string | null = null;
-    
-    // Create a map of all team members
-    const allMembers = teamMembers.map(member => ({
-      address: member.wallet_address,
-      name: member.team_member_name || `Multisig Member (${member.network})`
-    }));
-    
-    // Process actions with flexible address matching
-    // Group actions by member address (members can have multiple role types)
-    const actionsByMember = new Map<string, any[]>();
-    actions.forEach(action => {
-      const existing = actionsByMember.get(action.wallet_address) || [];
-      existing.push(action);
-      actionsByMember.set(action.wallet_address, existing);
-    });
-    
-    // Debug: Log actions for proposal 1752
-    if (referendumId === '1752') {
-      logger.debug({ referendumId, actions }, 'Debug proposal 1752 actions');
-    }
-    
-    allMembers.forEach(member => {
-      // Try to find actions for this member with flexible address matching
-      let memberActions = actionsByMember.get(member.address);
-      
-      // If no direct match, try to find by flexible address matching
-      if (!memberActions) {
-        for (const [actionAddress, actionsData] of actionsByMember.entries()) {
-          const matchingMember = multisigService.findMemberByAddress(teamMembers, actionAddress, chain as "Polkadot" | "Kusama");
-          if (matchingMember && matchingMember.wallet_address === member.address) {
-            memberActions = actionsData;
-            // Debug: Log flexible matching for proposal 1752
-            if (referendumId === '1752') {
-              logger.debug({ 
-                referendumId,
-                searchAddress: actionAddress,
-                foundMember: member.name,
-                actionsData: actionsData
-              }, 'Flexible match found');
-            }
-            break;
-          }
-        }
-      }
-      
-      // Filter out RESPONSIBLE_PERSON since it's a role, not an action state
-      const actionStates = memberActions?.filter(a => a.role_type !== ReferendumAction.RESPONSIBLE_PERSON) || [];
-      
-      if (actionStates.length === 0) {
-        // No action state taken - pending
-        pending_members.push(member);
-      } else {
-        // Check actions in priority order: NO_WAY > AGREE > RECUSE > TO_BE_DISCUSSED
-        const hasNoWay = actionStates.some(a => a.role_type === ReferendumAction.NO_WAY);
-        const hasAgree = actionStates.some(a => a.role_type === ReferendumAction.AGREE);
-        const hasRecuse = actionStates.some(a => a.role_type === ReferendumAction.RECUSE);
-        const hasToBeDiscussed = actionStates.some(a => a.role_type === ReferendumAction.TO_BE_DISCUSSED);
-        
-        if (hasNoWay) {
-          const noWayAction = actionStates.find(a => a.role_type === ReferendumAction.NO_WAY);
-          vetoed = true;
-          veto_by = member.name;
-          veto_reason = noWayAction?.reason || null;
-          // Debug: Log veto details for proposal 1752
-          if (referendumId === '1752') {
-            logger.debug({ 
-              referendumId,
-              member: member.name,
-              action_reason: noWayAction?.reason,
-              veto_reason: veto_reason
-            }, 'Debug veto action');
-          }
-        } else if (hasAgree) {
-          agreed_members.push(member);
-        } else if (hasRecuse) {
-          recused_members.push(member);
-        } else if (hasToBeDiscussed) {
-          to_be_discussed_members.push(member);
-        } else {
-          // No recognized action state - counts as pending
-          pending_members.push(member);
-        }
-      }
-    });
-    
-    const summary = {
-      total_agreements: agreed_members.length,
-      required_agreements: 4, // Default, could be configurable
-      agreed_members,
-      pending_members,
-      recused_members,
-      to_be_discussed_members,
-      vetoed,
-      veto_by,
-      veto_reason
-    };
-    
-    logger.info({ referendumId, chain, summary }, "Retrieved agreement summary");
-    
-    res.json({
-      success: true,
-      summary
-    });
-    
-  } catch (error) {
-    logger.error({ error: formatError(error), referendumId: req.params.referendumId }, "Error fetching agreement summary");
-    res.status(500).json({
-      success: false,
-      error: "Internal server error"
-    });
-  }
-});
-
-/**
- * GET /dao/referendum/:referendumId/comments
- * Get comments for a specific referendum
- */
-router.delete("/comments/:commentId", requireTeamMember, async (req: Request, res: Response) => {
-  try {
-    if (!req.user?.address) {
-      return res.status(400).json({
-        success: false,
-        error: "User wallet address not found"
-      });
-    }
-    // Check if comment exists and belongs to the current user
-    const comment = await db.get(
-      "SELECT id, team_member_id FROM referendum_comments WHERE id = ?",
-      [req.params.commentId]
-    );
-    
-  } catch (error) {
-    logger.error({ 
-      error: formatError(error), 
-      referendumId: req.params.referendumId,
-      chain: req.body.chain,
-      walletAddress: req.user?.address,
-      body: req.body,
-      step: 'outer'
-    }, "Error removing user governance action from referendum");
-    
-    // Check if it's a transaction error that was re-thrown
-    if (error instanceof Error && error.message.includes('SQLITE_CONSTRAINT')) {
-      res.status(409).json({
-        success: false,
-        error: "Database constraint violation. Please try again."
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        error: error instanceof Error ? error.message : "Internal server error"
-      });
-    }
-  }
-});
-
-/**
- * DELETE /dao/comments/:commentId
- * Delete a specific comment (only by the author)
- */
+// DELETED: GET /dao/referendum/:referendumId/agreement-summary - Moved to GET /referendums/:postId/agreement-summary
 
 /**
  * GET /dao/my-assignments
@@ -354,31 +323,21 @@ router.get("/my-assignments", requireTeamMember, async (req: Request, res: Respo
  * GET /dao/workflow
  * Get all workflow data in a single request
  */
-router.get("/workflow", authenticateToken, async (req: Request, res: Response) => {
+router.get("/workflow", authenticateToken, addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
-    // Get team members from multisig service for counting
-    const teamMembers = await multisigService.getCachedTeamMembers();
+    const daoId = req.daoId!;
+    const chain = getChainFromQuery(req.query);
+    const teamMembers = await DAO.getMembers(daoId, chain);
     const totalTeamMembers = teamMembers.length;
 
-    // Get all referendums with their actions
-    const allReferendums = await db.all(`
-      SELECT r.*
-        FROM referendums r
-      ORDER BY r.created_at DESC
-    `);
-
-    // Get all team actions
+    // Get all referendums and actions
+    const allReferendums = await db.all(`SELECT r.* FROM referendums r ORDER BY r.created_at DESC`);
     const allActions = await db.all(`
-        SELECT 
-        referendum_id,
-        team_member_id,
-        role_type,
-        reason,
-        created_at
+      SELECT referendum_id, team_member_id, role_type, reason, created_at
       FROM referendum_team_roles
     `);
 
-    // Group actions by referendum_id
+    // Group actions by referendum
     const actionsByReferendum = new Map<number, any[]>();
     allActions.forEach((action: any) => {
       if (!actionsByReferendum.has(action.referendum_id)) {
@@ -387,161 +346,20 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
       actionsByReferendum.get(action.referendum_id)!.push(action);
     });
 
-    // Helper to check if referendum has NO WAY action
-    const hasVeto = (referendumId: number) => {
-      const actions = actionsByReferendum.get(referendumId) || [];
-      return actions.some(a => a.role_type === ReferendumAction.NO_WAY);
-    };
+    // Create checkers and categorize
+    const checkers = createActionCheckers(actionsByReferendum, teamMembers);
+    const { needsAgreement, readyToVote, forDiscussion, vetoedProposals } = 
+      categorizeReferendums(allReferendums, checkers, totalTeamMembers);
 
-    // Helper to check if referendum has "to_be_discussed" action
-    const hasDiscussionFlag = (referendumId: number) => {
-      const actions = actionsByReferendum.get(referendumId) || [];
-      return actions.some(a => a.role_type === ReferendumAction.TO_BE_DISCUSSED);
-    };
-
-    // Helper to count "agree" actions
-    const countAgreeActions = (referendumId: number) => {
-      const actions = actionsByReferendum.get(referendumId) || [];
-      return actions.filter(a => a.role_type === ReferendumAction.AGREE).length;
-    };
-
-    // Helper to get veto info
-    const getVetoInfo = (referendumId: number) => {
-      const actions = actionsByReferendum.get(referendumId) || [];
-      const vetoAction = actions.find(a => a.role_type === ReferendumAction.NO_WAY);
-      if (vetoAction) {
-        const member = multisigService.findMemberByAddress(teamMembers, vetoAction.team_member_id);
-        return {
-          veto_by: vetoAction.team_member_id,
-          veto_by_name: member?.team_member_name || 'Unknown Member',
-          veto_reason: vetoAction.reason,
-          veto_date: vetoAction.created_at
-        };
-      }
-      return null;
-    };
-
-    // Categorize referendums
-    const needsAgreement: any[] = [];
-    const readyToVote: any[] = [];
-    const forDiscussion: any[] = [];
-    const vetoedProposals: any[] = [];
-
-    allReferendums.forEach((ref: any) => {
-      const refId = ref.id;
-      const agreeCount = countAgreeActions(refId);
-      
-      // Add agreement_count and required_agreements for all
-      ref.agreement_count = agreeCount;
-      ref.required_agreements = totalTeamMembers;
-
-      if (hasVeto(refId)) {
-        // Vetoed proposals (highest priority)
-        const vetoInfo = getVetoInfo(refId);
-        vetoedProposals.push({ ...ref, ...vetoInfo });
-      } else if (ref.internal_status === InternalStatus.ReadyToVote) {
-        // Ready to vote (voted proposals shouldn't be in discussion)
-        readyToVote.push(ref);
-      } else if (
-        ref.internal_status.startsWith('Voted') // "Voted 👍 Aye 👍", "Voted 👎 Nay 👎", "Voted ✌️ Abstain ✌️"
-      ) {
-        // Already voted - don't show in any workflow category
-        // These are historical and shouldn't appear in active workflow
-      } else if (
-        (ref.internal_status === InternalStatus.WaitingForAgreement ||
-         ref.internal_status === InternalStatus.ReadyForApproval) &&
-        agreeCount < totalTeamMembers
-      ) {
-        // Needs agreement (active proposals in agreement phase)
-        needsAgreement.push(ref);
-      } else if (hasDiscussionFlag(refId) && agreeCount === 0) {
-        // For discussion (only if no agreements have been made yet)
-        // Once people start agreeing, it moves out of "discussion" phase
-        forDiscussion.push(ref);
-      }
-    });
-
-    // For each proposal, get team actions separately
-    const addTeamActions = async (proposals: any[]) => {
-      for (const proposal of proposals) {
-        const actions = await db.all(`
-          SELECT 
-            team_member_id,
-            role_type,
-            reason,
-            created_at
-          FROM referendum_team_roles
-          WHERE referendum_id = ?
-        `, [proposal.id]);
-
-        // Split actions into role assignments and action states
-        const roleAssignments = new Map<string, any>();
-        const actionStates = new Map<string, any>();
-        
-        // First pass: collect all actions with timestamps
-        const memberActions = new Map<string, { action: any, timestamp: Date }[]>();
-        
-        actions.forEach((action: any) => {
-          // Use flexible address matching to find the canonical team member
-          const member = multisigService.findMemberByAddress(teamMembers, action.team_member_id);
-          const canonicalAddress = member?.wallet_address || action.team_member_id;
-          
-          const actionData = {
-            team_member_id: canonicalAddress,
-            wallet_address: canonicalAddress, // For frontend compatibility
-            role_type: action.role_type,
-            reason: action.reason,
-            created_at: action.created_at,
-            team_member_name: member?.team_member_name || 'Unknown Member'
-          };
-          
-          const existing = memberActions.get(canonicalAddress) || [];
-          existing.push({
-            action: actionData,
-            timestamp: new Date(action.created_at)
-          });
-          memberActions.set(canonicalAddress, existing);
-        });
-        
-        // Second pass: process each member's actions
-        memberActions.forEach((memberActionList, canonicalAddress) => {
-          // Sort actions by timestamp, newest first
-          memberActionList.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-          
-          // Find role assignment (RESPONSIBLE_PERSON) if it exists
-          const roleAction = memberActionList.find(a => a.action.role_type === ReferendumAction.RESPONSIBLE_PERSON);
-          if (roleAction) {
-            roleAssignments.set(canonicalAddress, roleAction.action);
-          }
-          
-          // Find the latest non-RESPONSIBLE_PERSON action (there should only be one after our SET changes)
-          const latestActionState = memberActionList.find(a => a.action.role_type !== ReferendumAction.RESPONSIBLE_PERSON);
-          if (latestActionState) {
-            actionStates.set(canonicalAddress, latestActionState.action);
-          }
-        });
-
-        // Add role assignments and action states separately
-        proposal.role_assignments = Array.from(roleAssignments.values());
-        proposal.team_actions = Array.from(actionStates.values());
-        
-        // Set assigned_to field using the canonical address from role_assignments
-        const responsiblePerson = Array.from(roleAssignments.values()).find(
-          (ra: any) => ra.role_type === ReferendumAction.RESPONSIBLE_PERSON
-        );
-        proposal.assigned_to = responsiblePerson?.wallet_address || null;
-      }
-    };
-
-    // Add team actions to all proposal lists
+    // Add team actions to all lists
     await Promise.all([
-      addTeamActions(needsAgreement),
-      addTeamActions(readyToVote),
-      addTeamActions(forDiscussion),
-      addTeamActions(vetoedProposals)
+      addTeamActionsToProposals(needsAgreement, teamMembers),
+      addTeamActionsToProposals(readyToVote, teamMembers),
+      addTeamActionsToProposals(forDiscussion, teamMembers),
+      addTeamActionsToProposals(vetoedProposals, teamMembers)
     ]);
 
-    // For vetoed proposals, add proper veto_by_name using flexible address matching
+    // Fix veto_by_name with flexible address matching
     vetoedProposals.forEach((proposal: any) => {
       const member = multisigService.findMemberByAddress(teamMembers, proposal.veto_by);
       proposal.veto_by_name = member?.team_member_name || 'Unknown Member';
@@ -549,20 +367,11 @@ router.get("/workflow", authenticateToken, async (req: Request, res: Response) =
 
     res.json({
       success: true,
-      data: {
-        needsAgreement,
-        readyToVote,
-        forDiscussion,
-        vetoedProposals
-      }
+      data: { needsAgreement, readyToVote, forDiscussion, vetoedProposals }
     });
-
   } catch (error) {
     logger.error({ error: formatError(error) }, 'Failed to get workflow data');
-    res.status(500).json({
-      success: false,
-      error: 'Failed to get workflow data'
-    });
+    res.status(500).json({ success: false, error: 'Failed to get workflow data' });
   }
 });
 
@@ -631,61 +440,16 @@ router.post("/sync", authenticateToken, async (req: Request, res: Response) => {
  */
 router.post("/cleanup-duplicate-actions", async (req: Request, res: Response) => {
   try {
-    logger.info({ 
-      requestedBy: 'public' 
-    }, "Starting cleanup of duplicate team actions");
+    logger.info({ requestedBy: 'public' }, "Starting cleanup of duplicate team actions");
 
-    // First, find all duplicates to report what will be deleted
-    const duplicates = await db.all(`
-      SELECT 
-        rtr1.id,
-        rtr1.referendum_id,
-        rtr1.team_member_id,
-        rtr1.role_type,
-        r.post_id,
-        r.title
-      FROM referendum_team_roles rtr1
-      INNER JOIN referendums r ON rtr1.referendum_id = r.id
-      WHERE rtr1.role_type = 'to_be_discussed'
-        AND EXISTS (
-          SELECT 1 
-          FROM referendum_team_roles rtr2 
-          WHERE rtr2.referendum_id = rtr1.referendum_id 
-            AND rtr2.team_member_id = rtr1.team_member_id
-            AND rtr2.role_type IN ('agree', 'recuse', 'no_way')
-        )
-    `);
-
+    const duplicates = await findDuplicateDiscussionActions();
     logger.info({ 
       duplicateCount: duplicates.length,
-      duplicates: duplicates.map(d => ({ 
-        id: d.id, 
-        post_id: d.post_id, 
-        title: d.title 
-      }))
+      duplicates: duplicates.map(d => ({ id: d.id, post_id: d.post_id, title: d.title }))
     }, "Found duplicate 'to_be_discussed' entries");
 
-    // Now delete them
-    const result = await db.run(`
-      DELETE FROM referendum_team_roles
-      WHERE id IN (
-        SELECT rtr1.id
-        FROM referendum_team_roles rtr1
-        WHERE rtr1.role_type = 'to_be_discussed'
-          AND EXISTS (
-            SELECT 1 
-            FROM referendum_team_roles rtr2 
-            WHERE rtr2.referendum_id = rtr1.referendum_id 
-              AND rtr2.team_member_id = rtr1.team_member_id
-              AND rtr2.role_type IN ('agree', 'recuse', 'no_way')
-          )
-      )
-    `);
-
-    logger.info({ 
-      deletedCount: result.changes,
-      requestedBy: 'public' 
-    }, "Cleanup completed successfully");
+    const result = await deleteDuplicateDiscussionActions();
+    logger.info({ deletedCount: result.changes }, "Cleanup completed successfully");
 
     res.json({
       success: true,
@@ -699,16 +463,9 @@ router.post("/cleanup-duplicate-actions", async (req: Request, res: Response) =>
         team_member_id: d.team_member_id
       }))
     });
-
   } catch (error) {
-    logger.error({ 
-      error: formatError(error), 
-      requestedBy: 'public' 
-    }, "Error during cleanup operation");
-    res.status(500).json({
-      success: false,
-      error: "Internal server error"
-    });
+    logger.error({ error: formatError(error) }, "Error during cleanup operation");
+    res.status(500).json({ success: false, error: "Internal server error" });
   }
 });
 
