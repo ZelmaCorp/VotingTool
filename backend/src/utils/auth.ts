@@ -2,6 +2,8 @@ import { Web3AuthRequest, AuthenticatedUser, AuthToken } from "../types/auth";
 import { multisigService } from "../services/multisig";
 import { createSubsystemLogger, formatError } from "../config/logger";
 import { Subsystem } from "../types/logging";
+import { Chain } from "../types/properties";
+import { DAO } from "../database/models/dao";
 import jwt from "jsonwebtoken";
 import { signatureVerify } from '@polkadot/util-crypto';
 
@@ -60,56 +62,60 @@ export async function verifyWeb3Signature(authRequest: Web3AuthRequest): Promise
 
 /**
  * Find multisig member by wallet address using blockchain data
+ * Checks all DAOs on both networks to find where the wallet is a member
  */
 export async function findTeamMemberByAddress(walletAddress: string): Promise<AuthenticatedUser | null> {
   try {
     // Try both networks since we don't know which one the user is using
-    logger.info({ walletAddress }, "Checking wallet address in both networks");
+    logger.info({ walletAddress }, "Checking wallet address in all DAOs on both networks");
     
     // Check Polkadot first
-    let isMember = await multisigService.isTeamMember(walletAddress, "Polkadot");
-    let network = "Polkadot" as "Polkadot" | "Kusama";
+    let memberDaos = await DAO.findDaosForWallet(walletAddress, Chain.Polkadot);
+    let network: "Polkadot" | "Kusama" = "Polkadot";
     
     // If not found in Polkadot, try Kusama
-    if (!isMember) {
-      logger.info({ walletAddress }, "Not found in Polkadot, checking Kusama");
-      isMember = await multisigService.isTeamMember(walletAddress, "Kusama");
-      if (isMember) {
-        network = "Kusama";
-      }
+    if (memberDaos.length === 0) {
+      logger.info({ walletAddress }, "Not found in Polkadot DAOs, checking Kusama");
+      memberDaos = await DAO.findDaosForWallet(walletAddress, Chain.Kusama);
+      network = "Kusama";
     }
     
-    if (!isMember) {
-      logger.debug({ walletAddress }, "Wallet address not found in multisig members on either network");
-      
-      // Get the configured multisig addresses for better error context
-      const polkadotMultisig = process.env.POLKADOT_MULTISIG;
-      const kusamaMultisig = process.env.KUSAMA_MULTISIG;
-      
-      logger.warn({ 
-        walletAddress, 
-        polkadotMultisig, 
-        kusamaMultisig 
-      }, "Authentication failed - address not in configured multisigs");
-      
+    if (memberDaos.length === 0) {
+      logger.warn({ walletAddress }, "Authentication failed - wallet not found in any DAO on either network");
+      return null;
+    }
+
+    // Use the first DAO found
+    const dao = memberDaos[0];
+    const multisigAddress = await DAO.getDecryptedMultisig(dao.id, network === "Polkadot" ? Chain.Polkadot : Chain.Kusama);
+    
+    if (!multisigAddress) {
+      logger.warn({ walletAddress, daoId: dao.id, network }, "DAO has no multisig configured for this network");
       return null;
     }
 
     // Get additional multisig member info
-    const memberInfo = await multisigService.getTeamMemberByAddress(walletAddress, network);
+    const memberInfo = await multisigService.getTeamMemberByAddress(walletAddress, multisigAddress, network);
     
     if (memberInfo) {
+      logger.info({ 
+        walletAddress, 
+        daoId: dao.id, 
+        daoName: dao.name,
+        network 
+      }, "User authenticated successfully");
+      
       return {
-        address: memberInfo.wallet_address,  // Use address field
-        name: memberInfo.team_member_name || `Multisig Member (${memberInfo.network})`,
+        address: memberInfo.wallet_address,
+        name: memberInfo.team_member_name || `${dao.name} Member`,
         network: memberInfo.network
       };
     }
 
     // Fallback if memberInfo is null
     return {
-      address: walletAddress,  // Use address field
-      name: "Multisig Member",
+      address: walletAddress,
+      name: `${dao.name} Member`,
       network: network
     };
   } catch (error) {

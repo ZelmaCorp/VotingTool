@@ -175,7 +175,8 @@ function determineTargetStatus(
 export async function checkAndApplyAgreementTransition(
   referendumId: number,
   postId: number,
-  chain: Chain
+  chain: Chain,
+  daoId: number
 ): Promise<void> {
   try {
     const currentRef = await db.get(
@@ -185,7 +186,7 @@ export async function checkAndApplyAgreementTransition(
     
     if (!currentRef) return;
     
-    const { agreementCount, hasVeto, requiredAgreements } = await getAgreementStats(referendumId);
+    const { agreementCount, hasVeto, requiredAgreements } = await getAgreementStats(referendumId, daoId, chain);
     const targetStatus = determineTargetStatus(
       currentRef.internal_status,
       agreementCount,
@@ -220,9 +221,10 @@ export async function checkAndApplyAgreementTransition(
  * Process a single referendum's pending transition
  */
 async function processSingleReferendumTransition(
-  ref: { id: number; post_id: number; chain: string; internal_status: InternalStatus }
+  ref: { id: number; post_id: number; chain: string; internal_status: InternalStatus; dao_id: number }
 ): Promise<{ referendumId: number; postId: number; chain: string; oldStatus: string; newStatus: string } | null> {
-  const { agreementCount, hasVeto, requiredAgreements } = await getAgreementStats(ref.id);
+  const chain = ref.chain as Chain;
+  const { agreementCount, hasVeto, requiredAgreements } = await getAgreementStats(ref.id, ref.dao_id, chain);
   const targetStatus = determineTargetStatus(
     ref.internal_status,
     agreementCount,
