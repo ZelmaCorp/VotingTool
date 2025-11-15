@@ -10,6 +10,7 @@ export interface ReferendumRecord {
     id?: number;                        // AUTO INCREMENT primary key
     post_id: number;                    // Polkassembly post ID
     chain: Chain;                       // 'Polkadot' | 'Kusama'
+    dao_id: number;                     // Foreign key to daos table
     title: string;
     description?: string;
     requested_amount_usd?: number;      // USD amount (calculated)
