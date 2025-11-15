@@ -3,6 +3,7 @@ import { verifyAuthToken, extractTokenFromHeader } from "../utils/auth";
 import { createSubsystemLogger, formatError } from "../config/logger";
 import { Subsystem } from "../types/logging";
 import { DAO } from "../database/models/dao";
+import { DaoService } from "../services/daoService";
 import { Chain } from "../types/properties";
 
 const logger = createSubsystemLogger(Subsystem.APP);
@@ -127,11 +128,11 @@ export async function addDaoContext(req: Request, res: Response, next: NextFunct
 
     if (multisigAddress) {
       // Frontend specified a multisig - find the DAO by multisig address
-      const dao = await DAO.findByMultisig(multisigAddress, chain);
+      const dao = await DaoService.findByMultisig(multisigAddress, chain);
       
       if (dao) {
         // Verify user is actually a member of this DAO's multisig
-        const isMember = await DAO.isValidMember(dao.id, walletAddress, chain);
+        const isMember = await DaoService.isValidMember(dao.id, walletAddress, chain);
         
         if (isMember) {
           req.daoId = dao.id;
@@ -155,7 +156,7 @@ export async function addDaoContext(req: Request, res: Response, next: NextFunct
       }
     } else {
       // No multisig specified - find all DAOs this wallet is a member of
-      const memberDaos = await DAO.findDaosForWallet(walletAddress, chain);
+      const memberDaos = await DaoService.findDaosForWallet(walletAddress, chain);
 
       if (memberDaos.length > 0) {
         req.daoIds = memberDaos.map(dao => dao.id);

@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express';
 import { Referendum } from '../database/models/referendum';
 import { VotingDecision } from '../database/models/votingDecision';
 import { DAO } from '../database/models/dao';
+import { DaoService } from '../services/daoService';
 import { Chain, InternalStatus } from '../types/properties';
 import { isValidTransition, canManuallySetStatus, getTransitionErrorMessage, checkAndApplyAgreementTransition } from '../utils/statusTransitions';
 import { createSubsystemLogger, formatError } from '../config/logger';
@@ -141,7 +142,7 @@ router.get("/:postId", async (req: Request, res: Response) => {
     }
 
     // Find the referendum
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId!);
     
     if (!referendum) {
       return res.status(404).json({ 
@@ -175,7 +176,7 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
       return errorResponse(res, 400, "Invalid chain. Must be 'Polkadot' or 'Kusama'");
     }
 
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId!);
     if (!referendum) return errorResponse(res, 404, "Referendum not found");
 
     const { referendumFields, votingFields } = separateUpdateFields(updates);
@@ -194,12 +195,12 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
           return errorResponse(res, 400, getTransitionErrorMessage(referendum.internal_status as InternalStatus, newStatus));
         }
       }
-      await Referendum.update(postId, chain, referendumFields);
+      await Referendum.update(postId, chain, req.daoId!, referendumFields);
     }
 
     // Handle voting fields update
     if (Object.keys(votingFields).length > 0) {
-      await VotingDecision.upsert(referendum.id!, votingFields);
+      await VotingDecision.upsert(referendum.id!, req.daoId!, votingFields);
       
       if (votingFields.suggested_vote && req.user?.address) {
         const assigned = await isUserAssigned(referendum.id!, req.user.address);
@@ -238,14 +239,14 @@ router.get("/:postId/actions", addDaoContext, requireDaoMembership, async (req: 
       return errorResponse(res, 400, "Valid chain parameter is required. Must be 'Polkadot' or 'Kusama'");
     }
 
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId!);
     if (!referendum) {
       return errorResponse(res, 404, `Referendum ${postId} not found on ${chain} network`);
     }
 
     const actions = await getReferendumActions(referendum.id!);
     const daoId = req.daoId!;
-    const teamMembers = await DAO.getMembers(daoId, chain);
+    const teamMembers = await DaoService.getMembers(daoId, chain);
     const enrichedActions = enrichActionsWithMemberInfo(actions, teamMembers);
 
     return successResponse(res, { actions: enrichedActions });
@@ -398,14 +399,14 @@ router.get("/:postId/comments", addDaoContext, requireDaoMembership, async (req:
       return errorResponse(res, 400, "Valid chain parameter is required. Must be 'Polkadot' or 'Kusama'");
     }
 
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId!);
     if (!referendum) {
       return errorResponse(res, 404, `Referendum ${postId} not found on ${chain} network`);
     }
 
     const comments = await getReferendumCommentsFromDb(referendum.id!);
     const daoId = req.daoId!;
-    const teamMembers = await DAO.getMembers(daoId, chain);
+    const teamMembers = await DaoService.getMembers(daoId, chain);
     const enrichedComments = enrichComments(comments, teamMembers);
 
     return successResponse(res, { comments: enrichedComments });
@@ -490,7 +491,7 @@ router.get("/:postId/agreement-summary", addDaoContext, requireDaoMembership, as
       return errorResponse(res, 400, "Valid chain parameter is required. Must be 'Polkadot' or 'Kusama'");
     }
     
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId!);
     if (!referendum) {
       return errorResponse(res, 404, `Referendum ${postId} not found on ${chain} network`);
     }
@@ -503,8 +504,8 @@ router.get("/:postId/agreement-summary", addDaoContext, requireDaoMembership, as
     `, [referendum.id]);
     
     const daoId = req.daoId!;
-    const teamMembers = await DAO.getMembers(daoId, chain);
-    const multisigInfo = await DAO.getMultisigInfo(daoId, chain);
+    const teamMembers = await DaoService.getMembers(daoId, chain);
+    const multisigInfo = await DaoService.getMultisigInfo(daoId, chain);
     
     const allMembers = teamMembers.map(member => ({
       address: member.wallet_address,

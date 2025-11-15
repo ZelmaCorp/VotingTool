@@ -1,6 +1,7 @@
 import { db } from '../database/connection';
 import { DAO } from '../database/models/dao';
 import { multisigService } from '../services/multisig';
+import { DaoService } from '../services/daoService';
 import { Chain, InternalStatus } from '../types/properties';
 import { ReferendumAction } from '../types/auth';
 
@@ -18,7 +19,7 @@ export const getChainFromQuery = (query: any): Chain => {
  * Get team members with their formatted info
  */
 export const getTeamMembersInfo = async (daoId: number, chain: Chain) => {
-  const members = await DAO.getMembers(daoId, chain);
+  const members = await DaoService.getMembers(daoId, chain);
   return members.map(member => ({
     address: member.wallet_address,
     name: member.team_member_name || `Multisig Member (${member.network})`,

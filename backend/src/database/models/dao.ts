@@ -1,52 +1,22 @@
 import { db } from '../connection';
 import { encrypt, decrypt } from '../../utils/encryption';
 import { Chain } from '../../types/properties';
-import { MultisigService, MultisigMember, MultisigInfo } from '../../services/multisig';
 import { createSubsystemLogger } from '../../config/logger';
 import { Subsystem } from '../../types/logging';
+import { DaoConfig, DaoRecord } from '../types';
 
 const logger = createSubsystemLogger(Subsystem.DATABASE);
 
 /**
- * DAO configuration data (unencrypted)
- */
-export interface DaoConfig {
-    name: string;
-    description?: string;
-    status?: 'active' | 'inactive' | 'suspended';
-    polkadot_multisig?: string;  // Unencrypted - will be encrypted before storage
-    kusama_multisig?: string;    // Unencrypted - will be encrypted before storage
-    proposer_mnemonic?: string;  // Unencrypted - will be encrypted before storage
-}
-
-/**
- * DAO record from database (encrypted credentials)
- */
-export interface DaoRecord {
-    id: number;
-    name: string;
-    description: string | null;
-    status: 'active' | 'inactive' | 'suspended';
-    polkadot_multisig_encrypted: string | null;
-    kusama_multisig_encrypted: string | null;
-    proposer_mnemonic_encrypted: string | null;
-    created_at: string;
-    updated_at: string;
-}
-
-/**
- * DAO class for managing multiple DAOs
+ * DAO Model - Data Access Layer
  * 
- * Each DAO has:
- * - Encrypted multisig addresses (Polkadot & Kusama)
- * - Encrypted proposer mnemonic
- * - Status (active/inactive/suspended)
- * - Team members (fetched from on-chain multisig via MultisigService)
+ * Handles database operations for DAO records:
+ * - CRUD operations
+ * - Encryption/decryption of sensitive fields
+ * - Basic data retrieval
  * 
- * Authentication is wallet-based:
- * - Users sign messages with their wallet
- * - Backend verifies they are in the DAO's multisig
- * - No DAO-level API keys
+ * For business logic (membership checks, stats, aggregations),
+ * see services/daoService.ts
  */
 export class DAO {
     
@@ -279,152 +249,6 @@ export class DAO {
             proposer_mnemonic: dao.proposer_mnemonic_encrypted 
                 ? decrypt(dao.proposer_mnemonic_encrypted) 
                 : null
-        };
-    }
-    
-    /**
-     * Get multisig members from on-chain (via MultisigService)
-     */
-    public static async getMembers(id: number, chain: Chain): Promise<MultisigMember[]> {
-        const multisigAddress = await this.getDecryptedMultisig(id, chain);
-        if (!multisigAddress) {
-            logger.warn({ daoId: id, chain }, 'No multisig address configured for this chain');
-            return [];
-        }
-        
-        const network = chain === Chain.Polkadot ? 'Polkadot' : 'Kusama';
-        const multisigService = new MultisigService();
-        const members = await multisigService.getCachedTeamMembers(multisigAddress, network as "Polkadot" | "Kusama");
-        
-        logger.debug({ daoId: id, chain, memberCount: members.length }, 'Retrieved multisig members');
-        return members;
-    }
-    
-    /**
-     * Get multisig info including members and threshold
-     */
-    public static async getMultisigInfo(id: number, chain: Chain): Promise<MultisigInfo | null> {
-        const multisigAddress = await this.getDecryptedMultisig(id, chain);
-        if (!multisigAddress) {
-            logger.warn({ daoId: id, chain }, 'No multisig address configured for this chain');
-            return null;
-        }
-        
-        const network = chain === Chain.Polkadot ? 'Polkadot' : 'Kusama';
-        const multisigService = new MultisigService();
-        const info = await multisigService.getMultisigInfo(multisigAddress, network as "Polkadot" | "Kusama");
-        
-        logger.debug({ daoId: id, chain, threshold: info.threshold, memberCount: info.members.length }, 
-            'Retrieved multisig info');
-        return info;
-    }
-    
-    /**
-     * Check if a wallet address is a member of the DAO's multisig
-     */
-    public static async isValidMember(id: number, walletAddress: string, chain: Chain): Promise<boolean> {
-        const multisigAddress = await this.getDecryptedMultisig(id, chain);
-        if (!multisigAddress) {
-            logger.warn({ daoId: id, chain }, 'No multisig address configured');
-            return false;
-        }
-        
-        const network = chain === Chain.Polkadot ? 'Polkadot' : 'Kusama';
-        const multisigService = new MultisigService();
-        const isMember = await multisigService.isTeamMember(walletAddress, multisigAddress, network as "Polkadot" | "Kusama");
-        
-        logger.debug({ daoId: id, walletAddress, chain, isMember }, 'Checked multisig membership');
-        return isMember;
-    }
-    
-    /**
-     * Refresh the multisig members cache
-     */
-    public static async refreshMembersCache(id: number, chain: Chain): Promise<void> {
-        const multisigAddress = await this.getDecryptedMultisig(id, chain);
-        if (!multisigAddress) {
-            logger.warn({ daoId: id, chain }, 'No multisig address configured');
-            return;
-        }
-        
-        // Force a fresh fetch by getting members (which will update the cache)
-        const network = chain === Chain.Polkadot ? 'Polkadot' : 'Kusama';
-        const multisigService = new MultisigService();
-        await multisigService.getCachedTeamMembers(multisigAddress, network as "Polkadot" | "Kusama");
-        
-        logger.info({ daoId: id, chain }, 'Refreshed multisig members cache');
-    }
-    
-    /**
-     * Find DAO by multisig address
-     * @param multisigAddress - The multisig address to search for
-     * @param chain - The chain (Polkadot or Kusama)
-     * @returns DAO record or null if not found
-     */
-    public static async findByMultisig(multisigAddress: string, chain: Chain): Promise<DaoRecord | null> {
-        const fieldName = chain === Chain.Polkadot 
-            ? 'polkadot_multisig_encrypted' 
-            : 'kusama_multisig_encrypted';
-        
-        // Get all active DAOs
-        const daos = await this.getAll(true);
-        
-        // Check each DAO's decrypted multisig
-        for (const dao of daos) {
-            const decryptedMultisig = await this.getDecryptedMultisig(dao.id, chain);
-            if (decryptedMultisig && decryptedMultisig.toLowerCase() === multisigAddress.toLowerCase()) {
-                return dao;
-            }
-        }
-        
-        logger.debug({ multisigAddress, chain }, 'No DAO found for multisig address');
-        return null;
-    }
-    
-    /**
-     * Find all DAOs that a wallet address is a member of
-     * Useful for determining which DAOs a user can access
-     */
-    public static async findDaosForWallet(walletAddress: string, chain: Chain): Promise<DaoRecord[]> {
-        const allDaos = await this.getAll(true); // Only active DAOs
-        const memberDaos: DaoRecord[] = [];
-        
-        for (const dao of allDaos) {
-            const isMember = await this.isValidMember(dao.id, walletAddress, chain);
-            if (isMember) {
-                memberDaos.push(dao);
-            }
-        }
-        
-        logger.info({ walletAddress, chain, daoCount: memberDaos.length }, 
-            'Found DAOs for wallet');
-        return memberDaos;
-    }
-    
-    /**
-     * Get DAO statistics
-     */
-    public static async getStats(id: number): Promise<{
-        total_referendums: number;
-        active_referendums: number;
-        voted_referendums: number;
-        ready_to_vote: number;
-    }> {
-        const stats = await db.get(`
-            SELECT 
-                COUNT(*) as total_referendums,
-                SUM(CASE WHEN internal_status NOT IN ('Voted Aye', 'Voted Nay', 'Voted Abstain', 'Not Voted') THEN 1 ELSE 0 END) as active_referendums,
-                SUM(CASE WHEN internal_status IN ('Voted Aye', 'Voted Nay', 'Voted Abstain') THEN 1 ELSE 0 END) as voted_referendums,
-                SUM(CASE WHEN internal_status = 'Ready to vote' THEN 1 ELSE 0 END) as ready_to_vote
-            FROM referendums
-            WHERE dao_id = ?
-        `, [id]) as any;
-        
-        return {
-            total_referendums: stats.total_referendums || 0,
-            active_referendums: stats.active_referendums || 0,
-            voted_referendums: stats.voted_referendums || 0,
-            ready_to_vote: stats.ready_to_vote || 0
         };
     }
 }

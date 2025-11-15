@@ -2,6 +2,7 @@ import { db } from '../database/connection';
 import { ReferendumAction } from '../types/auth';
 import { multisigService } from '../services/multisig';
 import { DAO } from '../database/models/dao';
+import { DaoService } from '../services/daoService';
 import { Chain } from '../types/properties';
 
 /**
@@ -35,7 +36,7 @@ export async function getAgreementStats(referendumId: number, daoId: number, cha
   requiredAgreements: number;
 }> {
   // Get the actual multisig threshold (not team size!)
-  const info = await DAO.getMultisigInfo(daoId, chain);
+  const info = await DaoService.getMultisigInfo(daoId, chain);
   const requiredAgreements = info?.threshold || 4;
   
   const allActions = await db.all(

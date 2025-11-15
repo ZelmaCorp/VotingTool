@@ -1,5 +1,6 @@
 import { Web3AuthRequest, AuthenticatedUser, AuthToken } from "../types/auth";
 import { multisigService } from "../services/multisig";
+import { DaoService } from "../services/daoService";
 import { createSubsystemLogger, formatError } from "../config/logger";
 import { Subsystem } from "../types/logging";
 import { Chain } from "../types/properties";
@@ -70,13 +71,13 @@ export async function findTeamMemberByAddress(walletAddress: string): Promise<Au
     logger.info({ walletAddress }, "Checking wallet address in all DAOs on both networks");
     
     // Check Polkadot first
-    let memberDaos = await DAO.findDaosForWallet(walletAddress, Chain.Polkadot);
+    let memberDaos = await DaoService.findDaosForWallet(walletAddress, Chain.Polkadot);
     let network: "Polkadot" | "Kusama" = "Polkadot";
     
     // If not found in Polkadot, try Kusama
     if (memberDaos.length === 0) {
       logger.info({ walletAddress }, "Not found in Polkadot DAOs, checking Kusama");
-      memberDaos = await DAO.findDaosForWallet(walletAddress, Chain.Kusama);
+      memberDaos = await DaoService.findDaosForWallet(walletAddress, Chain.Kusama);
       network = "Kusama";
     }
     

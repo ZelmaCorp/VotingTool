@@ -8,6 +8,7 @@ import { Subsystem } from "../types/logging";
 import { Referendum } from "../database/models/referendum";
 import { refreshReferendas } from "../refresh";
 import { DAO } from "../database/models/dao";
+import { DaoService } from "../services/daoService";
 
 const router = Router();
 const logger = createSubsystemLogger(Subsystem.APP);
@@ -22,7 +23,6 @@ import {
 
 import {
   getChainFromQuery,
-  getTeamMembersInfo,
   createActionCheckers,
   categorizeReferendums,
   findDuplicateDiscussionActions,
@@ -46,7 +46,7 @@ router.get("/:daoId", authenticateToken, async (req: Request, res: Response) => 
       });
     }
     
-    const daoInfo = await DAO.getSafeInfo(daoId);
+    const daoInfo = await DaoService.getSafeInfo(daoId);
     
     if (!daoInfo) {
       return res.status(404).json({
@@ -114,7 +114,7 @@ router.post("/register", authenticateToken, async (req: Request, res: Response) 
 router.get("/members", authenticateToken, addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
     const chain = getChainFromQuery(req.query);
-    const members = await getTeamMembersInfo(req.daoId!, chain);
+    const members = await DaoService.getMembers(req.daoId!, chain);
     
     res.json({ success: true, members });
   } catch (error) {
@@ -157,8 +157,8 @@ router.get("/config", authenticateToken, addDaoContext, requireDaoMembership, as
     }
     
     const chain = getChainFromQuery(req.query);
-    const info = await DAO.getMultisigInfo(daoId, chain);
-    const teamMembers = await getTeamMembersInfo(daoId, chain);
+    const info = await DaoService.getMultisigInfo(daoId, chain);
+    const teamMembers = await DaoService.getMembers(daoId, chain);
     
     // Get multisig addresses
     const polkadotMultisig = await DAO.getDecryptedMultisig(daoId, Chain.Polkadot);
@@ -226,7 +226,7 @@ router.get("/workflow", authenticateToken, addDaoContext, requireDaoMembership, 
   try {
     const daoId = req.daoId!;
     const chain = getChainFromQuery(req.query);
-    const teamMembers = await DAO.getMembers(daoId, chain);
+    const teamMembers = await DaoService.getMembers(daoId, chain);
     const totalTeamMembers = teamMembers.length;
 
     // Get all referendums and actions
