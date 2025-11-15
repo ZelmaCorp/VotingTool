@@ -18,8 +18,6 @@ export interface MultisigInfo {
 
 export class MultisigService {
     private subscanApiKey: string;
-    private polkadotMultisig: string;
-    private kusamaMultisig: string;
   private cache: Map<string, MultisigMember[]> = new Map();
   private thresholdCache: Map<string, number> = new Map();
   private cacheExpiry: Map<string, number> = new Map();
@@ -40,10 +38,13 @@ export class MultisigService {
     }
   }
 
-    constructor() {
-        this.subscanApiKey = process.env.SUBSCAN_API_KEY || '';
-        this.polkadotMultisig = process.env.POLKADOT_MULTISIG || '';
-        this.kusamaMultisig = process.env.KUSAMA_MULTISIG || '';
+  /**
+   * Constructor - accepts optional subscanApiKey parameter
+   * If not provided, reads from environment variable
+   * @param subscanApiKey - Optional Subscan API key
+   */
+    constructor(subscanApiKey?: string) {
+        this.subscanApiKey = subscanApiKey || process.env.SUBSCAN_API_KEY || '';
 
         if (!this.subscanApiKey) {
       logger.warn('SUBSCAN_API_KEY not configured - multisig member fetching will be limited');
@@ -51,10 +52,12 @@ export class MultisigService {
     }
 
     /**
-   * Get cached team members for a network, refreshing if expired
+   * Get cached team members for a multisig address, refreshing if expired
+   * @param multisigAddress - The multisig address to fetch members for
+   * @param network - The network (Polkadot or Kusama)
    */
-  async getCachedTeamMembers(network: "Polkadot" | "Kusama" = "Polkadot"): Promise<MultisigMember[]> {
-    const cacheKey = `members_${network}`;
+  async getCachedTeamMembers(multisigAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): Promise<MultisigMember[]> {
+    const cacheKey = `members_${network}_${multisigAddress}`;
     const now = Date.now();
     const expiry = this.cacheExpiry.get(cacheKey) || 0;
 
@@ -62,7 +65,7 @@ export class MultisigService {
       return this.cache.get(cacheKey) || [];
     }
 
-    const members = await this.fetchMultisigMembers(network);
+    const members = await this.fetchMultisigMembers(multisigAddress, network);
     this.cache.set(cacheKey, members);
     this.cacheExpiry.set(cacheKey, now + this.CACHE_DURATION);
     
@@ -72,29 +75,33 @@ export class MultisigService {
   /**
    * Get multisig approval threshold
    * Returns cached threshold from API or falls back to environment variable/default
+   * @param multisigAddress - The multisig address
+   * @param network - The network (Polkadot or Kusama)
    */
-  async getMultisigThreshold(network: "Polkadot" | "Kusama" = "Polkadot"): Promise<number> {
+  async getMultisigThreshold(multisigAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): Promise<number> {
     // Ensure members are cached (which also caches threshold if available)
-    await this.getCachedTeamMembers(network);
+    await this.getCachedTeamMembers(multisigAddress, network);
     
-    const cacheKey = `threshold_${network}`;
+    const cacheKey = `threshold_${network}_${multisigAddress}`;
     const cachedThreshold = this.thresholdCache.get(cacheKey);
     
     if (cachedThreshold) {
-      logger.info({ network, threshold: cachedThreshold, source: 'api' }, 'Using threshold from API');
+      logger.info({ network, multisigAddress, threshold: cachedThreshold, source: 'api' }, 'Using threshold from API');
       return cachedThreshold;
     }
     
-    logger.info({ network, threshold: this.DEFAULT_THRESHOLD, source: 'env/default' }, 'Using threshold from environment variable or default');
+    logger.info({ network, multisigAddress, threshold: this.DEFAULT_THRESHOLD, source: 'env/default' }, 'Using threshold from environment variable or default');
     return this.DEFAULT_THRESHOLD;
   }
 
   /**
    * Get complete multisig info including members and threshold
+   * @param multisigAddress - The multisig address
+   * @param network - The network (Polkadot or Kusama)
    */
-  async getMultisigInfo(network: "Polkadot" | "Kusama" = "Polkadot"): Promise<MultisigInfo> {
-    const members = await this.getCachedTeamMembers(network);
-    const threshold = await this.getMultisigThreshold(network);
+  async getMultisigInfo(multisigAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): Promise<MultisigInfo> {
+    const members = await this.getCachedTeamMembers(multisigAddress, network);
+    const threshold = await this.getMultisigThreshold(multisigAddress, network);
     
     return {
       members,
@@ -103,11 +110,11 @@ export class MultisigService {
   }
 
   /**
-   * Check if the configured multisig address is a proxy/delegate and extract parent address
+   * Check if a multisig address is a proxy/delegate and extract parent address
+   * @param multisigAddress - The multisig address to check
+   * @param network - The network (Polkadot or Kusama)
    */
-  async getParentAddress(network: "Polkadot" | "Kusama" = "Polkadot"): Promise<{ isProxy: boolean; parentAddress?: string; currentAddress: string; network: string }> {
-    const multisigAddress = network === "Polkadot" ? this.polkadotMultisig : this.kusamaMultisig;
-    
+  async getParentAddress(multisigAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): Promise<{ isProxy: boolean; parentAddress?: string; currentAddress: string; network: string }> {
     if (!multisigAddress || !this.subscanApiKey) {
       return {
         isProxy: false,
@@ -179,10 +186,10 @@ export class MultisigService {
   /**
    * Fetch multisig members from Subscan v2 search API
    * Handles both delegate accounts and simple multisig accounts
+   * @param multisigAddress - The multisig address to fetch members for
+   * @param network - The network (Polkadot or Kusama)
    */
-  private async fetchMultisigMembers(network: "Polkadot" | "Kusama"): Promise<MultisigMember[]> {
-    const multisigAddress = network === "Polkadot" ? this.polkadotMultisig : this.kusamaMultisig;
-    
+  private async fetchMultisigMembers(multisigAddress: string, network: "Polkadot" | "Kusama"): Promise<MultisigMember[]> {
     if (!multisigAddress || !this.subscanApiKey) {
       logger.warn({ network, hasAddress: !!multisigAddress, hasApiKey: !!this.subscanApiKey }, 
         'Cannot fetch multisig members - missing configuration');
@@ -190,7 +197,7 @@ export class MultisigService {
     }
 
     try {
-      const parentInfo = await this.getParentAddress(network);
+      const parentInfo = await this.getParentAddress(multisigAddress, network);
       
       let targetAddress = multisigAddress;
       if (parentInfo.isProxy && parentInfo.parentAddress) {
@@ -231,9 +238,9 @@ export class MultisigService {
           // Extract threshold if available
           const threshold = accountData.multisig.threshold || accountData.multisig.threshold_value;
           if (threshold) {
-            const cacheKey = `threshold_${network}`;
+            const cacheKey = `threshold_${network}_${multisigAddress}`;
             this.thresholdCache.set(cacheKey, parseInt(threshold));
-            logger.info({ network, threshold }, 'Extracted multisig threshold from API');
+            logger.info({ network, multisigAddress, threshold }, 'Extracted multisig threshold from API');
           }
           
           for (const entry of accountData.multisig.multi_account_member) {
@@ -266,9 +273,12 @@ export class MultisigService {
 
   /**
    * Check if a wallet address is a multisig member
+   * @param walletAddress - The wallet address to check
+   * @param multisigAddress - The multisig address
+   * @param network - The network (Polkadot or Kusama)
    */
-  async isTeamMember(walletAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): Promise<boolean> {
-    const members = await this.getCachedTeamMembers(network);
+  async isTeamMember(walletAddress: string, multisigAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): Promise<boolean> {
+    const members = await this.getCachedTeamMembers(multisigAddress, network);
     
     // Try exact match first
     let isMember = members.some(member => member.wallet_address === walletAddress);
@@ -292,9 +302,12 @@ export class MultisigService {
 
   /**
    * Get multisig member info by wallet address
+   * @param walletAddress - The wallet address to look up
+   * @param multisigAddress - The multisig address
+   * @param network - The network (Polkadot or Kusama)
    */
-  async getTeamMemberByAddress(walletAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): Promise<MultisigMember | null> {
-    const members = await this.getCachedTeamMembers(network);
+  async getTeamMemberByAddress(walletAddress: string, multisigAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): Promise<MultisigMember | null> {
+    const members = await this.getCachedTeamMembers(multisigAddress, network);
     
     // Try exact match first
     let member = members.find(m => m.wallet_address === walletAddress);
@@ -361,4 +374,5 @@ export class MultisigService {
 }
 
 // Export a singleton instance
+// Uses environment variable SUBSCAN_API_KEY
 export const multisigService = new MultisigService(); 
