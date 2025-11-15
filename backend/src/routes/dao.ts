@@ -301,7 +301,7 @@ router.post("/sync", authenticateToken, async (req: Request, res: Response) => {
     }, `Starting ${type} sync operation`);
     
     // Start refresh in background (don't await to return immediately)
-    refreshReferendas(limit).catch(error => {
+    refreshReferendas(limit, req.daoId).catch(error => {
       logger.error({ 
         error: formatError(error), 
         syncType: type, 
