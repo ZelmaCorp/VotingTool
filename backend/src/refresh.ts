@@ -47,10 +47,28 @@ async function createReferendumFromPolkassembly(referenda: any, exchangeRate: nu
  * Updates an existing referendum record in the database with latest data from Polkassembly
  */
 async function updateReferendumFromPolkassembly(referenda: any, exchangeRate: number, network: Chain): Promise<void> {
-    // Fetch content (description) and reward information
+    // Fetch content (description) and reward information from the detail API
+    // The detail API has more up-to-date status information than the list API
     const contentResp = await fetchReferendumContent(referenda.post_id, referenda.network);
     const requestedAmountUsd = calculateReward(contentResp, exchangeRate, network);
-    const newTimelineStatus = getValidatedStatus(referenda.status);
+    
+    // Prefer status from detail API (more current) over list API (may be cached)
+    // The detail API response structure includes: status, timeline, onchain_link, etc.
+    const statusFromDetailApi = contentResp.status || contentResp.timeline?.[0]?.status;
+    const timelineStatus = statusFromDetailApi || referenda.status;
+    
+    // Log when we detect a status discrepancy for debugging
+    if (statusFromDetailApi && statusFromDetailApi !== referenda.status) {
+        logger.info({
+            postId: referenda.post_id,
+            chain: network,
+            listApiStatus: referenda.status,
+            detailApiStatus: statusFromDetailApi,
+            usingStatus: timelineStatus
+        }, 'Status discrepancy detected between list API and detail API - using detail API status');
+    }
+    
+    const newTimelineStatus = getValidatedStatus(timelineStatus);
 
     const updates: Partial<ReferendumRecord> = {
         title: contentResp.title || referenda.title || `Referendum #${referenda.post_id}`, // Use detail API title (updated) over list API title (cached)
@@ -68,12 +86,33 @@ async function updateReferendumFromPolkassembly(referenda: any, exchangeRate: nu
  */
 export async function checkAllReferendumsForNotVoted(): Promise<void> {
     try {
-        logger.info('Checking all referendums in database for NotVoted auto-transition');
+        logger.info({ 
+            voteOverStatuses: VOTE_OVER_STATUSES,
+            votedStatuses: VOTED_STATUSES 
+        }, 'Checking all referendums in database for NotVoted auto-transition');
         
         // Build the SQL query dynamically based on the constants
         const voteOverPlaceholders = VOTE_OVER_STATUSES.map(() => '?').join(', ');
         const votedStatusesWithNotVoted = [...VOTED_STATUSES, InternalStatus.NotVoted];
         const statusPlaceholders = votedStatusesWithNotVoted.map(() => '?').join(', ');
+        
+        // First, let's see what referendums have vote-over statuses (for debugging)
+        const allVoteOverReferendums = await db.all(
+            `SELECT id, post_id, chain, internal_status, referendum_timeline 
+             FROM referendums 
+             WHERE referendum_timeline IN (${voteOverPlaceholders})`,
+            [...VOTE_OVER_STATUSES]
+        ) as ReferendumRecord[];
+        
+        logger.debug({ 
+            count: allVoteOverReferendums.length,
+            referendums: allVoteOverReferendums.map(r => ({
+                postId: r.post_id,
+                chain: r.chain,
+                internalStatus: r.internal_status,
+                timelineStatus: r.referendum_timeline
+            }))
+        }, 'All referendums with vote-over timeline status');
         
         // Get all referendums that have a vote-over status but haven't been marked as voted or NotVoted
         const referendums = await db.all(
@@ -89,6 +128,7 @@ export async function checkAllReferendumsForNotVoted(): Promise<void> {
         
         logger.info({ count: referendums.length }, 'Found referendums that need NotVoted transition');
         
+        let transitionedCount = 0;
         for (const referendum of referendums) {
             logger.info(
                 { 
@@ -106,7 +146,13 @@ export async function checkAllReferendumsForNotVoted(): Promise<void> {
                  WHERE id = ?`,
                 [InternalStatus.NotVoted, referendum.id]
             );
+            transitionedCount++;
         }
+        
+        logger.info({ 
+            transitionedCount,
+            totalVoteOverCount: allVoteOverReferendums.length 
+        }, 'Completed NotVoted auto-transition check');
     } catch (error) {
         logger.error({ error: formatError(error) }, 'Error checking referendums for NotVoted transition');
     }
