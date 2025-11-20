@@ -66,7 +66,7 @@ async function updateReferendumFromPolkassembly(referenda: any, exchangeRate: nu
  * Check all existing referendums in database and auto-transition to NotVoted if needed.
  * This runs after each refresh to mark any referendums where the vote is over but the DAO hasn't voted.
  */
-async function checkAllReferendumsForNotVoted(): Promise<void> {
+export async function checkAllReferendumsForNotVoted(): Promise<void> {
     try {
         logger.info('Checking all referendums in database for NotVoted auto-transition');
         

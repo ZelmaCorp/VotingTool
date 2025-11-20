@@ -32,15 +32,18 @@ export const READY_FILE = "./readyToVote.json";
 
 /**
  * TimelineStatus values that indicate the vote is over
+ * These are terminal states where no more voting can occur
  */
 export const VOTE_OVER_STATUSES: TimelineStatus[] = [
-    TimelineStatus.TimedOut,
-    TimelineStatus.Executed,
-    TimelineStatus.ExecutionFailed,
-    TimelineStatus.Rejected,
-    TimelineStatus.Cancelled,
-    TimelineStatus.Canceled,
-    TimelineStatus.Killed
+    TimelineStatus.TimedOut,        // Vote period expired without passing
+    TimelineStatus.Executed,        // Referendum passed and was executed successfully
+    TimelineStatus.ExecutionFailed, // Referendum passed but execution failed
+    TimelineStatus.Rejected,        // Referendum was rejected/failed
+    TimelineStatus.Cancelled,       // Referendum was cancelled
+    TimelineStatus.Canceled,        // Referendum was canceled (alternative spelling)
+    TimelineStatus.Killed,          // Referendum was killed
+    TimelineStatus.Confirmed,       // Referendum was confirmed (passed)
+    TimelineStatus.Enactment        // Referendum passed and is in enactment period (vote is over)
 ];
 
 /**
