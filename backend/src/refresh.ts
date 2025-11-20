@@ -59,13 +59,9 @@ async function updateReferendumFromPolkassembly(referenda: any, exchangeRate: nu
     
     // Log when we detect a status discrepancy for debugging
     if (statusFromDetailApi && statusFromDetailApi !== referenda.status) {
-        logger.info({
-            postId: referenda.post_id,
-            chain: network,
-            listApiStatus: referenda.status,
-            detailApiStatus: statusFromDetailApi,
-            usingStatus: timelineStatus
-        }, 'Status discrepancy detected between list API and detail API - using detail API status');
+        logger.info(
+            `Status discrepancy for referendum ${referenda.post_id} (${network}): List API says '${referenda.status}', Detail API says '${statusFromDetailApi}' - using Detail API status`
+        );
     }
     
     const newTimelineStatus = getValidatedStatus(timelineStatus);
@@ -78,6 +74,73 @@ async function updateReferendumFromPolkassembly(referenda: any, exchangeRate: nu
     };
 
     await Referendum.update(referenda.post_id, network, updates);
+}
+
+/**
+ * Update all active referendums in database by fetching their current status from detail API.
+ * This catches referendums that don't appear in the latest-activity feed but still need status updates.
+ */
+export async function updateAllActiveReferendums(): Promise<void> {
+    try {
+        // Get all referendums that are NOT in terminal states
+        // Terminal states: Executed, Rejected, TimedOut, Killed, Cancelled, Canceled, ExecutionFailed, Confirmed, Enactment
+        const activeReferendums = await db.all(
+            `SELECT post_id, chain, referendum_timeline 
+             FROM referendums 
+             WHERE referendum_timeline NOT IN (?, ?, ?, ?, ?, ?, ?, ?, ?)
+             ORDER BY post_id DESC
+             LIMIT 100`,
+            [
+                TimelineStatus.Executed,
+                TimelineStatus.Rejected,
+                TimelineStatus.TimedOut,
+                TimelineStatus.Killed,
+                TimelineStatus.Cancelled,
+                TimelineStatus.Canceled,
+                TimelineStatus.ExecutionFailed,
+                TimelineStatus.Confirmed,
+                TimelineStatus.Enactment
+            ]
+        ) as { post_id: number; chain: Chain; referendum_timeline: string }[];
+
+        logger.info(`Updating ${activeReferendums.length} active referendums from detail API`);
+
+        let updatedCount = 0;
+        let changedCount = 0;
+
+        for (const ref of activeReferendums) {
+            try {
+                // Fetch fresh data from detail API
+                const contentResp = await fetchReferendumContent(ref.post_id, ref.chain);
+                const statusFromDetailApi = contentResp.status || contentResp.timeline?.[0]?.status;
+                
+                if (statusFromDetailApi && statusFromDetailApi !== ref.referendum_timeline) {
+                    logger.info(
+                        `Updating referendum ${ref.post_id} (${ref.chain}): '${ref.referendum_timeline}' -> '${statusFromDetailApi}'`
+                    );
+                    
+                    const newTimelineStatus = getValidatedStatus(statusFromDetailApi);
+                    await Referendum.update(ref.post_id, ref.chain, {
+                        referendum_timeline: newTimelineStatus
+                    });
+                    
+                    changedCount++;
+                }
+                updatedCount++;
+            } catch (error) {
+                logger.error({ 
+                    postId: ref.post_id, 
+                    chain: ref.chain, 
+                    error: formatError(error) 
+                }, "Error updating active referendum from detail API");
+                // Continue with next referendum
+            }
+        }
+
+        logger.info(`Completed active referendum update: checked ${updatedCount}, changed ${changedCount}`);
+    } catch (error) {
+        logger.error({ error: formatError(error) }, 'Error updating active referendums');
+    }
 }
 
 /**
@@ -126,18 +189,12 @@ export async function checkAllReferendumsForNotVoted(): Promise<void> {
             ]
         ) as ReferendumRecord[];
         
-        logger.info({ count: referendums.length }, 'Found referendums that need NotVoted transition');
+        logger.info(`Found ${referendums.length} referendums that need NotVoted transition`);
         
         let transitionedCount = 0;
         for (const referendum of referendums) {
             logger.info(
-                { 
-                    postId: referendum.post_id, 
-                    chain: referendum.chain,
-                    currentStatus: referendum.internal_status,
-                    timelineStatus: referendum.referendum_timeline
-                }, 
-                'Auto-transitioning to NotVoted: vote is over and DAO has not voted'
+                `Auto-transitioning referendum ${referendum.post_id} (${referendum.chain}) to NotVoted: was '${referendum.internal_status}', vote status is '${referendum.referendum_timeline}'`
             );
             
             await db.run(
@@ -149,10 +206,7 @@ export async function checkAllReferendumsForNotVoted(): Promise<void> {
             transitionedCount++;
         }
         
-        logger.info({ 
-            transitionedCount,
-            totalVoteOverCount: allVoteOverReferendums.length 
-        }, 'Completed NotVoted auto-transition check');
+        logger.info(`Completed NotVoted auto-transition check: transitioned ${transitionedCount} referendums, ${allVoteOverReferendums.length} total with vote-over status`);
     } catch (error) {
         logger.error({ error: formatError(error) }, 'Error checking referendums for NotVoted transition');
     }
@@ -216,7 +270,11 @@ export async function refreshReferendas(limit: number = 30) {
             }
         }
         
-        // After refreshing recent referendums, check ALL referendums in database for NotVoted transition
+        // After refreshing recent referendums from activity feed,
+        // update ALL active referendums from detail API (catches referendums not in activity feed)
+        await updateAllActiveReferendums();
+        
+        // Finally, check ALL referendums in database for NotVoted transition
         await checkAllReferendumsForNotVoted();
         
     } catch (error) {
