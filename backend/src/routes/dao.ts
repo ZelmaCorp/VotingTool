@@ -69,6 +69,37 @@ router.get("/:daoId", authenticateToken, async (req: Request, res: Response) => 
   }
 });
 
+/**
+ * GET /dao/:daoId/stats
+ * Get DAO statistics (referendum counts, voting activity, etc.)
+ */
+router.get("/:daoId/stats", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const daoId = parseInt(req.params.daoId, 10);
+    
+    if (isNaN(daoId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid DAO ID'
+      });
+    }
+    
+    const stats = await DaoService.getStats(daoId);
+    
+    logger.info({ daoId, requestedBy: req.user?.address }, 'Retrieved DAO stats');
+    res.json({
+      success: true,
+      stats
+    });
+  } catch (error) {
+    logger.error({ error: formatError(error), daoId: req.params.daoId }, 'Error retrieving DAO stats');
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
 /** POST /dao/register - Register a new DAO with wallet-based authentication */
 router.post("/register", authenticateToken, async (req: Request, res: Response) => {
   try {
@@ -229,12 +260,13 @@ router.get("/workflow", authenticateToken, addDaoContext, requireDaoMembership, 
     const teamMembers = await DaoService.getMembers(daoId, chain);
     const totalTeamMembers = teamMembers.length;
 
-    // Get all referendums and actions
-    const allReferendums = await db.all(`SELECT r.* FROM referendums r ORDER BY r.created_at DESC`);
+    // Get all referendums and actions for this DAO
+    const allReferendums = await db.all(`SELECT r.* FROM referendums r WHERE r.dao_id = ? ORDER BY r.created_at DESC`, [daoId]);
     const allActions = await db.all(`
       SELECT referendum_id, team_member_id, role_type, reason, created_at
       FROM referendum_team_roles
-    `);
+      WHERE dao_id = ?
+    `, [daoId]);
 
     // Group actions by referendum
     const actionsByReferendum = new Map<number, any[]>();
@@ -279,7 +311,7 @@ router.get("/workflow", authenticateToken, addDaoContext, requireDaoMembership, 
  * Trigger data synchronization with Polkassembly
  * Supports both normal sync (limit=30) and deep sync (limit=100+)
  */
-router.post("/sync", authenticateToken, async (req: Request, res: Response) => {
+router.post("/sync", authenticateToken, addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
     const { type = 'normal' } = req.body;
     
