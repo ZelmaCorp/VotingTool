@@ -43,7 +43,6 @@ COPY --from=builder /app/package*.json ./
 # Copy other necessary files
 COPY backend/public ./public
 COPY backend/database ./database
-COPY backend/scripts ./scripts
 
 # Expose port
 EXPOSE 3000
