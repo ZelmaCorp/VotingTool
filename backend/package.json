@@ -10,6 +10,8 @@
     "build:versioned": "APP_VERSION=$(node -p \"require('./package.json').version\") tsc",
     "start": "node dist/src/app.js",
     "start:versioned": "APP_VERSION=$(node -p \"require('./package.json').version\") node dist/src/app.js",
+    "migrate": "bash scripts/migrate-db.sh",
+    "migrate:manual": "npx tsx database/migrations/direct_migrate.ts",
     "version:patch": "npm version patch && npm run build",
     "version:minor": "npm version minor && npm run build",
     "version:major": "npm version major && npm run build",
