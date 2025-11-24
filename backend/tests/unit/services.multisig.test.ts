@@ -138,8 +138,8 @@ describe('MultisigService', () => {
       const threshold = await service.getMultisigThreshold(mockPolkadotMultisig, 'Polkadot');
 
       expect(threshold).toBe(4); // DEFAULT_THRESHOLD from env or 4
+      });
     });
-  });
 
   describe('getMultisigInfo', () => {
     it('should return members and threshold', async () => {
@@ -165,8 +165,8 @@ describe('MultisigService', () => {
 
       expect(info.members).toHaveLength(2);
       expect(info.threshold).toBe(2);
+      });
     });
-  });
 
   describe('isTeamMember', () => {
     beforeEach(() => {
@@ -184,8 +184,8 @@ describe('MultisigService', () => {
             }
           }
         }
-      });
     });
+  });
 
     it('should return true for valid member', async () => {
       const service = new MultisigService();
@@ -241,4 +241,4 @@ describe('MultisigService', () => {
     });
   });
 
-});
+}); 

@@ -3,6 +3,7 @@ import { db } from '../../src/database/connection';
 import { Chain } from '../../src/types/properties';
 import * as encryption from '../../src/utils/encryption';
 import { MultisigService } from '../../src/services/multisig';
+import { DaoService } from '../../src/services/daoService';
 
 // Mock the database connection
 jest.mock('../../src/database/connection', () => ({
@@ -215,7 +216,7 @@ describe('DAO Model', () => {
       const mockMultisigService = MultisigService as jest.MockedClass<typeof MultisigService>;
       mockMultisigService.prototype.isTeamMember = jest.fn().mockResolvedValue(true);
 
-      const isValid = await DAO.isValidMember(1, '15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5', Chain.Polkadot);
+      const isValid = await DaoService.isValidMember(1, '15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5', Chain.Polkadot);
       expect(isValid).toBe(true);
     });
   });

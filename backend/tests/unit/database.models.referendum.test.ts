@@ -206,11 +206,11 @@ describe('Referendum Model - Multi-DAO Support', () => {
 
             expect(mockDbAll).toHaveBeenCalledWith(
                 expect.stringContaining("r.internal_status = 'Ready to vote'"),
-                [1, 1]
+                [1]
             );
             expect(mockDbAll).toHaveBeenCalledWith(
                 expect.stringContaining('r.dao_id = ?'),
-                [1, 1]
+                [1]
             );
         });
 
