@@ -17,11 +17,12 @@ RUN npm install
 # Copy TypeScript source code and build scripts
 COPY backend/src ./src
 COPY backend/tsconfig.json ./
+COPY backend/tsconfig.prod.json ./
 COPY backend/build-version.js ./
 COPY backend/check-version.js ./
 
-# Build TypeScript to JavaScript
-RUN npm run build
+# Build TypeScript to JavaScript using production config (excludes tests)
+RUN npm run build:prod
 
 # Stage 2: Production stage
 FROM node:20-alpine AS production

@@ -58,7 +58,8 @@ describe('Mimir Integration Tests', () => {
         testMultisig!,
         Chain.Kusama,
         testReferendumId,
-        SuggestedVote.Aye
+        SuggestedVote.Aye,
+        originalMnemonic!
       );
 
       expect(result).toBeDefined();
@@ -81,7 +82,8 @@ describe('Mimir Integration Tests', () => {
             testMultisig!,
             Chain.Kusama,
             v.id,
-            v.vote
+            v.vote,
+            originalMnemonic!
           )
         )
       );
@@ -114,7 +116,8 @@ describe('Mimir Integration Tests', () => {
             testMultisig!,
             Chain.Kusama,
             v.id,
-            v.vote
+            v.vote,
+            originalMnemonic!
           )
         )
       );
@@ -141,7 +144,8 @@ describe('Mimir Integration Tests', () => {
           testMultisig!,
           Chain.Kusama,
           -1, // Invalid referendum ID
-          SuggestedVote.Aye
+          SuggestedVote.Aye,
+          originalMnemonic!
         )
       ).rejects.toThrow();
     });
@@ -159,7 +163,8 @@ describe('Mimir Integration Tests', () => {
         testMultisig!,
         Chain.Kusama,
         testReferendumId,
-        SuggestedVote.Aye
+        SuggestedVote.Aye,
+        originalMnemonic!
       );
       
       expect(voteResult).toBeDefined();
@@ -180,7 +185,8 @@ describe('Mimir Integration Tests', () => {
         testMultisig!,
         Chain.Polkadot,
         testReferendumId,
-        SuggestedVote.Aye
+        SuggestedVote.Aye,
+        originalMnemonic!
       );
 
       expect(result).toBeDefined();
@@ -203,7 +209,8 @@ describe('Mimir Integration Tests', () => {
             testMultisig!,
             Chain.Polkadot,
             v.id,
-            v.vote
+            v.vote,
+            originalMnemonic!
           )
         )
       );
@@ -236,7 +243,8 @@ describe('Mimir Integration Tests', () => {
             testMultisig!,
             Chain.Polkadot,
             v.id,
-            v.vote
+            v.vote,
+            originalMnemonic!
           )
         )
       );
@@ -263,7 +271,8 @@ describe('Mimir Integration Tests', () => {
           testMultisig!,
           Chain.Polkadot,
           -1, // Invalid referendum ID
-          SuggestedVote.Aye
+          SuggestedVote.Aye,
+          originalMnemonic!
         )
       ).rejects.toThrow();
     });
@@ -280,7 +289,8 @@ describe('Mimir Integration Tests', () => {
         testMultisig!,
         Chain.Polkadot,
         testReferendumId,
-        SuggestedVote.Aye
+        SuggestedVote.Aye,
+        originalMnemonic!
       );
       
       expect(voteResult).toBeDefined();

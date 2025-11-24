@@ -49,9 +49,20 @@ export function validateChain(chain: any, res: Response): boolean {
 export async function findReferendum(
   postId: number, 
   chain: Chain, 
-  res: Response
+  res: Response,
+  daoId?: number
 ): Promise<any | null> {
-  const referendum = await Referendum.findByPostIdAndChain(postId, chain);
+  // If daoId is not provided, we can't reliably find the referendum in a multi-DAO setup
+  // Try to find it by iterating through all DAOs (not optimal, but backward compatible)
+  let referendum: any = null;
+  
+  if (daoId) {
+    referendum = await Referendum.findByPostIdAndChain(postId, chain, daoId);
+  } else {
+    // Get all referendums and find the one matching postId and chain
+    const allRefs = await Referendum.getAll();
+    referendum = allRefs.find(r => r.post_id === postId && r.chain === chain);
+  }
   
   if (!referendum || !referendum.id) {
     errorResponse(res, 404, `Referendum ${postId} not found on ${chain} network`);

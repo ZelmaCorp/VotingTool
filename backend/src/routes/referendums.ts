@@ -1,13 +1,15 @@
 import { Request, Response, Router } from 'express';
 import { Referendum } from '../database/models/referendum';
 import { VotingDecision } from '../database/models/votingDecision';
+import { DAO } from '../database/models/dao';
+import { DaoService } from '../services/daoService';
 import { Chain, InternalStatus } from '../types/properties';
 import { isValidTransition, canManuallySetStatus, getTransitionErrorMessage, checkAndApplyAgreementTransition } from '../utils/statusTransitions';
 import { createSubsystemLogger, formatError } from '../config/logger';
 import { Subsystem } from '../types/logging';
 import { db } from '../database/connection';
 import { ReferendumAction } from '../types/auth';
-import { requireTeamMember } from '../middleware/auth';
+import { requireTeamMember, addDaoContext, requireDaoMembership } from '../middleware/auth';
 import { multisigService } from '../services/multisig';
 import { ACTION_MAP, parseAction, upsertTeamAction, deleteTeamAction } from '../utils/teamActions';
 import { errorResponse, successResponse, validateUser, validateChain, findReferendum } from '../utils/routeHelpers';
@@ -32,10 +34,79 @@ import {
 const logger = createSubsystemLogger(Subsystem.APP);
 const router = Router();
 
+/**
+ * Helper: Process member actions into agreement summary categories
+ */
+const processMemberActionsForSummary = (
+  allMembers: Array<{ address: string; name: string }>,
+  actionsByMember: Map<string, any[]>,
+  teamMembers: any[],
+  chain: Chain
+) => {
+  const agreed: any[] = [];
+  const pending: any[] = [];
+  const recused: any[] = [];
+  const toBeDiscussed: any[] = [];
+  let vetoed = false;
+  let vetoBy: string | null = null;
+  let vetoReason: string | null = null;
+
+  allMembers.forEach(member => {
+    let memberActions = actionsByMember.get(member.address);
+    
+    // Try flexible address matching if not found
+    if (!memberActions) {
+      for (const [actionAddress, actionsData] of actionsByMember.entries()) {
+        const matchingMember = multisigService.findMemberByAddress(teamMembers, actionAddress, chain as "Polkadot" | "Kusama");
+        if (matchingMember?.wallet_address === member.address) {
+          memberActions = actionsData;
+          break;
+        }
+      }
+    }
+    
+    const actionStates = memberActions?.filter(a => a.role_type !== ReferendumAction.RESPONSIBLE_PERSON) || [];
+    
+    if (actionStates.length === 0) {
+      pending.push(member);
+    } else {
+      const hasNoWay = actionStates.some(a => a.role_type === ReferendumAction.NO_WAY);
+      const hasAgree = actionStates.some(a => a.role_type === ReferendumAction.AGREE);
+      const hasRecuse = actionStates.some(a => a.role_type === ReferendumAction.RECUSE);
+      const hasToBeDiscussed = actionStates.some(a => a.role_type === ReferendumAction.TO_BE_DISCUSSED);
+      
+      if (hasNoWay) {
+        const noWayAction = actionStates.find(a => a.role_type === ReferendumAction.NO_WAY);
+        vetoed = true;
+        vetoBy = member.name;
+        vetoReason = noWayAction?.reason || null;
+      } else if (hasAgree) {
+        agreed.push(member);
+      } else if (hasRecuse) {
+        recused.push(member);
+      } else if (hasToBeDiscussed) {
+        toBeDiscussed.push(member);
+      } else {
+        pending.push(member);
+      }
+    }
+  });
+
+  return {
+    agreed_members: agreed,
+    pending_members: pending,
+    recused_members: recused,
+    to_be_discussed_members: toBeDiscussed,
+    vetoed,
+    veto_by: vetoBy,
+    veto_reason: vetoReason
+  };
+};
+
 // Get all referendums from the database
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", addDaoContext, async (req: Request, res: Response) => {
   try {
-    const referendums = await Referendum.getAll();
+    const referendums = await Referendum.getAll(req.daoId);
     res.json({
       success: true,
       referendums
@@ -50,7 +121,7 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 // Get a specific referendum by post_id and chain
-router.get("/:postId", async (req: Request, res: Response) => {
+router.get("/:postId", addDaoContext, async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.postId);
     const chain = req.query.chain as Chain;
@@ -71,7 +142,7 @@ router.get("/:postId", async (req: Request, res: Response) => {
     }
 
     // Find the referendum
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId!);
     
     if (!referendum) {
       return res.status(404).json({ 
@@ -94,7 +165,7 @@ router.get("/:postId", async (req: Request, res: Response) => {
 });
 
 // Update a specific referendum by post_id and chain
-router.put("/:postId/:chain", async (req: Request, res: Response) => {
+router.put("/:postId/:chain", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.postId);
     const chain = req.params.chain as Chain;
@@ -105,7 +176,7 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
       return errorResponse(res, 400, "Invalid chain. Must be 'Polkadot' or 'Kusama'");
     }
 
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId!);
     if (!referendum) return errorResponse(res, 404, "Referendum not found");
 
     const { referendumFields, votingFields } = separateUpdateFields(updates);
@@ -124,12 +195,12 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
           return errorResponse(res, 400, getTransitionErrorMessage(referendum.internal_status as InternalStatus, newStatus));
         }
       }
-      await Referendum.update(postId, chain, referendumFields);
+      await Referendum.update(postId, chain, req.daoId!, referendumFields);
     }
 
     // Handle voting fields update
     if (Object.keys(votingFields).length > 0) {
-      await VotingDecision.upsert(referendum.id!, votingFields);
+      await VotingDecision.upsert(referendum.id!, req.daoId!, votingFields);
       
       if (votingFields.suggested_vote && req.user?.address) {
         const assigned = await isUserAssigned(referendum.id!, req.user.address);
@@ -158,7 +229,7 @@ router.put("/:postId/:chain", async (req: Request, res: Response) => {
  * GET /referendums/:postId/actions
  * Get team actions for a specific referendum
  */
-router.get("/:postId/actions", async (req: Request, res: Response) => {
+router.get("/:postId/actions", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.postId);
     const chain = req.query.chain as Chain;
@@ -168,13 +239,14 @@ router.get("/:postId/actions", async (req: Request, res: Response) => {
       return errorResponse(res, 400, "Valid chain parameter is required. Must be 'Polkadot' or 'Kusama'");
     }
 
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId!);
     if (!referendum) {
       return errorResponse(res, 404, `Referendum ${postId} not found on ${chain} network`);
     }
 
     const actions = await getReferendumActions(referendum.id!);
-    const teamMembers = await multisigService.getCachedTeamMembers();
+    const daoId = req.daoId!;
+    const teamMembers = await DaoService.getMembers(daoId, chain);
     const enrichedActions = enrichActionsWithMemberInfo(actions, teamMembers);
 
     return successResponse(res, { actions: enrichedActions });
@@ -188,7 +260,7 @@ router.get("/:postId/actions", async (req: Request, res: Response) => {
  * POST /referendums/:postId/actions
  * Add a team action to a referendum
  */
-router.post("/:postId/actions", requireTeamMember, async (req: Request, res: Response) => {
+router.post("/:postId/actions", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.postId);
     const { chain, action, reason } = req.body;
@@ -205,7 +277,7 @@ router.post("/:postId/actions", requireTeamMember, async (req: Request, res: Res
     if (!referendum) return;
 
     await upsertTeamAction(referendum.id, req.user!.address!, backendAction, reason);
-    await checkAndApplyAgreementTransition(referendum.id, postId, chain);
+    await checkAndApplyAgreementTransition(referendum.id, postId, chain, req.daoId!);
 
     return successResponse(res, { message: "Team action added successfully" });
   } catch (error) {
@@ -218,7 +290,7 @@ router.post("/:postId/actions", requireTeamMember, async (req: Request, res: Res
  * DELETE /referendums/:postId/actions
  * Delete a team action from a referendum
  */
-router.delete("/:postId/actions", requireTeamMember, async (req: Request, res: Response) => {
+router.delete("/:postId/actions", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.postId);
     const { chain, action } = req.body;
@@ -239,7 +311,7 @@ router.delete("/:postId/actions", requireTeamMember, async (req: Request, res: R
       return errorResponse(res, 404, `No ${action} action found for this user and referendum`);
     }
 
-    await checkAndApplyAgreementTransition(referendum.id, postId, chain);
+    await checkAndApplyAgreementTransition(referendum.id, postId, chain, req.daoId!);
 
     return successResponse(res, { message: "Team action removed successfully" });
   } catch (error) {
@@ -252,7 +324,7 @@ router.delete("/:postId/actions", requireTeamMember, async (req: Request, res: R
  * POST /referendums/:postId/assign
  * Assign the current user as the responsible person for a referendum
  */
-router.post("/:postId/assign", requireTeamMember, async (req: Request, res: Response) => {
+router.post("/:postId/assign", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.postId);
     const { chain } = req.body;
@@ -260,7 +332,7 @@ router.post("/:postId/assign", requireTeamMember, async (req: Request, res: Resp
     if (!validateUser(req.user?.address, res)) return;
     if (!validateChain(chain, res)) return;
 
-    const referendum = await findReferendum(postId, chain, res);
+    const referendum = await findReferendum(postId, chain, res, req.daoId);
     if (!referendum) return;
 
     // Check if already assigned
@@ -288,7 +360,7 @@ router.post("/:postId/assign", requireTeamMember, async (req: Request, res: Resp
  * POST /referendums/:postId/unassign
  * Unassign the responsible person from a referendum and reset its state
  */
-router.post("/:postId/unassign", requireTeamMember, async (req: Request, res: Response) => {
+router.post("/:postId/unassign", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.postId);
     const { chain, unassignNote } = req.body;
@@ -296,7 +368,7 @@ router.post("/:postId/unassign", requireTeamMember, async (req: Request, res: Re
     if (!validateUser(req.user?.address, res)) return;
     if (!validateChain(chain, res)) return;
 
-    const referendum = await findReferendum(postId, chain, res);
+    const referendum = await findReferendum(postId, chain, res, req.daoId);
     if (!referendum) return;
 
     // Check if user is the responsible person
@@ -317,7 +389,7 @@ router.post("/:postId/unassign", requireTeamMember, async (req: Request, res: Re
  * GET /referendums/:postId/comments
  * Get comments for a specific referendum
  */
-router.get("/:postId/comments", async (req: Request, res: Response) => {
+router.get("/:postId/comments", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.postId);
     const chain = req.query.chain as Chain;
@@ -327,13 +399,14 @@ router.get("/:postId/comments", async (req: Request, res: Response) => {
       return errorResponse(res, 400, "Valid chain parameter is required. Must be 'Polkadot' or 'Kusama'");
     }
 
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain);
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId!);
     if (!referendum) {
       return errorResponse(res, 404, `Referendum ${postId} not found on ${chain} network`);
     }
 
     const comments = await getReferendumCommentsFromDb(referendum.id!);
-    const teamMembers = await multisigService.getCachedTeamMembers();
+    const daoId = req.daoId!;
+    const teamMembers = await DaoService.getMembers(daoId, chain);
     const enrichedComments = enrichComments(comments, teamMembers);
 
     return successResponse(res, { comments: enrichedComments });
@@ -347,7 +420,7 @@ router.get("/:postId/comments", async (req: Request, res: Response) => {
  * POST /referendums/:postId/comments
  * Add a comment to a specific referendum
  */
-router.post("/:postId/comments", requireTeamMember, async (req: Request, res: Response) => {
+router.post("/:postId/comments", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.postId);
     const { chain, content } = req.body;
@@ -356,7 +429,7 @@ router.post("/:postId/comments", requireTeamMember, async (req: Request, res: Re
     if (!validateChain(chain, res)) return;
     if (!content?.trim()) return errorResponse(res, 400, "Comment content is required");
 
-    const referendum = await findReferendum(postId, chain, res);
+    const referendum = await findReferendum(postId, chain, res, req.daoId);
     if (!referendum) return;
 
     const commentId = await createReferendumComment(referendum.id, req.user!.address!, content);
@@ -400,6 +473,63 @@ router.delete("/comments/:commentId", requireTeamMember, async (req: Request, re
     return successResponse(res, { message: "Comment deleted successfully" });
   } catch (error) {
     logger.error({ error: formatError(error), commentId: req.params.commentId }, "Error deleting comment");
+    return errorResponse(res, 500, "Internal server error");
+  }
+});
+
+/**
+ * GET /referendums/:postId/agreement-summary
+ * Get agreement summary for a specific referendum during discussion period
+ */
+router.get("/:postId/agreement-summary", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
+  try {
+    const postId = parseInt(req.params.postId);
+    const chain = req.query.chain as Chain;
+    
+    if (isNaN(postId)) return errorResponse(res, 400, "Invalid post ID");
+    if (!chain || !Object.values(Chain).includes(chain)) {
+      return errorResponse(res, 400, "Valid chain parameter is required. Must be 'Polkadot' or 'Kusama'");
+    }
+    
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId!);
+    if (!referendum) {
+      return errorResponse(res, 404, `Referendum ${postId} not found on ${chain} network`);
+    }
+    
+    const actions = await db.all(`
+      SELECT team_member_id as wallet_address, role_type, reason, created_at
+      FROM referendum_team_roles
+      WHERE referendum_id = ?
+      ORDER BY created_at DESC
+    `, [referendum.id]);
+    
+    const daoId = req.daoId!;
+    const teamMembers = await DaoService.getMembers(daoId, chain);
+    const multisigInfo = await DaoService.getMultisigInfo(daoId, chain);
+    
+    const allMembers = teamMembers.map(member => ({
+      address: member.wallet_address,
+      name: member.team_member_name || `Multisig Member (${member.network})`
+    }));
+    
+    const actionsByMember = new Map<string, any[]>();
+    actions.forEach(action => {
+      const existing = actionsByMember.get(action.wallet_address) || [];
+      existing.push(action);
+      actionsByMember.set(action.wallet_address, existing);
+    });
+    
+    const processedActions = processMemberActionsForSummary(allMembers, actionsByMember, teamMembers, chain);
+    
+    const summary = {
+      total_agreements: processedActions.agreed_members.length,
+      required_agreements: multisigInfo?.threshold || 4,
+      ...processedActions
+    };
+    
+    return successResponse(res, { summary });
+  } catch (error) {
+    logger.error({ error: formatError(error), postId: req.params.postId }, "Error fetching agreement summary");
     return errorResponse(res, 500, "Internal server error");
   }
 });

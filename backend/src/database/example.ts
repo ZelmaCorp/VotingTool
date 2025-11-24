@@ -1,7 +1,9 @@
-import { db } from './connection';
+import { DatabaseConnection } from './connection';
 import { Referendum } from './models/referendum';
 import { ReferendumRecord } from './types';
 import { Chain, InternalStatus } from '../types/properties';
+
+const db = DatabaseConnection.getInstance();
 
 /**
  * Example usage of the SQLite database
@@ -16,9 +18,11 @@ async function exampleUsage() {
         console.log('✅ Database initialized');
 
         // Step 2: Create a new referendum
+        const daoId = 1; // Using default DAO for this example
         const referendumData: ReferendumRecord = {
             post_id: 9999,
             chain: Chain.Polkadot,
+            dao_id: daoId,
             title: 'Test Referendum from TypeScript',
             description: 'This referendum was created using the SQLite database layer',
             requested_amount_usd: 12000,
@@ -29,8 +33,8 @@ async function exampleUsage() {
             created_at: new Date().toISOString()
         };
 
-        // Check if it already exists
-        const exists = await Referendum.exists(referendumData.post_id, referendumData.chain);
+        // Check if it already exists (for DAO 1)
+        const exists = await Referendum.exists(referendumData.post_id, referendumData.chain, daoId);
         if (!exists) {
             const referendumId = await Referendum.create(referendumData);
             console.log('✅ Created referendum with ID:', referendumId);
@@ -39,7 +43,7 @@ async function exampleUsage() {
         }
 
         // Step 3: Find the referendum
-        const foundReferendum = await Referendum.findByPostIdAndChain(9999, Chain.Polkadot);
+        const foundReferendum = await Referendum.findByPostIdAndChain(9999, Chain.Polkadot, daoId);
         if (foundReferendum) {
             console.log('✅ Found referendum:', {
                 id: foundReferendum.id,
@@ -50,7 +54,7 @@ async function exampleUsage() {
         }
 
         // Step 4: Update the referendum
-        await Referendum.update(9999, Chain.Polkadot, {
+        await Referendum.update(9999, Chain.Polkadot, daoId, {
             internal_status: InternalStatus.Considering,
             last_edited_by: 'TypeScript Example'
         });
@@ -72,10 +76,6 @@ async function exampleUsage() {
 
     } catch (error) {
         console.error('❌ Error in database example:', error);
-    } finally {
-        // Always close the database connection
-        await db.close();
-        console.log('🔒 Database connection closed');
     }
 }
 

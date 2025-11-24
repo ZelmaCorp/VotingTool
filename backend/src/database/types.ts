@@ -10,6 +10,7 @@ export interface ReferendumRecord {
     id?: number;                        // AUTO INCREMENT primary key
     post_id: number;                    // Polkassembly post ID
     chain: Chain;                       // 'Polkadot' | 'Kusama'
+    dao_id: number;                     // Foreign key to daos table
     title: string;
     description?: string;
     requested_amount_usd?: number;      // USD amount (calculated)
@@ -88,6 +89,7 @@ export interface ScoringRecord {
 export interface VotingRecord {
     id?: number;
     referendum_id: number;
+    dao_id: number;
     suggested_vote?: string;            // 'AYE' | 'NAY' | 'ABSTAIN'
     final_vote?: string;
     vote_executed?: boolean;
@@ -145,4 +147,66 @@ export interface AuditRecord {
     new_values?: string;                // JSON
     changed_by?: string;
     changed_at?: string;
-} 
+}
+
+/**
+ * DAO statistics
+ */
+export interface DaoStats {
+    total_referendums: number;
+    active_referendums: number;
+    voted_referendums: number;
+    ready_to_vote: number;
+}
+
+/**
+ * Safe DAO info (without sensitive fields like mnemonic)
+ * Suitable for API responses to authenticated users
+ * Note: Multisig addresses are public on-chain data
+ */
+export interface DaoSafeInfo {
+    id: number;
+    name: string;
+    description: string | null;
+    status: string;
+    created_at: string;
+    updated_at: string;
+    chains: Chain[];
+    multisig_addresses: {
+        polkadot: string | null;
+        kusama: string | null;
+    };
+    member_counts: {
+        polkadot: number;
+        kusama: number;
+    };
+    stats: DaoStats;
+}
+
+
+/**
+ * DAO configuration data (unencrypted)
+ */
+export interface DaoConfig {
+    name: string;
+    description?: string;
+    status?: 'active' | 'inactive' | 'suspended';
+    polkadot_multisig?: string;  // Unencrypted - will be encrypted before storage
+    kusama_multisig?: string;    // Unencrypted - will be encrypted before storage
+    proposer_mnemonic?: string;  // Unencrypted - will be encrypted before storage
+}
+
+/**
+ * DAO record from database (encrypted credentials)
+ */
+export interface DaoRecord {
+    id: number;
+    name: string;
+    description: string | null;
+    status: 'active' | 'inactive' | 'suspended';
+    polkadot_multisig_encrypted: string | null;
+    kusama_multisig_encrypted: string | null;
+    proposer_mnemonic_encrypted: string | null;
+    created_at: string;
+    updated_at: string;
+}

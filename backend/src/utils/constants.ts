@@ -3,7 +3,8 @@ import { TimelineStatus, InternalStatus } from '../types/properties';
 export const POLKADOT_SS58_FORMAT = 0;
 export const KUSAMA_SS58_FORMAT = 2;
 
-export const MNEMONIC = process.env.PROPOSER_MNEMONIC as string;
+// MNEMONIC is now stored per-DAO in the database (encrypted)
+// Use DAO.getDecryptedMnemonic(daoId) to retrieve it
 
 export const PASEO_PROVIDER = "wss://sys.turboflakes.io";
 

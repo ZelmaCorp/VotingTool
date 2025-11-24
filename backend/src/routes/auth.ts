@@ -37,18 +37,14 @@ router.post("/web3-login", async (req: Request, res: Response) => {
     // Find multisig member by wallet address
     const teamMember = await findTeamMemberByAddress(address);
     if (!teamMember) {
-      logger.warn({ address }, "Wallet address not found in multisig members");
+      logger.warn({ address }, "Wallet address not found in any DAO multisig");
       return res.status(403).json({
         success: false,
         error: "Access denied: Wallet address not registered as multisig member",
         details: {
           address: address,
-          reason: "The wallet address you're trying to authenticate with is not a member of the configured multisig accounts",
-          configured_multisigs: {
-            polkadot: process.env.POLKADOT_MULTISIG || "Not configured",
-            kusama: process.env.KUSAMA_MULTISIG || "Not configured"
-          },
-          suggestion: "Please ensure you're using a wallet address that is a member of one of the configured multisig accounts, or contact an administrator to add your address"
+          reason: "The wallet address you're trying to authenticate with is not a member of any registered DAO multisig accounts",
+          suggestion: "Please ensure you're using a wallet address that is a member of a DAO multisig, or contact an administrator to add your address"
         }
       });
     }

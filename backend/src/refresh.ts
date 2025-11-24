@@ -58,7 +58,7 @@ async function fetchCurrentStatus(postId: number, chain: Chain, fallbackStatus?:
 /**
  * Creates a new referendum record in the database from Polkassembly data
  */
-async function createReferendumFromPolkassembly(referenda: any, exchangeRate: number, network: Chain): Promise<void> {
+async function createReferendumFromPolkassembly(referenda: any, exchangeRate: number, network: Chain, daoId: number): Promise<void> {
     // Fetch content (description) and reward information
     const contentResp = await fetchReferendumContent(referenda.post_id, referenda.network);
     const requestedAmountUsd = calculateReward(contentResp, exchangeRate, network);
@@ -66,6 +66,7 @@ async function createReferendumFromPolkassembly(referenda: any, exchangeRate: nu
     const referendumData: ReferendumRecord = {
         post_id: referenda.post_id,
         chain: network,
+        dao_id: daoId,
         title: referenda.title || `Referendum #${referenda.post_id}`,
         description: contentResp.content || referenda.description,
         requested_amount_usd: requestedAmountUsd,
@@ -83,8 +84,8 @@ async function createReferendumFromPolkassembly(referenda: any, exchangeRate: nu
 /**
  * Updates an existing referendum record in the database with latest data from Polkassembly
  */
-async function updateReferendumFromPolkassembly(referenda: any, exchangeRate: number, network: Chain): Promise<void> {
-    // Fetch content and calculate reward
+async function updateReferendumFromPolkassembly(referenda: any, exchangeRate: number, network: Chain, daoId: number): Promise<void> {
+    // Fetch content (description) and reward information
     const contentResp = await fetchReferendumContent(referenda.post_id, referenda.network);
     const requestedAmountUsd = calculateReward(contentResp, exchangeRate, network);
     
@@ -98,7 +99,7 @@ async function updateReferendumFromPolkassembly(referenda: any, exchangeRate: nu
         referendum_timeline: newTimelineStatus
     };
 
-    await Referendum.update(referenda.post_id, network, updates);
+    await Referendum.update(referenda.post_id, network, daoId, updates);
 }
 
 /**
@@ -113,13 +114,13 @@ export async function updateAllActiveReferendums(skipRefs: Set<string> = new Set
         
         // Get all referendums that are NOT in terminal states
         const activeReferendums = await db.all(
-            `SELECT post_id, chain, referendum_timeline 
-             FROM referendums 
+            `SELECT post_id, chain, dao_id, referendum_timeline
+             FROM referendums
              WHERE referendum_timeline NOT IN (${terminalPlaceholders})
              ORDER BY post_id DESC
              LIMIT 500`,
             TERMINAL_STATUSES
-        ) as { post_id: number; chain: Chain; referendum_timeline: string }[];
+        ) as { post_id: number; chain: Chain; dao_id: number; referendum_timeline: string }[];
 
         const totalActive = activeReferendums.length;
         const skippedCount = skipRefs.size;
@@ -149,7 +150,7 @@ export async function updateAllActiveReferendums(skipRefs: Set<string> = new Set
                         `Updating referendum ${ref.post_id} (${ref.chain}): '${ref.referendum_timeline}' -> '${newTimelineStatus}'`
                     );
                     
-                    await Referendum.update(ref.post_id, ref.chain, {
+                    await Referendum.update(ref.post_id, ref.chain, ref.dao_id, {
                         referendum_timeline: newTimelineStatus
                     });
                     
@@ -247,8 +248,9 @@ export async function checkAllReferendumsForNotVoted(): Promise<void> {
  * and creates/updates corresponding database records.
  * 
  * @param limit - Maximum number of posts to fetch from each network (default: 30)
+ * @param daoId - Optional: DAO ID to refresh for. If not provided, refreshes for all active DAOs (multi-DAO support)
  */
-export async function refreshReferendas(limit: number = 30) {
+export async function refreshReferendas(limit: number = 30, daoId?: number) {
     
     // Prevent concurrent refresh operations
     if (isRefreshing) {
@@ -258,7 +260,30 @@ export async function refreshReferendas(limit: number = 30) {
 
     try {
         isRefreshing = true;
-        logger.info({ limit, version: APP_VERSION }, `Refreshing Referendas v${APP_VERSION}...`)
+        logger.info({ limit, daoId, version: APP_VERSION }, `Refreshing Referendas v${APP_VERSION}...`)
+
+        // Import DAO to get DAOs to refresh for
+        const { DAO } = await import('./database/models/dao');
+        
+        // Determine which DAOs to refresh for  
+        let daosToRefresh: Awaited<ReturnType<typeof DAO.getAll>> = [];
+        
+        if (daoId) {
+            const dao = await DAO.getById(daoId);
+            if (dao) {
+                daosToRefresh = [dao];
+            }
+        } else {
+            daosToRefresh = await DAO.getAll(true); // All active DAOs
+        }
+
+        if (daosToRefresh.length === 0) {
+            logger.warn({ daoId }, 'No active DAOs found - skipping refresh. Create a DAO first.');
+            return;
+        }
+
+        logger.info({ daoCount: daosToRefresh.length, daoIds: daosToRefresh.map(d => d.id) }, 
+            `Refreshing for ${daosToRefresh.length} DAO(s)`);
 
         // Track which referendums we update from activity feed to avoid duplicate API calls
         const updatedRefs = new Set<string>();
@@ -279,39 +304,42 @@ export async function refreshReferendas(limit: number = 30) {
             totalCount: referendas.length
         }, "Fetched referendas from both networks");
 
-        // Go through the fetched referendas from activity feed
-        for (const referenda of referendas) {
-            // Check if referendum exists in database
-            const found = await Referendum.findByPostIdAndChain(referenda.post_id, referenda.network);
-            const exchangeRate = referenda.network === Chain.Polkadot ? dotUsdRate : kusUsdRate;
+        // Refresh referendums for each DAO
+        for (const dao of daosToRefresh) {
+            logger.info({ daoId: dao.id, daoName: dao.name }, `Processing referendums for DAO`);
 
-            if (found) {
-                logger.info({ postId: referenda.post_id, network: referenda.network }, `Referendum found in database, updating`);
-                try {
-                    await updateReferendumFromPolkassembly(referenda, exchangeRate, referenda.network);
-                    // Mark as updated so we don't fetch it again in updateAllActiveReferendums
-                    updatedRefs.add(makeRefKey(referenda.post_id, referenda.network));
-                } catch (error) {
-                    logger.error({ postId: referenda.post_id, error: formatError(error), network: referenda.network }, "Error updating referendum");
-                }
-            } else {
-                logger.info({ postId: referenda.post_id, network: referenda.network }, `Referendum not in database, creating new record`);
-                try {
-                    await createReferendumFromPolkassembly(referenda, exchangeRate, referenda.network);
-                    // Mark as updated (newly created counts as updated)
-                    updatedRefs.add(makeRefKey(referenda.post_id, referenda.network));
-                } catch (error) {
-                    logger.error({ postId: referenda.post_id, error: formatError(error), network: referenda.network }, "Error creating referendum");
+            for (const referenda of referendas) {
+                const exchangeRate = referenda.network === Chain.Polkadot ? dotUsdRate : kusUsdRate;
+                
+                // Check if referendum exists for this specific DAO
+                const found = await Referendum.findByPostIdAndChain(referenda.post_id, referenda.network, dao.id);
+
+                if (found) {
+                    logger.debug({ postId: referenda.post_id, network: referenda.network, daoId: dao.id }, 
+                        `Referendum found, updating`);
+                    try {
+                        await updateReferendumFromPolkassembly(referenda, exchangeRate, referenda.network, dao.id);
+                    } catch (error) {
+                        logger.error({ postId: referenda.post_id, daoId: dao.id, error: formatError(error), network: referenda.network }, 
+                            "Error updating referendum");
+                    }
+                } else {
+                    logger.debug({ postId: referenda.post_id, network: referenda.network, daoId: dao.id }, 
+                        `Referendum not found, creating`);
+                    try {
+                        await createReferendumFromPolkassembly(referenda, exchangeRate, referenda.network, dao.id);
+                    } catch (error) {
+                        logger.error({ postId: referenda.post_id, daoId: dao.id, error: formatError(error), network: referenda.network }, 
+                            "Error creating referendum");
+                    }
                 }
             }
         }
         
-        // After refreshing referendums from activity feed,
-        // update remaining active referendums from detail API (catches referendums not in activity feed like #1780)
-        // Pass updatedRefs to skip ones we just updated, avoiding duplicate API calls
-        await updateAllActiveReferendums(updatedRefs);
-        
-        // Finally, check ALL referendums in database for NotVoted transition
+        logger.info({ totalReferendas: referendas.length, daoCount: daosToRefresh.length }, 
+            "RefreshReferendas completed successfully");
+
+        // After refreshing recent referendums, check ALL referendums in database for NotVoted transition
         await checkAllReferendumsForNotVoted();
         
     } catch (error) {

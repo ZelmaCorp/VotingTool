@@ -1,6 +1,7 @@
 import { handleReferendaVote } from "./handleReferenda";
 import { Referendum } from "../database/models/referendum";
 import { MimirTransaction } from "../database/models/mimirTransaction";
+import { DAO } from "../database/models/dao";
 import { createSubsystemLogger, formatError } from "../config/logger";
 import { Subsystem } from "../types/logging";
 
@@ -24,14 +25,34 @@ export async function sendReadyProposalsToMimir(): Promise<void> {
       const postId = referendum.post_id;
 
       // Skip if already has pending Mimir transaction
-      if (referendum.id && await MimirTransaction.hasPendingTransaction(referendum.id)) {
+      if (referendum.id && await MimirTransaction.hasPendingTransaction(referendum.id, referendum.dao_id)) {
         logger.info({ postId, network, referendumId: referendum.id }, "Referendum already has pending Mimir transaction, skipping");
         continue;
       }
 
-      logger.info({ postId, network, suggestedVote: referendum.suggested_vote }, "Processing referendum for Mimir");
+      // Get DAO context
+      if (!referendum.dao_id) {
+        logger.error({ postId, network, referendumId: referendum.id }, "Referendum has no DAO assigned, skipping");
+        continue;
+      }
       
-      const promise = handleReferendaVote(referendum, network, postId);
+      // Get multisig address and mnemonic for this DAO
+      const multisigAddress = await DAO.getDecryptedMultisig(referendum.dao_id, network);
+      const mnemonic = await DAO.getDecryptedMnemonic(referendum.dao_id);
+      
+      if (!multisigAddress) {
+        logger.error({ postId, network, daoId: referendum.dao_id }, "DAO has no multisig configured for this network, skipping");
+        continue;
+      }
+      
+      if (!mnemonic) {
+        logger.error({ postId, network, daoId: referendum.dao_id }, "DAO has no proposer mnemonic configured, skipping");
+        continue;
+      }
+
+      logger.info({ postId, network, daoId: referendum.dao_id, suggestedVote: referendum.suggested_vote }, "Processing referendum for Mimir");
+      
+      const promise = handleReferendaVote(referendum, network, postId, multisigAddress, mnemonic);
       mimirPromises.push(promise);
     }
 

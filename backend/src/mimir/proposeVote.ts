@@ -6,7 +6,6 @@ import {
   KUSAMA_PROVIDER,
   KUSAMA_SS58_FORMAT,
   MIMIR_URL,
-  MNEMONIC,
   POLKADOT_PROVIDER,
   POLKADOT_SS58_FORMAT,
 } from "../utils/constants";
@@ -21,9 +20,9 @@ const logger = createSubsystemLogger(Subsystem.MIMIR);
 /**
  * Validates required configuration
  */
-function validateConfig(multisig: string): void {
-  if (!MNEMONIC) throw new Error("Please specify MNEMONIC in .env!");
-  if (!multisig) throw new Error("Please specify POLKADOT_MULTISIG and/or KUSAMA_MULTISIG in .env!");
+function validateConfig(multisig: string, mnemonic: string): void {
+  if (!mnemonic) throw new Error("Mnemonic is required for proposing votes!");
+  if (!multisig) throw new Error("Multisig address is required for proposing votes!");
 }
 
 /**
@@ -69,10 +68,10 @@ async function initializeApi(network: Chain): Promise<{ api: ApiPromise; provide
 /**
  * Creates signer from mnemonic
  */
-function createSigner(network: Chain): { sender: KeyringPair; address: string } {
+function createSigner(network: Chain, mnemonic: string): { sender: KeyringPair; address: string } {
   const { ss58Format } = getNetworkConfig(network);
   const keyring = new Keyring({ type: "sr25519" });
-  const sender = keyring.addFromMnemonic(MNEMONIC);
+  const sender = keyring.addFromMnemonic(mnemonic);
   const address = encodeAddress(sender.address, ss58Format);
   return { sender, address };
 }
@@ -118,15 +117,22 @@ async function sendToMimir(
 /**
  * Sends transaction to Mimir for batch voting.
  * The transaction should be created by a Proposer (https://docs.mimir.global/advanced/proposer).
+ * @param multisig - The multisig address
+ * @param network - The network (Polkadot or Kusama)
+ * @param id - The referendum ID
+ * @param vote - The vote (Aye, Nay, or Abstain)
+ * @param mnemonic - The proposer mnemonic phrase (from DAO configuration)
+ * @param conviction - The conviction multiplier (default 1)
  */
 export async function proposeVoteTransaction(
   multisig: string,
   network: Chain,
   id: ReferendumId,
   vote: SuggestedVote,
+  mnemonic: string,
   conviction: number = 1
 ): Promise<{ ready: ReadyProposal; payload: VotingPayload }> {
-  validateConfig(multisig);
+  validateConfig(multisig, mnemonic);
 
   let provider: WsProvider | undefined;
 
@@ -134,7 +140,7 @@ export async function proposeVoteTransaction(
     const { api, provider: wsProvider } = await initializeApi(network);
     provider = wsProvider;
 
-    const { sender, address } = createSigner(network);
+    const { sender, address } = createSigner(network, mnemonic);
     const payload = prepareRequestPayload(vote, id, conviction, api);
     const request = prepareRequest(payload, multisig, sender, address);
     const { chain } = getNetworkConfig(network);

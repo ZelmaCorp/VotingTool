@@ -377,72 +377,11 @@ export class ApiService {
 
     async getAgreementSummary(postId: number, chain: Chain): Promise<AgreementSummary | null> {
         try {
-            // Get team actions first
-            const actions = await this.getTeamActions(postId, chain);
-            if (!actions) {
-                return null;
-            }
-
-            // Get team members for required agreements count
-            const daoConfig = await this.getDAOConfig();
-            if (!daoConfig) {
-                return null;
-            }
-
-            // Calculate agreement summary
-            const agreed_members = actions
-                .filter(a => a.role_type === 'Agree')
-                .map(a => ({
-                    address: a.team_member_id,
-                    name: a.team_member_name || daoConfig.team_members.find(m => m.address === a.team_member_id)?.name || a.team_member_id
-                }));
-
-            const recused_members = actions
-                .filter(a => a.role_type === 'Recuse')
-                .map(a => ({
-                    address: a.team_member_id,
-                    name: a.team_member_name || daoConfig.team_members.find(m => m.address === a.team_member_id)?.name || a.team_member_id
-                }));
-
-            const to_be_discussed_members = actions
-                .filter(a => a.role_type === 'To be discussed')
-                .map(a => ({
-                    address: a.team_member_id,
-                    name: a.team_member_name || daoConfig.team_members.find(m => m.address === a.team_member_id)?.name || a.team_member_id
-                }));
-
-            // Find veto if any
-            const vetoAction = actions.find(a => a.role_type === 'NO WAY');
-            const vetoed = !!vetoAction;
-            const veto_by = vetoed ? (vetoAction.team_member_name || daoConfig.team_members.find(m => m.address === vetoAction.team_member_id)?.name || vetoAction.team_member_id) : undefined;
-            const veto_reason = vetoed ? vetoAction.reason : undefined;
-
-            // Calculate pending members (all team members minus those who took action)
-            const actionTakers = new Set([
-                ...agreed_members.map(m => m.address),
-                ...recused_members.map(m => m.address),
-                ...to_be_discussed_members.map(m => m.address),
-                ...(vetoed && vetoAction ? [vetoAction.team_member_id] : [])
-            ]);
-
-            const pending_members = daoConfig.team_members
-                .filter(m => !actionTakers.has(m.address))
-                .map(m => ({
-                    address: m.address,
-                    name: m.name
-                }));
-
-            return {
-                total_agreements: agreed_members.length,
-                required_agreements: daoConfig.required_agreements,
-                agreed_members,
-                pending_members,
-                recused_members,
-                to_be_discussed_members,
-                vetoed,
-                veto_by,
-                veto_reason
-            };
+            const result = await this.request<{ success: boolean; summary?: AgreementSummary; error?: string }>(
+                `/referendums/${postId}/agreement-summary?chain=${chain}`
+            );
+            
+            return result.success && result.summary ? result.summary : null;
         } catch (error) {
             console.error('Failed to fetch agreement summary:', error);
             return null;

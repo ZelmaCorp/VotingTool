@@ -1,6 +1,9 @@
 import { db } from '../database/connection';
 import { ReferendumAction } from '../types/auth';
 import { multisigService } from '../services/multisig';
+import { DAO } from '../database/models/dao';
+import { DaoService } from '../services/daoService';
+import { Chain } from '../types/properties';
 
 /**
  * Team action utilities
@@ -27,13 +30,14 @@ export function parseAction(action: string): ReferendumAction | null {
 /**
  * Count agreements and check for vetoes in a referendum
  */
-export async function getAgreementStats(referendumId: number): Promise<{
+export async function getAgreementStats(referendumId: number, daoId: number, chain: Chain = Chain.Polkadot): Promise<{
   agreementCount: number;
   hasVeto: boolean;
   requiredAgreements: number;
 }> {
   // Get the actual multisig threshold (not team size!)
-  const requiredAgreements = await multisigService.getMultisigThreshold();
+  const info = await DaoService.getMultisigInfo(daoId, chain);
+  const requiredAgreements = info?.threshold || 4;
   
   const allActions = await db.all(
     "SELECT team_member_id, role_type FROM referendum_team_roles WHERE referendum_id = ?",

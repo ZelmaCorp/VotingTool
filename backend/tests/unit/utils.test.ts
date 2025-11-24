@@ -1,7 +1,8 @@
 // Mock the logger before any imports
 jest.mock('../../src/config/logger', () => ({
   createSubsystemLogger: jest.fn(),
-  logError: jest.fn()
+  logError: jest.fn(),
+  formatError: jest.fn((error: any) => error?.message || String(error))
 }));
 
 // Create mock logger

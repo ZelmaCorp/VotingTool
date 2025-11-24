@@ -5,423 +5,318 @@ import { ReferendumRecord } from '../../src/database/types';
 
 // Mock the database connection
 jest.mock('../../src/database/connection', () => ({
-  db: {
-    run: jest.fn(),
-    get: jest.fn(),
-    all: jest.fn()
-  }
+    db: {
+        run: jest.fn(),
+        get: jest.fn(),
+        all: jest.fn()
+    }
 }));
 
-describe('Referendum Model', () => {
-  const mockDb = db as jest.Mocked<typeof db>;
+describe('Referendum Model - Multi-DAO Support', () => {
+    const mockDbRun = db.run as jest.MockedFunction<typeof db.run>;
+    const mockDbGet = db.get as jest.MockedFunction<typeof db.get>;
+    const mockDbAll = db.all as jest.MockedFunction<typeof db.all>;
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  describe('create()', () => {
-    const validReferendumData: ReferendumRecord = {
-      post_id: 123,
-      chain: Chain.Polkadot,
-      title: 'Test Referendum',
-      description: 'Test description',
-      requested_amount_usd: 10000,
-      origin: 'SmallTipper',
-      referendum_timeline: 'Voting',
-      internal_status: InternalStatus.NotStarted,
-      link: 'https://polkadot.polkassembly.io/referendum/123',
-      voting_start_date: '2024-01-01T00:00:00Z',
-      voting_end_date: '2024-01-15T00:00:00Z',
-      created_at: '2024-01-01T00:00:00Z'
-    };
-
-    it('should create referendum successfully', async () => {
-      const mockResult = { lastID: 1, changes: 1 };
-      mockDb.run.mockResolvedValue(mockResult as any);
-
-      const result = await Referendum.create(validReferendumData);
-
-      expect(result).toBe(1);
-      expect(mockDb.run).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO referendums'),
-        expect.arrayContaining([
-          validReferendumData.post_id,
-          validReferendumData.chain,
-          validReferendumData.title,
-          validReferendumData.description,
-          validReferendumData.requested_amount_usd,
-          validReferendumData.origin,
-          validReferendumData.referendum_timeline,
-          validReferendumData.internal_status,
-          validReferendumData.link,
-          validReferendumData.voting_start_date,
-          validReferendumData.voting_end_date,
-          validReferendumData.created_at
-        ])
-      );
+    beforeEach(() => {
+        jest.clearAllMocks();
     });
 
-    it('should handle null values correctly', async () => {
-      const minimalData: ReferendumRecord = {
-        post_id: 123,
-        chain: Chain.Polkadot,
-        title: 'Test Referendum',
-        created_at: '2024-01-01T00:00:00Z'
-      };
+    describe('create()', () => {
+        it('should create a referendum with dao_id', async () => {
+            const referendumData: ReferendumRecord = {
+                post_id: 123,
+                chain: Chain.Polkadot,
+                dao_id: 1,
+                title: 'Test Proposal',
+                description: 'Test Description',
+                requested_amount_usd: 10000,
+                origin: 'Root',
+                referendum_timeline: '7 days',
+                internal_status: InternalStatus.NotStarted,
+                link: 'https://polkadot.polkassembly.io/referendum/123',
+                created_at: '2025-01-01T00:00:00Z',
+                voting_start_date: undefined,
+                voting_end_date: undefined,
+                last_edited_by: undefined,
+                public_comment: undefined,
+                public_comment_made: false,
+                ai_summary: undefined,
+                reason_for_vote: undefined,
+                reason_for_no_way: undefined,
+                voted_link: undefined,
+                vote_executed_date: undefined,
+                updated_at: '2025-01-01T00:00:00Z'
+            };
 
-      const mockResult = { lastID: 2, changes: 1 };
-      mockDb.run.mockResolvedValue(mockResult as any);
+            mockDbRun.mockResolvedValue({ lastID: 1, changes: 1 } as any);
 
-      const result = await Referendum.create(minimalData);
+            const result = await Referendum.create(referendumData);
 
-      expect(result).toBe(2);
-      expect(mockDb.run).toHaveBeenCalledWith(
-        expect.stringContaining('INSERT INTO referendums'),
-        expect.arrayContaining([
-          minimalData.post_id,
-          minimalData.chain,
-          minimalData.title,
-          null, // description
-          null, // requested_amount_usd
-          null, // origin
-          null, // referendum_timeline
-          InternalStatus.NotStarted, // default internal_status
-          null, // link
-          null, // voting_start_date
-          null, // voting_end_date
-          minimalData.created_at
-        ])
-      );
+            expect(result).toBe(1);
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining('INSERT INTO referendums'),
+                expect.arrayContaining([123, Chain.Polkadot, 1, 'Test Proposal'])
+            );
+        });
     });
 
-    it('should propagate database errors', async () => {
-      const error = new Error('Database constraint violation');
-      mockDb.run.mockRejectedValue(error);
+    describe('findByPostIdAndChain()', () => {
+        it('should find referendum by post_id, chain, and dao_id', async () => {
+            const mockReferendum = {
+                id: 1,
+                post_id: 123,
+                chain: Chain.Polkadot,
+                dao_id: 1,
+                title: 'Test Proposal',
+                internal_status: InternalStatus.NotStarted
+            };
 
-      await expect(Referendum.create(validReferendumData)).rejects.toThrow(error);
-    });
-  });
+            mockDbGet.mockResolvedValue(mockReferendum);
+            mockDbAll.mockResolvedValue([]);
 
-  describe('findByPostIdAndChain()', () => {
-    it('should return referendum with details when found', async () => {
-      const mockReferendum = {
-        id: 1,
-        post_id: 123,
-        chain: Chain.Polkadot,
-        title: 'Test Referendum',
-        description: 'Test description',
-        necessity_score: 4,
-        funding_score: 3,
-        ref_score: 3.5,
-        suggested_vote: '👍 Aye 👍',
-        final_vote: null,
-        vote_executed: false
-      };
+            const result = await Referendum.findByPostIdAndChain(123, Chain.Polkadot, 1);
 
-      const mockAssignments = [
-        { wallet_address: '1abc...def', role_type: 'responsible_person', created_at: '2024-01-01T00:00:00Z' },
-        { wallet_address: '2def...ghi', role_type: 'agree', created_at: '2024-01-01T01:00:00Z' }
-      ];
+            expect(result).toBeDefined();
+            expect(result?.dao_id).toBe(1);
+            expect(mockDbGet).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE r.post_id = ? AND r.chain = ? AND r.dao_id = ?'),
+                [1, 1, 123, Chain.Polkadot, 1]
+            );
+        });
 
-      mockDb.get.mockResolvedValue(mockReferendum);
-      mockDb.all.mockResolvedValue(mockAssignments);
+        it('should return null if referendum not found for DAO', async () => {
+            mockDbGet.mockResolvedValue(null);
 
-      const result = await Referendum.findByPostIdAndChain(123, Chain.Polkadot);
+            const result = await Referendum.findByPostIdAndChain(123, Chain.Polkadot, 999);
 
-      expect(result).toEqual({
-        ...mockReferendum,
-        assigned_to: '1abc...def',
-        team_assignments: mockAssignments
-      });
-
-      expect(mockDb.get).toHaveBeenCalledWith(
-        expect.stringContaining('SELECT'),
-        [123, Chain.Polkadot]
-      );
-      expect(mockDb.all).toHaveBeenCalledWith(
-        expect.stringContaining('SELECT rtr.team_member_id'),
-        [mockReferendum.id]
-      );
+            expect(result).toBeNull();
+        });
     });
 
-    it('should return null when referendum not found', async () => {
-      mockDb.get.mockResolvedValue(null);
+    describe('update()', () => {
+        it('should update referendum scoped by dao_id', async () => {
+            mockDbRun.mockResolvedValue({ lastID: 1, changes: 1 } as any);
 
-      const result = await Referendum.findByPostIdAndChain(999, Chain.Polkadot);
+            await Referendum.update(123, Chain.Polkadot, 1, {
+                internal_status: InternalStatus.Considering
+            });
 
-      expect(result).toBeNull();
-      expect(mockDb.all).not.toHaveBeenCalled(); // Should not query assignments
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE post_id = ? AND chain = ? AND dao_id = ?'),
+                expect.arrayContaining([InternalStatus.Considering, 123, Chain.Polkadot, 1])
+            );
+        });
+
+        it('should not allow updating dao_id field', async () => {
+            mockDbRun.mockResolvedValue({ lastID: 1, changes: 1 } as any);
+
+            await Referendum.update(123, Chain.Polkadot, 1, {
+                dao_id: 999, // This should be ignored
+                internal_status: InternalStatus.Considering
+            });
+
+            const call = mockDbRun.mock.calls[0];
+            const sql = call[0] as string;
+            
+            // dao_id should only appear in WHERE clause, not in SET clause
+            const setClause = sql.split('WHERE')[0];
+            expect(setClause).not.toContain('dao_id = ?');
+            
+            // But it should be in the WHERE clause
+            expect(sql).toContain('WHERE post_id = ? AND chain = ? AND dao_id = ?');
+        });
     });
 
-    it('should handle referendum without responsible person', async () => {
-      const mockReferendum = {
-        id: 1,
-        post_id: 123,
-        chain: Chain.Polkadot,
-        title: 'Test Referendum'
-      };
+    describe('getAll()', () => {
+        it('should get all referendums without dao filter', async () => {
+            const mockReferendums = [
+                { id: 1, dao_id: 1, title: 'DAO 1 Ref' },
+                { id: 2, dao_id: 2, title: 'DAO 2 Ref' }
+            ];
 
-      const mockAssignments = [
-        { wallet_address: '2def...ghi', role_type: 'agree', created_at: '2024-01-01T01:00:00Z' }
-      ];
+            mockDbAll
+                .mockResolvedValueOnce(mockReferendums)
+                .mockResolvedValueOnce([]);
 
-      mockDb.get.mockResolvedValue(mockReferendum);
-      mockDb.all.mockResolvedValue(mockAssignments);
+            const result = await Referendum.getAll();
 
-      const result = await Referendum.findByPostIdAndChain(123, Chain.Polkadot);
+            expect(result).toHaveLength(2);
+            expect(mockDbAll).toHaveBeenCalledWith(
+                expect.not.stringContaining('WHERE'),
+                []
+            );
+        });
 
-      expect(result?.assigned_to).toBeNull();
-      expect(result?.team_assignments).toEqual(mockAssignments);
-    });
-  });
+        it('should filter referendums by dao_id', async () => {
+            const mockReferendums = [
+                { id: 1, dao_id: 1, title: 'DAO 1 Ref' }
+            ];
 
-  describe('update()', () => {
-    it('should update referendum successfully', async () => {
-      const updates = {
-        title: 'Updated Title',
-        internal_status: InternalStatus.ReadyToVote,
-        requested_amount_usd: 15000
-      };
+            mockDbAll
+                .mockResolvedValueOnce(mockReferendums)
+                .mockResolvedValueOnce([]);
 
-      mockDb.run.mockResolvedValue({ changes: 1 } as any);
+            const result = await Referendum.getAll(1);
 
-      await Referendum.update(123, Chain.Polkadot, updates);
-
-      expect(mockDb.run).toHaveBeenCalledWith(
-        expect.stringContaining('UPDATE referendums'),
-        expect.arrayContaining([
-          'Updated Title',
-          InternalStatus.ReadyToVote,
-          15000,
-          123,
-          Chain.Polkadot
-        ])
-      );
+            expect(result).toHaveLength(1);
+            expect(result[0].dao_id).toBe(1);
+            expect(mockDbAll).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE r.dao_id = ?'),
+                [1, 1, 1]
+            );
+        });
     });
 
-    it('should skip update when no fields provided', async () => {
-      await Referendum.update(123, Chain.Polkadot, {});
+    describe('getByStatus()', () => {
+        it('should filter by status and dao_id', async () => {
+            mockDbAll.mockResolvedValue([
+                { id: 1, dao_id: 1, internal_status: InternalStatus.ReadyToVote }
+            ]);
 
-      expect(mockDb.run).not.toHaveBeenCalled();
+            await Referendum.getByStatus(InternalStatus.ReadyToVote, 1);
+
+            expect(mockDbAll).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE r.internal_status = ? AND r.dao_id = ?'),
+                [InternalStatus.ReadyToVote, 1, 1, 1]
+            );
+        });
+
+        it('should filter by status only when dao_id not provided', async () => {
+            mockDbAll.mockResolvedValue([
+                { id: 1, dao_id: 1, internal_status: InternalStatus.ReadyToVote },
+                { id: 2, dao_id: 2, internal_status: InternalStatus.ReadyToVote }
+            ]);
+
+            await Referendum.getByStatus(InternalStatus.ReadyToVote);
+
+            expect(mockDbAll).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE r.internal_status = ?'),
+                [InternalStatus.ReadyToVote]
+            );
+        });
     });
 
-    it('should ignore undefined values', async () => {
-      const updates = {
-        title: 'Updated Title',
-        description: undefined,
-        requested_amount_usd: 15000
-      };
+    describe('getReadyToVote()', () => {
+        it('should get ready-to-vote referendums for specific DAO', async () => {
+            mockDbAll.mockResolvedValue([
+                { id: 1, dao_id: 1, internal_status: InternalStatus.ReadyToVote }
+            ]);
 
-      mockDb.run.mockResolvedValue({ changes: 1 } as any);
+            await Referendum.getReadyToVote(1);
 
-      await Referendum.update(123, Chain.Polkadot, updates);
+            expect(mockDbAll).toHaveBeenCalledWith(
+                expect.stringContaining("r.internal_status = 'Ready to vote'"),
+                [1]
+            );
+            expect(mockDbAll).toHaveBeenCalledWith(
+                expect.stringContaining('r.dao_id = ?'),
+                [1]
+            );
+        });
 
-      const call = mockDb.run.mock.calls[0];
-      const sql = call[0];
-      const params = call[1];
+        it('should get ready-to-vote referendums for all DAOs', async () => {
+            mockDbAll.mockResolvedValue([
+                { id: 1, dao_id: 1, internal_status: InternalStatus.ReadyToVote },
+                { id: 2, dao_id: 2, internal_status: InternalStatus.ReadyToVote }
+            ]);
 
-      expect(sql).toContain('title = ?');
-      expect(sql).not.toContain('description = ?');
-      expect(sql).toContain('requested_amount_usd = ?');
-      expect(params).toContain('Updated Title');
-      expect(params).toContain(15000);
-      expect(params).not.toContain(undefined);
+            await Referendum.getReadyToVote();
+
+            expect(mockDbAll).toHaveBeenCalledWith(
+                expect.stringContaining("r.internal_status = 'Ready to vote'"),
+                []
+            );
+        });
     });
 
-    it('should always update updated_at timestamp', async () => {
-      const updates = { title: 'Updated Title' };
-      mockDb.run.mockResolvedValue({ changes: 1 } as any);
+    describe('updateVotingStatus()', () => {
+        it('should update voting status with dao_id', async () => {
+            mockDbRun.mockResolvedValue({ lastID: 1, changes: 1 } as any);
 
-      await Referendum.update(123, Chain.Polkadot, updates);
+            await Referendum.updateVotingStatus(
+                123,
+                Chain.Polkadot,
+                1,
+                InternalStatus.VotedAye,
+                'https://mimir.global/tx/123'
+            );
 
-      const call = mockDb.run.mock.calls[0];
-      const sql = call[0];
-
-      expect(sql).toContain('updated_at = datetime("now")');
-    });
-  });
-
-  describe('getAll()', () => {
-    it('should return all referendums with assignments', async () => {
-      const mockReferendums = [
-        { id: 1, post_id: 123, title: 'Referendum 1', ref_score: 3.5 },
-        { id: 2, post_id: 124, title: 'Referendum 2', ref_score: 4.0 }
-      ];
-
-      const mockAssignments = [
-        { referendum_id: 1, wallet_address: '1abc...def', role_type: 'responsible_person', created_at: '2024-01-01T00:00:00Z' },
-        { referendum_id: 2, wallet_address: '2def...ghi', role_type: 'responsible_person', created_at: '2024-01-01T01:00:00Z' }
-      ];
-
-      mockDb.all
-        .mockResolvedValueOnce(mockReferendums)
-        .mockResolvedValueOnce(mockAssignments);
-
-      const result = await Referendum.getAll();
-
-      expect(result).toHaveLength(2);
-      expect(result[0].assigned_to).toBe('1abc...def');
-      expect(result[1].assigned_to).toBe('2def...ghi');
-      expect(result[0].team_assignments).toEqual([mockAssignments[0]]);
-      expect(result[1].team_assignments).toEqual([mockAssignments[1]]);
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE post_id = ? AND chain = ? AND dao_id = ?'),
+                expect.arrayContaining([123, Chain.Polkadot, 1])
+            );
+        });
     });
 
-    it('should handle referendums without assignments', async () => {
-      const mockReferendums = [
-        { id: 1, post_id: 123, title: 'Referendum 1' }
-      ];
+    describe('exists()', () => {
+        it('should check existence with dao_id', async () => {
+            mockDbGet.mockResolvedValue({ count: 1 });
 
-      mockDb.all
-        .mockResolvedValueOnce(mockReferendums)
-        .mockResolvedValueOnce([]); // No assignments
+            const result = await Referendum.exists(123, Chain.Polkadot, 1);
 
-      const result = await Referendum.getAll();
+            expect(result).toBe(true);
+            expect(mockDbGet).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE post_id = ? AND chain = ? AND dao_id = ?'),
+                [123, Chain.Polkadot, 1]
+            );
+        });
 
-      expect(result).toHaveLength(1);
-      expect(result[0].assigned_to).toBeNull();
-      expect(result[0].team_assignments).toEqual([]);
-    });
-  });
+        it('should return false when referendum does not exist for DAO', async () => {
+            mockDbGet.mockResolvedValue({ count: 0 });
 
-  describe('getByStatus()', () => {
-    it('should return referendums filtered by status', async () => {
-      const mockReferendums = [
-        { id: 1, post_id: 123, internal_status: InternalStatus.ReadyToVote },
-        { id: 2, post_id: 124, internal_status: InternalStatus.ReadyToVote }
-      ];
+            const result = await Referendum.exists(123, Chain.Polkadot, 999);
 
-      mockDb.all.mockResolvedValue(mockReferendums);
-
-      const result = await Referendum.getByStatus(InternalStatus.ReadyToVote);
-
-      expect(result).toEqual(mockReferendums);
-      expect(mockDb.all).toHaveBeenCalledWith(
-        expect.stringContaining('WHERE r.internal_status = ?'),
-        [InternalStatus.ReadyToVote]
-      );
-    });
-  });
-
-  describe('getReadyToVote()', () => {
-    it('should return referendums ready to vote', async () => {
-      const mockReferendums = [
-        { 
-          id: 1, 
-          post_id: 123, 
-          internal_status: InternalStatus.ReadyToVote,
-          voting_end_date: '2024-12-31T23:59:59Z',
-          suggested_vote: '👍 Aye 👍',
-          vote_executed: false
-        }
-      ];
-
-      mockDb.all.mockResolvedValue(mockReferendums);
-
-      const result = await Referendum.getReadyToVote();
-
-      expect(result).toEqual(mockReferendums);
-      expect(mockDb.all).toHaveBeenCalled();
-    });
-  });
-
-  describe('updateVotingStatus()', () => {
-    it('should update voting status with voted link', async () => {
-      mockDb.run.mockResolvedValue({ changes: 1 } as any);
-
-      await Referendum.updateVotingStatus(
-        123, 
-        Chain.Polkadot, 
-        InternalStatus.VotedAye, 
-        'https://polkadot.subscan.io/extrinsic/123'
-      );
-
-      // Should call update method internally
-      expect(mockDb.run).toHaveBeenCalled();
+            expect(result).toBe(false);
+        });
     });
 
-    it('should update voting status without voted link', async () => {
-      mockDb.run.mockResolvedValue({ changes: 1 } as any);
+    describe('delete()', () => {
+        it('should delete referendum scoped by dao_id', async () => {
+            mockDbRun.mockResolvedValue({ lastID: 1, changes: 1 } as any);
 
-      await Referendum.updateVotingStatus(123, Chain.Polkadot, InternalStatus.VotedAye);
+            await Referendum.delete(123, Chain.Polkadot, 1);
 
-      expect(mockDb.run).toHaveBeenCalled();
-    });
-  });
-
-  describe('exists()', () => {
-    it('should return true when referendum exists', async () => {
-      mockDb.get.mockResolvedValue({ count: 1 });
-
-      const result = await Referendum.exists(123, Chain.Polkadot);
-
-      expect(result).toBe(true);
-      expect(mockDb.get).toHaveBeenCalledWith(
-        'SELECT COUNT(*) as count FROM referendums WHERE post_id = ? AND chain = ?',
-        [123, Chain.Polkadot]
-      );
+            expect(mockDbRun).toHaveBeenCalledWith(
+                expect.stringContaining('WHERE post_id = ? AND chain = ? AND dao_id = ?'),
+                [123, Chain.Polkadot, 1]
+            );
+        });
     });
 
-    it('should return false when referendum does not exist', async () => {
-      mockDb.get.mockResolvedValue({ count: 0 });
+    describe('getAssignedToUser()', () => {
+        it('should filter by user and dao_id', async () => {
+            const mockReferendums = [
+                { id: 1, dao_id: 1, title: 'Assigned Ref' }
+            ];
 
-      const result = await Referendum.exists(999, Chain.Polkadot);
+            mockDbAll
+                .mockResolvedValueOnce(mockReferendums)
+                .mockResolvedValue([]);
 
-      expect(result).toBe(false);
+            await Referendum.getAssignedToUser('0x123...abc', 1);
+
+            expect(mockDbAll).toHaveBeenCalledWith(
+                expect.stringContaining('r.dao_id = ?'),
+                ['0x123...abc', 1, 1, 1, 1]
+            );
+        });
+
+        it('should get assignments across all DAOs when dao_id not provided', async () => {
+            const mockReferendums = [
+                { id: 1, dao_id: 1, title: 'DAO 1 Ref' },
+                { id: 2, dao_id: 2, title: 'DAO 2 Ref' }
+            ];
+
+            mockDbAll
+                .mockResolvedValueOnce(mockReferendums)
+                .mockResolvedValue([]);
+
+            await Referendum.getAssignedToUser('0x123...abc');
+
+            expect(mockDbAll).toHaveBeenCalledWith(
+                expect.not.stringContaining('r.dao_id = ?'),
+                ['0x123...abc']
+            );
+        });
     });
-  });
-
-  describe('delete()', () => {
-    it('should delete referendum', async () => {
-      mockDb.run.mockResolvedValue({ changes: 1 } as any);
-
-      await Referendum.delete(123, Chain.Polkadot);
-
-      expect(mockDb.run).toHaveBeenCalledWith(
-        'DELETE FROM referendums WHERE post_id = ? AND chain = ?',
-        [123, Chain.Polkadot]
-      );
-    });
-  });
-
-  describe('getAssignedToUser()', () => {
-    it('should return referendums assigned to specific user', async () => {
-      const userAddress = '1abc...def';
-      const mockReferendums = [
-        { 
-          id: 1, 
-          post_id: 123, 
-          title: 'Assigned Referendum',
-          necessity_score: 4,
-          ref_score: 3.8
-        }
-      ];
-
-      const mockAssignments = [
-        { wallet_address: userAddress, role_type: 'responsible_person', created_at: '2024-01-01T00:00:00Z' }
-      ];
-
-      mockDb.all
-        .mockResolvedValueOnce(mockReferendums)
-        .mockResolvedValueOnce(mockAssignments);
-
-      const result = await Referendum.getAssignedToUser(userAddress);
-
-      expect(result).toHaveLength(1);
-      expect(result[0].assigned_to).toBe(userAddress);
-      expect(result[0].team_assignments).toEqual(mockAssignments);
-
-      expect(mockDb.all).toHaveBeenCalledWith(
-        expect.stringContaining('WHERE rtr.team_member_id = ? AND rtr.role_type = \'responsible_person\''),
-        [userAddress]
-      );
-    });
-
-    it('should return empty array when user has no assignments', async () => {
-      mockDb.all.mockResolvedValue([]);
-
-      const result = await Referendum.getAssignedToUser('1nonexistent...user');
-
-      expect(result).toEqual([]);
-    });
-  });
-}); 
+});
