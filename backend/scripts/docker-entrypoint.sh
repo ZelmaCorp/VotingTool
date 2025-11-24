@@ -37,18 +37,23 @@ else
     echo "✅ Schema already migrated"
 fi
 
-# Check if data migration is needed
-NULL_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM referendums WHERE dao_id IS NULL;" 2>/dev/null || echo "0")
+# Check if data migration is needed (only if daos table exists)
+if [ -n "$DAOS_TABLE" ]; then
+    NULL_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM referendums WHERE dao_id IS NULL;" 2>/dev/null || echo "0")
+    DAO_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM daos;" 2>/dev/null || echo "0")
 
-if [ "$NULL_COUNT" -gt "0" ] || [ "$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM daos;" 2>/dev/null || echo "0")" -eq "0" ]; then
-    echo "📋 Running data migration..."
-    
-    # Run data migration with proper database path
-    DATABASE_PATH="$DB_PATH" npx tsx database/migrations/direct_migrate.ts "$DB_PATH"
-    
-    echo "✅ Data migration complete"
+    if [ "$NULL_COUNT" -gt "0" ] || [ "$DAO_COUNT" -eq "0" ]; then
+        echo "📋 Running data migration..."
+        
+        # Run data migration with proper database path
+        DATABASE_PATH="$DB_PATH" npx tsx database/migrations/direct_migrate.ts "$DB_PATH"
+        
+        echo "✅ Data migration complete"
+    else
+        echo "✅ Data already migrated ($DAO_COUNT DAO(s) exist)"
+    fi
 else
-    echo "✅ Data already migrated"
+    echo "⏭️  Skipping data migration (schema not yet migrated)"
 fi
 
 echo ""

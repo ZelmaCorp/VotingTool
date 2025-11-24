@@ -28,23 +28,27 @@ else
     echo "✅ Schema already migrated (daos table exists)"
 fi
 
-# Check if data migration is needed
-NULL_COUNT=$(sqlite3 voting_tool.db "SELECT COUNT(*) FROM referendums WHERE dao_id IS NULL;" 2>/dev/null || echo "0")
-
-if [ "$NULL_COUNT" -gt "0" ]; then
-    echo "📋 Found $NULL_COUNT referendums without dao_id"
-    echo "📋 Running data migration..."
-    npx tsx database/migrations/direct_migrate.ts
-    echo "✅ Data migration complete"
-else
-    DAO_COUNT=$(sqlite3 voting_tool.db "SELECT COUNT(*) FROM daos;" 2>/dev/null || echo "0")
-    if [ "$DAO_COUNT" -eq "0" ]; then
-        echo "📋 No DAOs exist, running data migration to create default DAO..."
+# Check if data migration is needed (only if daos table exists)
+if [ -n "$DAOS_TABLE" ]; then
+    NULL_COUNT=$(sqlite3 voting_tool.db "SELECT COUNT(*) FROM referendums WHERE dao_id IS NULL;" 2>/dev/null || echo "0")
+    
+    if [ "$NULL_COUNT" -gt "0" ]; then
+        echo "📋 Found $NULL_COUNT referendums without dao_id"
+        echo "📋 Running data migration..."
         npx tsx database/migrations/direct_migrate.ts
         echo "✅ Data migration complete"
     else
-        echo "✅ Data already migrated ($DAO_COUNT DAO(s) exist)"
+        DAO_COUNT=$(sqlite3 voting_tool.db "SELECT COUNT(*) FROM daos;" 2>/dev/null || echo "0")
+        if [ "$DAO_COUNT" -eq "0" ]; then
+            echo "📋 No DAOs exist, running data migration to create default DAO..."
+            npx tsx database/migrations/direct_migrate.ts
+            echo "✅ Data migration complete"
+        else
+            echo "✅ Data already migrated ($DAO_COUNT DAO(s) exist)"
+        fi
     fi
+else
+    echo "⏭️  Skipping data migration (schema not yet migrated)"
 fi
 
 echo ""
