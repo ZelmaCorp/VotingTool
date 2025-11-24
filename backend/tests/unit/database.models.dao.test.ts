@@ -1,4 +1,5 @@
-import { DAO, DaoConfig, DaoRecord } from '../../src/database/models/dao';
+import { DAO } from '../../src/database/models/dao';
+import { DaoConfig, DaoRecord } from '../../src/database/types';
 import { db } from '../../src/database/connection';
 import { Chain } from '../../src/types/properties';
 import * as encryption from '../../src/utils/encryption';
@@ -188,11 +189,11 @@ describe('DAO Model', () => {
         ready_to_vote: 2
       });
 
-      const result = await DAO.getStats(1);
+      const result = await DaoService.getStats(1);
       expect(result.total_referendums).toBe(10);
       
       mockDb.get.mockResolvedValue({ total_referendums: null });
-      const empty = await DAO.getStats(1);
+      const empty = await DaoService.getStats(1);
       expect(empty.total_referendums).toBe(0);
     });
   });
@@ -212,9 +213,9 @@ describe('DAO Model', () => {
       };
 
       mockDb.get.mockResolvedValue(mockDao);
-
-      const mockMultisigService = MultisigService as jest.MockedClass<typeof MultisigService>;
-      mockMultisigService.prototype.isTeamMember = jest.fn().mockResolvedValue(true);
+      
+      // Spy on DaoService.isValidMember and mock its return value
+      jest.spyOn(DaoService, 'isValidMember').mockResolvedValue(true);
 
       const isValid = await DaoService.isValidMember(1, '15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5', Chain.Polkadot);
       expect(isValid).toBe(true);
