@@ -1,6 +1,5 @@
 import { Router, Request, Response } from "express";
 import { db } from "../database/connection";
-import { VotingDecision } from "../database/models/votingDecision";
 import { requireTeamMember, authenticateToken } from "../middleware/auth";
 import { ReferendumAction } from "../types/auth";
 import { InternalStatus } from "../types/properties";
