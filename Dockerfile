@@ -17,11 +17,12 @@ RUN npm install
 # Copy TypeScript source code and build scripts
 COPY backend/src ./src
 COPY backend/tsconfig.json ./
+COPY backend/tsconfig.prod.json ./
 COPY backend/build-version.js ./
 COPY backend/check-version.js ./
 
-# Build TypeScript to JavaScript
-RUN npm run build
+# Build TypeScript to JavaScript using production config (excludes tests)
+RUN npm run build:prod
 
 # Stage 2: Production stage
 FROM node:20-alpine AS production
@@ -55,4 +56,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
 ENTRYPOINT ["dumb-init", "--"]
 
 # Start the application
-CMD ["node", "dist/src/app.js"] 
+CMD ["node", "dist/app.js"] 
