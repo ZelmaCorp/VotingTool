@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import { refreshReferendas } from '../refresh';
+import { refreshReferendas, checkAllReferendumsForNotVoted, updateAllActiveReferendums } from '../refresh';
 import { processAllPendingTransitions } from '../utils/statusTransitions';
 import { createSubsystemLogger, formatError } from '../config/logger';
 import { Subsystem } from '../types/logging';
@@ -48,6 +48,44 @@ router.get('/process-pending-transitions', async (req: Request, res: Response) =
     logger.error({ error: formatError(error) }, 'Error processing pending transitions');
     res.status(500).json({ 
       error: "Error processing pending transitions: " + (error as any).message 
+    });
+  }
+});
+
+// Update all active referendums from detail API
+router.get('/update-active-referendums', async (req: Request, res: Response) => {
+  try {
+    logger.info('Updating all active referendums from detail API (manual trigger)');
+    
+    await updateAllActiveReferendums();
+    
+    res.json({
+      message: 'Active referendum update completed successfully',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error({ error: formatError(error) }, 'Error updating active referendums');
+    res.status(500).json({ 
+      error: "Error updating active referendums: " + (error as any).message 
+    });
+  }
+});
+
+// Check for NotVoted transitions (for referendums where vote is over)
+router.get('/check-not-voted', async (req: Request, res: Response) => {
+  try {
+    logger.info('Checking for NotVoted transitions (manual trigger)');
+    
+    await checkAllReferendumsForNotVoted();
+    
+    res.json({
+      message: 'NotVoted transition check completed successfully',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    logger.error({ error: formatError(error) }, 'Error checking NotVoted transitions');
+    res.status(500).json({ 
+      error: "Error checking NotVoted transitions: " + (error as any).message 
     });
   }
 });

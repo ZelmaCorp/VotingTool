@@ -32,17 +32,26 @@ export const TRACKS = [
 export const READY_FILE = "./readyToVote.json";
 
 /**
- * TimelineStatus values that indicate the vote is over
+ * TimelineStatus values that indicate the referendum is in a terminal state
+ * These are final states where the referendum is complete and won't change
  */
-export const VOTE_OVER_STATUSES: TimelineStatus[] = [
-    TimelineStatus.TimedOut,
-    TimelineStatus.Executed,
-    TimelineStatus.ExecutionFailed,
-    TimelineStatus.Rejected,
-    TimelineStatus.Cancelled,
-    TimelineStatus.Canceled,
-    TimelineStatus.Killed
+export const TERMINAL_STATUSES: TimelineStatus[] = [
+    TimelineStatus.TimedOut,        // Vote period expired without passing
+    TimelineStatus.Executed,        // Referendum passed and was executed successfully
+    TimelineStatus.ExecutionFailed, // Referendum passed but execution failed
+    TimelineStatus.Rejected,        // Referendum was rejected/failed
+    TimelineStatus.Cancelled,       // Referendum was cancelled
+    TimelineStatus.Canceled,        // Referendum was canceled (alternative spelling)
+    TimelineStatus.Killed,          // Referendum was killed
+    TimelineStatus.Confirmed,       // Referendum was confirmed (passed)
+    TimelineStatus.Enactment        // Referendum passed and is in enactment period (vote is over)
 ];
+
+/**
+ * TimelineStatus values that indicate the vote is over
+ * All terminal statuses mean voting is complete
+ */
+export const VOTE_OVER_STATUSES: TimelineStatus[] = TERMINAL_STATUSES;
 
 /**
  * InternalStatus values that indicate the DAO has voted
