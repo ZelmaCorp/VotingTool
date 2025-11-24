@@ -1,4 +1,20 @@
 // API Service for OpenGov VotingTool Extension
+// Updated for Multi-DAO Support
+//
+// Key Changes:
+// - Stores and uses multisig address to identify DAO context (multi-DAO support)
+// - Sends X-Multisig-Address header with all requests for DAO identification
+// - Authentication now uses /auth/web3-login endpoint
+// - DAO sync uses /dao/sync endpoint (replaces /admin/refresh-referendas)
+// - Agreement summary is now calculated by backend at /referendums/:postId/agreement-summary
+// - All endpoints automatically filter by DAO context via addDaoContext middleware
+// - DAO configuration and members retrieved from blockchain multisig data
+//
+// Multi-DAO Architecture:
+// - Extension connects to ONE DAO instance at a time (identified by multisig address)
+// - Backend database can store multiple DAOs
+// - User authentication links wallet to DAO membership
+// - All API calls are scoped to the user's DAO
 
 import type { ProposalData, InternalStatus, SuggestedVote, Chain, TeamAction, ProposalAction, ProposalComment, AgreementSummary, DAOConfig, TeamMember } from '../types';
 
@@ -6,11 +22,13 @@ export class ApiService {
     private static instance: ApiService;
     private baseUrl: string;
     private token: string | null = null;
+    private multisigAddress: string | null = null; // DAO identification
 
     constructor() {
         // Default to localhost, will be updated from storage
         this.baseUrl = 'http://localhost:3000';
         this.loadToken();
+        this.loadMultisigAddress();
         this.loadApiConfig();
         this.setupConfigListener();
     }
@@ -52,6 +70,11 @@ export class ApiService {
         console.log('🔑 Loaded token:', this.token ? 'Present' : 'Not found');
     }
 
+    private loadMultisigAddress(): void {
+        this.multisigAddress = localStorage.getItem('opengov-multisig-address');
+        console.log('🏛️ Loaded multisig address:', this.multisigAddress ? 'Present' : 'Not found');
+    }
+
     // Method to refresh token from localStorage
     public refreshToken(): void {
         this.loadToken();
@@ -62,6 +85,16 @@ export class ApiService {
         localStorage.setItem('opengov-auth-token', token);
     }
 
+    public setMultisigAddress(multisigAddress: string): void {
+        this.multisigAddress = multisigAddress;
+        localStorage.setItem('opengov-multisig-address', multisigAddress);
+        console.log('🏛️ Set multisig address:', multisigAddress);
+    }
+
+    public getMultisigAddress(): string | null {
+        return this.multisigAddress;
+    }
+
     private getHeaders(): HeadersInit {
         const headers: HeadersInit = {
             'Content-Type': 'application/json',
@@ -69,6 +102,11 @@ export class ApiService {
 
         if (this.token) {
             headers['Authorization'] = `Bearer ${this.token}`;
+        }
+
+        // Add multisig address for DAO context (multi-DAO support)
+        if (this.multisigAddress) {
+            headers['X-Multisig-Address'] = this.multisigAddress;
         }
 
         return headers;
@@ -130,7 +168,7 @@ export class ApiService {
     // Authentication methods
     async authenticate(address: string, signature: string, message: string): Promise<{ success: boolean; token?: string; user?: any; error?: string }> {
         try {
-            const result = await this.request<{ success: boolean; token?: string; user?: any; error?: string }>('/auth/authenticate', {
+            const result = await this.request<{ success: boolean; token?: string; user?: any; error?: string }>('/auth/web3-login', {
                 method: 'POST',
                 body: JSON.stringify({
                     address,
@@ -153,9 +191,26 @@ export class ApiService {
     async verifyToken(): Promise<{ success: boolean; valid?: boolean; user?: any; error?: string }> {
         try {
             const result = await this.request<{ success: boolean; valid?: boolean; user?: any; error?: string }>('/auth/verify');
+            
+            // If token is valid and we don't have a multisig address yet, try to fetch it
+            if (result.success && result.valid && !this.multisigAddress && result.user?.address) {
+                // We could try to auto-detect the DAO here, but for now just log
+                console.log('✅ Token verified but no multisig address set');
+            }
+            
             return result;
         } catch (error) {
             return { success: false, error: error instanceof Error ? error.message : 'Token verification failed' };
+        }
+    }
+
+    // Get user profile from backend
+    async getUserProfile(): Promise<{ success: boolean; user?: any; error?: string }> {
+        try {
+            const result = await this.request<{ success: boolean; user?: any; error?: string }>('/auth/profile');
+            return result;
+        } catch (error) {
+            return { success: false, error: error instanceof Error ? error.message : 'Failed to get user profile' };
         }
     }
 
@@ -195,9 +250,16 @@ export class ApiService {
         }
     }
 
-    async assignProposal(postId: number, chain: Chain): Promise<{ success: boolean; error?: string }> {
+    async assignProposal(postId: number, chain: Chain): Promise<{ success: boolean; error?: string; message?: string }> {
         try {
-            const result = await this.request<{ success: boolean; error?: string }>(`/referendums/${postId}/assign`, {
+            if (!this.multisigAddress) {
+                return {
+                    success: false,
+                    error: 'No multisig address set. Please configure your DAO first.'
+                };
+            }
+
+            const result = await this.request<{ success: boolean; error?: string; message?: string }>(`/referendums/${postId}/assign`, {
                 method: 'POST',
                 body: JSON.stringify({ chain }),
             });
@@ -322,9 +384,16 @@ export class ApiService {
         }
     }
 
-    async unassignFromReferendum(postId: number, chain: Chain, unassignNote?: string): Promise<{ success: boolean; error?: string }> {
+    async unassignFromReferendum(postId: number, chain: Chain, unassignNote?: string): Promise<{ success: boolean; error?: string; message?: string }> {
         try {
-            const result = await this.request<{ success: boolean; error?: string }>(`/referendums/${postId}/unassign`, {
+            if (!this.multisigAddress) {
+                return {
+                    success: false,
+                    error: 'No multisig address set. Please configure your DAO first.'
+                };
+            }
+
+            const result = await this.request<{ success: boolean; error?: string; message?: string }>(`/referendums/${postId}/unassign`, {
                 method: 'POST',
                 body: JSON.stringify({
                     chain,
@@ -427,56 +496,117 @@ export class ApiService {
     }
 
     // DAO configuration methods
-    async getDAOConfig(): Promise<DAOConfig | null> {
+    async getDAOConfig(chain?: Chain): Promise<DAOConfig | null> {
         try {
-            // Try the new /dao/config endpoint first
-            try {
-                const configResult = await this.request<{ success: boolean; config?: DAOConfig; error?: string }>('/dao/config');
-                
-                if (configResult.success && configResult.config) {
-                    return configResult.config;
-                }
-            } catch (error) {
-                console.warn('Failed to get config from /dao/config, falling back to /dao/members:', error);
+            if (!this.multisigAddress) {
+                console.warn('No multisig address set, cannot get DAO config');
+                return null;
             }
 
-            // Fallback: Get members from /dao/members endpoint (for backwards compatibility)
-            let membersResult: { success: boolean; members?: TeamMember[]; error?: string };
+            const queryParam = chain ? `?chain=${chain}` : '';
+            const configResult = await this.request<{ success: boolean; config?: DAOConfig; error?: string }>(`/dao/config${queryParam}`);
             
-            try {
-                membersResult = await this.request<{ success: boolean; members?: TeamMember[]; error?: string }>('/dao/members');
-            } catch (error) {
-                console.warn('Failed to get members from /dao/members:', error);
-                return null;
+            if (configResult.success && configResult.config) {
+                return configResult.config;
             }
 
-            if (!membersResult.success || !membersResult.members) {
-                console.error('Failed to get team members:', membersResult.error);
-                return null;
-            }
-
-            // Calculate required agreements based on team size (matching backend logic)
-            const requiredAgreements = membersResult.members.length > 0 
-                ? Math.ceil(membersResult.members.length / 2) 
-                : 4; // Default if no members found
-
-            // Construct config
-            const config: DAOConfig = {
-                team_members: membersResult.members,
-                required_agreements: requiredAgreements,
-                name: 'OpenGov Voting Tool'
-            };
-
-            return config;
+            console.warn('Failed to get DAO config:', configResult.error);
+            return null;
         } catch (error) {
             console.error('Error getting DAO config:', error);
             return null;
         }
     }
 
-    // Removed deprecated methods:
-    // - updateDAOConfig (config is now calculated from team members)
-    // - triggerSync (sync is now handled automatically by the backend)
+    // Get DAO information (basic info without sensitive data)
+    async getDAOInfo(daoId: number): Promise<any | null> {
+        try {
+            const result = await this.request<{ success: boolean; dao?: any; error?: string }>(`/dao/${daoId}`);
+            
+            if (result.success && result.dao) {
+                return result.dao;
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Error getting DAO info:', error);
+            return null;
+        }
+    }
+
+    // Get DAO statistics
+    async getDAOStats(daoId: number): Promise<any | null> {
+        try {
+            const result = await this.request<{ success: boolean; stats?: any; error?: string }>(`/dao/${daoId}/stats`);
+            
+            if (result.success && result.stats) {
+                return result.stats;
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Error getting DAO stats:', error);
+            return null;
+        }
+    }
+
+    // Get DAO team members (multisig members)
+    async getTeamMembers(chain?: Chain): Promise<TeamMember[]> {
+        try {
+            const queryParam = chain ? `?chain=${chain}` : '';
+            const result = await this.request<{ success: boolean; members?: TeamMember[]; error?: string }>(`/dao/members${queryParam}`);
+            
+            if (result.success && result.members) {
+                return result.members;
+            }
+
+            return [];
+        } catch (error) {
+            console.error('Error getting team members:', error);
+            return [];
+        }
+    }
+
+    // Register a new DAO
+    async registerDAO(params: {
+        name: string;
+        description?: string;
+        polkadotMultisig?: string;
+        kusamaMultisig?: string;
+        walletAddress: string;
+        signature: string;
+        message: string;
+    }): Promise<{ success: boolean; dao?: any; message?: string; error?: string; errors?: string[] }> {
+        try {
+            const result = await this.request<{ 
+                success: boolean; 
+                dao?: any; 
+                message?: string; 
+                error?: string;
+                errors?: string[];
+            }>('/dao/register', {
+                method: 'POST',
+                body: JSON.stringify(params)
+            });
+
+            if (result.success && result.dao) {
+                console.log('✅ DAO registered successfully:', result.dao);
+                // Set the multisig address for this DAO
+                const multisigAddress = params.polkadotMultisig || params.kusamaMultisig;
+                if (multisigAddress) {
+                    this.setMultisigAddress(multisigAddress);
+                }
+            }
+
+            return result;
+        } catch (error) {
+            console.error('Error registering DAO:', error);
+            return { 
+                success: false, 
+                error: error instanceof Error ? error.message : 'Failed to register DAO' 
+            };
+        }
+    }
 
 
     // List methods for different views
@@ -508,7 +638,13 @@ export class ApiService {
 
     async getAllProposals(chain?: Chain): Promise<ProposalData[]> {
         try {
-            console.log('🔍 getAllProposals called', { chain, baseUrl: this.baseUrl, hasToken: !!this.token });
+            console.log('🔍 getAllProposals called', { 
+                chain, 
+                baseUrl: this.baseUrl, 
+                hasToken: !!this.token,
+                multisigAddress: this.multisigAddress 
+            });
+            
             const queryParam = chain ? `?chain=${chain}` : '';
             const endpoint = `/referendums${queryParam}`;
             console.log('📡 Making request to:', endpoint);
@@ -531,32 +667,6 @@ export class ApiService {
                 });
             }
 
-            // Check if team_actions might be under a different key
-            const sampleProposal = result.referendums[0];
-            if (sampleProposal) {
-                console.log('🔍 Looking for team actions in proposal keys:', Object.keys(sampleProposal));
-                // Log any keys that might contain team actions
-                Object.entries(sampleProposal).forEach(([key, value]) => {
-                    if (Array.isArray(value)) {
-                        console.log(`📦 Array found in key "${key}":`, value);
-                    }
-                });
-            }
-
-            // Log raw team actions before mapping
-            const proposalsWithActions = result.referendums.filter(p => {
-                const hasActions = p.team_actions && p.team_actions.length > 0;
-                if (!hasActions && p.team_actions !== undefined) {
-                    console.log(`⚠️ Proposal ${p.post_id} has team_actions but it's empty:`, p.team_actions);
-                }
-                return hasActions;
-            });
-            console.log('👥 Proposals with team actions:', proposalsWithActions.length);
-            console.log('📝 Team actions breakdown:', proposalsWithActions.map(p => ({
-                id: p.post_id,
-                rawActions: p.team_actions
-            })));
-
             // Map backend action types to frontend types
             const proposals = result.referendums.map(proposal => {
                 const mappedProposal = {
@@ -566,25 +676,14 @@ export class ApiService {
                             ...action,
                             role_type: this.mapBackendActionToFrontend(action.role_type as string)
                         };
-                        console.log(`🔄 Mapping action for proposal ${proposal.post_id}:`, {
-                            from: action.role_type,
-                            to: mappedAction.role_type
-                        });
                         return mappedAction;
                     })
                 };
                 
-                // Log if proposal has NO WAY actions
-                if (mappedProposal.team_actions?.some(a => a.role_type === 'NO WAY')) {
-                    console.log('🚫 Found NO WAY action in proposal:', {
-                        id: mappedProposal.post_id,
-                        actions: mappedProposal.team_actions
-                    });
-                }
-                
                 return mappedProposal;
             });
             
+            console.log(`✅ Loaded ${proposals.length} proposals for DAO`);
             return proposals;
         } catch (error) {
             console.error('❌ Failed to fetch all proposals:', error);
@@ -628,122 +727,52 @@ export class ApiService {
     }
 
     // Team workflow data method
-    async getTeamWorkflowData(): Promise<{
+    async getTeamWorkflowData(chain?: Chain): Promise<{
         needsAgreement: ProposalData[];
         readyToVote: ProposalData[];
         forDiscussion: ProposalData[];
         vetoedProposals: ProposalData[];
     }> {
         try {
-            // Try to get data from workflow endpoint
-            try {
-                const result = await this.request<{
-                    success: boolean;
-                    data?: {
-                        needsAgreement: ProposalData[];
-                        readyToVote: ProposalData[];
-                        forDiscussion: ProposalData[];
-                        vetoedProposals: ProposalData[];
-                    };
-                    error?: string;
-                }>('/dao/workflow');
-                
-                if (result.success && result.data) {
-                    console.log('✅ Got team workflow data from backend endpoint:', result.data);
-                    return result.data;
-                }
-            } catch (endpointError) {
-                console.warn('Team workflow endpoint failed:', endpointError);
+            if (!this.multisigAddress) {
+                console.warn('No multisig address set, cannot get workflow data');
+                return {
+                    needsAgreement: [],
+                    readyToVote: [],
+                    forDiscussion: [],
+                    vetoedProposals: []
+                };
             }
 
-            // Fallback: try to get all proposals
-            let allProposals: ProposalData[] = [];
+            const queryParam = chain ? `?chain=${chain}` : '';
+            const result = await this.request<{
+                success: boolean;
+                data?: {
+                    needsAgreement: ProposalData[];
+                    readyToVote: ProposalData[];
+                    forDiscussion: ProposalData[];
+                    vetoedProposals: ProposalData[];
+                };
+                error?: string;
+            }>(`/dao/workflow${queryParam}`);
             
-            try {
-                const allProposalsResult = await this.request<{ 
-                    success: boolean; 
-                    referendums?: ProposalData[]; 
-                    error?: string; 
-                }>('/proposals');
-                
-                if (allProposalsResult.success && allProposalsResult.referendums) {
-                    allProposals = allProposalsResult.referendums;
-                    console.log('✅ Got all proposals from /proposals:', allProposals.length);
-                }
-            } catch (error) {
-                console.warn('Could not get all proposals:', error);
-                allProposals = [];
+            if (result.success && result.data) {
+                console.log('✅ Got team workflow data from backend:', {
+                    needsAgreement: result.data.needsAgreement.length,
+                    readyToVote: result.data.readyToVote.length,
+                    forDiscussion: result.data.forDiscussion.length,
+                    vetoedProposals: result.data.vetoedProposals.length
+                });
+                return result.data;
             }
 
-            // Deduplicate proposals
-            const uniqueProposals = allProposals.filter((proposal, index, self) => 
-                index === self.findIndex(p => p.post_id === proposal.post_id && p.chain === proposal.chain)
-            );
-
-            console.log('🔍 Team Workflow Debug - Total unique proposals:', uniqueProposals.length);
-            console.log('🔍 Sample proposal data:', uniqueProposals.slice(0, 3).map(p => ({
-                id: p.post_id,
-                status: p.internal_status,
-                agreement_count: p.agreement_count,
-                required_agreements: p.required_agreements,
-                team_actions: p.team_actions?.map(a => ({ role_type: a.role_type, member: a.team_member_name }))
-            })));
-            
-            console.log('🔍 ALL proposal IDs found:', uniqueProposals.map(p => `${p.post_id}-${p.chain}`));
-            console.log('🔍 ALL proposal statuses:', uniqueProposals.map(p => `${p.post_id}: ${p.internal_status}`));
-
-            // Categorize proposals based on their status and team actions
-            const needsAgreement = uniqueProposals.filter(p => {
-                // Proposals that need team agreement
-                const hasVeto = p.team_actions?.some(action => action.role_type === 'no_way');
-                const isInConsiderationPhase = ['Considering', 'Ready for approval', 'Waiting for agreement'].includes(p.internal_status);
-                
-                return !hasVeto && isInConsiderationPhase;
-            });
-            
-            const readyToVote = uniqueProposals.filter(p => {
-                // Proposals that are ready to vote
-                const hasVeto = p.team_actions?.some(action => action.role_type === 'no_way');
-                const isReadyStatus = p.internal_status === 'Ready to vote';
-                
-                return !hasVeto && isReadyStatus;
-            });
-            
-            const forDiscussion = uniqueProposals.filter(p => {
-                // Proposals marked for discussion or reconsidering
-                const markedForDiscussion = p.team_actions?.some(action => action.role_type === 'to_be_discussed');
-                const isReconsidering = p.internal_status === 'Reconsidering';
-                
-                return markedForDiscussion || isReconsidering;
-            });
-            
-            const vetoedProposals = uniqueProposals.filter(p => {
-                // Proposals that have been vetoed (NO WAY)
-                return p.team_actions?.some(action => action.role_type === 'no_way');
-            });
-
-            console.log('🔍 Categorization Results:', {
-                needsAgreement: needsAgreement.length,
-                readyToVote: readyToVote.length,
-                forDiscussion: forDiscussion.length,
-                vetoedProposals: vetoedProposals.length,
-                total: uniqueProposals.length
-            });
-            
-            console.log('🔍 Detailed breakdown:', {
-                needsAgreement: needsAgreement.map(p => `${p.post_id}: ${p.internal_status}`),
-                readyToVote: readyToVote.map(p => `${p.post_id}: ${p.internal_status}`),
-                forDiscussion: forDiscussion.map(p => `${p.post_id}: ${p.internal_status}`),
-                vetoedProposals: vetoedProposals.map(p => `${p.post_id}: ${p.internal_status}`)
-            });
-
+            console.warn('Failed to get workflow data:', result.error);
             return {
-                needsAgreement,
-                readyToVote,
-                forDiscussion,
-                vetoedProposals
+                needsAgreement: [],
+                readyToVote: [],
+                forDiscussion: [],
+                vetoedProposals: []
             };
-
         } catch (error) {
             console.error('Failed to fetch team workflow data:', error);
             return {
@@ -756,18 +785,37 @@ export class ApiService {
     }
 
     // Method to trigger referendum refresh from Polkassembly
-    async refreshReferenda(limit?: number): Promise<{ success: boolean; message?: string; error?: string }> {
+    // Supports 'normal' (30 refs) and 'deep' (100 refs) sync types
+    async refreshReferenda(type: 'normal' | 'deep' = 'normal'): Promise<{ success: boolean; message?: string; error?: string }> {
         try {
-            const queryParam = limit ? `?limit=${limit}` : '';
-            const result = await this.request<{ message: string; timestamp: string; limit: number; status: string }>(
-                `/admin/refresh-referendas${queryParam}`,
-                { method: 'GET' }
+            if (!this.multisigAddress) {
+                return {
+                    success: false,
+                    error: 'No multisig address set. Please configure your DAO first.'
+                };
+            }
+
+            const result = await this.request<{ success: boolean; message?: string; type?: string; limit?: number; timestamp?: string; status?: string; error?: string }>(
+                '/dao/sync',
+                { 
+                    method: 'POST',
+                    body: JSON.stringify({ type })
+                }
             );
+            
             console.log('Referendum refresh request sent:', result);
-            return { 
-                success: true, 
-                message: result.message || 'Refresh started successfully' 
-            };
+            
+            if (result.success) {
+                return { 
+                    success: true, 
+                    message: result.message || 'Sync started successfully' 
+                };
+            } else {
+                return {
+                    success: false,
+                    error: result.error || 'Sync failed'
+                };
+            }
         } catch (refreshError) {
             console.warn('Could not refresh referenda:', refreshError);
             const errorMessage = refreshError instanceof Error ? refreshError.message : 'Failed to refresh referenda';
@@ -794,7 +842,9 @@ export class ApiService {
 
     logout(): void {
         this.token = null;
+        this.multisigAddress = null;
         localStorage.removeItem('opengov-auth-token');
+        localStorage.removeItem('opengov-multisig-address');
     }
 
     setBaseUrl(url: string): void {
