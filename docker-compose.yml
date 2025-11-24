@@ -26,6 +26,9 @@ services:
       # Authentication Configuration
       - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key-change-in-production}
       
+      # Encryption Configuration (for multi-DAO support)
+      - MASTER_ENCRYPTION_KEY=${MASTER_ENCRYPTION_KEY}
+      
       # Optional Sync Configuration
       - DEEP_SYNC_LIMIT=${DEEP_SYNC_LIMIT:-100}
       - DEEP_SYNC_HOUR=${DEEP_SYNC_HOUR:-3}

@@ -43,6 +43,7 @@ COPY --from=builder /app/package*.json ./
 # Copy other necessary files
 COPY backend/public ./public
 COPY backend/database ./database
+COPY backend/scripts ./scripts
 
 # Expose port
 EXPOSE 3000
@@ -51,8 +52,11 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"
 
-# Use dumb-init to handle signals properly
-ENTRYPOINT ["dumb-init", "--"]
+# Make entrypoint script executable
+RUN chmod +x scripts/docker-entrypoint.sh
 
-# Start the application
-CMD ["node", "dist/app.js"] 
+# Use dumb-init to handle signals properly and run our entrypoint
+ENTRYPOINT ["dumb-init", "--", "/app/scripts/docker-entrypoint.sh"]
+
+# Start the application (passed to entrypoint script)
+CMD ["node", "dist/src/app.js"] 

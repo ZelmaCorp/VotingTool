@@ -4,7 +4,8 @@ import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const DB_PATH = './voting_tool.db';
+// Get database path from command line argument or environment variable
+const DB_PATH = process.argv[2] || process.env.DATABASE_PATH || './voting_tool.db';
 
 function runAsync(db: sqlite3.Database, sql: string, params: any[] = []): Promise<any> {
   return new Promise((resolve, reject) => {
