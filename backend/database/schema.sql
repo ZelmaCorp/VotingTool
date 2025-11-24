@@ -313,8 +313,8 @@ SELECT
     sc.ref_score,
     d.name as dao_name
 FROM referendums r
-LEFT JOIN voting_decisions vd ON r.id = vd.referendum_id
-LEFT JOIN scoring_criteria sc ON r.id = sc.referendum_id
+LEFT JOIN voting_decisions vd ON r.id = vd.referendum_id AND r.dao_id = vd.dao_id
+LEFT JOIN scoring_criteria sc ON r.id = sc.referendum_id AND r.dao_id = sc.dao_id
 LEFT JOIN daos d ON r.dao_id = d.id
 WHERE r.internal_status = 'Ready to vote'
   AND r.voting_end_date > datetime('now');
@@ -334,7 +334,7 @@ SELECT
     sc.ref_score,
     d.name as dao_name
 FROM referendums r
-LEFT JOIN scoring_criteria sc ON r.id = sc.referendum_id
+LEFT JOIN scoring_criteria sc ON r.id = sc.referendum_id AND r.dao_id = sc.dao_id
 LEFT JOIN daos d ON r.dao_id = d.id
 WHERE r.internal_status IN ('Not started', 'Considering')
 ORDER BY r.created_at DESC;
@@ -353,8 +353,8 @@ SELECT
     sc.ref_score,
     d.name as dao_name
 FROM referendums r
-JOIN voting_decisions vd ON r.id = vd.referendum_id
-LEFT JOIN scoring_criteria sc ON r.id = sc.referendum_id
+JOIN voting_decisions vd ON r.id = vd.referendum_id AND r.dao_id = vd.dao_id
+LEFT JOIN scoring_criteria sc ON r.id = sc.referendum_id AND r.dao_id = sc.dao_id
 LEFT JOIN daos d ON r.dao_id = d.id
 WHERE vd.vote_executed = TRUE
 ORDER BY vd.vote_executed_date DESC;
