@@ -1,13 +1,24 @@
 import request from 'supertest';
 import express, { Express } from 'express';
 import bodyParser from 'body-parser';
-import { db } from '../../src/database/connection';
+import { DatabaseConnection } from '../../src/database/connection';
 import daoRouter from '../../src/routes/dao';
+
+const db = DatabaseConnection.getInstance();
 
 // Mock auth middleware for testing
 jest.mock('../../src/middleware/auth', () => ({
   authenticateToken: (req: any, res: any, next: any) => {
     req.user = { address: '1TestUserAddress', name: 'Test User' };
+    req.isAuthenticated = true;
+    next();
+  },
+  addDaoContext: (req: any, res: any, next: any) => {
+    req.daoId = 1;
+    req.daoIds = [1];
+    next();
+  },
+  requireDaoMembership: (req: any, res: any, next: any) => {
     next();
   },
   requireTeamMember: (req: any, res: any, next: any) => {
@@ -18,11 +29,12 @@ jest.mock('../../src/middleware/auth', () => ({
 
 // Mock the refresh function to avoid hitting real APIs during tests
 jest.mock('../../src/refresh', () => ({
-  refreshReferendas: jest.fn().mockImplementation((limit: number) => {
+  refreshReferendas: jest.fn().mockImplementation((limit: number, daoId?: number) => {
     return Promise.resolve({
       success: true,
       processed: Math.min(limit, 10), // Simulate processing up to limit
       limit: limit,
+      daoId: daoId,
       timestamp: new Date().toISOString()
     });
   })
@@ -42,8 +54,6 @@ describe('Data Synchronization Integration', () => {
   });
 
   afterAll(async () => {
-    // Close database connection
-    await db.close();
     jest.restoreAllMocks();
   });
 
@@ -66,8 +76,8 @@ describe('Data Synchronization Integration', () => {
     expect(normalSyncResponse.body.status).toBe('started');
     expect(normalSyncResponse.body.timestamp).toBeDefined();
 
-    // Verify refreshReferendas was called with correct limit
-    expect(refreshReferendas).toHaveBeenCalledWith(30);
+    // Verify refreshReferendas was called with correct limit and daoId
+    expect(refreshReferendas).toHaveBeenCalledWith(30, 1);
 
     // Step 2: Test deep sync
     const deepSyncResponse = await request(app)
@@ -85,8 +95,8 @@ describe('Data Synchronization Integration', () => {
     expect(deepSyncResponse.body.status).toBe('started');
     expect(deepSyncResponse.body.timestamp).toBeDefined();
 
-    // Verify refreshReferendas was called with correct limit
-    expect(refreshReferendas).toHaveBeenCalledWith(100);
+    // Verify refreshReferendas was called with correct limit and daoId
+    expect(refreshReferendas).toHaveBeenCalledWith(100, 1);
 
     // Step 3: Test default sync (should default to normal)
     const defaultSyncResponse = await request(app)

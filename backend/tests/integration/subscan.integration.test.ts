@@ -8,7 +8,7 @@ describe('Subscan Integration Tests', () => {
       id: 1,
       name: 'Test DAO',
       description: null,
-      status: null,
+      status: 'active' as const,
       polkadot_multisig: process.env.POLKADOT_MULTISIG || '',
       kusama_multisig: process.env.KUSAMA_MULTISIG || '',
       polkadot_multisig_encrypted: process.env.POLKADOT_MULTISIG || '',
@@ -31,7 +31,7 @@ describe('Subscan Integration Tests', () => {
   describe('API Integration', () => {
     it('should successfully connect to Subscan APIs and return valid data structure', async () => {
       // Test with empty list first to ensure the function works
-      const result = await checkSubscan([], mockDaos);
+      const result = await checkSubscan([], mockDaos as any);
       
       expect(result).toBeDefined();
       expect(typeof result).toBe('object');
@@ -40,7 +40,7 @@ describe('Subscan Integration Tests', () => {
     it('should handle real referendum IDs and return proper hash mapping', async () => {
       // Get some real referendum IDs by calling the function first with empty array
       // This tests the actual integration without relying on hard-coded values
-      const emptyResult = await checkSubscan([], mockDaos);
+      const emptyResult = await checkSubscan([], mockDaos as any);
       
       // If there are any referendum IDs in the actual data, test with them
       const existingReferendumIds = Object.keys(emptyResult).map(id => parseInt(id));
@@ -48,7 +48,7 @@ describe('Subscan Integration Tests', () => {
       if (existingReferendumIds.length > 0) {
         // Take the first few referendum IDs that actually exist
         const testIds = existingReferendumIds.slice(0, 3);
-        const result = await checkSubscan(testIds, mockDaos);
+        const result = await checkSubscan(testIds, mockDaos as any);
         
         expect(result).toBeDefined();
         expect(typeof result).toBe('object');
@@ -71,7 +71,7 @@ describe('Subscan Integration Tests', () => {
 
   describe('Data Processing', () => {
     it('should return valid extrinsic hash map structure', async () => {
-      const result = await checkSubscan([], mockDaos);
+      const result = await checkSubscan([], mockDaos as any);
       
       // Verify the result is a valid map
       expect(result).toBeDefined();
@@ -95,7 +95,7 @@ describe('Subscan Integration Tests', () => {
     }, 30000);
 
     it('should handle empty referendum list gracefully', async () => {
-      const result = await checkSubscan([], mockDaos);
+      const result = await checkSubscan([], mockDaos as any);
       
       expect(result).toBeDefined();
       expect(typeof result).toBe('object');
@@ -105,7 +105,7 @@ describe('Subscan Integration Tests', () => {
     it('should handle non-existent referendum IDs gracefully', async () => {
       // Use referendum IDs that are very unlikely to exist
       const nonExistentIds = [999999, 888888, 777777];
-      const result = await checkSubscan(nonExistentIds, mockDaos);
+      const result = await checkSubscan(nonExistentIds, mockDaos as any);
       
       expect(result).toBeDefined();
       expect(typeof result).toBe('object');

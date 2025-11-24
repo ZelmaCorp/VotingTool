@@ -6,14 +6,26 @@ import { u8aToHex } from '@polkadot/util';
 import { signatureVerify, cryptoWaitReady } from '@polkadot/util-crypto';
 import authRouter from '../../src/routes/auth';
 import { multisigService } from '../../src/services/multisig';
+import { DatabaseConnection } from '../../src/database/connection';
+import { DAO } from '../../src/database/models/dao';
+import { DaoService } from '../../src/services/daoService';
+
+const db = DatabaseConnection.getInstance();
 
 describe('Web3 Authentication Integration', () => {
   let app: Express;
   let keyring: Keyring;
   let testAccount: any;
+  let testDaoId: number;
   const testAddress = '5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY'; // Test address
 
   beforeAll(async () => {
+    // Set encryption key for testing
+    process.env.MASTER_ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+    
+    // Initialize database
+    await db.initialize();
+    
     // Initialize WASM crypto first
     await cryptoWaitReady();
     
@@ -26,7 +38,15 @@ describe('Web3 Authentication Integration', () => {
     keyring = new Keyring({ type: 'sr25519' });
     testAccount = keyring.addFromUri('//Alice'); // Test account
     
-    // Mock multisig service to return test team member
+    // Create a test DAO
+    testDaoId = await DAO.create({
+      name: 'Web3 Auth Test DAO ' + Date.now(),
+      description: 'Test DAO for Web3 authentication',
+      polkadot_multisig: '15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5',
+      proposer_mnemonic: 'test test test test test test test test test test test test'
+    });
+    
+    // Mock multisig service methods to return test team member
     jest.spyOn(multisigService, 'getCachedTeamMembers').mockResolvedValue([
       {
         wallet_address: testAccount.address,
@@ -35,13 +55,39 @@ describe('Web3 Authentication Integration', () => {
       }
     ]);
     
-    // Mock the flexible address matching
+    jest.spyOn(multisigService, 'getTeamMemberByAddress').mockResolvedValue({
+      wallet_address: testAccount.address,
+      team_member_name: 'Test Team Member',
+      network: 'Polkadot'
+    });
+    
     jest.spyOn(multisigService, 'findMemberByAddress').mockImplementation((members, address) => {
       return members.find(m => m.wallet_address === address || m.wallet_address === testAccount.address) || null;
+    });
+    
+    jest.spyOn(multisigService, 'isTeamMember').mockResolvedValue(true);
+    
+    // Mock DaoService to return our test DAO for the test wallet address
+    jest.spyOn(DaoService, 'findDaosForWallet').mockImplementation(async (walletAddress: string) => {
+      if (walletAddress === testAccount.address) {
+        const dao = await DAO.getById(testDaoId);
+        return dao ? [dao] : [];
+      }
+      return [];
     });
   });
 
   afterAll(async () => {
+    // Cleanup test DAO
+    try {
+      if (testDaoId) {
+        await db.run('DELETE FROM daos WHERE id = ?', [testDaoId]);
+      }
+      await db.run('DELETE FROM daos WHERE name LIKE ?', ['Web3 Auth Test DAO%']);
+    } catch (error) {
+      console.log('Cleanup warning:', error);
+    }
+    
     jest.restoreAllMocks();
   });
 
