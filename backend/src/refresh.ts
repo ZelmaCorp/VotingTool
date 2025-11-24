@@ -114,13 +114,13 @@ export async function updateAllActiveReferendums(skipRefs: Set<string> = new Set
         
         // Get all referendums that are NOT in terminal states
         const activeReferendums = await db.all(
-            `SELECT post_id, chain, referendum_timeline 
-             FROM referendums 
+            `SELECT post_id, chain, dao_id, referendum_timeline
+             FROM referendums
              WHERE referendum_timeline NOT IN (${terminalPlaceholders})
              ORDER BY post_id DESC
              LIMIT 500`,
             TERMINAL_STATUSES
-        ) as { post_id: number; chain: Chain; referendum_timeline: string }[];
+        ) as { post_id: number; chain: Chain; dao_id: number; referendum_timeline: string }[];
 
         const totalActive = activeReferendums.length;
         const skippedCount = skipRefs.size;
@@ -150,7 +150,7 @@ export async function updateAllActiveReferendums(skipRefs: Set<string> = new Set
                         `Updating referendum ${ref.post_id} (${ref.chain}): '${ref.referendum_timeline}' -> '${newTimelineStatus}'`
                     );
                     
-                    await Referendum.update(ref.post_id, ref.chain, {
+                    await Referendum.update(ref.post_id, ref.chain, ref.dao_id, {
                         referendum_timeline: newTimelineStatus
                     });
                     
