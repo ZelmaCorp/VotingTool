@@ -5,9 +5,12 @@
 A helper tool for small DAOs to vote on proposals. This tool automates the process of fetching referendum data from Polkassembly, managing voting workflows in a SQLite database, and executing batch votes through Mimir.
 
 The tool provides:
+- Multi-DAO Support: Manage multiple DAOs with separate multisig accounts and voting workflows
 - Automated referendum data synchronization from Polkassembly API
 - SQLite database for proposal management and voting workflows
 - Batch voting execution through Mimir multisig integration
+- Secure DAO registration with on-chain verification
+- Wallet-based authentication across all DAOs
 - Rate limiting and error handling for external API calls
 - Comprehensive logging and monitoring
 
@@ -16,9 +19,10 @@ The tool provides:
 - Node.js (v22 or higher)
 - npm or yarn
 - Docker (optional, for containerized deployment)
-- Polkadot/Kusama multisig wallets
-- Subscan API key
-- Mimir integration setup
+- Polkadot/Kusama multisig wallet(s) - for DAO registration
+- Subscan API key - for on-chain data fetching
+- Master encryption key - for securing sensitive DAO data
+- Mimir integration setup - for batch voting execution
 
 ## Quick Start
 
@@ -190,26 +194,39 @@ The extension activates on the following Polkassembly URLs:
 
 #### Required Variables
 
+- `MASTER_ENCRYPTION_KEY` - 32-byte hex key for encrypting sensitive DAO data (multisig addresses, mnemonics)
+- `SUBSCAN_API_KEY` - Your Subscan API key for fetching on-chain data
 - `REFRESH_INTERVAL` - How often to check for new referendums (in seconds, default: 900)
-- `POLKADOT_MULTISIG` - Your Polkadot multisig address
-- `KUSAMA_MULTISIG` - Your Kusama multisig address
-- `PROPOSER_MNEMONIC` - 12-word mnemonic phrase for the proposer account
-- `SUBSCAN_API_KEY` - Your Subscan API key
 
 #### Optional Variables
 
 - `PORT` - Server port (default: 3000)
 - `NODE_ENV` - Environment (default: production)
 - `LOG_LEVEL` - Logging level (default: info)
+- `DATABASE_PATH` - Path to SQLite database (default: ./voting_tool.db)
 - `DEEP_SYNC_LIMIT` - Number of posts to fetch during deep sync (default: 100)
 - `DEEP_SYNC_HOUR` - Hour for daily deep sync (UTC, default: 3)
 - `READY_CHECK_INTERVAL` - How often to check for ready votes (default: 60)
+
+#### Generating Encryption Key
+
+Generate a secure encryption key for `MASTER_ENCRYPTION_KEY`:
+
+```bash
+# Using Node.js
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# Using OpenSSL
+openssl rand -hex 32
+```
+
+**⚠️ Important**: Keep your encryption key secure and never commit it to version control. All DAO multisig addresses and proposer mnemonics are encrypted at rest using this key.
 
 For a complete list of environment variables, see [env.example](env.example).
 
 ## API Endpoints
 
-### Health Check
+The OpenGov Voting Tool provides a comprehensive REST API for managing multiple DAOs, referendums, and voting workflows.
 
 **GET** `/health`
 
@@ -224,9 +241,16 @@ Returns the health status of the application.
 }
 ```
 
-### Refresh Referendums
+**Referendums**
+- `GET /referendums` - Get all referendums (DAO-scoped)
+- `GET /referendums/:postId` - Get specific referendum
+- `PUT /referendums/:postId/:chain` - Update referendum
+- `POST /referendums/:postId/actions` - Add team action
+- `POST /referendums/:postId/assign` - Assign to referendum
 
-**GET** `/refresh-referendas?limit=30`
+**Admin**
+- `GET /admin/refresh-referendas` - Refresh from Polkassembly (all DAOs)
+- `GET /admin/process-pending-transitions` - Process status transitions
 
 Manually triggers a refresh of referendum data from Polkassembly.
 
@@ -245,12 +269,11 @@ Manually triggers a refresh of referendum data from Polkassembly.
 
 ### Send to Mimir
 
-**GET** `/send-to-mimir`
+If not specified, the system automatically determines the DAO based on the authenticated user's wallet membership.
 
-Sends ready proposals to Mimir for batch voting execution.
+### Full API Documentation
 
-**Response:**
-Returns a success page or error message.
+For complete API documentation including request/response formats, authentication, error handling, and multi-DAO usage, see **[API_ROUTES.md](API_ROUTES.md)**.
 
 ## Development
 
@@ -318,6 +341,101 @@ npm run build:versioned
 
 The build process compiles TypeScript to JavaScript and outputs the compiled files to the `dist/` directory.
 
+## Multi-DAO Architecture
+
+### Overview
+
+Version 2.0 introduces full multi-DAO support, allowing a single instance of the Voting Tool to manage multiple DAOs with completely isolated data and workflows.
+
+### Key Features
+
+- **Secure Registration**: DAOs are registered via API with on-chain verification
+- **Wallet Verification**: Registrants must prove multisig membership via wallet signature
+- **Encrypted Storage**: All sensitive data (multisig addresses, mnemonics) encrypted at rest
+- **Data Isolation**: Complete separation between DAOs - no cross-DAO data access
+- **Automatic Context**: System automatically determines which DAO a user belongs to
+- **Multi-Chain Support**: Each DAO can have separate Polkadot and Kusama multisigs
+
+### Registering a DAO
+
+To register a new DAO, use the API endpoint:
+
+```bash
+POST /dao/register
+Content-Type: application/json
+Authorization: Bearer <jwt-token>
+
+{
+  "name": "Hungarian Polkadot DAO",
+  "description": "Supporting Polkadot adoption in Hungary",
+  "polkadotMultisig": "15oF4uVJwmo4TdGW7VfQxNLavjCXviqxT9S1MgbjMNHr6Sp5",
+  "kusamaMultisig": "HNZata7iMYWmk5RvZRTiAsSDhV8366zq2YGb3tLH5Upf74F",
+  "walletAddress": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY",
+  "signature": "0x...",
+  "message": "Register Hungarian Polkadot DAO"
+}
+```
+
+**Requirements**:
+1. Authenticated user (JWT token)
+2. Valid wallet signature proving ownership
+3. At least one multisig address (Polkadot or Kusama)
+4. Wallet must be a member of the provided multisig(s)
+5. Multisig(s) must exist on-chain
+
+The system will:
+- Verify the signature
+- Check multisig(s) exist on-chain
+- Verify wallet is a member of the multisig(s)
+- Generate a proposer mnemonic automatically
+- Encrypt all sensitive data
+- Create the DAO in the database
+
+### Database Migration
+
+If you're upgrading from version 1.x (single-DAO) to 2.0 (multi-DAO), a database migration is required.
+
+#### Migration Steps
+
+1. **Backup your database**:
+   ```bash
+   cp voting_tool.db voting_tool.db.backup
+   ```
+
+2. **Set encryption key** in `.env`:
+   ```bash
+   MASTER_ENCRYPTION_KEY=<your-32-byte-hex-key>
+   ```
+
+3. **Run migration script**:
+   ```bash
+   cd backend
+   chmod +x scripts/migrate-db.sh
+   ./scripts/migrate-db.sh
+   ```
+
+4. **Verify migration**:
+   ```bash
+   npm run test-production-features
+   ```
+
+The migration will:
+- Create the `daos` table
+- Add `dao_id` columns to all relevant tables
+- Create a "Default DAO" from your existing environment variables
+- Migrate all existing referendums to the Default DAO
+- Encrypt sensitive data
+
+For Docker deployments, see the manual migration instructions in the deployment section.
+
+### How Multi-DAO Works
+
+1. **Authentication**: Users authenticate with their wallet (Web3 signature)
+2. **DAO Discovery**: System checks which DAO(s) the wallet belongs to
+3. **Context Setting**: Most endpoints automatically determine the DAO from the authenticated user
+4. **Data Scoping**: All database queries are scoped by `dao_id` for complete isolation
+5. **Explicit Selection**: Users can specify a DAO via `?multisig=` query parameter if they belong to multiple DAOs
+
 ## Deployment
 
 ### Docker
@@ -344,6 +462,7 @@ docker run -d \
   --name polkadot-voting-tool \
   --env-file .env \
   -p 3000:3000 \
+  -v $(pwd)/data:/app/data \
   polkadot-voting-tool
 ```
 
