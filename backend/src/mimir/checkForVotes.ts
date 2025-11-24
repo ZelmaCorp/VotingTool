@@ -135,10 +135,10 @@ export async function checkForVotes(): Promise<void> {
       }
       
       // Update the referendum status and add the subscan link
-      await Referendum.updateVotingStatus(refId, chain, votedStatus, subscanLink);
+      await Referendum.updateVotingStatus(refId, chain, transaction.dao_id, votedStatus, subscanLink);
       
       // Update the voting decision to mark as executed and store the actual vote
-      await VotingDecision.upsert(transaction.referendum_id, {
+      await VotingDecision.upsert(transaction.referendum_id, transaction.dao_id, {
         final_vote: actualVote,
         vote_executed: true,
         vote_executed_date: new Date().toISOString()
@@ -147,6 +147,7 @@ export async function checkForVotes(): Promise<void> {
       // Update the Mimir transaction status
       await MimirTransaction.updateStatus(
         transaction.referendum_id, 
+        transaction.dao_id,
         'executed', 
         subscanData?.extrinsicHash
       );

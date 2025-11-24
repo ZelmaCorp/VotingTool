@@ -270,7 +270,7 @@ export async function processAllPendingTransitions(): Promise<{
 
   try {
     const referendums = await db.all(
-      `SELECT id, post_id, chain, internal_status 
+      `SELECT id, post_id, chain, internal_status, dao_id 
        FROM referendums 
        WHERE internal_status IN (?, ?, ?)`,
       [InternalStatus.WaitingForAgreement, InternalStatus.ReadyForApproval, InternalStatus.ReadyToVote]

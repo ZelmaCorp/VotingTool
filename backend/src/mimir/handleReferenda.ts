@@ -65,9 +65,9 @@ export async function handleReferendaVote(
   );
 
   // Save to database
-  if (referendum.id) {
-    await MimirTransaction.create(referendum.id, result.payload.calldata, result.payload.timestamp);
-    logger.info({ referendumId: referendum.id, postId, vote }, "Saved Mimir transaction to database");
+  if (referendum.id && referendum.dao_id) {
+    await MimirTransaction.create(referendum.id, referendum.dao_id, result.payload.calldata, result.payload.timestamp);
+    logger.info({ referendumId: referendum.id, daoId: referendum.dao_id, postId, vote }, "Saved Mimir transaction to database");
   }
 
   return result.ready;

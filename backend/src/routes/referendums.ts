@@ -104,9 +104,9 @@ const processMemberActionsForSummary = (
 };
 
 // Get all referendums from the database
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", addDaoContext, async (req: Request, res: Response) => {
   try {
-    const referendums = await Referendum.getAll();
+    const referendums = await Referendum.getAll(req.daoId);
     res.json({
       success: true,
       referendums
@@ -121,7 +121,7 @@ router.get("/", async (req: Request, res: Response) => {
 });
 
 // Get a specific referendum by post_id and chain
-router.get("/:postId", async (req: Request, res: Response) => {
+router.get("/:postId", addDaoContext, async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.postId);
     const chain = req.query.chain as Chain;
@@ -165,7 +165,7 @@ router.get("/:postId", async (req: Request, res: Response) => {
 });
 
 // Update a specific referendum by post_id and chain
-router.put("/:postId/:chain", async (req: Request, res: Response) => {
+router.put("/:postId/:chain", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.postId);
     const chain = req.params.chain as Chain;
@@ -324,7 +324,7 @@ router.delete("/:postId/actions", addDaoContext, requireDaoMembership, requireTe
  * POST /referendums/:postId/assign
  * Assign the current user as the responsible person for a referendum
  */
-router.post("/:postId/assign", requireTeamMember, async (req: Request, res: Response) => {
+router.post("/:postId/assign", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.postId);
     const { chain } = req.body;
@@ -332,7 +332,7 @@ router.post("/:postId/assign", requireTeamMember, async (req: Request, res: Resp
     if (!validateUser(req.user?.address, res)) return;
     if (!validateChain(chain, res)) return;
 
-    const referendum = await findReferendum(postId, chain, res);
+    const referendum = await findReferendum(postId, chain, res, req.daoId);
     if (!referendum) return;
 
     // Check if already assigned
@@ -360,7 +360,7 @@ router.post("/:postId/assign", requireTeamMember, async (req: Request, res: Resp
  * POST /referendums/:postId/unassign
  * Unassign the responsible person from a referendum and reset its state
  */
-router.post("/:postId/unassign", requireTeamMember, async (req: Request, res: Response) => {
+router.post("/:postId/unassign", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.postId);
     const { chain, unassignNote } = req.body;
@@ -368,7 +368,7 @@ router.post("/:postId/unassign", requireTeamMember, async (req: Request, res: Re
     if (!validateUser(req.user?.address, res)) return;
     if (!validateChain(chain, res)) return;
 
-    const referendum = await findReferendum(postId, chain, res);
+    const referendum = await findReferendum(postId, chain, res, req.daoId);
     if (!referendum) return;
 
     // Check if user is the responsible person
@@ -420,7 +420,7 @@ router.get("/:postId/comments", addDaoContext, requireDaoMembership, async (req:
  * POST /referendums/:postId/comments
  * Add a comment to a specific referendum
  */
-router.post("/:postId/comments", requireTeamMember, async (req: Request, res: Response) => {
+router.post("/:postId/comments", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.postId);
     const { chain, content } = req.body;
@@ -429,7 +429,7 @@ router.post("/:postId/comments", requireTeamMember, async (req: Request, res: Re
     if (!validateChain(chain, res)) return;
     if (!content?.trim()) return errorResponse(res, 400, "Comment content is required");
 
-    const referendum = await findReferendum(postId, chain, res);
+    const referendum = await findReferendum(postId, chain, res, req.daoId);
     if (!referendum) return;
 
     const commentId = await createReferendumComment(referendum.id, req.user!.address!, content);
