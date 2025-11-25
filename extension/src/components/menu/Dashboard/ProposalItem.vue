@@ -77,11 +77,11 @@
         <span class="alert-icon">🚫</span>
         <strong>NO WAYed by:</strong> {{ vetoByName }}
       </div>
-      <div v-if="vetoReason" class="veto-reason">
-        <strong>Reason:</strong> {{ vetoReason }}
+      <div v-if="actualVetoReason" class="veto-reason">
+        <strong>Reason:</strong> {{ actualVetoReason }}
       </div>
-      <div v-if="vetoDate" class="veto-date">
-        <strong>NO WAYed on:</strong> {{ formatDate(vetoDate) }}
+      <div v-if="actualVetoDate" class="veto-date">
+        <strong>NO WAYed on:</strong> {{ formatDate(actualVetoDate) }}
       </div>
     </div>
 
@@ -163,11 +163,28 @@ const evaluatorName = computed(() => {
 
 // Convert veto_by address to name
 const vetoByName = computed(() => {
+  // First check if veto_by_name is already set on the proposal (set by backend)
+  const proposalVetoName = (props.proposal as any).veto_by_name
+  if (proposalVetoName) {
+    return proposalVetoName
+  }
+  
+  // Otherwise, use the vetoBy prop
   if (!props.vetoBy) {
     return 'Unknown'
   }
   
   return getTeamMemberName(props.vetoBy)
+})
+
+// Get actual veto reason (from proposal or prop)
+const actualVetoReason = computed(() => {
+  return (props.proposal as any).veto_reason || props.vetoReason
+})
+
+// Get actual veto date (from proposal or prop)
+const actualVetoDate = computed(() => {
+  return (props.proposal as any).veto_date || props.vetoDate
 })
 </script>
 
