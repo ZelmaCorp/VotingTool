@@ -218,18 +218,41 @@ export const authStore = {
     // Setup DAO context (fetch config and set multisig)
     async setupDaoContext(apiService: ApiService): Promise<string | undefined> {
         try {
+            console.log('🏛️ Setting up DAO context...')
+            console.log('   Current user:', state.user?.address)
+            console.log('   Has token:', !!state.token)
+            
             const config = await apiService.getDAOConfig()
-            if (config) {
-                const multisig = config.polkadot_multisig || config.kusama_multisig
-                if (multisig) {
-                    apiService.setMultisigAddress(multisig)
-                }
-                return config.name
+            
+            if (!config) {
+                console.error('❌ No DAO config returned from backend')
+                console.error('   This usually means:')
+                console.error('   1. Your wallet address is not in any DAO\'s team members')
+                console.error('   2. The backend failed to auto-detect your DAO')
+                console.error('   3. No DAOs are registered in the database yet')
+                return undefined
             }
+            
+            console.log('✅ DAO config received:', config.name)
+            
+            const multisig = config.polkadot_multisig || config.kusama_multisig
+            if (multisig) {
+                console.log('   Setting multisig address:', multisig)
+                apiService.setMultisigAddress(multisig)
+                
+                // Verify it was stored
+                const stored = localStorage.getItem('opengov-multisig-address')
+                console.log('   Multisig stored in localStorage:', stored === multisig ? '✅' : '❌')
+            } else {
+                console.warn('⚠️ No multisig address in DAO config')
+            }
+            
+            return config.name
         } catch (error) {
-            console.error('Error setting up DAO context:', error)
+            console.error('❌ Error setting up DAO context:', error)
+            console.error('   Error details:', error instanceof Error ? error.message : String(error))
+            return undefined
         }
-        return undefined
     }
 }
 
