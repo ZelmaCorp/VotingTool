@@ -40,7 +40,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { teamStore } from '../../../stores/teamStore'
-import type { ProposalData, TeamMember, InternalStatus } from '../../../types'
+import type { ProposalData, InternalStatus, ProposalAction } from '../../../types'
 import ProposalItem from './ProposalItem.vue'
 import StatusChangeModal from '../../modals/StatusChangeModal.vue'
 import { ApiService } from '../../../utils/apiService'
@@ -52,7 +52,7 @@ interface Props {
   requiredAgreements: number
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const emit = defineEmits<{
   'open-proposal': [proposal: ProposalData]
@@ -101,45 +101,64 @@ const saveStatusChange = async ({ newStatus, reason }: { newStatus: InternalStat
   }
 }
 
-const parseTeamActions = (proposal: ProposalData) => {
-  if (!proposal.team_actions) return [];
+const parseTeamActions = (proposal: ProposalData): ProposalAction[] => {
+  const teamActions = proposal.team_actions as any;
+  
+  if (!teamActions) return [];
   
   // If it's already an array, return as is
-  if (Array.isArray(proposal.team_actions)) {
-    return proposal.team_actions;
+  if (Array.isArray(teamActions)) {
+    return teamActions;
   }
   
-  // Parse concatenated string format
-  return proposal.team_actions.split(',').map(actionStr => {
-    const [team_member_id, role_type, reason, created_at] = actionStr.split(':');
-    return {
-      team_member_id,
-      wallet_address: team_member_id, // For compatibility
-      role_type,
-      reason,
-      created_at,
-      team_member_name: teamStore.getTeamMemberName(team_member_id)
-    };
-  });
+  // Parse concatenated string format (legacy support)
+  if (typeof teamActions === 'string') {
+    return teamActions.split(',').map((actionStr: string) => {
+      const [team_member_id, role_type, reason, created_at] = actionStr.split(':');
+      return {
+        team_member_id,
+        wallet_address: team_member_id,
+        role_type,
+        reason,
+        created_at,
+        team_member_name: teamStore.getTeamMemberName(team_member_id)
+      } as ProposalAction;
+    });
+  }
+  
+  return [];
 }
 
 const getAgreementCount = (proposal: ProposalData): number => {
   const actions = parseTeamActions(proposal);
-  return actions.filter(action => 
-    action.role_type?.toLowerCase() === 'agree'
-  ).length;
+  console.log('📊 Agreement count debug:', { 
+    proposalId: proposal.post_id, 
+    actions,
+    filtered: actions.filter((a: ProposalAction) => {
+      const actionType = a.action || a.role_type;
+      return actionType?.toLowerCase() === 'agree';
+    })
+  });
+  return actions.filter((action: ProposalAction) => {
+    const actionType = action.action || action.role_type;
+    return actionType?.toLowerCase() === 'agree';
+  }).length;
 }
 
-const getAgreedMembers = (proposal: ProposalData): TeamMember[] => {
+const getAgreedMembers = (proposal: ProposalData): Array<{ address: string; name: string }> => {
   const actions = parseTeamActions(proposal);
-  const agreeActions = actions.filter(action => 
-    action.role_type?.toLowerCase() === 'agree'
-  );
+  const agreeActions = actions.filter((action: ProposalAction) => {
+    const actionType = action.action || action.role_type;
+    return actionType?.toLowerCase() === 'agree';
+  });
   
-  return agreeActions.map(action => ({
-    name: action.team_member_name || teamStore.getTeamMemberName(action.team_member_id),
-    address: action.team_member_id
-  }));
+  return agreeActions.map((action: ProposalAction) => {
+    const memberId = action.wallet_address || action.team_member_id;
+    return {
+      address: memberId,
+      name: action.team_member_name || teamStore.getTeamMemberName(memberId)
+    };
+  });
 }
 </script>
 

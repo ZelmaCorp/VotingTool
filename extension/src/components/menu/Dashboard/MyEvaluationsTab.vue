@@ -24,7 +24,16 @@
         <div class="evaluation-info">
           <div class="vote-recommendation">
             <strong>Your Recommendation:</strong> 
-            <span class="vote-badge">{{ proposal.suggested_vote }}</span>
+            <span 
+              class="vote-badge"
+              :class="{
+                'vote-aye': proposal.suggested_vote?.toLowerCase().includes('aye'),
+                'vote-nay': proposal.suggested_vote?.toLowerCase().includes('nay'),
+                'vote-abstain': proposal.suggested_vote?.toLowerCase().includes('abstain')
+              }"
+            >
+              {{ proposal.suggested_vote }}
+            </span>
           </div>
           <div v-if="proposal.reason_for_vote" class="vote-reason">
             <strong>Reason:</strong> {{ proposal.reason_for_vote }}
@@ -121,11 +130,25 @@ defineEmits<{
 
 .vote-badge {
   padding: 4px 8px;
-  background: #007bff;
-  color: white;
   border-radius: 4px;
   font-size: 0.8rem;
   margin-left: 8px;
+  font-weight: 500;
+}
+
+.vote-badge.vote-aye {
+  background: #d4edda;
+  color: #155724;
+}
+
+.vote-badge.vote-nay {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.vote-badge.vote-abstain {
+  background: #e2e3e5;
+  color: #383d41;
 }
 
 .vote-reason {

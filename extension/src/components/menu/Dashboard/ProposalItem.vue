@@ -55,17 +55,6 @@
       </div>
     </div>
 
-    <!-- Voting Info -->
-    <div v-if="type === 'ready'" class="voting-info">
-      <div class="vote-recommendation">
-        <strong>Team Recommendation:</strong> 
-        <span class="vote-badge">{{ proposal.suggested_vote || 'Not set' }}</span>
-      </div>
-      <div v-if="proposal.reason_for_vote" class="vote-reason">
-        <strong>Reason:</strong> {{ proposal.reason_for_vote }}
-      </div>
-    </div>
-
     <!-- Discussion Info -->
     <div v-if="type === 'discussion'" class="discussion-info">
       <div class="discussion-members">
@@ -88,11 +77,11 @@
         <span class="alert-icon">🚫</span>
         <strong>NO WAYed by:</strong> {{ vetoByName }}
       </div>
-      <div v-if="vetoReason" class="veto-reason">
-        <strong>Reason:</strong> {{ vetoReason }}
+      <div v-if="actualVetoReason" class="veto-reason">
+        <strong>Reason:</strong> {{ actualVetoReason }}
       </div>
-      <div v-if="vetoDate" class="veto-date">
-        <strong>NO WAYed on:</strong> {{ formatDate(vetoDate) }}
+      <div v-if="actualVetoDate" class="veto-date">
+        <strong>NO WAYed on:</strong> {{ formatDate(actualVetoDate) }}
       </div>
     </div>
 
@@ -103,7 +92,15 @@
       </div>
       <div v-if="showSuggestedVote" class="meta-item">
         <strong>Suggested Vote:</strong> 
-        <span :class="{ 'not-set': !proposal.suggested_vote }">
+        <span 
+          class="vote-badge-small"
+          :class="{
+            'vote-aye': proposal.suggested_vote?.toLowerCase().includes('aye'),
+            'vote-nay': proposal.suggested_vote?.toLowerCase().includes('nay'),
+            'vote-abstain': proposal.suggested_vote?.toLowerCase().includes('abstain'),
+            'not-set': !proposal.suggested_vote
+          }"
+        >
           {{ proposal.suggested_vote || 'Not set' }}
         </span>
       </div>
@@ -116,9 +113,9 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { ProposalData, TeamMember } from '../../../types'
+import type { ProposalData } from '../../../types'
 import StatusBadge from '../../StatusBadge.vue'
-import { formatDate, findTeamMemberByAddress } from '../../../utils/teamUtils'
+import { formatDate, getTeamMemberName } from '../../../utils/teamUtils'
 
 interface Props {
   proposal: ProposalData
@@ -160,22 +157,34 @@ const handleStatusClick = (event?: Event) => {
 
 // Convert evaluator address to name
 const evaluatorName = computed(() => {
-  if (!props.proposal.assigned_to) {
-    return 'Unassigned'
-  }
-  
-  const member = findTeamMemberByAddress(props.proposal.assigned_to)
-  return member ? member.name : props.proposal.assigned_to
+  const name = getTeamMemberName(props.proposal.assigned_to)
+  return name
 })
 
 // Convert veto_by address to name
 const vetoByName = computed(() => {
+  // First check if veto_by_name is already set on the proposal (set by backend)
+  const proposalVetoName = (props.proposal as any).veto_by_name
+  if (proposalVetoName) {
+    return proposalVetoName
+  }
+  
+  // Otherwise, use the vetoBy prop
   if (!props.vetoBy) {
     return 'Unknown'
   }
   
-  const member = findTeamMemberByAddress(props.vetoBy)
-  return member ? member.name : props.vetoBy
+  return getTeamMemberName(props.vetoBy)
+})
+
+// Get actual veto reason (from proposal or prop)
+const actualVetoReason = computed(() => {
+  return (props.proposal as any).veto_reason || props.vetoReason
+})
+
+// Get actual veto date (from proposal or prop)
+const actualVetoDate = computed(() => {
+  return (props.proposal as any).veto_date || props.vetoDate
 })
 </script>
 
@@ -304,31 +313,12 @@ const vetoByName = computed(() => {
   color: #0c5460;
 }
 
-.voting-info,
 .discussion-info,
 .veto-info {
   margin: 16px 0;
   padding: 16px;
   background: #f8f9fa;
   border-radius: 6px;
-}
-
-.vote-recommendation {
-  margin-bottom: 8px;
-}
-
-.vote-badge {
-  padding: 4px 8px;
-  background: #007bff;
-  color: white;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  margin-left: 8px;
-}
-
-.vote-reason {
-  font-size: 0.9rem;
-  color: #666;
 }
 
 .veto-alert {
@@ -374,6 +364,29 @@ const vetoByName = computed(() => {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+.vote-badge-small {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+.vote-badge-small.vote-aye {
+  background: #d4edda;
+  color: #155724;
+}
+
+.vote-badge-small.vote-nay {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.vote-badge-small.vote-abstain {
+  background: #e2e3e5;
+  color: #383d41;
 }
 
 .not-set {

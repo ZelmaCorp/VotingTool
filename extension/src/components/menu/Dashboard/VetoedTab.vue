@@ -18,6 +18,11 @@
         :proposal="proposal"
         type="vetoed"
         :editable="false"
+        :show-evaluator="false"
+        :show-suggested-vote="false"
+        :veto-by="(proposal as any).veto_by"
+        :veto-reason="(proposal as any).veto_reason"
+        :veto-date="(proposal as any).veto_date"
         @click="$emit('open-proposal', proposal)"
       />
     </div>

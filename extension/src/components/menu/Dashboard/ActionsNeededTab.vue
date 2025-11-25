@@ -24,7 +24,7 @@
         <h4 class="proposal-title">{{ proposal.title }}</h4>
         <div class="proposal-meta">
           <div class="meta-item">
-            <strong>Assigned to:</strong> {{ proposal.assigned_to || 'Unassigned' }}
+            <strong>Assigned to:</strong> {{ getTeamMemberName(proposal.assigned_to) }}
           </div>
           <div v-if="proposal.assigned_to === currentUserAddress" class="meta-item action-type">
             <strong>Action:</strong> <span class="action-badge evaluation">Needs Your Evaluation</span>
@@ -55,7 +55,7 @@ import { ref } from 'vue'
 import type { ProposalData, InternalStatus } from '../../../types'
 import StatusBadge from '../../StatusBadge.vue'
 import StatusChangeModal from '../../modals/StatusChangeModal.vue'
-import { formatDate } from '../../../utils/teamUtils'
+import { formatDate, getTeamMemberName } from '../../../utils/teamUtils'
 import { ApiService } from '../../../utils/apiService'
 
 const apiService = ApiService.getInstance()

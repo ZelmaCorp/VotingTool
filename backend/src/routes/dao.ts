@@ -195,8 +195,19 @@ router.get("/workflow", authenticateToken, addDaoContext, requireDaoMembership, 
     const teamMembers = await DaoService.getMembers(daoId, chain);
     const totalTeamMembers = teamMembers.length;
 
-    // Get all referendums and actions for this DAO
-    const allReferendums = await db.all(`SELECT r.* FROM referendums r WHERE r.dao_id = ? ORDER BY r.created_at DESC`, [daoId]);
+    // Get all referendums and actions for this DAO (include voting decisions)
+    const allReferendums = await db.all(`
+      SELECT 
+        r.*,
+        vd.suggested_vote,
+        vd.final_vote,
+        vd.vote_executed,
+        vd.vote_executed_date
+      FROM referendums r
+      LEFT JOIN voting_decisions vd ON r.id = vd.referendum_id AND vd.dao_id = r.dao_id
+      WHERE r.dao_id = ? 
+      ORDER BY r.created_at DESC
+    `, [daoId]);
     const allActions = await db.all(`
       SELECT referendum_id, team_member_id, role_type, reason, created_at
       FROM referendum_team_roles

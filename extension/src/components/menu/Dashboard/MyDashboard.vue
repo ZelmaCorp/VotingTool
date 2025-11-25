@@ -128,10 +128,11 @@ const actionsNeeded = computed(() => {
     }
     
     // Check if I've already taken a team action
-    const hasTeamAction = p.team_actions?.some(action => 
-      action.wallet_address === currentUser && 
-      ['Agree', 'NO WAY', 'Recuse', 'To be discussed', 'agree', 'no_way', 'recuse', 'to_be_discussed'].includes(action.role_type)
-    )
+    const hasTeamAction = p.team_actions?.some(action => {
+      const actionType = action.action || action.role_type;
+      return action.wallet_address === currentUser && 
+        ['Agree', 'NO WAY', 'Recuse', 'To be discussed', 'agree', 'no_way', 'recuse', 'to_be_discussed'].includes(actionType);
+    })
     
     return !hasTeamAction  // Show if I haven't taken a team action yet
   })
