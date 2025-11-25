@@ -71,8 +71,9 @@ export type TeamAction =
     | 'Recuse';
 
 export interface TeamMember {
-    address: string;
-    name: string;
+    wallet_address: string;             // Backend field name
+    team_member_name: string;           // Backend field name
+    network?: string;                   // Backend enriched field (Polkadot/Kusama)
 }
 
 export interface ProposalAction {
@@ -80,7 +81,7 @@ export interface ProposalAction {
     proposal_id?: number;
     team_member_id: string;      // Backend field name
     wallet_address: string;      // Backend enriched field
-    role_type: string;       // Backend field name
+    role_type: string;           // Backend field name
     team_member_name?: string;   // Backend enriched field
     reason?: string;
     timestamp?: string;
@@ -125,17 +126,17 @@ export interface ProposalData {
     required_agreements?: number;  // Default 4, but configurable per DAO
 }
 
-// Agreement summary for UI
+// Agreement summary for UI (calculated by backend)
 export interface AgreementSummary {
     total_agreements: number;
     required_agreements: number;
-    agreed_members: TeamMember[];
-    pending_members: TeamMember[];
+    agreed_members: Array<{ address: string; name: string }>;
+    pending_members: Array<{ address: string; name: string }>;
+    to_be_discussed_members: Array<{ address: string; name: string }>;
+    recused_members: Array<{ address: string; name: string }>;
     vetoed: boolean;
+    veto_by?: string;  // Name of person who vetoed
     veto_reason?: string;
-    veto_by?: string;
-    recused_members: TeamMember[];
-    to_be_discussed_members: TeamMember[];
 }
 
 // UI Component Props
@@ -187,10 +188,12 @@ export interface ModalState {
 
 // Configuration types
 export interface DAOConfig {
-    required_agreements: number;
-    team_members: TeamMember[];         // Team members are coming from the multisig
-    name: string;
-    multisig_address?: string;
+    name: string;                       // DAO name
+    team_members: TeamMember[];         // Team members from multisig
+    required_agreements: number;        // Threshold from multisig
+    multisig_address?: string;          // Primary multisig address (Polkadot or Kusama)
+    polkadot_multisig?: string;         // Polkadot multisig address
+    kusama_multisig?: string;           // Kusama multisig address
 } 
 
 export interface Proposal {

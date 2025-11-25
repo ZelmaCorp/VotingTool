@@ -131,6 +131,29 @@
         </div>
       </div>
 
+      <!-- Step 4: Success -->
+      <div v-if="step === 'success'" class="step-content">
+        <div class="success-container">
+          <div class="success-icon">✅</div>
+          <div class="success-title">Connected Successfully!</div>
+          
+          <div v-if="connectedDaoName" class="dao-info">
+            <div class="dao-label">Connected to DAO:</div>
+            <div class="dao-name-display">{{ connectedDaoName }}</div>
+          </div>
+          
+          <div class="success-description">
+            You are now authenticated and connected to your DAO.
+          </div>
+          
+          <div class="step-actions">
+            <button @click="$emit('close')" class="btn-primary">
+              Continue
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Error State -->
       <div v-if="error" class="error-message">
         <div class="error-icon">⚠️</div>
@@ -197,7 +220,7 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const step = ref<'select' | 'accounts' | 'sign'>('select')
+const step = ref<'select' | 'accounts' | 'sign' | 'success'>('select')
 const accounts = ref<Account[]>([])
 const selectedAccount = ref<Account | null>(null)
 const isConnecting = ref(false)
@@ -205,6 +228,7 @@ const isSigning = ref(false)
 const error = ref('')
 const messageToSign = ref('')
 const extensionStatus = ref<'checking' | 'not-found' | 'found'>('checking')
+const connectedDaoName = ref<string>('')
 
 const availableWallets = computed(() => {
   return window.opengovVotingToolResult?.availableWallets || []
@@ -409,7 +433,19 @@ const handleSignMessage = async () => {
           
           if (loginResult.success) {
             console.log('🎉 Authentication successful!')
-            emit('close')
+            
+            // Show DAO connection confirmation
+            if (loginResult.daoName) {
+              console.log('🏛️ Connected to DAO:', loginResult.daoName)
+              connectedDaoName.value = loginResult.daoName
+              step.value = 'success'
+            } else {
+              // No DAO info, just close
+              if (loginResult.error) {
+                console.warn('⚠️', loginResult.error)
+              }
+              emit('close')
+            }
           } else {
             console.log('❌ Authentication failed:', loginResult.error)
             
@@ -470,12 +506,12 @@ const getWalletIcon = (walletKey: string) => {
   }
 }
 
-const getWalletEmoji = (walletKey: string) => {
+const getWalletEmoji = (_walletKey: string) => {
   // Fallback emoji icon when SVG fails to load - same for all wallets
   return '💼' // Generic wallet icon for all wallets
 }
 
-const handleIconError = (event: Event) => {
+const handleIconError = (_event: Event) => {
   // This function is called when an image fails to load
   // The onerror inline handler will handle the fallback display
   console.log('Wallet icon failed to load, falling back to emoji')
@@ -862,5 +898,50 @@ Your address: ${address}${configuredMultisigs}
 
 .no-wallets-text {
   font-size: 14px;
+}
+
+.success-container {
+  text-align: center;
+  padding: 24px;
+}
+
+.success-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.success-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #28a745;
+  margin-bottom: 16px;
+}
+
+.dao-info {
+  background: #f8f9fa;
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.dao-label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.dao-name-display {
+  font-size: 18px;
+  font-weight: 600;
+  color: #e6007a;
+}
+
+.success-description {
+  color: #666;
+  margin-bottom: 24px;
+  line-height: 1.5;
 }
 </style> 

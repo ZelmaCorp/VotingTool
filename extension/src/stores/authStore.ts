@@ -56,7 +56,7 @@ export const authStore = {
     state: readonly(state),
 
     // Actions
-    async login(address: string, signature: string, message: string): Promise<{ success: boolean; error?: string; details?: any }> {
+    async login(address: string, signature: string, message: string): Promise<{ success: boolean; error?: string; details?: any; daoName?: string }> {
         try {
             state.isLoading = true
             
@@ -80,14 +80,18 @@ export const authStore = {
                 localStorage.setItem('opengov-auth-last-verified', Date.now().toString())
                 
                 // Refresh ApiService token
-                ApiService.getInstance().refreshToken()
+                const apiService = ApiService.getInstance()
+                apiService.refreshToken()
+                
+                // Setup DAO context (multi-DAO support)
+                const daoName = await this.setupDaoContext(apiService)
                 
                 // Dispatch authentication change event
                 window.dispatchEvent(new CustomEvent('authStateChanged', { 
-                    detail: { isAuthenticated: true, user: response.user } 
+                    detail: { isAuthenticated: true, user: response.user, daoName } 
                 }))
                 
-                return { success: true }
+                return { success: true, daoName }
             } else {
                 console.error('Login failed:', response.error)
                 return { 
@@ -127,8 +131,8 @@ export const authStore = {
             localStorage.removeItem('opengov-auth-user')
             localStorage.removeItem('opengov-auth-last-verified')
             
-            // Refresh ApiService token
-            ApiService.getInstance().refreshToken()
+            // Clear ApiService (clears token and multisig)
+            ApiService.getInstance().logout()
             
             // Dispatch authentication change event
             window.dispatchEvent(new CustomEvent('authStateChanged', { 
@@ -181,6 +185,14 @@ export const authStore = {
                 state.user = user
                 state.isAuthenticated = true
                 
+                // Setup DAO context if not already set
+                const apiService = ApiService.getInstance()
+                if (!apiService.getMultisigAddress()) {
+                    this.setupDaoContext(apiService).catch(error => {
+                        console.error('Failed to setup DAO context on init:', error)
+                    })
+                }
+                
                 // Only verify token if it hasn't been verified recently (within last hour)
                 const lastVerified = lastVerifiedStr ? parseInt(lastVerifiedStr) : 0
                 const hourInMs = 60 * 60 * 1000
@@ -201,6 +213,23 @@ export const authStore = {
                 this.logout()
             }
         }
+    },
+
+    // Setup DAO context (fetch config and set multisig)
+    async setupDaoContext(apiService: ApiService): Promise<string | undefined> {
+        try {
+            const config = await apiService.getDAOConfig()
+            if (config) {
+                const multisig = config.polkadot_multisig || config.kusama_multisig
+                if (multisig) {
+                    apiService.setMultisigAddress(multisig)
+                }
+                return config.name
+            }
+        } catch (error) {
+            console.error('Error setting up DAO context:', error)
+        }
+        return undefined
     }
 }
 

@@ -498,15 +498,17 @@ export class ApiService {
     // DAO configuration methods
     async getDAOConfig(chain?: Chain): Promise<DAOConfig | null> {
         try {
+            // NOTE: Backend auto-detects DAO from token if multisig not provided
+            // So it's OK to call this without multisig being set
             if (!this.multisigAddress) {
-                console.warn('No multisig address set, cannot get DAO config');
-                return null;
+                console.log('📡 Fetching DAO config (multisig not set yet, backend will auto-detect)');
             }
 
             const queryParam = chain ? `?chain=${chain}` : '';
             const configResult = await this.request<{ success: boolean; config?: DAOConfig; error?: string }>(`/dao/config${queryParam}`);
             
             if (configResult.success && configResult.config) {
+                console.log('✅ DAO config received:', configResult.config.name);
                 return configResult.config;
             }
 
@@ -734,14 +736,9 @@ export class ApiService {
         vetoedProposals: ProposalData[];
     }> {
         try {
+            // NOTE: Backend auto-detects DAO from token if multisig not provided
             if (!this.multisigAddress) {
-                console.warn('No multisig address set, cannot get workflow data');
-                return {
-                    needsAgreement: [],
-                    readyToVote: [],
-                    forDiscussion: [],
-                    vetoedProposals: []
-                };
+                console.log('📡 Fetching workflow data (multisig not set yet, backend will auto-detect)');
             }
 
             const queryParam = chain ? `?chain=${chain}` : '';
