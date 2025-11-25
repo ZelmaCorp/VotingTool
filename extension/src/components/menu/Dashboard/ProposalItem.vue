@@ -127,7 +127,7 @@
 import { computed } from 'vue'
 import type { ProposalData } from '../../../types'
 import StatusBadge from '../../StatusBadge.vue'
-import { formatDate, findTeamMemberByAddress } from '../../../utils/teamUtils'
+import { formatDate, getTeamMemberName } from '../../../utils/teamUtils'
 
 interface Props {
   proposal: ProposalData
@@ -167,14 +167,21 @@ const handleStatusClick = (event?: Event) => {
   emit('status-click', props.proposal)
 }
 
+// Debug log
+console.log('🔍 ProposalItem data:', {
+  postId: props.proposal.post_id,
+  assigned_to: props.proposal.assigned_to,
+  suggested_vote: props.proposal.suggested_vote,
+  showEvaluator: props.showEvaluator,
+  showSuggestedVote: props.showSuggestedVote,
+  type: props.type
+})
+
 // Convert evaluator address to name
 const evaluatorName = computed(() => {
-  if (!props.proposal.assigned_to) {
-    return 'Unassigned'
-  }
-  
-  const member = findTeamMemberByAddress(props.proposal.assigned_to)
-  return member ? member.name : props.proposal.assigned_to
+  const name = getTeamMemberName(props.proposal.assigned_to)
+  console.log('👤 Evaluator for', props.proposal.post_id, ':', name, 'from address:', props.proposal.assigned_to)
+  return name
 })
 
 // Convert veto_by address to name
@@ -183,8 +190,7 @@ const vetoByName = computed(() => {
     return 'Unknown'
   }
   
-  const member = findTeamMemberByAddress(props.vetoBy)
-  return member ? member.name : props.vetoBy
+  return getTeamMemberName(props.vetoBy)
 })
 </script>
 
