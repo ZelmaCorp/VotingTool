@@ -85,11 +85,15 @@ export const teamStore = {
     },
     
   removeTeamMember(address: string): void {
-    state.teamMembers = state.teamMembers.filter((m: TeamMember) => m.address !== address)
+    state.teamMembers = state.teamMembers.filter((m: TeamMember) => 
+      ((m as any).wallet_address || (m as any).address) !== address
+    )
     },
     
   updateTeamMember(address: string, updates: Partial<TeamMember>): void {
-    const index = state.teamMembers.findIndex((m: TeamMember) => m.address === address)
+    const index = state.teamMembers.findIndex((m: TeamMember) => 
+      ((m as any).wallet_address || (m as any).address) === address
+    )
       if (index !== -1) {
       state.teamMembers[index] = { ...state.teamMembers[index], ...updates }
     }

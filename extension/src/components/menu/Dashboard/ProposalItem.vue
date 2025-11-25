@@ -127,9 +127,9 @@ interface Props {
   showEvaluator?: boolean
   showSuggestedVote?: boolean
   requiredAgreements?: number
-  agreedMembers?: TeamMember[]
+  agreedMembers?: Array<{ address: string; name: string }>
   agreementCount?: number
-  discussionMembers?: TeamMember[]
+  discussionMembers?: Array<{ address: string; name: string }>
   vetoBy?: string
   vetoReason?: string
   vetoDate?: string

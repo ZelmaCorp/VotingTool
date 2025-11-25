@@ -29,8 +29,11 @@ export const findTeamMemberByAddress = (address: string): TeamMember | undefined
   
   const teamMembers = teamStore.teamMembers;
   
-  // Try direct match first
-  let member = teamMembers.find((m: TeamMember) => m.address.toLowerCase() === address.toLowerCase());
+  // Try direct match first - support both wallet_address and address fields
+  let member = teamMembers.find((m: any) => {
+    const memberAddr = m.wallet_address || m.address;
+    return memberAddr && memberAddr.toLowerCase() === address.toLowerCase();
+  });
   
   if (!member) {
     try {
@@ -41,7 +44,10 @@ export const findTeamMemberByAddress = (address: string): TeamMember | undefined
       const possibleFormats = [0, 2, 42]; // Polkadot, Kusama, and generic substrate
       for (const format of possibleFormats) {
         const convertedAddress = encodeAddress(publicKey, format);
-        member = teamMembers.find((m: TeamMember) => m.address.toLowerCase() === convertedAddress.toLowerCase());
+        member = teamMembers.find((m: any) => {
+          const memberAddr = m.wallet_address || m.address;
+          return memberAddr && memberAddr.toLowerCase() === convertedAddress.toLowerCase();
+        });
         if (member) break;
       }
     } catch (e) {
@@ -55,8 +61,9 @@ export const findTeamMemberByAddress = (address: string): TeamMember | undefined
 
 export const getTeamMemberName = (address: string | undefined): string => {
   if (!address) return 'Unassigned';
-  const member = findTeamMemberByAddress(address);
-  return member?.name || formatAddress(address);
+  const member = findTeamMemberByAddress(address) as any;
+  // Support both backend field names and legacy field names
+  return member?.team_member_name || member?.name || formatAddress(address);
 };
 
 export const formatDate = (dateString: string | undefined): string => {
