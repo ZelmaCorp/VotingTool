@@ -203,6 +203,11 @@ router.get("/:postId", addDaoContext, async (req: Request, res: Response) => {
 // Update a specific referendum by post_id and chain
 router.put("/:postId/:chain", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
+    if (!req.daoId) {
+      logger.error({ path: req.path, postId: req.params.postId }, "DAO context missing for PUT /referendums/:postId/:chain");
+      return errorResponse(res, 400, 'DAO context could not be determined');
+    }
+
     const postId = parseInt(req.params.postId);
     const chain = req.params.chain as Chain;
     const updates = req.body;
@@ -212,7 +217,7 @@ router.put("/:postId/:chain", addDaoContext, requireDaoMembership, async (req: R
       return errorResponse(res, 400, "Invalid chain. Must be 'Polkadot' or 'Kusama'");
     }
 
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId!);
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId);
     if (!referendum) return errorResponse(res, 404, "Referendum not found");
 
     const { referendumFields, votingFields } = separateUpdateFields(updates);
@@ -231,12 +236,12 @@ router.put("/:postId/:chain", addDaoContext, requireDaoMembership, async (req: R
           return errorResponse(res, 400, getTransitionErrorMessage(referendum.internal_status as InternalStatus, newStatus));
         }
       }
-      await Referendum.update(postId, chain, req.daoId!, referendumFields);
+      await Referendum.update(postId, chain, req.daoId, referendumFields);
     }
 
     // Handle voting fields update
     if (Object.keys(votingFields).length > 0) {
-      await VotingDecision.upsert(referendum.id!, req.daoId!, votingFields);
+      await VotingDecision.upsert(referendum.id!, req.daoId, votingFields);
       
       if (votingFields.suggested_vote && req.user?.address) {
         const assigned = await isUserAssigned(referendum.id!, req.user.address);
@@ -250,7 +255,7 @@ router.put("/:postId/:chain", addDaoContext, requireDaoMembership, async (req: R
           referendum.internal_status as InternalStatus,
           referendum.post_id,
           referendum.chain,
-          req.daoId!
+          req.daoId
         );
       }
     }
@@ -268,6 +273,11 @@ router.put("/:postId/:chain", addDaoContext, requireDaoMembership, async (req: R
  */
 router.get("/:postId/actions", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
+    if (!req.daoId) {
+      logger.error({ path: req.path, postId: req.params.postId }, "DAO context missing for GET /referendums/:postId/actions");
+      return errorResponse(res, 400, 'DAO context could not be determined');
+    }
+
     const postId = parseInt(req.params.postId);
     const chain = req.query.chain as Chain;
 
@@ -276,13 +286,13 @@ router.get("/:postId/actions", addDaoContext, requireDaoMembership, async (req: 
       return errorResponse(res, 400, "Valid chain parameter is required. Must be 'Polkadot' or 'Kusama'");
     }
 
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId!);
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId);
     if (!referendum) {
       return errorResponse(res, 404, `Referendum ${postId} not found on ${chain} network`);
     }
 
     const actions = await getReferendumActions(referendum.id!);
-    const daoId = req.daoId!;
+    const daoId = req.daoId;
     const teamMembers = await DaoService.getMembers(daoId, chain);
     const enrichedActions = enrichActionsWithMemberInfo(actions, teamMembers);
 
@@ -299,6 +309,11 @@ router.get("/:postId/actions", addDaoContext, requireDaoMembership, async (req: 
  */
 router.post("/:postId/actions", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
+    if (!req.daoId) {
+      logger.error({ path: req.path, postId: req.params.postId }, "DAO context missing for POST /referendums/:postId/actions");
+      return errorResponse(res, 400, 'DAO context could not be determined');
+    }
+
     const postId = parseInt(req.params.postId);
     const { chain, action, reason } = req.body;
 
@@ -313,8 +328,8 @@ router.post("/:postId/actions", addDaoContext, requireDaoMembership, requireTeam
     const referendum = await findReferendum(postId, chain, res);
     if (!referendum) return;
 
-    await upsertTeamAction(referendum.id, req.user!.address!, backendAction, req.daoId!, reason);
-    await checkAndApplyAgreementTransition(referendum.id, postId, chain, req.daoId!);
+    await upsertTeamAction(referendum.id, req.user!.address!, backendAction, req.daoId, reason);
+    await checkAndApplyAgreementTransition(referendum.id, postId, chain, req.daoId);
 
     return successResponse(res, { message: "Team action added successfully" });
   } catch (error) {
@@ -329,6 +344,11 @@ router.post("/:postId/actions", addDaoContext, requireDaoMembership, requireTeam
  */
 router.delete("/:postId/actions", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
+    if (!req.daoId) {
+      logger.error({ path: req.path, postId: req.params.postId }, "DAO context missing for DELETE /referendums/:postId/actions");
+      return errorResponse(res, 400, 'DAO context could not be determined');
+    }
+
     const postId = parseInt(req.params.postId);
     const { chain, action } = req.body;
 
@@ -343,12 +363,12 @@ router.delete("/:postId/actions", addDaoContext, requireDaoMembership, requireTe
     const referendum = await findReferendum(postId, chain, res);
     if (!referendum) return;
 
-    const deleted = await deleteTeamAction(referendum.id, req.user!.address!, backendAction, req.daoId!);
+    const deleted = await deleteTeamAction(referendum.id, req.user!.address!, backendAction, req.daoId);
     if (!deleted) {
       return errorResponse(res, 404, `No ${action} action found for this user and referendum`);
     }
 
-    await checkAndApplyAgreementTransition(referendum.id, postId, chain, req.daoId!);
+    await checkAndApplyAgreementTransition(referendum.id, postId, chain, req.daoId);
 
     return successResponse(res, { message: "Team action removed successfully" });
   } catch (error) {
@@ -363,6 +383,11 @@ router.delete("/:postId/actions", addDaoContext, requireDaoMembership, requireTe
  */
 router.post("/:postId/assign", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
+    if (!req.daoId) {
+      logger.error({ path: req.path, postId: req.params.postId }, "DAO context missing for POST /referendums/:postId/assign");
+      return errorResponse(res, 400, 'DAO context could not be determined');
+    }
+
     const postId = parseInt(req.params.postId);
     const { chain } = req.body;
 
@@ -385,7 +410,7 @@ router.post("/:postId/assign", addDaoContext, requireDaoMembership, requireTeamM
       return errorResponse(res, 400, "This proposal is already assigned to another team member");
     }
 
-    await handleAssignment(referendum.id, req.user!.address!, req.daoId!);
+    await handleAssignment(referendum.id, req.user!.address!, req.daoId);
     return successResponse(res, { message: "Assigned successfully" });
   } catch (error) {
     logger.error({ error: formatError(error), postId: req.params.postId }, "Error assigning to referendum");
@@ -399,6 +424,11 @@ router.post("/:postId/assign", addDaoContext, requireDaoMembership, requireTeamM
  */
 router.post("/:postId/unassign", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
+    if (!req.daoId) {
+      logger.error({ path: req.path, postId: req.params.postId }, "DAO context missing for POST /referendums/:postId/unassign");
+      return errorResponse(res, 400, 'DAO context could not be determined');
+    }
+
     const postId = parseInt(req.params.postId);
     const { chain, unassignNote } = req.body;
 
@@ -414,7 +444,7 @@ router.post("/:postId/unassign", addDaoContext, requireDaoMembership, requireTea
       return errorResponse(res, 403, "Only the responsible person can unassign themselves");
     }
 
-    await handleUnassignment(referendum.id, req.user!.address!, req.daoId!, unassignNote);
+    await handleUnassignment(referendum.id, req.user!.address!, req.daoId, unassignNote);
     return successResponse(res, { message: "Unassigned successfully" });
   } catch (error) {
     logger.error({ error: formatError(error), postId: req.params.postId }, "Error unassigning from referendum");
@@ -428,6 +458,11 @@ router.post("/:postId/unassign", addDaoContext, requireDaoMembership, requireTea
  */
 router.get("/:postId/comments", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
+    if (!req.daoId) {
+      logger.error({ path: req.path, postId: req.params.postId }, "DAO context missing for GET /referendums/:postId/comments");
+      return errorResponse(res, 400, 'DAO context could not be determined');
+    }
+
     const postId = parseInt(req.params.postId);
     const chain = req.query.chain as Chain;
 
@@ -436,13 +471,13 @@ router.get("/:postId/comments", addDaoContext, requireDaoMembership, async (req:
       return errorResponse(res, 400, "Valid chain parameter is required. Must be 'Polkadot' or 'Kusama'");
     }
 
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId!);
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId);
     if (!referendum) {
       return errorResponse(res, 404, `Referendum ${postId} not found on ${chain} network`);
     }
 
     const comments = await getReferendumCommentsFromDb(referendum.id!);
-    const daoId = req.daoId!;
+    const daoId = req.daoId;
     const teamMembers = await DaoService.getMembers(daoId, chain);
     const enrichedComments = enrichComments(comments, teamMembers);
 
@@ -520,6 +555,11 @@ router.delete("/comments/:commentId", requireTeamMember, async (req: Request, re
  */
 router.get("/:postId/agreement-summary", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
+    if (!req.daoId) {
+      logger.error({ path: req.path, postId: req.params.postId }, "DAO context missing for GET /referendums/:postId/agreement-summary");
+      return errorResponse(res, 400, 'DAO context could not be determined');
+    }
+
     const postId = parseInt(req.params.postId);
     const chain = req.query.chain as Chain;
     
@@ -528,7 +568,7 @@ router.get("/:postId/agreement-summary", addDaoContext, requireDaoMembership, as
       return errorResponse(res, 400, "Valid chain parameter is required. Must be 'Polkadot' or 'Kusama'");
     }
     
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId!);
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId);
     if (!referendum) {
       return errorResponse(res, 404, `Referendum ${postId} not found on ${chain} network`);
     }
@@ -540,7 +580,7 @@ router.get("/:postId/agreement-summary", addDaoContext, requireDaoMembership, as
       ORDER BY created_at DESC
     `, [referendum.id]);
     
-    const daoId = req.daoId!;
+    const daoId = req.daoId;
     const teamMembers = await DaoService.getMembers(daoId, chain);
     const multisigInfo = await DaoService.getMultisigInfo(daoId, chain);
     
