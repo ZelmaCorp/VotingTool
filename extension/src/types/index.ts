@@ -71,9 +71,12 @@ export type TeamAction =
     | 'Recuse';
 
 export interface TeamMember {
-    wallet_address: string;             // Backend field name
-    team_member_name: string;           // Backend field name
-    network?: string;                   // Backend enriched field (Polkadot/Kusama)
+    wallet_address: string;      // Backend field name
+    team_member_name: string;    // Backend field name
+    network?: string;            // Backend enriched field (Polkadot/Kusama)
+    // Backward compatibility (these are computed/aliased from above)
+    address?: string;            // Alias for wallet_address
+    name?: string;               // Alias for team_member_name
 }
 
 export interface ProposalAction {

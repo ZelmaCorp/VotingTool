@@ -185,13 +185,15 @@ const addressesMatch = (addr1?: string | null, addr2?: string | null): boolean =
   
   // If we have team members, use them to check for SS58 format matches
   if (props.teamMembers && props.teamMembers.length > 0) {
-    // Find team member by first address
-    const member1 = props.teamMembers.find(m => normalizeAddress(m.address) === normalizeAddress(addr1))
+    // Find team member by first address (use wallet_address from backend)
+    const member1 = props.teamMembers.find(m => normalizeAddress(m.wallet_address || m.address || '') === normalizeAddress(addr1))
     // Find team member by second address  
-    const member2 = props.teamMembers.find(m => normalizeAddress(m.address) === normalizeAddress(addr2))
+    const member2 = props.teamMembers.find(m => normalizeAddress(m.wallet_address || m.address || '') === normalizeAddress(addr2))
     
     // If both addresses correspond to the same team member, they match
-    if (member1 && member2 && member1.address === member2.address) {
+    const addr1Match = member1?.wallet_address || member1?.address
+    const addr2Match = member2?.wallet_address || member2?.address
+    if (member1 && member2 && addr1Match === addr2Match) {
       return true
     }
     
@@ -214,8 +216,9 @@ const addressesMatch = (addr1?: string | null, addr2?: string | null): boolean =
  */
 const getTeamMemberName = (address: string): string | null => {
   if (!address) return null
-  const member = teamStore.findTeamMemberByAddress(address)
-  return member?.name || null
+  const member = teamStore.findTeamMemberByAddress(address) as any
+  // Support both backend field names and legacy field names
+  return member?.team_member_name || member?.name || null
 }
 
 /**
