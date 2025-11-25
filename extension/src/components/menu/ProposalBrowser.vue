@@ -327,7 +327,7 @@ const filteredProposals = computed(() => {
     } else {
       filtered = filtered.filter(p => 
         p.team_actions?.some(action => {
-          const actionType = action.role_type?.toLowerCase();
+          const actionType = (action.action || action.role_type)?.toLowerCase();
           const selectedType = selectedTeamAction.value.toLowerCase();
           const normalizedType = selectedType.replace(' ', '_');
           

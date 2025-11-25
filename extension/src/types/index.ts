@@ -84,7 +84,8 @@ export interface ProposalAction {
     proposal_id?: number;
     team_member_id: string;      // Backend field name
     wallet_address: string;      // Backend enriched field
-    role_type: string;           // Backend field name
+    role_type: string;           // Backend field name (when fetched via actions endpoint)
+    action?: string;             // Backend field name (when included in team_actions array)
     team_member_name?: string;   // Backend enriched field
     reason?: string;
     timestamp?: string;
