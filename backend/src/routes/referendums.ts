@@ -106,6 +106,22 @@ const processMemberActionsForSummary = (
 // Get all referendums from the database
 router.get("/", addDaoContext, async (req: Request, res: Response) => {
   try {
+    if (!req.daoId) {
+      logger.error({ 
+        path: req.path,
+        method: req.method,
+        userAddress: req.user?.address,
+        isAuthenticated: req.isAuthenticated,
+        hasMultisigHeader: !!req.headers['x-multisig-address'],
+        multisigHeader: req.headers['x-multisig-address']
+      }, "DAO context could not be determined for GET /referendums");
+      
+      return res.status(400).json({
+        success: false,
+        error: 'DAO context could not be determined. Please ensure your wallet is registered in a DAO.'
+      });
+    }
+    
     const referendums = await Referendum.getAll(req.daoId);
     res.json({
       success: true,
@@ -141,8 +157,26 @@ router.get("/:postId", addDaoContext, async (req: Request, res: Response) => {
       });
     }
 
+    if (!req.daoId) {
+      logger.error({ 
+        path: req.path,
+        method: req.method,
+        postId,
+        chain,
+        userAddress: req.user?.address,
+        isAuthenticated: req.isAuthenticated,
+        hasMultisigHeader: !!req.headers['x-multisig-address'],
+        multisigHeader: req.headers['x-multisig-address']
+      }, `DAO context could not be determined for GET /referendums/${postId}`);
+      
+      return res.status(400).json({
+        success: false,
+        error: 'DAO context could not be determined. Please ensure your wallet is registered in a DAO.'
+      });
+    }
+
     // Find the referendum
-    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId!);
+    const referendum = await Referendum.findByPostIdAndChain(postId, chain, req.daoId);
     
     if (!referendum) {
       return res.status(404).json({ 

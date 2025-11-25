@@ -145,14 +145,19 @@ export async function addDaoContext(req: Request, res: Response, next: NextFunct
             daoName: dao.name
           }, "DAO context set from multisig address");
         } else {
-          logger.warn({ 
+          logger.error({ 
             address: walletAddress,
             multisigAddress,
-            daoId: dao.id
-          }, "User not a member of specified multisig");
+            daoId: dao.id,
+            daoName: dao.name
+          }, "AUTHENTICATION ERROR: User not a member of specified multisig");
         }
       } else {
-        logger.warn({ multisigAddress, chain }, "No DAO found for provided multisig address");
+        logger.error({ 
+          multisigAddress, 
+          chain,
+          address: walletAddress
+        }, "AUTHENTICATION ERROR: No DAO found for provided multisig address");
       }
     } else {
       // No multisig specified - find all DAOs this wallet is a member of
@@ -165,10 +170,17 @@ export async function addDaoContext(req: Request, res: Response, next: NextFunct
         logger.debug({ 
           address: walletAddress, 
           daoId: req.daoId,
+          daoName: memberDaos[0].name,
           totalDaos: memberDaos.length 
-        }, "DAO context added to request");
+        }, "DAO context added to request (auto-detected from wallet)");
       } else {
-        logger.warn({ address: walletAddress, network }, "User wallet not found in any DAO multisig");
+        logger.error({ 
+          address: walletAddress, 
+          network,
+          chain,
+          path: req.path,
+          method: req.method
+        }, "AUTHENTICATION ERROR: User wallet not found in any DAO multisig - no on-chain membership detected");
       }
     }
 
