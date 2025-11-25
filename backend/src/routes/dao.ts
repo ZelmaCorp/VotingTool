@@ -179,9 +179,11 @@ router.get("/parent", authenticateToken, addDaoContext, requireDaoMembership, as
  * GET /dao/config
  * Get DAO configuration including multisig addresses and team info
  */
-router.get("/config", authenticateToken, addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
+router.get("/config", authenticateToken, addDaoContext, async (req: Request, res: Response) => {
   try {
-    const daoId = req.daoId!;
+    // If no DAO context, default to DAO ID 1 (for single-DAO setups)
+    const daoId = req.daoId || 1;
+    
     const dao = await DAO.getById(daoId);
     if (!dao) {
       return res.status(404).json({ success: false, error: 'DAO not found' });
@@ -253,9 +255,11 @@ router.get("/my-assignments", requireTeamMember, async (req: Request, res: Respo
  * GET /dao/workflow
  * Get all workflow data in a single request
  */
-router.get("/workflow", authenticateToken, addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
+router.get("/workflow", authenticateToken, addDaoContext, async (req: Request, res: Response) => {
   try {
-    const daoId = req.daoId!;
+    // If no DAO context, default to DAO ID 1 (for single-DAO setups)
+    const daoId = req.daoId || 1;
+    
     const chain = getChainFromQuery(req.query);
     const teamMembers = await DaoService.getMembers(daoId, chain);
     const totalTeamMembers = teamMembers.length;
