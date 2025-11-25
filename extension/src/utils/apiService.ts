@@ -513,7 +513,7 @@ export class ApiService {
             }
 
             console.warn('Failed to get DAO config:', configResult.error);
-            return null;
+                return null;
         } catch (error) {
             console.error('Error getting DAO config:', error);
             return null;
@@ -742,25 +742,25 @@ export class ApiService {
             }
 
             const queryParam = chain ? `?chain=${chain}` : '';
-            const result = await this.request<{
-                success: boolean;
-                data?: {
-                    needsAgreement: ProposalData[];
-                    readyToVote: ProposalData[];
-                    forDiscussion: ProposalData[];
-                    vetoedProposals: ProposalData[];
-                };
-                error?: string;
+                const result = await this.request<{
+                    success: boolean;
+                    data?: {
+                        needsAgreement: ProposalData[];
+                        readyToVote: ProposalData[];
+                        forDiscussion: ProposalData[];
+                        vetoedProposals: ProposalData[];
+                    };
+                    error?: string;
             }>(`/dao/workflow${queryParam}`);
-            
-            if (result.success && result.data) {
+                
+                if (result.success && result.data) {
                 console.log('✅ Got team workflow data from backend:', {
                     needsAgreement: result.data.needsAgreement.length,
                     readyToVote: result.data.readyToVote.length,
                     forDiscussion: result.data.forDiscussion.length,
                     vetoedProposals: result.data.vetoedProposals.length
                 });
-                return result.data;
+                    return result.data;
             }
 
             console.warn('Failed to get workflow data:', result.error);
@@ -803,8 +803,8 @@ export class ApiService {
             console.log('Referendum refresh request sent:', result);
             
             if (result.success) {
-                return { 
-                    success: true, 
+            return { 
+                success: true, 
                     message: result.message || 'Sync started successfully' 
                 };
             } else {
