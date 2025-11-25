@@ -1,6 +1,7 @@
 import { db } from '../connection';
 import { Chain, InternalStatus } from '../../types/properties';
 import { ReferendumRecord, ReferendumWithDetails } from '../types';
+import { logger } from '../../config/logger';
 
 export class Referendum {
     
@@ -81,6 +82,17 @@ export class Referendum {
         
         // Find who is assigned as responsible person
         const responsiblePerson = assignments.find(a => a.role_type === 'responsible_person');
+        
+        logger.debug({
+            postId,
+            chain,
+            daoId,
+            referendumId: referendum.id,
+            totalAssignments: assignments.length,
+            hasResponsiblePerson: !!responsiblePerson,
+            responsiblePersonAddress: responsiblePerson?.wallet_address,
+            allAssignments: assignments.map(a => ({ role: a.role_type, address: a.wallet_address }))
+        }, 'Referendum.findByPostIdAndChain - Fetched assignment data');
         
         return {
             ...referendum,

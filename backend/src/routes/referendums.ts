@@ -185,6 +185,15 @@ router.get("/:postId", addDaoContext, async (req: Request, res: Response) => {
       });
     }
 
+    logger.info({ 
+      postId, 
+      chain,
+      daoId: req.daoId,
+      hasAssignment: !!referendum.assigned_to,
+      assignedTo: referendum.assigned_to,
+      userAddress: req.user?.address
+    }, `GET /referendums/${postId} - Returning referendum data`);
+
     res.json({ 
       success: true, 
       referendum 
