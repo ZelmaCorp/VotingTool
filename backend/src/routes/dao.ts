@@ -242,19 +242,6 @@ router.get("/workflow", authenticateToken, addDaoContext, requireDaoMembership, 
       proposal.veto_by_name = member?.team_member_name || 'Unknown Member';
     });
 
-    // Debug: Log a sample from readyToVote to see if suggested_vote is present
-    if (readyToVote.length > 0) {
-      logger.info({ 
-        sampleReadyToVote: readyToVote.slice(0, 2).map((p: any) => ({
-          post_id: p.post_id,
-          title: p.title,
-          assigned_to: p.assigned_to,
-          suggested_vote: p.suggested_vote,
-          internal_status: p.internal_status
-        }))
-      }, '📊 Workflow API - Sample readyToVote data');
-    }
-
     res.json({
       success: true,
       data: { needsAgreement, readyToVote, forDiscussion, vetoedProposals }
