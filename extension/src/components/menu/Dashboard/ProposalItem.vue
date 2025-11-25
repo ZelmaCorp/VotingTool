@@ -55,26 +55,6 @@
       </div>
     </div>
 
-    <!-- Voting Info -->
-    <div v-if="type === 'ready'" class="voting-info">
-      <div class="vote-recommendation">
-        <strong>Team Recommendation:</strong> 
-        <span 
-          class="vote-badge"
-          :class="{
-            'vote-aye': proposal.suggested_vote?.toLowerCase().includes('aye'),
-            'vote-nay': proposal.suggested_vote?.toLowerCase().includes('nay'),
-            'vote-abstain': proposal.suggested_vote?.toLowerCase().includes('abstain')
-          }"
-        >
-          {{ proposal.suggested_vote || 'Not set' }}
-        </span>
-      </div>
-      <div v-if="proposal.reason_for_vote" class="vote-reason">
-        <strong>Reason:</strong> {{ proposal.reason_for_vote }}
-      </div>
-    </div>
-
     <!-- Discussion Info -->
     <div v-if="type === 'discussion'" class="discussion-info">
       <div class="discussion-members">
@@ -112,7 +92,15 @@
       </div>
       <div v-if="showSuggestedVote" class="meta-item">
         <strong>Suggested Vote:</strong> 
-        <span :class="{ 'not-set': !proposal.suggested_vote }">
+        <span 
+          class="vote-badge-small"
+          :class="{
+            'vote-aye': proposal.suggested_vote?.toLowerCase().includes('aye'),
+            'vote-nay': proposal.suggested_vote?.toLowerCase().includes('nay'),
+            'vote-abstain': proposal.suggested_vote?.toLowerCase().includes('abstain'),
+            'not-set': !proposal.suggested_vote
+          }"
+        >
           {{ proposal.suggested_vote || 'Not set' }}
         </span>
       </div>
@@ -167,20 +155,9 @@ const handleStatusClick = (event?: Event) => {
   emit('status-click', props.proposal)
 }
 
-// Debug log
-console.log('🔍 ProposalItem data:', {
-  postId: props.proposal.post_id,
-  assigned_to: props.proposal.assigned_to,
-  suggested_vote: props.proposal.suggested_vote,
-  showEvaluator: props.showEvaluator,
-  showSuggestedVote: props.showSuggestedVote,
-  type: props.type
-})
-
 // Convert evaluator address to name
 const evaluatorName = computed(() => {
   const name = getTeamMemberName(props.proposal.assigned_to)
-  console.log('👤 Evaluator for', props.proposal.post_id, ':', name, 'from address:', props.proposal.assigned_to)
   return name
 })
 
@@ -319,45 +296,12 @@ const vetoByName = computed(() => {
   color: #0c5460;
 }
 
-.voting-info,
 .discussion-info,
 .veto-info {
   margin: 16px 0;
   padding: 16px;
   background: #f8f9fa;
   border-radius: 6px;
-}
-
-.vote-recommendation {
-  margin-bottom: 8px;
-}
-
-.vote-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  margin-left: 8px;
-  font-weight: 500;
-}
-
-.vote-badge.vote-aye {
-  background: #d4edda;
-  color: #155724;
-}
-
-.vote-badge.vote-nay {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-.vote-badge.vote-abstain {
-  background: #e2e3e5;
-  color: #383d41;
-}
-
-.vote-reason {
-  font-size: 0.9rem;
-  color: #666;
 }
 
 .veto-alert {
@@ -403,6 +347,29 @@ const vetoByName = computed(() => {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+}
+
+.vote-badge-small {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  margin-left: 8px;
+  font-weight: 500;
+}
+
+.vote-badge-small.vote-aye {
+  background: #d4edda;
+  color: #155724;
+}
+
+.vote-badge-small.vote-nay {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.vote-badge-small.vote-abstain {
+  background: #e2e3e5;
+  color: #383d41;
 }
 
 .not-set {
