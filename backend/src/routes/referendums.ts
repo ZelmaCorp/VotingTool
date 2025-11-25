@@ -249,7 +249,8 @@ router.put("/:postId/:chain", addDaoContext, requireDaoMembership, async (req: R
           req.user.address,
           referendum.internal_status as InternalStatus,
           referendum.post_id,
-          referendum.chain
+          referendum.chain,
+          req.daoId!
         );
       }
     }
@@ -312,7 +313,7 @@ router.post("/:postId/actions", addDaoContext, requireDaoMembership, requireTeam
     const referendum = await findReferendum(postId, chain, res);
     if (!referendum) return;
 
-    await upsertTeamAction(referendum.id, req.user!.address!, backendAction, reason);
+    await upsertTeamAction(referendum.id, req.user!.address!, backendAction, req.daoId!, reason);
     await checkAndApplyAgreementTransition(referendum.id, postId, chain, req.daoId!);
 
     return successResponse(res, { message: "Team action added successfully" });
@@ -342,7 +343,7 @@ router.delete("/:postId/actions", addDaoContext, requireDaoMembership, requireTe
     const referendum = await findReferendum(postId, chain, res);
     if (!referendum) return;
 
-    const deleted = await deleteTeamAction(referendum.id, req.user!.address!, backendAction);
+    const deleted = await deleteTeamAction(referendum.id, req.user!.address!, backendAction, req.daoId!);
     if (!deleted) {
       return errorResponse(res, 404, `No ${action} action found for this user and referendum`);
     }
@@ -384,7 +385,7 @@ router.post("/:postId/assign", addDaoContext, requireDaoMembership, requireTeamM
       return errorResponse(res, 400, "This proposal is already assigned to another team member");
     }
 
-    await handleAssignment(referendum.id, req.user!.address!);
+    await handleAssignment(referendum.id, req.user!.address!, req.daoId!);
     return successResponse(res, { message: "Assigned successfully" });
   } catch (error) {
     logger.error({ error: formatError(error), postId: req.params.postId }, "Error assigning to referendum");
@@ -413,7 +414,7 @@ router.post("/:postId/unassign", addDaoContext, requireDaoMembership, requireTea
       return errorResponse(res, 403, "Only the responsible person can unassign themselves");
     }
 
-    await handleUnassignment(referendum.id, req.user!.address!, unassignNote);
+    await handleUnassignment(referendum.id, req.user!.address!, req.daoId!, unassignNote);
     return successResponse(res, { message: "Unassigned successfully" });
   } catch (error) {
     logger.error({ error: formatError(error), postId: req.params.postId }, "Error unassigning from referendum");

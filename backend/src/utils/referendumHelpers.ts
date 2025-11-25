@@ -63,7 +63,8 @@ export async function handleSuggestedVoteUpdate(
   userAddress: string,
   currentStatus: InternalStatus,
   postId: number,
-  chain: string
+  chain: string,
+  daoId: number
 ): Promise<void> {
   await db.run('BEGIN TRANSACTION');
 
@@ -83,14 +84,14 @@ export async function handleSuggestedVoteUpdate(
 
     // Remove existing action states (keep RESPONSIBLE_PERSON)
     await db.run(
-      "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ?",
-      [referendumId, userAddress, ReferendumAction.RESPONSIBLE_PERSON]
+      "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ? AND dao_id = ?",
+      [referendumId, userAddress, ReferendumAction.RESPONSIBLE_PERSON, daoId]
     );
 
     // Add AGREE action for responsible person
     await db.run(
-      "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type, created_at) VALUES (?, ?, ?, datetime('now'))",
-      [referendumId, userAddress, ReferendumAction.AGREE]
+      "INSERT INTO referendum_team_roles (referendum_id, dao_id, team_member_id, role_type, created_at) VALUES (?, ?, ?, ?, datetime('now'))",
+      [referendumId, daoId, userAddress, ReferendumAction.AGREE]
     );
 
     await db.run('COMMIT');
@@ -116,11 +117,12 @@ export async function hasExistingAssignment(referendumId: number): Promise<boole
  */
 export async function assignResponsiblePerson(
   referendumId: number,
-  userAddress: string
+  userAddress: string,
+  daoId: number
 ): Promise<void> {
   await db.run(
-    "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type) VALUES (?, ?, ?)",
-    [referendumId, userAddress, ReferendumAction.RESPONSIBLE_PERSON]
+    "INSERT INTO referendum_team_roles (referendum_id, dao_id, team_member_id, role_type) VALUES (?, ?, ?, ?)",
+    [referendumId, daoId, userAddress, ReferendumAction.RESPONSIBLE_PERSON]
   );
 }
 
@@ -129,11 +131,12 @@ export async function assignResponsiblePerson(
  */
 export async function removeResponsiblePerson(
   referendumId: number,
-  userAddress: string
+  userAddress: string,
+  daoId: number
 ): Promise<boolean> {
   const result = await db.run(
-    "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
-    [referendumId, userAddress, ReferendumAction.RESPONSIBLE_PERSON]
+    "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ? AND dao_id = ?",
+    [referendumId, userAddress, ReferendumAction.RESPONSIBLE_PERSON, daoId]
   );
   return (result.changes ?? 0) > 0;
 }
@@ -196,6 +199,7 @@ export async function getReferendumActions(referendumId: number): Promise<any[]>
 export async function handleUnassignment(
   referendumId: number,
   userAddress: string,
+  daoId: number,
   unassignNote?: string
 ): Promise<void> {
   await db.run('BEGIN TRANSACTION');
@@ -210,8 +214,8 @@ export async function handleUnassignment(
 
     // Remove responsible person role AND any team actions (except NO WAY)
     await db.run(
-      "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ?",
-      [referendumId, userAddress, ReferendumAction.NO_WAY]
+      "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ? AND dao_id = ?",
+      [referendumId, userAddress, ReferendumAction.NO_WAY, daoId]
     );
 
     // Reset suggested vote
@@ -232,8 +236,8 @@ export async function handleUnassignment(
     if (unassignNote?.trim()) noteLines.push(`Note: ${unassignNote.trim()}`);
 
     await db.run(
-      "INSERT INTO referendum_comments (referendum_id, team_member_id, content) VALUES (?, ?, ?)",
-      [referendumId, userAddress, noteLines.join('\n')]
+      "INSERT INTO referendum_comments (referendum_id, dao_id, team_member_id, content) VALUES (?, ?, ?, ?)",
+      [referendumId, daoId, userAddress, noteLines.join('\n')]
     );
 
     await db.run('COMMIT');
@@ -248,12 +252,13 @@ export async function handleUnassignment(
  */
 export async function handleAssignment(
   referendumId: number,
-  userAddress: string
+  userAddress: string,
+  daoId: number
 ): Promise<void> {
   await db.run('BEGIN TRANSACTION');
 
   try {
-    await assignResponsiblePerson(referendumId, userAddress);
+    await assignResponsiblePerson(referendumId, userAddress, daoId);
 
     // Update referendum status to Considering if it's not already in a later stage
     await db.run(
