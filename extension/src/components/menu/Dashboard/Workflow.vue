@@ -145,16 +145,10 @@ const loadData = async (retryCount = 0) => {
   try {
     const apiService = ApiService.getInstance();
     
-    console.log('📊 Workflow: Loading data...');
-    console.log('   Retry count:', retryCount);
-    
     // First try to get DAO config since we need it for team members
     const daoConfig = await apiService.getDAOConfig();
     if (!daoConfig) {
-      console.error('❌ Workflow: No DAO config received');
-      
       if (retryCount < MAX_RETRIES) {
-        console.log(`   Retrying DAO config load (attempt ${retryCount + 1}/${MAX_RETRIES})...`);
         await sleep(RETRY_DELAY);
         return loadData(retryCount + 1);
       }
@@ -166,32 +160,19 @@ const loadData = async (retryCount = 0) => {
       );
     }
     
-    console.log('✅ Workflow: DAO config loaded:', daoConfig.name);
-    console.log('   Team members:', daoConfig.team_members?.length || 0);
-    
     // Set team members in store (cast to any to handle type differences)
     teamStore.setTeamMembers(daoConfig.team_members as any);
 
     // Now get workflow data
-    console.log('📊 Workflow: Loading workflow data...');
     const data = await apiService.getTeamWorkflowData();
     if (!data) {
-      console.error('❌ Workflow: No workflow data received');
-      
       if (retryCount < MAX_RETRIES) {
-        console.log(`   Retrying workflow data load (attempt ${retryCount + 1}/${MAX_RETRIES})...`);
         await sleep(RETRY_DELAY);
         return loadData(retryCount + 1);
       }
       
       throw new Error('Could not load workflow data after multiple attempts.');
     }
-
-    console.log('✅ Workflow: Data loaded successfully');
-    console.log('   Needs agreement:', data.needsAgreement?.length || 0);
-    console.log('   Ready to vote:', data.readyToVote?.length || 0);
-    console.log('   For discussion:', data.forDiscussion?.length || 0);
-    console.log('   Vetoed:', data.vetoedProposals?.length || 0);
 
     workflowData.value = {
       needsAgreement: data.needsAgreement,
@@ -201,7 +182,7 @@ const loadData = async (retryCount = 0) => {
     };
 
   } catch (err) {
-    console.error('❌ Error loading team workflow data:', err);
+    console.error('Error loading team workflow data:', err);
     error.value = err instanceof Error ? err.message : 'Failed to load data. Please try again.';
   } finally {
     loading.value = false;

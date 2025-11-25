@@ -116,21 +116,11 @@ router.get("/parent", authenticateToken, addDaoContext, requireDaoMembership, as
  */
 router.get("/config", authenticateToken, addDaoContext, async (req: Request, res: Response) => {
   try {
-    logger.info({ 
-      user: req.user?.address,
-      daoId: req.daoId,
-      daoIds: req.daoIds,
-      isAuthenticated: req.isAuthenticated
-    }, 'GET /dao/config called');
-    
     // If no DAO context, default to DAO ID 1 (for single-DAO setups)
     const daoId = req.daoId || 1;
     
-    logger.info({ daoId }, 'Fetching DAO by ID');
-    
     const dao = await DAO.getById(daoId);
     if (!dao) {
-      logger.warn({ daoId }, 'DAO not found');
       return res.status(404).json({ success: false, error: 'DAO not found' });
     }
     
