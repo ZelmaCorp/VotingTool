@@ -70,8 +70,6 @@ export class Referendum {
             return null;
         }
         
-        logger.info(`DB referendum found: id=${referendum.id} post_id=${referendum.post_id} dao_id=${referendum.dao_id}`);
-        
         // Get team assignments separately since team_member_id is now a wallet address
         const assignmentsSql = `
             SELECT rtr.team_member_id as wallet_address, rtr.role_type, rtr.created_at
@@ -80,14 +78,10 @@ export class Referendum {
             ORDER BY rtr.created_at DESC
         `;
         
-        logger.info(`Querying assignments with refId=${referendum.id} daoId=${daoId}`);
         const assignments = await db.all(assignmentsSql, [referendum.id, daoId]);
-        logger.info(`Found ${assignments.length} assignments: ${JSON.stringify(assignments)}`);
         
         // Find who is assigned as responsible person
         const responsiblePerson = assignments.find(a => a.role_type === 'responsible_person');
-        
-        logger.info(`DB Query post:${postId} dao:${daoId} refId:${referendum.id} assignments:${assignments.length} responsible:${responsiblePerson?.wallet_address || 'NONE'}`);
         
         return {
             ...referendum,

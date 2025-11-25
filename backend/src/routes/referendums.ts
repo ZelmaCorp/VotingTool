@@ -185,8 +185,6 @@ router.get("/:postId", addDaoContext, async (req: Request, res: Response) => {
       });
     }
 
-    logger.info(`GET /referendums/${postId} - DAO:${req.daoId} assigned_to:${referendum.assigned_to || 'NULL'} user:${req.user?.address || 'unknown'}`);
-
     res.json({ 
       success: true, 
       referendum 
@@ -204,7 +202,7 @@ router.get("/:postId", addDaoContext, async (req: Request, res: Response) => {
 router.put("/:postId/:chain", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
-      logger.error({ path: req.path, postId: req.params.postId }, "DAO context missing for PUT /referendums/:postId/:chain");
+      logger.error({ path: req.path, operation: 'PUT /referendums/:postId/:chain' }, "DAO context missing");
       return errorResponse(res, 400, 'DAO context could not be determined');
     }
 
@@ -274,7 +272,7 @@ router.put("/:postId/:chain", addDaoContext, requireDaoMembership, async (req: R
 router.get("/:postId/actions", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
-      logger.error({ path: req.path, postId: req.params.postId }, "DAO context missing for GET /referendums/:postId/actions");
+      logger.error({ path: req.path, operation: 'GET /referendums/:postId/actions' }, "DAO context missing");
       return errorResponse(res, 400, 'DAO context could not be determined');
     }
 
@@ -310,7 +308,7 @@ router.get("/:postId/actions", addDaoContext, requireDaoMembership, async (req: 
 router.post("/:postId/actions", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
-      logger.error({ path: req.path, postId: req.params.postId }, "DAO context missing for POST /referendums/:postId/actions");
+      logger.error({ path: req.path, operation: 'POST /referendums/:postId/actions' }, "DAO context missing");
       return errorResponse(res, 400, 'DAO context could not be determined');
     }
 
@@ -345,7 +343,7 @@ router.post("/:postId/actions", addDaoContext, requireDaoMembership, requireTeam
 router.delete("/:postId/actions", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
-      logger.error({ path: req.path, postId: req.params.postId }, "DAO context missing for DELETE /referendums/:postId/actions");
+      logger.error({ path: req.path, operation: 'DELETE /referendums/:postId/actions' }, "DAO context missing");
       return errorResponse(res, 400, 'DAO context could not be determined');
     }
 
@@ -384,7 +382,7 @@ router.delete("/:postId/actions", addDaoContext, requireDaoMembership, requireTe
 router.post("/:postId/assign", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
-      logger.error({ path: req.path, postId: req.params.postId }, "DAO context missing for POST /referendums/:postId/assign");
+      logger.error({ path: req.path, operation: 'POST /referendums/:postId/assign' }, "DAO context missing");
       return errorResponse(res, 400, 'DAO context could not be determined');
     }
 
@@ -425,7 +423,7 @@ router.post("/:postId/assign", addDaoContext, requireDaoMembership, requireTeamM
 router.post("/:postId/unassign", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
-      logger.error({ path: req.path, postId: req.params.postId }, "DAO context missing for POST /referendums/:postId/unassign");
+      logger.error({ path: req.path, operation: 'POST /referendums/:postId/unassign' }, "DAO context missing");
       return errorResponse(res, 400, 'DAO context could not be determined');
     }
 
@@ -459,7 +457,7 @@ router.post("/:postId/unassign", addDaoContext, requireDaoMembership, requireTea
 router.get("/:postId/comments", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
-      logger.error({ path: req.path, postId: req.params.postId }, "DAO context missing for GET /referendums/:postId/comments");
+      logger.error({ path: req.path, operation: 'GET /referendums/:postId/comments' }, "DAO context missing");
       return errorResponse(res, 400, 'DAO context could not be determined');
     }
 
@@ -556,7 +554,7 @@ router.delete("/comments/:commentId", requireTeamMember, async (req: Request, re
 router.get("/:postId/agreement-summary", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
-      logger.error({ path: req.path, postId: req.params.postId }, "DAO context missing for GET /referendums/:postId/agreement-summary");
+      logger.error({ path: req.path, operation: 'GET /referendums/:postId/agreement-summary' }, "DAO context missing");
       return errorResponse(res, 400, 'DAO context could not be determined');
     }
 
