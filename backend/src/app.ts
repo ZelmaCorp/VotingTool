@@ -17,9 +17,14 @@ import { authenticateToken } from "./middleware/auth";
 // Route configuration
 import { configureRoutes } from "./routes";
 
-// Version will be injected by build script
-// Fallback version for development
-let APP_VERSION = "2.0.0-fallback";
+// Version from package.json (via build script) or fallback for development
+let APP_VERSION = "3.0.0-dev";
+try {
+  const versionInfo = require('./version.json');
+  APP_VERSION = versionInfo.version;
+} catch (error) {
+  // version.json not found, using fallback (run 'npm run build:version' to generate it)
+}
 
 const logger = createSubsystemLogger(Subsystem.APP);
 

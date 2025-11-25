@@ -131,6 +131,29 @@
         </div>
       </div>
 
+      <!-- Step 4: Success -->
+      <div v-if="step === 'success'" class="step-content">
+        <div class="success-container">
+          <div class="success-icon">✅</div>
+          <div class="success-title">Connected Successfully!</div>
+          
+          <div v-if="connectedDaoName" class="dao-info">
+            <div class="dao-label">Connected to DAO:</div>
+            <div class="dao-name-display">{{ connectedDaoName }}</div>
+          </div>
+          
+          <div class="success-description">
+            You are now authenticated and connected to your DAO.
+          </div>
+          
+          <div class="step-actions">
+            <button @click="$emit('close')" class="btn-primary">
+              Continue
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Error State -->
       <div v-if="error" class="error-message">
         <div class="error-icon">⚠️</div>
@@ -197,7 +220,7 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const step = ref<'select' | 'accounts' | 'sign'>('select')
+const step = ref<'select' | 'accounts' | 'sign' | 'success'>('select')
 const accounts = ref<Account[]>([])
 const selectedAccount = ref<Account | null>(null)
 const isConnecting = ref(false)
@@ -205,6 +228,7 @@ const isSigning = ref(false)
 const error = ref('')
 const messageToSign = ref('')
 const extensionStatus = ref<'checking' | 'not-found' | 'found'>('checking')
+const connectedDaoName = ref<string>('')
 
 const availableWallets = computed(() => {
   return window.opengovVotingToolResult?.availableWallets || []
@@ -237,15 +261,9 @@ onUnmounted(() => {
 })
 
 const checkForExtension = () => {
-  console.log('🔍 Checking for Polkadot Extension...')
-  console.log('🔍 Current opengovVotingToolResult:', window.opengovVotingToolResult)
-  
   // Check if we have results from the page context
   if (window.opengovVotingToolResult) {
-    console.log('📡 Page context result:', window.opengovVotingToolResult)
-    
     if (window.opengovVotingToolResult.hasPolkadotExtension === true) {
-      console.log('✅ Polkadot Extension found via page context!')
       extensionStatus.value = 'found'
       if (checkInterval) {
         clearInterval(checkInterval)
@@ -256,28 +274,19 @@ const checkForExtension = () => {
   }
   
   // Fallback: check directly (might not work due to context isolation)
-  console.log('🔍 Checking directly in extension context...')
-  console.log('window.injectedWeb3:', window.injectedWeb3)
-  console.log('window.injectedWeb3?.["polkadot-js"]:', window.injectedWeb3?.['polkadot-js'])
-  
   if (window.injectedWeb3 && window.injectedWeb3['polkadot-js']) {
-    console.log('✅ Polkadot Extension found directly!')
     extensionStatus.value = 'found'
     if (checkInterval) {
       clearInterval(checkInterval)
       checkInterval = null
     }
   } else {
-    console.log('❌ Polkadot Extension not found')
     extensionStatus.value = 'not-found'
   }
 }
 
 // Add a manual check function
 const manualCheck = () => {
-  console.log('🔄 Manual check triggered...')
-  console.log('🔍 Current opengovVotingToolResult:', window.opengovVotingToolResult)
-  
   // Trigger a page context check
   window.postMessage({
     type: 'CHECK_WALLET_EXTENSION'
@@ -285,9 +294,7 @@ const manualCheck = () => {
   
   // Wait a moment and check again
   setTimeout(() => {
-    console.log('🔍 After manual check, opengovVotingToolResult:', window.opengovVotingToolResult)
     if (window.opengovVotingToolResult?.hasPolkadotExtension) {
-      console.log('✅ Manual check found extension!')
       extensionStatus.value = 'found'
     }
   }, 1000)
@@ -302,8 +309,6 @@ const connectToWallet = async (walletKey: string) => {
   try {
     isConnecting.value = true
     error.value = ''
-    
-    console.log('🔗 Connecting to wallet:', walletKey)
     
     // Send connect request to page context
     window.postMessage({
@@ -323,7 +328,6 @@ const connectToWallet = async (walletKey: string) => {
         const result = window.opengovVotingToolResult.connectionResult
         
         if (result.success) {
-          console.log('✅ Wallet connected successfully:', result.accounts)
           accounts.value = result.accounts
           step.value = 'accounts'
           return
@@ -364,10 +368,6 @@ const handleSignMessage = async () => {
     isSigning.value = true
     error.value = ''
     
-    console.log('✍️ Sending sign message request to page context...')
-    console.log('✍️ Account:', selectedAccount.value.address)
-    console.log('✍️ Message:', messageToSign.value)
-    
     // Send sign request to page context
     window.postMessage({
       type: 'SIGN_MESSAGE',
@@ -379,25 +379,14 @@ const handleSignMessage = async () => {
     let attempts = 0
     const maxAttempts = 160 // Wait up to 80 seconds (1min 20s)
     
-    console.log('⏳ Waiting for signature result...')
-    
     while (attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 500))
       attempts++
       
-      console.log(`🔍 Attempt ${attempts}/${maxAttempts}: Checking for signature result...`)
-      console.log('🔍 Current opengovVotingToolResult:', window.opengovVotingToolResult)
-      console.log('🔍 signatureResult:', window.opengovVotingToolResult?.signatureResult)
-      
       if (window.opengovVotingToolResult?.signatureResult) {
         const result = window.opengovVotingToolResult.signatureResult
         
-        console.log('🎯 Found signature result:', result)
-        
         if (result.success && result.signature) {
-          console.log('✅ Received signature from page context:', result.signature)
-          console.log('🚀 Starting authentication with authStore.login...')
-          
           // Attempt login with the signature
           const loginResult = await authStore.login(
             selectedAccount.value.address,
@@ -405,14 +394,16 @@ const handleSignMessage = async () => {
             messageToSign.value
           )
           
-          console.log('🔐 Authentication result:', loginResult)
-          
           if (loginResult.success) {
-            console.log('🎉 Authentication successful!')
-            emit('close')
+            // Show DAO connection confirmation
+            if (loginResult.daoName) {
+              connectedDaoName.value = loginResult.daoName
+              step.value = 'success'
+            } else {
+              // No DAO info, just close
+              emit('close')
+            }
           } else {
-            console.log('❌ Authentication failed:', loginResult.error)
-            
             // Check if this is a multisig access denied error
             if (loginResult.details && loginResult.details.reason) {
               error.value = formatMultisigError(loginResult.details)
@@ -422,14 +413,12 @@ const handleSignMessage = async () => {
           }
           return
         } else {
-          console.log('❌ Signature result indicates failure:', result)
           throw new Error(result.error || 'Failed to sign message')
         }
       }
     }
     
     // If we get here, we didn't receive a signature
-    console.log('⏰ Timeout waiting for signature result')
     throw new Error('Timeout waiting for signature from Polkadot Extension')
     
   } catch (err) {
@@ -470,15 +459,14 @@ const getWalletIcon = (walletKey: string) => {
   }
 }
 
-const getWalletEmoji = (walletKey: string) => {
+const getWalletEmoji = (_walletKey: string) => {
   // Fallback emoji icon when SVG fails to load - same for all wallets
   return '💼' // Generic wallet icon for all wallets
 }
 
-const handleIconError = (event: Event) => {
+const handleIconError = (_event: Event) => {
   // This function is called when an image fails to load
   // The onerror inline handler will handle the fallback display
-  console.log('Wallet icon failed to load, falling back to emoji')
 }
 
 const clearError = () => {
@@ -862,5 +850,50 @@ Your address: ${address}${configuredMultisigs}
 
 .no-wallets-text {
   font-size: 14px;
+}
+
+.success-container {
+  text-align: center;
+  padding: 24px;
+}
+
+.success-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.success-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #28a745;
+  margin-bottom: 16px;
+}
+
+.dao-info {
+  background: #f8f9fa;
+  border: 1px solid #e1e5e9;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.dao-label {
+  font-size: 12px;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.dao-name-display {
+  font-size: 18px;
+  font-weight: 600;
+  color: #e6007a;
+}
+
+.success-description {
+  color: #666;
+  margin-bottom: 24px;
+  line-height: 1.5;
 }
 </style> 

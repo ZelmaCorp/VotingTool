@@ -1,6 +1,7 @@
 import { db } from '../connection';
 import { Chain, InternalStatus } from '../../types/properties';
 import { ReferendumRecord, ReferendumWithDetails } from '../types';
+import { logger } from '../../config/logger';
 
 export class Referendum {
     

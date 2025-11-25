@@ -31,74 +31,9 @@ import {
 } from '../utils/daoWorkflow';
 
 /**
- * GET /dao/:daoId
- * Get DAO information (authenticated users only)
- * Returns DAO details without exposing encrypted fields
+ * IMPORTANT: Specific routes must come BEFORE parameterized routes!
+ * /dao/config must be before /dao/:daoId or Express will match "config" as daoId
  */
-router.get("/:daoId", authenticateToken, async (req: Request, res: Response) => {
-  try {
-    const daoId = parseInt(req.params.daoId, 10);
-    
-    if (isNaN(daoId)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid DAO ID'
-      });
-    }
-    
-    const daoInfo = await DaoService.getSafeInfo(daoId);
-    
-    if (!daoInfo) {
-      return res.status(404).json({
-        success: false,
-        error: 'DAO not found'
-      });
-    }
-    
-    logger.info({ daoId, requestedBy: req.user?.address }, 'Retrieved DAO info');
-    res.json({
-      success: true,
-      dao: daoInfo
-    });
-  } catch (error) {
-    logger.error({ error: formatError(error), daoId: req.params.daoId }, 'Error retrieving DAO info');
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
-  }
-});
-
-/**
- * GET /dao/:daoId/stats
- * Get DAO statistics (referendum counts, voting activity, etc.)
- */
-router.get("/:daoId/stats", authenticateToken, async (req: Request, res: Response) => {
-  try {
-    const daoId = parseInt(req.params.daoId, 10);
-    
-    if (isNaN(daoId)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid DAO ID'
-      });
-    }
-    
-    const stats = await DaoService.getStats(daoId);
-    
-    logger.info({ daoId, requestedBy: req.user?.address }, 'Retrieved DAO stats');
-    res.json({
-      success: true,
-      stats
-    });
-  } catch (error) {
-    logger.error({ error: formatError(error), daoId: req.params.daoId }, 'Error retrieving DAO stats');
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
-  }
-});
 
 /** POST /dao/register - Register a new DAO with wallet-based authentication */
 router.post("/register", authenticateToken, async (req: Request, res: Response) => {
@@ -397,6 +332,82 @@ router.post("/cleanup-duplicate-actions", async (req: Request, res: Response) =>
   } catch (error) {
     logger.error({ error: formatError(error) }, "Error during cleanup operation");
     res.status(500).json({ success: false, error: "Internal server error" });
+  }
+});
+
+/**
+ * PARAMETERIZED ROUTES - MUST BE LAST!
+ * These routes with parameters must come after all specific routes
+ * to avoid matching specific paths like "/config" as ":daoId"
+ */
+
+/**
+ * GET /dao/:daoId
+ * Get DAO information (authenticated users only)
+ * Returns DAO details without exposing encrypted fields
+ */
+router.get("/:daoId", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const daoId = parseInt(req.params.daoId, 10);
+    
+    if (isNaN(daoId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid DAO ID'
+      });
+    }
+    
+    const daoInfo = await DaoService.getSafeInfo(daoId);
+    
+    if (!daoInfo) {
+      return res.status(404).json({
+        success: false,
+        error: 'DAO not found'
+      });
+    }
+    
+    logger.info({ daoId, requestedBy: req.user?.address }, 'Retrieved DAO info');
+    res.json({
+      success: true,
+      dao: daoInfo
+    });
+  } catch (error) {
+    logger.error({ error: formatError(error), daoId: req.params.daoId }, 'Error retrieving DAO info');
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
+  }
+});
+
+/**
+ * GET /dao/:daoId/stats
+ * Get DAO statistics (referendum counts, voting activity, etc.)
+ */
+router.get("/:daoId/stats", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const daoId = parseInt(req.params.daoId, 10);
+    
+    if (isNaN(daoId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid DAO ID'
+      });
+    }
+    
+    const stats = await DaoService.getStats(daoId);
+    
+    logger.info({ daoId, requestedBy: req.user?.address }, 'Retrieved DAO stats');
+    res.json({
+      success: true,
+      stats
+    });
+  } catch (error) {
+    logger.error({ error: formatError(error), daoId: req.params.daoId }, 'Error retrieving DAO stats');
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
+    });
   }
 });
 

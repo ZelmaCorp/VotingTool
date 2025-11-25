@@ -664,7 +664,7 @@ const normalSync = async () => {
   syncing.value = true
   try {
     const apiService = ApiService.getInstance()
-    const result = await apiService.refreshReferenda(30)
+    const result = await apiService.refreshReferenda('normal')
     if (result.success) {
       console.log('Normal sync started:', result.message)
     } else {
@@ -681,7 +681,7 @@ const deepSync = async () => {
   syncing.value = true
   try {
     const apiService = ApiService.getInstance()
-    const result = await apiService.refreshReferenda(100)
+    const result = await apiService.refreshReferenda('deep')
     if (result.success) {
       console.log('Deep sync started:', result.message)
     } else {

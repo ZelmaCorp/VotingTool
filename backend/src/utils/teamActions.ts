@@ -75,11 +75,12 @@ export async function upsertTeamAction(
   referendumId: number,
   teamMemberId: string,
   action: ReferendumAction,
+  daoId: number,
   reason?: string
 ): Promise<void> {
   const existingAction = await db.get(
-    "SELECT id FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ?",
-    [referendumId, teamMemberId, ReferendumAction.RESPONSIBLE_PERSON]
+    "SELECT id FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type != ? AND dao_id = ?",
+    [referendumId, teamMemberId, ReferendumAction.RESPONSIBLE_PERSON, daoId]
   );
   
   if (existingAction) {
@@ -87,8 +88,8 @@ export async function upsertTeamAction(
   }
   
   await db.run(
-    "INSERT INTO referendum_team_roles (referendum_id, team_member_id, role_type, reason) VALUES (?, ?, ?, ?)",
-    [referendumId, teamMemberId, action, reason || null]
+    "INSERT INTO referendum_team_roles (referendum_id, dao_id, team_member_id, role_type, reason) VALUES (?, ?, ?, ?, ?)",
+    [referendumId, daoId, teamMemberId, action, reason || null]
   );
 }
 
@@ -98,11 +99,12 @@ export async function upsertTeamAction(
 export async function deleteTeamAction(
   referendumId: number,
   teamMemberId: string,
-  action: ReferendumAction
+  action: ReferendumAction,
+  daoId: number
 ): Promise<boolean> {
   const result = await db.run(
-    "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ?",
-    [referendumId, teamMemberId, action]
+    "DELETE FROM referendum_team_roles WHERE referendum_id = ? AND team_member_id = ? AND role_type = ? AND dao_id = ?",
+    [referendumId, teamMemberId, action, daoId]
   );
   
   return (result.changes ?? 0) > 0;

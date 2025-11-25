@@ -11,7 +11,7 @@
       <div class="error-icon">⚠️</div>
       <h3>Error Loading Data</h3>
       <p>{{ error }}</p>
-      <button @click="loadData" class="retry-btn">Try Again</button>
+      <button @click="() => loadData()" class="retry-btn">Try Again</button>
     </div>
 
     <!-- Workflow Content -->
@@ -149,24 +149,28 @@ const loadData = async (retryCount = 0) => {
     const daoConfig = await apiService.getDAOConfig();
     if (!daoConfig) {
       if (retryCount < MAX_RETRIES) {
-        console.log(`Retrying DAO config load (attempt ${retryCount + 1}/${MAX_RETRIES})...`);
         await sleep(RETRY_DELAY);
         return loadData(retryCount + 1);
       }
-      throw new Error('Could not load team configuration after multiple attempts.');
+      
+      throw new Error(
+        'Could not load DAO configuration.\n\n' +
+        'This usually means your wallet address is not registered in any DAO\'s team members. ' +
+        'Please contact your DAO administrator.'
+      );
     }
     
-    // Set team members in store
-    teamStore.setTeamMembers(daoConfig.team_members);
+    // Set team members in store (cast to any to handle type differences)
+    teamStore.setTeamMembers(daoConfig.team_members as any);
 
     // Now get workflow data
     const data = await apiService.getTeamWorkflowData();
     if (!data) {
       if (retryCount < MAX_RETRIES) {
-        console.log(`Retrying workflow data load (attempt ${retryCount + 1}/${MAX_RETRIES})...`);
         await sleep(RETRY_DELAY);
         return loadData(retryCount + 1);
       }
+      
       throw new Error('Could not load workflow data after multiple attempts.');
     }
 
