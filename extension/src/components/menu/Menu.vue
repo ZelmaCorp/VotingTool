@@ -22,6 +22,9 @@
         <button @click="showWalletConnect = true" class="connect-btn">
           Connect Wallet
         </button>
+        <button @click="handleAction('settings-more')" class="settings-link-btn">
+          ⚙️ Configure Backend URL
+        </button>
       </div>
     </div>
 
@@ -42,6 +45,9 @@
       <p class="prompt-note">
         You must be a member of the multisig to complete registration.
       </p>
+      <button @click="handleAction('settings-more')" class="settings-link-btn-small">
+        ⚙️ Settings
+      </button>
     </div>
 
     <!-- Menu Items (only shown when user is DAO member) -->
@@ -485,5 +491,40 @@ window.addEventListener('authStateChanged', () => {
   color: #999 !important;
   margin-top: 16px !important;
   font-style: italic;
+}
+
+.settings-link-btn {
+  background: transparent;
+  color: #666;
+  border: 1px solid #dee2e6;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 12px;
+}
+
+.settings-link-btn:hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
+}
+
+.settings-link-btn-small {
+  background: transparent;
+  color: #666;
+  border: 1px solid #dee2e6;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 12px;
+}
+
+.settings-link-btn-small:hover {
+  background: #f8f9fa;
+  border-color: #adb5bd;
 }
 </style> 
