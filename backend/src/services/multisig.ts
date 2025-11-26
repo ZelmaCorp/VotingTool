@@ -316,24 +316,88 @@ export class MultisigService {
   async isTeamMember(walletAddress: string, multisigAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): Promise<boolean> {
     const members = await this.getCachedTeamMembers(multisigAddress, network);
     
+    logger.info({
+      searchingFor: walletAddress,
+      network,
+      multisigAddress,
+      memberCount: members.length,
+      memberAddresses: members.map(m => m.wallet_address)
+    }, 'Checking team membership with all address formats');
+    
     // Try exact match first
     let isMember = members.some(member => member.wallet_address === walletAddress);
     
+    if (isMember) {
+      logger.info({ walletAddress, matchType: 'exact' }, 'Found exact address match');
+      return true;
+    }
+    
     // If no exact match, try the converted network-specific address
-    if (!isMember) {
-      const networkAddress = this.convertToNetworkAddress(walletAddress, network);
-      isMember = members.some(member => member.wallet_address === networkAddress);
+    const networkAddress = this.convertToNetworkAddress(walletAddress, network);
+    logger.info({ 
+      originalAddress: walletAddress, 
+      networkAddress, 
+      network 
+    }, 'Trying network-converted address');
+    
+    isMember = members.some(member => member.wallet_address === networkAddress);
+    
+    if (isMember) {
+      logger.info({ networkAddress, matchType: 'network-converted' }, 'Found network-converted address match');
+      return true;
     }
     
     // If still no match, try case-insensitive and trimmed comparison
-    if (!isMember) {
-      const normalizedWalletAddress = walletAddress.trim().toLowerCase();
-      isMember = members.some(member => 
-        member.wallet_address.trim().toLowerCase() === normalizedWalletAddress
-      );
+    const normalizedWalletAddress = walletAddress.trim().toLowerCase();
+    logger.info({ normalizedWalletAddress }, 'Trying normalized address comparison');
+    
+    isMember = members.some(member => 
+      member.wallet_address.trim().toLowerCase() === normalizedWalletAddress
+    );
+    
+    if (isMember) {
+      logger.info({ normalizedWalletAddress, matchType: 'normalized' }, 'Found normalized address match');
+      return true;
     }
     
-    return isMember;
+    // Try comparing raw public keys (works across all address formats)
+    logger.info('Trying public key comparison across address formats');
+    try {
+      const walletPublicKey = decodeAddress(walletAddress);
+      const walletPublicKeyHex = Buffer.from(walletPublicKey).toString('hex');
+      
+      for (const member of members) {
+        try {
+          const memberPublicKey = decodeAddress(member.wallet_address);
+          const memberPublicKeyHex = Buffer.from(memberPublicKey).toString('hex');
+          
+          if (walletPublicKeyHex === memberPublicKeyHex) {
+            logger.info({ 
+              memberAddress: member.wallet_address,
+              walletAddress,
+              publicKey: walletPublicKeyHex.substring(0, 16) + '...',
+              matchType: 'public-key'
+            }, 'Found match via public key comparison');
+            return true;
+          }
+        } catch (memberDecodeError) {
+          // Skip this member if decoding fails
+          continue;
+        }
+      }
+    } catch (walletDecodeError) {
+      logger.warn({ walletAddress, error: formatError(walletDecodeError) }, 'Failed to decode wallet address');
+    }
+    
+    logger.warn({ 
+      walletAddress, 
+      networkAddress, 
+      normalizedWalletAddress,
+      memberCount: members.length,
+      sampleMemberAddresses: members.slice(0, 3).map(m => m.wallet_address)
+    }, 'No address match found with any method');
+    
+    return false;
   }
 
   /**
