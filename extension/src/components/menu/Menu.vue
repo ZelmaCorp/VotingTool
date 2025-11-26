@@ -25,8 +25,27 @@
       </div>
     </div>
 
-    <!-- Menu Items -->
-    <div class="menu-items">
+    <!-- Loading State -->
+    <div v-if="authStore.state.isAuthenticated && isCheckingDaoMembership" class="loading-container">
+      <div class="spinner-small"></div>
+      <p class="loading-text">Checking DAO membership...</p>
+    </div>
+
+    <!-- DAO Registration Prompt -->
+    <div v-if="authStore.state.isAuthenticated && !isCheckingDaoMembership && !isDaoMember" class="registration-prompt">
+      <div class="prompt-icon">🏛️</div>
+      <h4>Register Your DAO</h4>
+      <p>To access the voting tool features, you need to register your DAO's multisig.</p>
+      <button @click="handleAction('register-dao')" class="register-btn">
+        Register DAO
+      </button>
+      <p class="prompt-note">
+        You must be a member of the multisig to complete registration.
+      </p>
+    </div>
+
+    <!-- Menu Items (only shown when user is DAO member) -->
+    <div v-if="authStore.state.isAuthenticated && !isCheckingDaoMembership && isDaoMember" class="menu-items">
       <div 
         class="menu-item" 
         @click="handleAction('browse-proposals')"
@@ -86,24 +105,36 @@
       @close="showDAOConfig = false"
       @saved="handleConfigSaved"
     />
+
+    <!-- DAO Registration Modal -->
+    <DAORegistrationModal 
+      :show="showDAORegistration"
+      @close="showDAORegistration = false"
+      @registered="handleDaoRegistered"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { authStore } from '../../stores/authStore'
 import { formatAddress } from '../../utils/teamUtils'
+import { ApiService } from '../../utils/apiService'
 import WalletConnect from '../WalletConnect.vue'
 import DAOConfigModal from '../modals/DAOConfigModal.vue'
+import DAORegistrationModal from '../modals/DAORegistrationModal.vue'
 import ProposalBrowser from './ProposalBrowser.vue'
 import SettingsMore from './SettingsMore.vue'
 import Dashboard from './Dashboard/Dashboard.vue'
 
 const showWalletConnect = ref(false)
 const showDAOConfig = ref(false)
+const showDAORegistration = ref(false)
 const showProposalBrowser = ref(false)
 const showUnifiedDashboard = ref(false)
 const showSettingsMore = ref(false)
+const isDaoMember = ref(false)
+const isCheckingDaoMembership = ref(false)
 
 const getUserInitials = () => {
   const name = authStore.state.user?.name
@@ -113,6 +144,7 @@ const getUserInitials = () => {
 
 const handleLogout = async () => {
   await authStore.logout()
+  isDaoMember.value = false
 }
 
 const handleAction = (action: string) => {
@@ -126,12 +158,82 @@ const handleAction = (action: string) => {
     case 'settings-more':
       showSettingsMore.value = true
       break
+    case 'register-dao':
+      showDAORegistration.value = true
+      break
   }
 }
 
 const handleConfigSaved = () => {
   showDAOConfig.value = false
 }
+
+const handleDaoRegistered = async (daoName: string) => {
+  console.log('DAO registered:', daoName)
+  showDAORegistration.value = false
+  
+  // Re-check DAO membership
+  await checkDaoMembership()
+  
+  // Dispatch event to notify other components
+  window.dispatchEvent(new CustomEvent('daoRegistered', { 
+    detail: { daoName } 
+  }))
+}
+
+const checkDaoMembership = async () => {
+  if (!authStore.state.isAuthenticated) {
+    isDaoMember.value = false
+    return
+  }
+  
+  isCheckingDaoMembership.value = true
+  
+  try {
+    const apiService = ApiService.getInstance()
+    const config = await apiService.getDAOConfig()
+    
+    if (config && config.name) {
+      isDaoMember.value = true
+      console.log('✅ User is member of DAO:', config.name)
+    } else {
+      isDaoMember.value = false
+      console.log('ℹ️ User is not a member of any DAO - registration required')
+    }
+  } catch (error: any) {
+    console.error('❌ Error checking DAO membership:', error)
+    
+    // If this is a 403 error (not a DAO member), that's expected
+    // If it's a 401 error, the token is invalid - logout
+    if (error.status === 401) {
+      console.warn('⚠️ Token invalid, logging out...')
+      await authStore.logout()
+    }
+    
+    isDaoMember.value = false
+  } finally {
+    isCheckingDaoMembership.value = false
+  }
+}
+
+// Check DAO membership when component mounts
+onMounted(() => {
+  checkDaoMembership()
+})
+
+// Watch for authentication changes
+watch(() => authStore.state.isAuthenticated, (newValue) => {
+  if (newValue) {
+    checkDaoMembership()
+  } else {
+    isDaoMember.value = false
+  }
+})
+
+// Listen for auth state changes from wallet connection
+window.addEventListener('authStateChanged', () => {
+  checkDaoMembership()
+})
 </script>
 
 <style scoped>
@@ -298,5 +400,90 @@ const handleConfigSaved = () => {
   max-width: 90vw;
   max-height: 90vh;
   overflow: auto;
+}
+
+/* Loading state */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.spinner-small {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #f0f0f0;
+  border-top: 3px solid #e6007a;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-text {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+/* Registration prompt */
+.registration-prompt {
+  padding: 32px 20px;
+  text-align: center;
+  background: linear-gradient(135deg, #fff5f7, #fef5f8);
+  border-radius: 12px;
+  margin: 16px;
+  border: 2px dashed #e6007a;
+}
+
+.prompt-icon {
+  font-size: 3rem;
+  margin-bottom: 16px;
+}
+
+.registration-prompt h4 {
+  font-size: 1.3rem;
+  color: #333;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+}
+
+.registration-prompt p {
+  font-size: 0.95rem;
+  color: #666;
+  margin: 0 0 20px 0;
+  line-height: 1.5;
+}
+
+.register-btn {
+  background: linear-gradient(135deg, #e6007a, #ff1493);
+  color: white;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(230, 0, 122, 0.2);
+}
+
+.register-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(230, 0, 122, 0.3);
+}
+
+.prompt-note {
+  font-size: 0.85rem !important;
+  color: #999 !important;
+  margin-top: 16px !important;
+  font-style: italic;
 }
 </style> 
