@@ -222,15 +222,31 @@ export class MultisigService {
         if (accountData.delegate?.conviction_delegated) {
           for (const entry of accountData.delegate.conviction_delegated) {
             if (entry.account?.address) {
+              const displayName = entry.account.people?.display || entry.account.display_name || entry.account.name || null;
+              
+              logger.debug({ 
+                address: entry.account.address,
+                people: entry.account.people,
+                display: entry.account.people?.display,
+                display_name: entry.account.display_name,
+                name: entry.account.name,
+                finalName: displayName
+              }, 'Processing delegate member');
+              
               members.push({
                 wallet_address: entry.account.address,
-                team_member_name: entry.account.people?.display || 'Unknown',
+                team_member_name: displayName || 'Unknown',
                 network: network
               });
             }
           }
           
-          logger.info({ network, targetAddress, membersCount: members.length }, 'Successfully extracted members from delegate account');
+          logger.info({ 
+            network, 
+            targetAddress, 
+            membersCount: members.length,
+            membersWithNames: members.filter(m => m.team_member_name !== 'Unknown').length
+          }, 'Successfully extracted members from delegate account');
           return members;
         }
 
@@ -245,15 +261,35 @@ export class MultisigService {
           
           for (const entry of accountData.multisig.multi_account_member) {
             if (entry.address) {
+              const displayName = entry.people?.display || entry.display_name || entry.name || entry.display || null;
+              
+              logger.debug({ 
+                address: entry.address,
+                people: entry.people,
+                peopleDisplay: entry.people?.display,
+                display_name: entry.display_name,
+                name: entry.name,
+                display: entry.display,
+                finalName: displayName,
+                fullEntry: JSON.stringify(entry)
+              }, 'Processing multisig member');
+              
               members.push({
                 wallet_address: entry.address,
-                team_member_name: entry.people?.display || 'Unknown',
+                team_member_name: displayName || 'Unknown',
                 network: network
               });
             }
           }
           
-          logger.info({ network, targetAddress, membersCount: members.length, threshold }, 'Successfully extracted members from direct multisig account');
+          logger.info({ 
+            network, 
+            targetAddress, 
+            membersCount: members.length, 
+            threshold,
+            membersWithNames: members.filter(m => m.team_member_name !== 'Unknown').length,
+            sampleMember: members[0]
+          }, 'Successfully extracted members from direct multisig account');
           return members;
         }
 
