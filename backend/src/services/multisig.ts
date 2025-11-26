@@ -224,15 +224,6 @@ export class MultisigService {
             if (entry.account?.address) {
               const displayName = entry.account.people?.display || entry.account.display_name || entry.account.name || null;
               
-              logger.debug({ 
-                address: entry.account.address,
-                people: entry.account.people,
-                display: entry.account.people?.display,
-                display_name: entry.account.display_name,
-                name: entry.account.name,
-                finalName: displayName
-              }, 'Processing delegate member');
-              
               members.push({
                 wallet_address: entry.account.address,
                 team_member_name: displayName || 'Unknown',
@@ -241,12 +232,7 @@ export class MultisigService {
             }
           }
           
-          logger.info({ 
-            network, 
-            targetAddress, 
-            membersCount: members.length,
-            membersWithNames: members.filter(m => m.team_member_name !== 'Unknown').length
-          }, 'Successfully extracted members from delegate account');
+          logger.info({ network, targetAddress, membersCount: members.length }, 'Successfully extracted members from delegate account');
           return members;
         }
 
@@ -256,23 +242,11 @@ export class MultisigService {
           if (threshold) {
             const cacheKey = `threshold_${network}_${multisigAddress}`;
             this.thresholdCache.set(cacheKey, parseInt(threshold));
-            logger.info({ network, multisigAddress, threshold }, 'Extracted multisig threshold from API');
           }
           
           for (const entry of accountData.multisig.multi_account_member) {
             if (entry.address) {
               const displayName = entry.people?.display || entry.display_name || entry.name || entry.display || null;
-              
-              logger.debug({ 
-                address: entry.address,
-                people: entry.people,
-                peopleDisplay: entry.people?.display,
-                display_name: entry.display_name,
-                name: entry.name,
-                display: entry.display,
-                finalName: displayName,
-                fullEntry: JSON.stringify(entry)
-              }, 'Processing multisig member');
               
               members.push({
                 wallet_address: entry.address,
@@ -282,14 +256,7 @@ export class MultisigService {
             }
           }
           
-          logger.info({ 
-            network, 
-            targetAddress, 
-            membersCount: members.length, 
-            threshold,
-            membersWithNames: members.filter(m => m.team_member_name !== 'Unknown').length,
-            sampleMember: members[0]
-          }, 'Successfully extracted members from direct multisig account');
+          logger.info({ network, targetAddress, membersCount: members.length, threshold }, 'Successfully extracted members from direct multisig account');
           return members;
         }
 
@@ -316,52 +283,23 @@ export class MultisigService {
   async isTeamMember(walletAddress: string, multisigAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): Promise<boolean> {
     const members = await this.getCachedTeamMembers(multisigAddress, network);
     
-    logger.info({
-      searchingFor: walletAddress,
-      network,
-      multisigAddress,
-      memberCount: members.length,
-      memberAddresses: members.map(m => m.wallet_address)
-    }, 'Checking team membership with all address formats');
-    
     // Try exact match first
     let isMember = members.some(member => member.wallet_address === walletAddress);
-    
-    if (isMember) {
-      logger.info({ walletAddress, matchType: 'exact' }, 'Found exact address match');
-      return true;
-    }
+    if (isMember) return true;
     
     // If no exact match, try the converted network-specific address
     const networkAddress = this.convertToNetworkAddress(walletAddress, network);
-    logger.info({ 
-      originalAddress: walletAddress, 
-      networkAddress, 
-      network 
-    }, 'Trying network-converted address');
-    
     isMember = members.some(member => member.wallet_address === networkAddress);
-    
-    if (isMember) {
-      logger.info({ networkAddress, matchType: 'network-converted' }, 'Found network-converted address match');
-      return true;
-    }
+    if (isMember) return true;
     
     // If still no match, try case-insensitive and trimmed comparison
     const normalizedWalletAddress = walletAddress.trim().toLowerCase();
-    logger.info({ normalizedWalletAddress }, 'Trying normalized address comparison');
-    
     isMember = members.some(member => 
       member.wallet_address.trim().toLowerCase() === normalizedWalletAddress
     );
-    
-    if (isMember) {
-      logger.info({ normalizedWalletAddress, matchType: 'normalized' }, 'Found normalized address match');
-      return true;
-    }
+    if (isMember) return true;
     
     // Try comparing raw public keys (works across all address formats)
-    logger.info('Trying public key comparison across address formats');
     try {
       const walletPublicKey = decodeAddress(walletAddress);
       const walletPublicKeyHex = Buffer.from(walletPublicKey).toString('hex');
@@ -372,30 +310,15 @@ export class MultisigService {
           const memberPublicKeyHex = Buffer.from(memberPublicKey).toString('hex');
           
           if (walletPublicKeyHex === memberPublicKeyHex) {
-            logger.info({ 
-              memberAddress: member.wallet_address,
-              walletAddress,
-              publicKey: walletPublicKeyHex.substring(0, 16) + '...',
-              matchType: 'public-key'
-            }, 'Found match via public key comparison');
             return true;
           }
         } catch (memberDecodeError) {
-          // Skip this member if decoding fails
           continue;
         }
       }
     } catch (walletDecodeError) {
-      logger.warn({ walletAddress, error: formatError(walletDecodeError) }, 'Failed to decode wallet address');
+      logger.warn({ walletAddress }, 'Failed to decode wallet address for public key comparison');
     }
-    
-    logger.warn({ 
-      walletAddress, 
-      networkAddress, 
-      normalizedWalletAddress,
-      memberCount: members.length,
-      sampleMemberAddresses: members.slice(0, 3).map(m => m.wallet_address)
-    }, 'No address match found with any method');
     
     return false;
   }

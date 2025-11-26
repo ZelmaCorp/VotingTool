@@ -64,30 +64,16 @@ router.post("/register", authenticateToken, async (req: Request, res: Response) 
     // Fetch and cache team member data from blockchain
     try {
       if (polkadotMultisig) {
-        const polkadotMembers = await DaoService.getMembers(daoId, Chain.Polkadot);
-        logger.info({ 
-          daoId, 
-          chain: 'Polkadot', 
-          memberCount: polkadotMembers.length,
-          members: polkadotMembers.map(m => ({ address: m.wallet_address, name: m.team_member_name }))
-        }, 'Fetched Polkadot multisig members');
+        await DaoService.getMembers(daoId, Chain.Polkadot);
       }
-      
       if (kusamaMultisig) {
-        const kusamaMembers = await DaoService.getMembers(daoId, Chain.Kusama);
-        logger.info({ 
-          daoId, 
-          chain: 'Kusama', 
-          memberCount: kusamaMembers.length,
-          members: kusamaMembers.map(m => ({ address: m.wallet_address, name: m.team_member_name }))
-        }, 'Fetched Kusama multisig members');
+        await DaoService.getMembers(daoId, Chain.Kusama);
       }
     } catch (memberFetchError) {
-      // Don't fail registration if member fetch fails, just log it
       logger.warn({ error: formatError(memberFetchError), daoId }, 'Failed to fetch team members after registration');
     }
     
-    logger.info({ daoId, name: name.trim(), walletAddress, chains: verification.chains }, 'DAO registered');
+    logger.info({ daoId, name: name.trim(), walletAddress, chains: verification.chains }, 'DAO registered successfully');
     res.status(201).json({ 
       success: true, 
       message: 'DAO registered successfully', 

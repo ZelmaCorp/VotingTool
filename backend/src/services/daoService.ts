@@ -64,30 +64,9 @@ export class DaoService {
         }
         
         const network = chain === Chain.Polkadot ? 'Polkadot' : 'Kusama';
-        
-        // Get all members first to log them
-        const members = await this.multisigService.getCachedTeamMembers(multisigAddress, network as "Polkadot" | "Kusama");
-        
-        logger.info({ 
-            daoId: id, 
-            walletAddress, 
-            chain,
-            multisigAddress,
-            cachedMemberCount: members.length,
-            cachedMemberAddresses: members.map(m => m.wallet_address).slice(0, 3), // Show first 3
-            sampleMemberNames: members.map(m => m.team_member_name).slice(0, 3)
-        }, 'Checking multisig membership with cached data');
-        
         const isMember = await this.multisigService.isTeamMember(walletAddress, multisigAddress, network as "Polkadot" | "Kusama");
         
-        logger.info({ 
-            daoId: id, 
-            walletAddress, 
-            chain, 
-            isMember,
-            multisigAddress 
-        }, isMember ? 'Membership confirmed' : 'Membership check failed');
-        
+        logger.debug({ daoId: id, walletAddress, chain, isMember }, 'Checked multisig membership');
         return isMember;
     }
 
