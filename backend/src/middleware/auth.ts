@@ -128,13 +128,9 @@ export async function addDaoContext(req: Request, res: Response, next: NextFunct
 
     if (multisigAddress) {
       // Frontend specified a multisig - find the DAO by multisig address
-      logger.debug({ multisigAddress, chain, walletAddress }, "Multisig address header provided, finding DAO");
-      
       const dao = await DaoService.findByMultisig(multisigAddress, chain);
       
       if (dao) {
-        logger.debug({ daoId: dao.id, daoName: dao.name }, "DAO found, checking membership");
-        
         // Verify user is actually a member of this DAO's multisig
         const isMember = await DaoService.isValidMember(dao.id, walletAddress, chain);
         
@@ -142,19 +138,19 @@ export async function addDaoContext(req: Request, res: Response, next: NextFunct
           req.daoId = dao.id;
           req.daoIds = [dao.id];
           
-          logger.info({ 
+          logger.debug({ 
             address: walletAddress,
             multisigAddress,
             daoId: dao.id,
             daoName: dao.name
-          }, "DAO context set from multisig address header");
+          }, "DAO context set from multisig address");
         } else {
           logger.error({ 
             address: walletAddress,
             multisigAddress,
             daoId: dao.id,
             daoName: dao.name
-          }, "AUTHENTICATION ERROR: Membership check failed - cache may not be populated");
+          }, "AUTHENTICATION ERROR: User not a member of specified multisig");
         }
       } else {
         logger.error({ 
@@ -165,15 +161,13 @@ export async function addDaoContext(req: Request, res: Response, next: NextFunct
       }
     } else {
       // No multisig specified - find all DAOs this wallet is a member of
-      logger.debug({ walletAddress, chain }, "Finding DAOs for wallet (no multisig header provided)");
-      
       const memberDaos = await DaoService.findDaosForWallet(walletAddress, chain);
 
       if (memberDaos.length > 0) {
         req.daoIds = memberDaos.map(dao => dao.id);
         req.daoId = memberDaos[0].id; // Primary DAO (first one)
         
-        logger.info({ 
+        logger.debug({ 
           address: walletAddress, 
           daoId: req.daoId,
           daoName: memberDaos[0].name,
@@ -186,7 +180,7 @@ export async function addDaoContext(req: Request, res: Response, next: NextFunct
           chain,
           path: req.path,
           method: req.method
-        }, "AUTHENTICATION ERROR: User wallet not found in any DAO multisig - cache may not be populated yet");
+        }, "AUTHENTICATION ERROR: User wallet not found in any DAO multisig - no on-chain membership detected");
       }
     }
 

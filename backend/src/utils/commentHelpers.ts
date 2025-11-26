@@ -97,11 +97,12 @@ export async function getReferendumCommentsFromDb(referendumId: number): Promise
 export async function createReferendumComment(
   referendumId: number,
   userAddress: string,
-  content: string
+  content: string,
+  daoId: number
 ): Promise<number> {
   const result = await db.run(
-    "INSERT INTO referendum_comments (referendum_id, team_member_id, content) VALUES (?, ?, ?)",
-    [referendumId, userAddress, content.trim()]
+    "INSERT INTO referendum_comments (referendum_id, team_member_id, content, dao_id) VALUES (?, ?, ?, ?)",
+    [referendumId, userAddress, content.trim(), daoId]
   );
   return result.lastID!;
 }

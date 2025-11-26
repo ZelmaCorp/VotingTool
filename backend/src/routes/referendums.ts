@@ -492,17 +492,6 @@ router.get("/:postId/comments", addDaoContext, requireDaoMembership, async (req:
  */
 router.post("/:postId/comments", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
-    // Debug logging for DAO context
-    if (!req.daoId) {
-      logger.error({ 
-        user: req.user?.address,
-        isAuthenticated: req.isAuthenticated,
-        path: req.path,
-        method: req.method
-      }, "DAO context missing when trying to add comment");
-      return errorResponse(res, 403, "DAO context could not be determined. Please try refreshing the page.");
-    }
-
     const postId = parseInt(req.params.postId);
     const { chain, content } = req.body;
 
@@ -513,7 +502,7 @@ router.post("/:postId/comments", addDaoContext, requireDaoMembership, requireTea
     const referendum = await findReferendum(postId, chain, res, req.daoId);
     if (!referendum) return;
 
-    const commentId = await createReferendumComment(referendum.id, req.user!.address!, content);
+    const commentId = await createReferendumComment(referendum.id!, req.user!.address!, content, req.daoId!);
 
     return res.status(201).json({
       success: true,
