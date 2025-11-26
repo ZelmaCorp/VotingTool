@@ -1,6 +1,6 @@
 import { Router, Request, Response } from "express";
 import { verifyWeb3Signature, findTeamMemberByAddress, generateAuthToken } from "../utils/auth";
-import { Web3AuthRequest } from "../types/auth";
+import { Web3AuthRequest, AuthenticatedUser } from "../types/auth";
 import { createSubsystemLogger, formatError } from "../config/logger";
 import { Subsystem } from "../types/logging";
 import { requireAuth } from "../middleware/auth";
@@ -34,33 +34,32 @@ router.post("/web3-login", async (req: Request, res: Response) => {
       });
     }
     
-    // Find multisig member by wallet address
+    // Try to find multisig member by wallet address
     const teamMember = await findTeamMemberByAddress(address);
-    if (!teamMember) {
-      logger.warn({ address }, "Wallet address not found in any DAO multisig");
-      return res.status(403).json({
-        success: false,
-        error: "Access denied: Wallet address not registered as multisig member",
-        details: {
-          address: address,
-          reason: "The wallet address you're trying to authenticate with is not a member of any registered DAO multisig accounts",
-          suggestion: "Please ensure you're using a wallet address that is a member of a DAO multisig, or contact an administrator to add your address"
-        }
-      });
-    }
     
     // Generate authentication token
-    const token = generateAuthToken(teamMember);
+    // Allow authentication even if not in a DAO yet (for registration)
+    // DAO membership will be checked by requireDaoMembership middleware on protected endpoints
+    const userForToken: AuthenticatedUser = teamMember || { 
+      address, 
+      name: 'Unregistered User',
+      network: 'Polkadot' 
+    };
     
-    logger.info({ address: teamMember.address }, "User authenticated successfully");
+    const token = generateAuthToken(userForToken);
+    
+    logger.info({ 
+      address, 
+      isRegistered: !!teamMember 
+    }, teamMember ? "User authenticated successfully" : "Unregistered user authenticated (can register DAO)");
     
     res.json({
       success: true,
       token,
       user: {
-        address: teamMember.address,  // Use address field
-        name: teamMember.name,
-        network: teamMember.network
+        address: userForToken.address,
+        name: userForToken.name,
+        network: userForToken.network
       }
     });
     
