@@ -61,13 +61,22 @@ export class MultisigService {
     const now = Date.now();
     const expiry = this.cacheExpiry.get(cacheKey) || 0;
 
-    if (this.cache.has(cacheKey) && now < expiry) {                                             
-      return this.cache.get(cacheKey) || [];
+    if (this.cache.has(cacheKey) && now < expiry) {
+      const cachedMembers = this.cache.get(cacheKey) || [];
+      logger.debug({ network, multisigAddress, memberCount: cachedMembers.length }, 'Using cached team members');
+      return cachedMembers;
     }
 
+    logger.info({ network, multisigAddress }, 'Cache miss or expired, fetching fresh team members from Subscan');
     const members = await this.fetchMultisigMembers(multisigAddress, network);
-    this.cache.set(cacheKey, members);
-    this.cacheExpiry.set(cacheKey, now + this.CACHE_DURATION);
+    
+    if (members.length > 0) {
+      this.cache.set(cacheKey, members);
+      this.cacheExpiry.set(cacheKey, now + this.CACHE_DURATION);
+      logger.info({ network, multisigAddress, memberCount: members.length }, 'Team members cached successfully');
+    } else {
+      logger.warn({ network, multisigAddress }, 'No members returned from Subscan - cache not updated');
+    }
     
     return members;
   }
