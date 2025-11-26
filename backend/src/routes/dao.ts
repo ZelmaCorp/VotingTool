@@ -65,9 +65,17 @@ router.post("/register", authenticateToken, async (req: Request, res: Response) 
     try {
       if (polkadotMultisig) {
         await DaoService.getMembers(daoId, Chain.Polkadot);
+        logger.info({ daoId, chain: Chain.Polkadot }, 'Fetched Polkadot multisig members');
+        
+        // Add delay before Kusama to avoid Subscan rate limits
+        if (kusamaMultisig) {
+          logger.info('Adding delay before Kusama member fetch to avoid rate limits');
+          await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+        }
       }
       if (kusamaMultisig) {
         await DaoService.getMembers(daoId, Chain.Kusama);
+        logger.info({ daoId, chain: Chain.Kusama }, 'Fetched Kusama multisig members');
       }
     } catch (memberFetchError) {
       logger.warn({ error: formatError(memberFetchError), daoId }, 'Failed to fetch team members after registration');

@@ -109,10 +109,30 @@ export const performMultisigVerifications = async (
   kusamaMultisig: string | null,
   walletAddress: string
 ): Promise<{ success: boolean; chains?: Chain[]; errors?: string[] }> => {
-  const verificationResults = await Promise.all([
-    verifyMultisigMembership(polkadotMultisig, walletAddress, Chain.Polkadot),
-    verifyMultisigMembership(kusamaMultisig, walletAddress, Chain.Kusama)
-  ]);
+  // Verify sequentially with delay to avoid Subscan rate limits
+  const results: Array<{ isVerified: boolean; error?: string }> = [];
+  
+  // Verify Polkadot first if provided
+  if (polkadotMultisig) {
+    results.push(await verifyMultisigMembership(polkadotMultisig, walletAddress, Chain.Polkadot));
+    
+    // Add delay before Kusama verification if both are provided
+    if (kusamaMultisig) {
+      logger.info('Adding delay before Kusama verification to avoid rate limits');
+      await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+    }
+  } else {
+    results.push({ isVerified: false });
+  }
+  
+  // Verify Kusama if provided
+  if (kusamaMultisig) {
+    results.push(await verifyMultisigMembership(kusamaMultisig, walletAddress, Chain.Kusama));
+  } else {
+    results.push({ isVerified: false });
+  }
+  
+  const verificationResults = results;
   
   const errors = verificationResults.filter(r => r.error).map(r => r.error!);
   if (errors.length > 0) {
