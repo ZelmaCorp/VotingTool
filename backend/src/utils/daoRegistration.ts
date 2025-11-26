@@ -71,16 +71,29 @@ export const verifyMultisigMembership = async (
   }
   
   try {
+    logger.info({ multisigAddress, walletAddress, chain }, 'Verifying multisig membership');
+    
     const multisigInfo = await multisigService.getMultisigInfo(multisigAddress, chain);
+    
+    logger.info({ 
+      multisigAddress, 
+      chain, 
+      memberCount: multisigInfo?.members?.length || 0,
+      threshold: multisigInfo?.threshold
+    }, 'Multisig info retrieved from Subscan');
+    
     if (!multisigInfo || !multisigInfo.members || multisigInfo.members.length === 0) {
+      logger.warn({ multisigAddress, chain }, 'No members found for multisig');
       return { isVerified: false, error: `${chain} multisig address not found on-chain or has no members` };
     }
     
     const isMember = await multisigService.isTeamMember(walletAddress, multisigAddress, chain);
     if (!isMember) {
+      logger.warn({ walletAddress, multisigAddress, chain }, 'Wallet is not a member of multisig');
       return { isVerified: false, error: `Your wallet address is not a member of the ${chain} multisig` };
     }
     
+    logger.info({ walletAddress, multisigAddress, chain }, 'Multisig membership verified successfully');
     return { isVerified: true };
   } catch (error) {
     logger.error({ error: formatError(error), multisig: multisigAddress, chain }, 'Error verifying multisig');
