@@ -119,6 +119,58 @@ export class MultisigService {
   }
 
   /**
+   * Get the correct Subscan API endpoint for a network
+   * Polkadot uses AssetHub (after migration), Kusama uses relay chain
+   */
+  private getSubscanEndpoint(network: "Polkadot" | "Kusama"): string {
+    if (network === "Kusama") {
+      return `https://kusama.api.subscan.io`;
+    }
+    return `https://assethub-polkadot.api.subscan.io`;
+  }
+
+  /**
+   * Make a Subscan API request with retry logic for rate limiting
+   */
+  private async subscanRequestWithRetry<T = any>(
+    url: string, 
+    data: any, 
+    maxRetries: number = 3,
+    baseDelay: number = 1000
+  ): Promise<T> {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const response = await axios.post(url, data, {
+          headers: {
+            'X-API-Key': this.subscanApiKey,
+            'Content-Type': 'application/json'
+          }
+        });
+        return response.data;
+      } catch (error: any) {
+        const isRateLimited = error.response?.status === 429;
+        const isLastAttempt = attempt === maxRetries - 1;
+        
+        if (isRateLimited && !isLastAttempt) {
+          const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff
+          logger.warn({ 
+            attempt: attempt + 1, 
+            maxRetries, 
+            delay,
+            url 
+          }, 'Rate limited by Subscan, retrying after delay...');
+          
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+        
+        throw error;
+      }
+    }
+    throw new Error('Max retries exceeded');
+  }
+
+  /**
    * Check if a multisig address is a proxy/delegate and extract parent address
    * @param multisigAddress - The multisig address to check
    * @param network - The network (Polkadot or Kusama)
@@ -133,13 +185,16 @@ export class MultisigService {
     }
 
     try {
+      const endpoint = this.getSubscanEndpoint(network);
       const responseData = await this.subscanRequestWithRetry(
-        `https://assethub-${network.toLowerCase()}.api.subscan.io/api/v2/scan/search`,
+        `${endpoint}/api/v2/scan/search`,
         { key: multisigAddress }
       );
 
-      if (responseData.code === 0 && responseData.data?.account) {
-        const accountData = responseData.data.account;
+      const response = { data: responseData };
+
+      if (response.data.code === 0 && response.data.data?.account) {
+        const accountData = response.data.data.account;
         
         if (accountData.delegate?.conviction_delegated) {
           for (const entry of accountData.delegate.conviction_delegated) {
@@ -187,47 +242,6 @@ export class MultisigService {
   }
 
   /**
-   * Make a Subscan API request with retry logic for rate limiting
-   */
-  private async subscanRequestWithRetry<T = any>(
-    url: string, 
-    data: any, 
-    maxRetries: number = 3,
-    baseDelay: number = 1000
-  ): Promise<T> {
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      try {
-        const response = await axios.post(url, data, {
-          headers: {
-            'X-API-Key': this.subscanApiKey,
-            'Content-Type': 'application/json'
-          }
-        });
-        return response.data;
-      } catch (error: any) {
-        const isRateLimited = error.response?.status === 429;
-        const isLastAttempt = attempt === maxRetries - 1;
-        
-        if (isRateLimited && !isLastAttempt) {
-          const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff
-          logger.warn({ 
-            attempt: attempt + 1, 
-            maxRetries, 
-            delay,
-            url 
-          }, 'Rate limited by Subscan, retrying after delay...');
-          
-          await new Promise(resolve => setTimeout(resolve, delay));
-          continue;
-        }
-        
-        throw error;
-      }
-    }
-    throw new Error('Max retries exceeded');
-  }
-
-  /**
    * Fetch multisig members from Subscan v2 search API
    * Handles both delegate accounts and simple multisig accounts
    * @param multisigAddress - The multisig address to fetch members for
@@ -248,8 +262,9 @@ export class MultisigService {
         targetAddress = parentInfo.parentAddress;
       }
 
+      const endpoint = this.getSubscanEndpoint(network);
       const responseData = await this.subscanRequestWithRetry(
-        `https://assethub-${network.toLowerCase()}.api.subscan.io/api/v2/scan/search`,
+        `${endpoint}/api/v2/scan/search`,
         { key: targetAddress }
       );
 
