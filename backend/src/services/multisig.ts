@@ -119,14 +119,18 @@ export class MultisigService {
   }
 
   /**
-   * Get the correct Subscan API endpoint for a network
-   * Polkadot uses AssetHub (after migration), Kusama uses relay chain
+   * Convert address to network-specific SS58 format
+   * Polkadot: prefix 0, Kusama: prefix 2
    */
-  private getSubscanEndpoint(network: "Polkadot" | "Kusama"): string {
-    if (network === "Kusama") {
-      return `https://kusama.api.subscan.io`;
+  private convertAddressToNetworkFormat(address: string, network: "Polkadot" | "Kusama"): string {
+    try {
+      const publicKey = decodeAddress(address);
+      const ss58Prefix = network === "Kusama" ? 2 : 0;
+      return encodeAddress(publicKey, ss58Prefix);
+    } catch (error) {
+      logger.warn({ address, network, error: formatError(error) }, 'Failed to convert address to network format');
+      return address; // Return original if conversion fails
     }
-    return `https://assethub-polkadot.api.subscan.io`;
   }
 
   /**
@@ -185,16 +189,13 @@ export class MultisigService {
     }
 
     try {
-      const endpoint = this.getSubscanEndpoint(network);
       const responseData = await this.subscanRequestWithRetry(
-        `${endpoint}/api/v2/scan/search`,
+        `https://assethub-${network.toLowerCase()}.api.subscan.io/api/v2/scan/search`,
         { key: multisigAddress }
       );
 
-      const response = { data: responseData };
-
-      if (response.data.code === 0 && response.data.data?.account) {
-        const accountData = response.data.data.account;
+      if (responseData.code === 0 && responseData.data?.account) {
+        const accountData = responseData.data.account;
         
         if (accountData.delegate?.conviction_delegated) {
           for (const entry of accountData.delegate.conviction_delegated) {
@@ -262,16 +263,13 @@ export class MultisigService {
         targetAddress = parentInfo.parentAddress;
       }
 
-      const endpoint = this.getSubscanEndpoint(network);
       const responseData = await this.subscanRequestWithRetry(
-        `${endpoint}/api/v2/scan/search`,
+        `https://assethub-${network.toLowerCase()}.api.subscan.io/api/v2/scan/search`,
         { key: targetAddress }
       );
 
-      const response = { data: responseData };
-
-      if (response.data.code === 0 && response.data.data?.account) {
-        const accountData = response.data.data.account;
+      if (responseData.code === 0 && responseData.data?.account) {
+        const accountData = responseData.data.account;
         const members: MultisigMember[] = [];
 
         if (accountData.delegate?.conviction_delegated) {
@@ -279,8 +277,11 @@ export class MultisigService {
             if (entry.account?.address) {
               const displayName = entry.account.people?.display || entry.account.display_name || entry.account.name || null;
               
+              // Convert address to network-specific format
+              const convertedAddress = this.convertAddressToNetworkFormat(entry.account.address, network);
+              
               members.push({
-                wallet_address: entry.account.address,
+                wallet_address: convertedAddress,
                 team_member_name: displayName || 'Unknown',
                 network: network
               });
@@ -303,8 +304,11 @@ export class MultisigService {
             if (entry.address) {
               const displayName = entry.people?.display || entry.display_name || entry.name || entry.display || null;
               
+              // Convert address to network-specific format
+              const convertedAddress = this.convertAddressToNetworkFormat(entry.address, network);
+              
               members.push({
-                wallet_address: entry.address,
+                wallet_address: convertedAddress,
                 team_member_name: displayName || 'Unknown',
                 network: network
               });
@@ -319,7 +323,7 @@ export class MultisigService {
         return [];
 
       } else {
-        logger.warn({ network, targetAddress, responseCode: response.data.code }, 'Subscan API returned error or no data');
+        logger.warn({ network, targetAddress, responseCode: responseData.code }, 'Subscan API returned error or no data');
         return [];
       }
 
