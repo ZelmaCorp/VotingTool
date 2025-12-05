@@ -209,6 +209,27 @@ export class MultisigService {
       if (responseData.code === 0 && responseData.data?.account) {
         const accountData = responseData.data.account;
         
+        // Check for proxy structure (proxy_account means this address delegates to others)
+        if (accountData.proxy?.proxy_account && accountData.proxy.proxy_account.length > 0) {
+          const proxyAccountAddress = accountData.proxy.proxy_account[0]?.account_display?.address;
+          if (proxyAccountAddress) {
+            logger.info({ 
+              network, 
+              currentAddress: multisigAddress,
+              parentAddress: proxyAccountAddress,
+              isProxy: true
+            }, 'Found proxy account with delegated address');
+            
+            return {
+              isProxy: true,
+              parentAddress: proxyAccountAddress,
+              currentAddress: multisigAddress,
+              network
+            };
+          }
+        }
+        
+        // Fallback: Check for delegate structure (conviction voting delegates)
         if (accountData.delegate?.conviction_delegated) {
           for (const entry of accountData.delegate.conviction_delegated) {
             if (entry.delegate_account?.people?.parent?.address) {
@@ -219,7 +240,7 @@ export class MultisigService {
                 currentAddress: multisigAddress,
                 parentAddress,
                 isProxy: true
-              }, 'Found proxy account with parent address');
+              }, 'Found delegate account with parent address');
               
               return {
                 isProxy: true,
