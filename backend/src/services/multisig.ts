@@ -134,6 +134,17 @@ export class MultisigService {
   }
 
   /**
+   * Get the correct Subscan endpoint for the network
+   * Polkadot uses AssetHub, Kusama uses relay chain
+   */
+  private getSubscanEndpoint(network: "Polkadot" | "Kusama"): string {
+    if (network === "Kusama") {
+      return `https://kusama.api.subscan.io`;
+    }
+    return `https://assethub-polkadot.api.subscan.io`;
+  }
+
+  /**
    * Make a Subscan API request with retry logic for rate limiting
    */
   private async subscanRequestWithRetry<T = any>(
@@ -189,8 +200,9 @@ export class MultisigService {
     }
 
     try {
+      const endpoint = this.getSubscanEndpoint(network);
       const responseData = await this.subscanRequestWithRetry(
-        `https://assethub-${network.toLowerCase()}.api.subscan.io/api/v2/scan/search`,
+        `${endpoint}/api/v2/scan/search`,
         { key: multisigAddress }
       );
 
@@ -263,8 +275,9 @@ export class MultisigService {
         targetAddress = parentInfo.parentAddress;
       }
 
+      const endpoint = this.getSubscanEndpoint(network);
       const responseData = await this.subscanRequestWithRetry(
-        `https://assethub-${network.toLowerCase()}.api.subscan.io/api/v2/scan/search`,
+        `${endpoint}/api/v2/scan/search`,
         { key: targetAddress }
       );
 
