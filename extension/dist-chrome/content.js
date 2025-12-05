@@ -29,7 +29,7 @@ var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "
   "use strict";
   var _bridge, _createWasm, _heap, _wbg, _cachegetInt32, _cachegetUint8, _heapNext, _wasm, _wasmError, _wasmPromise, _type;
   var __vite_style__ = document.createElement("style");
-  __vite_style__.textContent = "\n.wallet-connect[data-v-f019dfb4] {\n  min-width: 400px;\n  max-width: 500px;\n}\n.connect-header[data-v-f019dfb4] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 24px;\n  padding-bottom: 16px;\n  border-bottom: 1px solid #e1e5e9;\n}\n.connect-header h3[data-v-f019dfb4] {\n  margin: 0;\n  color: #333;\n  font-size: 18px;\n}\n.close-btn[data-v-f019dfb4] {\n  background: none;\n  border: none;\n  font-size: 20px;\n  cursor: pointer;\n  color: #666;\n  padding: 4px;\n  border-radius: 4px;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-f019dfb4]:hover {\n  background-color: #f0f0f0;\n}\n.step-content[data-v-f019dfb4] {\n  margin-bottom: 24px;\n}\n.step-description[data-v-f019dfb4] {\n  color: #666;\n  margin-bottom: 20px;\n  text-align: center;\n}\n.wallet-options[data-v-f019dfb4] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n  margin-bottom: 20px;\n}\n.wallet-list[data-v-f019dfb4] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n.wallet-option[data-v-f019dfb4] {\n  display: flex;\n  align-items: center;\n  padding: 16px;\n  border: 2px solid #e1e5e9;\n  border-radius: 8px;\n  background: white;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  position: relative;\n}\n.wallet-option[data-v-f019dfb4]:hover:not(:disabled) {\n  border-color: #e6007a;\n  box-shadow: 0 2px 8px rgba(230, 0, 122, 0.1);\n}\n.wallet-option[data-v-f019dfb4]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.wallet-icon[data-v-f019dfb4] {\n  width: 32px;\n  height: 32px;\n  margin-right: 16px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.wallet-icon img[data-v-f019dfb4] {\n  width: 100%;\n  height: 100%;\n  border-radius: 50%;\n  object-fit: cover;\n}\n.wallet-icon-fallback[data-v-f019dfb4] {\n  font-size: 20px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.wallet-info[data-v-f019dfb4] {\n  flex: 1;\n}\n.wallet-name[data-v-f019dfb4] {\n  font-weight: 600;\n  color: #333;\n  margin-bottom: 4px;\n}\n.wallet-description[data-v-f019dfb4] {\n  font-size: 14px;\n  color: #666;\n}\n.loading-spinner[data-v-f019dfb4] {\n  width: 20px;\n  height: 20px;\n  border: 2px solid #f3f3f3;\n  border-top: 2px solid #e6007a;\n  border-radius: 50%;\n  animation: spin-f019dfb4 1s linear infinite;\n}\n@keyframes spin-f019dfb4 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.extension-status[data-v-f019dfb4] {\n  text-align: center;\n  padding: 16px;\n  border-radius: 8px;\n  background: #f8f9fa;\n  border: 1px solid #e1e5e9;\n}\n.status-checking[data-v-f019dfb4] {\n  color: #0066cc;\n  font-weight: 500;\n}\n.status-not-found[data-v-f019dfb4] {\n  color: #dc3545;\n  font-weight: 500;\n}\n.status-found[data-v-f019dfb4] {\n  color: #28a745;\n  font-weight: 500;\n}\n.status-help[data-v-f019dfb4] {\n  margin-top: 8px;\n  font-size: 14px;\n  color: #666;\n}\n.status-help a[data-v-f019dfb4] {\n  color: #e6007a;\n  text-decoration: none;\n  font-weight: 500;\n}\n.status-help a[data-v-f019dfb4]:hover {\n  text-decoration: underline;\n}\n.status-actions[data-v-f019dfb4] {\n  display: flex;\n  gap: 12px;\n  margin-top: 16px;\n}\n.account-list[data-v-f019dfb4] {\n  max-height: 300px;\n  overflow-y: auto;\n  border: 1px solid #e1e5e9;\n  border-radius: 8px;\n}\n.account-item[data-v-f019dfb4] {\n  display: flex;\n  align-items: center;\n  padding: 16px;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n  border-bottom: 1px solid #f0f0f0;\n}\n.account-item[data-v-f019dfb4]:last-child {\n  border-bottom: none;\n}\n.account-item[data-v-f019dfb4]:hover {\n  background-color: #f8f9fa;\n}\n.account-item.selected[data-v-f019dfb4] {\n  background-color: #e8f4fd;\n  border-left: 3px solid #e6007a;\n}\n.account-avatar[data-v-f019dfb4] {\n  width: 32px;\n  height: 32px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: white;\n  font-weight: bold;\n  font-size: 12px;\n  margin-right: 12px;\n}\n.account-info[data-v-f019dfb4] {\n  flex: 1;\n}\n.account-name[data-v-f019dfb4] {\n  font-weight: 500;\n  color: #333;\n  margin-bottom: 2px;\n}\n.account-address[data-v-f019dfb4] {\n  font-family: monospace;\n  font-size: 12px;\n  color: #666;\n}\n.account-check[data-v-f019dfb4] {\n  color: #e6007a;\n  font-weight: bold;\n  font-size: 18px;\n}\n.sign-message[data-v-f019dfb4] {\n  background: #f8f9fa;\n  border: 1px solid #e1e5e9;\n  border-radius: 8px;\n  padding: 16px;\n  margin-bottom: 20px;\n}\n.message-label[data-v-f019dfb4] {\n  font-weight: 500;\n  color: #333;\n  margin-bottom: 8px;\n}\n.message-content[data-v-f019dfb4] {\n  font-family: monospace;\n  font-size: 12px;\n  color: #666;\n  white-space: pre-wrap;\n  word-break: break-all;\n}\n.step-actions[data-v-f019dfb4] {\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n}\n.btn-primary[data-v-f019dfb4], .btn-secondary[data-v-f019dfb4] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.btn-primary[data-v-f019dfb4] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n}\n.btn-primary[data-v-f019dfb4]:hover:not(:disabled) {\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-primary[data-v-f019dfb4]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-secondary[data-v-f019dfb4] {\n  background: #6c757d;\n  color: white;\n}\n.btn-secondary[data-v-f019dfb4]:hover {\n  background: #5a6268;\n}\n.error-message[data-v-f019dfb4] {\n  text-align: left;\n  padding: 24px;\n  background: #fff5f5;\n  border: 1px solid #fed7d7;\n  border-radius: 8px;\n}\n.error-icon[data-v-f019dfb4] {\n  font-size: 24px;\n  margin-bottom: 8px;\n  display: block;\n}\n.error-text[data-v-f019dfb4] {\n  color: #c53030;\n  font-weight: 500;\n  white-space: pre-line;\n  line-height: 1.5;\n  margin-bottom: 16px;\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n}\n.error-actions[data-v-f019dfb4] {\n  display: flex;\n  justify-content: center;\n}\n.no-wallets[data-v-f019dfb4] {\n  text-align: center;\n  padding: 24px;\n  color: #666;\n}\n.no-wallets-icon[data-v-f019dfb4] {\n  font-size: 32px;\n  margin-bottom: 8px;\n}\n.no-wallets-text[data-v-f019dfb4] {\n  font-size: 14px;\n}\n.success-container[data-v-f019dfb4] {\n  text-align: center;\n  padding: 24px;\n}\n.success-icon[data-v-f019dfb4] {\n  font-size: 48px;\n  margin-bottom: 16px;\n}\n.success-title[data-v-f019dfb4] {\n  font-size: 20px;\n  font-weight: 600;\n  color: #28a745;\n  margin-bottom: 16px;\n}\n.dao-info[data-v-f019dfb4] {\n  background: #f8f9fa;\n  border: 1px solid #e1e5e9;\n  border-radius: 8px;\n  padding: 16px;\n  margin-bottom: 16px;\n}\n.dao-label[data-v-f019dfb4] {\n  font-size: 12px;\n  color: #666;\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n  margin-bottom: 8px;\n}\n.dao-name-display[data-v-f019dfb4] {\n  font-size: 18px;\n  font-weight: 600;\n  color: #e6007a;\n}\n.success-description[data-v-f019dfb4] {\n  color: #666;\n  margin-bottom: 24px;\n  line-height: 1.5;\n}\n\n.modal-overlay[data-v-973fd79d] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.config-modal[data-v-973fd79d] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 90vh;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-973fd79d] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-973fd79d] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-973fd79d] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-973fd79d]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-973fd79d] {\n  padding: 24px;\n  flex: 1;\n  overflow-y: auto;\n}\n.config-sections[data-v-973fd79d] {\n  display: flex;\n  flex-direction: column;\n  gap: 24px;\n}\n.config-section[data-v-973fd79d] {\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  padding: 20px;\n}\n.config-section h4[data-v-973fd79d] {\n  margin: 0 0 16px 0;\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #333;\n  border-bottom: 2px solid #e6007a;\n  padding-bottom: 8px;\n}\n.form-group[data-v-973fd79d] {\n  margin-bottom: 16px;\n}\n.form-group label[data-v-973fd79d] {\n  display: block;\n  margin-bottom: 6px;\n  font-weight: 500;\n  color: #555;\n}\n.form-input[data-v-973fd79d] {\n  width: 100%;\n  padding: 10px 12px;\n  border: 2px solid #e9ecef;\n  border-radius: 6px;\n  font-size: 14px;\n  transition: border-color 0.2s ease;\n}\n.form-input[data-v-973fd79d]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.number-input[data-v-973fd79d] {\n  max-width: 120px;\n}\n.input-help[data-v-973fd79d] {\n  margin-top: 6px;\n  font-size: 12px;\n  color: #666;\n  line-height: 1.4;\n}\n.agreement-preview[data-v-973fd79d] {\n  margin-top: 16px;\n  padding: 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n}\n.preview-label[data-v-973fd79d] {\n  font-size: 12px;\n  font-weight: 500;\n  color: #666;\n  margin-bottom: 8px;\n}\n.preview-bar[data-v-973fd79d] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n.progress-bar[data-v-973fd79d] {\n  width: 100%;\n  height: 8px;\n  background: #e9ecef;\n  border-radius: 4px;\n  overflow: hidden;\n}\n.progress-fill[data-v-973fd79d] {\n  height: 100%;\n  background: linear-gradient(135deg, #28a745, #20c997);\n  transition: width 0.3s ease;\n}\n.progress-text[data-v-973fd79d] {\n  font-size: 12px;\n  color: #666;\n  text-align: center;\n}\n.modal-actions[data-v-973fd79d] {\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-973fd79d] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.btn-secondary[data-v-973fd79d] {\n  background: #f8f9fa;\n  color: #666;\n  border: 1px solid #dee2e6;\n}\n.btn-secondary[data-v-973fd79d]:hover {\n  background: #e9ecef;\n}\n.btn-primary[data-v-973fd79d] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n}\n.btn-primary[data-v-973fd79d]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #cc1177);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn[data-v-973fd79d]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n.status-badge-container[data-v-c49d2203] {\n  position: relative;\n  display: inline-block;\n}\n.status-badge[data-v-c49d2203] {\n  display: inline-flex;\n  align-items: center;\n  gap: 3px;\n  padding: 4px 8px;\n  border-radius: 12px;\n  font-size: 0.7rem;\n  font-weight: 600;\n  border: 1px solid rgba(255, 255, 255, 0.6);\n  transition: all 0.2s ease;\n  user-select: none;\n  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);\n  backdrop-filter: blur(3px);\n  white-space: nowrap;\n  min-width: 80px;\n  justify-content: center;\n}\n.status-clickable[data-v-c49d2203] {\n  cursor: pointer;\n}\n.status-clickable[data-v-c49d2203]:hover {\n  transform: translateY(-2px) scale(1.02);\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);\n  border-color: rgba(255, 255, 255, 1);\n}\n.status-icon[data-v-c49d2203] {\n  font-size: 0.8rem;\n}\n.edit-icon[data-v-c49d2203] {\n  font-size: 0.7rem;\n  opacity: 0.7;\n}\n\n/* Status color classes with enhanced floating design */\n.status-not-started[data-v-c49d2203] { \n  background: linear-gradient(135deg, #6c757d, #5a6268); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-considering[data-v-c49d2203] { \n  background: linear-gradient(135deg, #ffc107, #e0a800); \n  color: #212529; \n  border-color: rgba(33, 37, 41, 0.2);\n}\n.status-ready-for-approval[data-v-c49d2203] { \n  background: linear-gradient(135deg, #17a2b8, #138496); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-waiting-for-agreement[data-v-c49d2203] { \n  background: linear-gradient(135deg, #fd7e14, #e8680b); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-ready-to-vote[data-v-c49d2203] { \n  background: linear-gradient(135deg, #28a745, #1e7e34); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-reconsidering[data-v-c49d2203] { \n  background: linear-gradient(135deg, #dc3545, #c82333); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-voted-aye[data-v-c49d2203] { \n  background: linear-gradient(135deg, #198754, #155724); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-voted-nay[data-v-c49d2203] { \n  background: linear-gradient(135deg, #dc3545, #c82333); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-voted-abstain[data-v-c49d2203] { \n  background: linear-gradient(135deg, #6f42c1, #5a32a3); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-not-voted[data-v-c49d2203] { \n  background: linear-gradient(135deg, #e9ecef, #dee2e6); \n  color: #495057; \n  border-color: rgba(73, 80, 87, 0.2);\n}\n\n\n.modal-overlay[data-v-3a33c8f2] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.proposal-browser-modal[data-v-3a33c8f2] {\n  background: white;\n  border-radius: 12px;\n  width: 95vw;\n  height: 90vh;\n  max-width: 1400px;\n  display: flex;\n  flex-direction: column;\n  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);\n}\n.modal-header[data-v-3a33c8f2] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: #f8f9fa;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h2[data-v-3a33c8f2] {\n  margin: 0;\n  font-size: 1.5rem;\n  font-weight: 600;\n  color: #333;\n}\n.close-btn[data-v-3a33c8f2] {\n  background: none;\n  border: none;\n  font-size: 2rem;\n  cursor: pointer;\n  color: #6c757d;\n  padding: 0;\n  width: 40px;\n  height: 40px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  transition: all 0.2s ease;\n}\n.close-btn[data-v-3a33c8f2]:hover {\n  background: #e9ecef;\n  color: #495057;\n}\n.browser-content[data-v-3a33c8f2] {\n  display: flex;\n  flex: 1;\n  overflow: hidden;\n}\n.filter-panel[data-v-3a33c8f2] {\n  width: 280px;\n  background: #f8f9fa;\n  border-right: 1px solid #e9ecef;\n  padding: 20px;\n  overflow-y: auto;\n}\n.filter-section h3[data-v-3a33c8f2] {\n  margin: 0 0 16px 0;\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #333;\n}\n.filter-group[data-v-3a33c8f2] {\n  margin-bottom: 16px;\n}\n.filter-group label[data-v-3a33c8f2] {\n  display: block;\n  margin-bottom: 6px;\n  font-weight: 500;\n  font-size: 0.9rem;\n  color: #555;\n}\n.search-input[data-v-3a33c8f2],\n.filter-select[data-v-3a33c8f2] {\n  width: 100%;\n  padding: 8px 12px;\n  border: 1px solid #ced4da;\n  border-radius: 6px;\n  font-size: 0.9rem;\n  background: white;\n}\n.search-input[data-v-3a33c8f2]:focus,\n.filter-select[data-v-3a33c8f2]:focus {\n  outline: none;\n  border-color: #007bff;\n  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);\n}\n.clear-filters-btn[data-v-3a33c8f2] {\n  width: 100%;\n  padding: 8px 16px;\n  background: #dc3545;\n  color: white;\n  border: none;\n  border-radius: 6px;\n  font-size: 0.9rem;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n}\n.clear-filters-btn[data-v-3a33c8f2]:hover {\n  background: #c82333;\n}\n.content-area[data-v-3a33c8f2] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n}\n.view-controls[data-v-3a33c8f2] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 16px 20px;\n  border-bottom: 1px solid #e9ecef;\n  background: white;\n}\n.view-modes[data-v-3a33c8f2] {\n  display: flex;\n  gap: 8px;\n}\n.view-btn[data-v-3a33c8f2] {\n  padding: 6px 12px;\n  border: 1px solid #ced4da;\n  background: white;\n  border-radius: 6px;\n  cursor: pointer;\n  font-size: 0.9rem;\n  transition: all 0.2s ease;\n}\n.view-btn.active[data-v-3a33c8f2] {\n  background: #007bff;\n  color: white;\n  border-color: #007bff;\n}\n.sort-controls[data-v-3a33c8f2] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n.sort-select[data-v-3a33c8f2] {\n  padding: 6px 10px;\n  border: 1px solid #ced4da;\n  border-radius: 6px;\n  font-size: 0.9rem;\n}\n.sort-order-btn[data-v-3a33c8f2] {\n  padding: 6px 10px;\n  border: 1px solid #ced4da;\n  background: white;\n  border-radius: 6px;\n  cursor: pointer;\n  font-size: 1rem;\n}\n.results-info[data-v-3a33c8f2] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.proposals-container[data-v-3a33c8f2] {\n  flex: 1;\n  overflow-y: auto;\n  padding: 20px;\n}\n.loading-state[data-v-3a33c8f2],\n.empty-state[data-v-3a33c8f2] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 300px;\n  text-align: center;\n}\n.spinner[data-v-3a33c8f2] {\n  width: 40px;\n  height: 40px;\n  border: 4px solid #f3f3f3;\n  border-top: 4px solid #007bff;\n  border-radius: 50%;\n  animation: spin-3a33c8f2 1s linear infinite;\n}\n@keyframes spin-3a33c8f2 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.empty-icon[data-v-3a33c8f2] {\n  font-size: 4rem;\n  margin-bottom: 16px;\n}\n.proposals-list[data-v-3a33c8f2] {\n  display: flex;\n  flex-direction: column;\n  gap: 1px;\n  background: #e9ecef;\n  border-radius: 8px;\n  overflow: hidden;\n}\n.proposal-item[data-v-3a33c8f2] {\n  display: grid;\n  grid-template-columns: 80px 1fr 200px 150px 120px;\n  gap: 16px;\n  padding: 16px 20px;\n  background: white;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n  align-items: center;\n}\n.proposal-item[data-v-3a33c8f2]:hover {\n  background: #f8f9fa;\n}\n.proposal-id[data-v-3a33c8f2] {\n  font-weight: 600;\n  color: #007bff;\n}\n.proposal-title[data-v-3a33c8f2] {\n  font-weight: 500;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.proposal-assignment[data-v-3a33c8f2] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  font-size: 0.9rem;\n  color: #666;\n}\n.assign-btn[data-v-3a33c8f2] {\n  padding: 4px 8px;\n  background: var(--assign-gradient);\n  color: white;\n  border: 1px solid var(--assign-border);\n  border-radius: 4px;\n  font-size: 0.8rem;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.assign-btn[data-v-3a33c8f2]:hover {\n  background: var(--assign-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 2px 6px var(--assign-shadow);\n}\n.proposal-updated[data-v-3a33c8f2] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.proposals-cards[data-v-3a33c8f2] {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));\n  gap: 20px;\n}\n.proposal-card[data-v-3a33c8f2] {\n  background: white;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  padding: 20px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.proposal-card[data-v-3a33c8f2]:hover {\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);\n  transform: translateY(-2px);\n}\n.card-header[data-v-3a33c8f2] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 12px;\n}\n.card-title[data-v-3a33c8f2] {\n  margin: 0 0 12px 0;\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #333;\n  display: -webkit-box;\n  -webkit-line-clamp: 2;\n  line-clamp: 2;\n  -webkit-box-orient: vertical;\n  overflow: hidden;\n}\n.card-meta[data-v-3a33c8f2] {\n  display: flex;\n  flex-direction: column;\n  gap: 6px;\n}\n.meta-item[data-v-3a33c8f2] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.pagination[data-v-3a33c8f2] {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  gap: 16px;\n  margin-top: 20px;\n  padding: 20px;\n}\n.page-btn[data-v-3a33c8f2] {\n  padding: 8px 16px;\n  border: 1px solid #ced4da;\n  background: white;\n  border-radius: 6px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.page-btn[data-v-3a33c8f2]:hover:not(:disabled) {\n  background: #f8f9fa;\n}\n.page-btn[data-v-3a33c8f2]:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n.page-info[data-v-3a33c8f2] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.modal-content[data-v-3a33c8f2] {\n  max-height: 80vh;\n  overflow-y: auto;\n  padding: 20px;\n  background: white;\n  border-radius: 8px;\n  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);\n}\n.proposal-list[data-v-3a33c8f2] {\n  overflow-y: auto;\n  max-height: calc(80vh - 180px); /* Account for header, filters, and padding */\n  padding-right: 16px; /* Space for scrollbar */\n}\n\n/* Scrollbar styling */\n[data-v-3a33c8f2]::-webkit-scrollbar {\n  width: 8px;\n}\n[data-v-3a33c8f2]::-webkit-scrollbar-track {\n  background: #f1f1f1;\n  border-radius: 4px;\n}\n[data-v-3a33c8f2]::-webkit-scrollbar-thumb {\n  background: #888;\n  border-radius: 4px;\n}\n[data-v-3a33c8f2]::-webkit-scrollbar-thumb:hover {\n  background: #555;\n}\n\n/* Firefox scrollbar */\n[data-v-3a33c8f2] {\n  scrollbar-width: thin;\n  scrollbar-color: #888 #f1f1f1;\n}\n\n.modal-overlay[data-v-07f777df] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.settings-modal[data-v-07f777df] {\n  background: white;\n  border-radius: 12px;\n  width: 90vw;\n  height: 85vh;\n  max-width: 1200px;\n  display: flex;\n  flex-direction: column;\n  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);\n  overflow: hidden; /* Add this to fix border-radius clipping */\n}\n.modal-header[data-v-07f777df] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: #f8f9fa;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h2[data-v-07f777df] {\n  margin: 0;\n  font-size: 1.5rem;\n  font-weight: 600;\n  color: #333;\n}\n.close-btn[data-v-07f777df] {\n  background: none;\n  border: none;\n  font-size: 2rem;\n  cursor: pointer;\n  color: #6c757d;\n  padding: 0;\n  width: 40px;\n  height: 40px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  transition: all 0.2s ease;\n}\n.close-btn[data-v-07f777df]:hover {\n  background: #e9ecef;\n  color: #495057;\n}\n.settings-content[data-v-07f777df] {\n  flex: 1;\n  display: flex;\n  overflow: hidden;\n}\n.settings-nav[data-v-07f777df] {\n  width: 280px;\n  background: #f8f9fa;\n  border-right: 1px solid #e9ecef;\n  padding: 20px;\n  overflow-y: auto;\n}\n.nav-section[data-v-07f777df] {\n  margin-bottom: 24px;\n}\n.nav-section h3[data-v-07f777df] {\n  margin: 0 0 12px 0;\n  font-size: 0.9rem;\n  font-weight: 600;\n  color: #666;\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n}\n.nav-item[data-v-07f777df] {\n  display: flex;\n  align-items: center;\n  width: 100%;\n  padding: 12px 16px;\n  border: none;\n  background: none;\n  cursor: pointer;\n  border-radius: 6px;\n  margin-bottom: 4px;\n  transition: all 0.2s ease;\n  text-align: left;\n  font-size: 0.9rem;\n  color: #333;\n}\n.nav-item[data-v-07f777df]:hover:not(:disabled) {\n  background: #e9ecef;\n}\n.nav-item[data-v-07f777df]:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n  color: #999;\n}\n.nav-item[data-v-07f777df]:disabled:hover {\n  background: transparent;\n  color: #999;\n}\n.nav-item.active[data-v-07f777df] {\n  background: #007bff;\n  color: white;\n}\n.nav-icon[data-v-07f777df] {\n  margin-right: 12px;\n  font-size: 1.1rem;\n}\n.settings-main[data-v-07f777df] {\n  flex: 1;\n  overflow-y: auto;\n  padding: 24px;\n}\n.section-content[data-v-07f777df] {\n  max-width: 800px;\n}\n.section-header[data-v-07f777df] {\n  margin-bottom: 24px;\n}\n.section-header h3[data-v-07f777df] {\n  margin: 0 0 8px 0;\n  font-size: 1.3rem;\n  font-weight: 600;\n  color: #333;\n}\n.section-header p[data-v-07f777df] {\n  margin: 0;\n  color: #666;\n  font-size: 0.95rem;\n}\n.form-group[data-v-07f777df] {\n  margin-bottom: 20px;\n}\n.form-group label[data-v-07f777df] {\n  display: block;\n  margin-bottom: 6px;\n  font-weight: 500;\n  color: #333;\n  font-size: 0.9rem;\n}\n.form-input[data-v-07f777df],\n.form-select[data-v-07f777df] {\n  width: 100%;\n  padding: 10px 12px;\n  border: 1px solid #ced4da;\n  border-radius: 6px;\n  font-size: 0.9rem;\n}\n.form-input[data-v-07f777df]:focus,\n.form-select[data-v-07f777df]:focus {\n  outline: none;\n  border-color: #007bff;\n  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);\n}\n.form-group small[data-v-07f777df] {\n  display: block;\n  margin-top: 4px;\n  color: #666;\n  font-size: 0.8rem;\n}\n.form-note[data-v-07f777df] {\n  margin: 0 0 12px 0;\n  color: #666;\n  font-size: 0.9rem;\n  font-style: italic;\n}\n.checkbox-label[data-v-07f777df] {\n  display: flex;\n  align-items: center;\n  cursor: pointer;\n}\n.checkbox-label input[data-v-07f777df] {\n  margin-right: 8px;\n  width: auto;\n}\n.team-members-list[data-v-07f777df] {\n  border: 1px solid #e9ecef;\n  border-radius: 6px;\n  padding: 16px;\n}\n.member-item[data-v-07f777df] {\n  display: flex;\n  gap: 12px;\n  margin-bottom: 12px;\n  align-items: center;\n}\n.member-name[data-v-07f777df] {\n  flex: 1;\n  padding: 8px 12px;\n  border: 1px solid #ced4da;\n  border-radius: 4px;\n}\n.member-address[data-v-07f777df] {\n  flex: 2;\n  padding: 8px 12px;\n  border: 1px solid #ced4da;\n  border-radius: 4px;\n  font-family: monospace;\n  background: #f8f9fa;\n}\n.member-info[data-v-07f777df] {\n  font-size: 0.8rem;\n  color: #666;\n  font-style: italic;\n}\n.no-members[data-v-07f777df] {\n  text-align: center;\n  color: #666;\n  font-style: italic;\n  padding: 20px;\n}\n.readonly-field[data-v-07f777df] {\n  position: relative;\n  display: flex;\n  align-items: center;\n  gap: 12px;\n}\n.readonly-field input[readonly][data-v-07f777df] {\n  background: #f8f9fa;\n  color: #6c757d;\n  cursor: not-allowed;\n  flex: 1;\n}\n.readonly-field-header[data-v-07f777df] {\n  display: flex;\n  justify-content: flex-end;\n  margin-bottom: 8px;\n}\n.multisig-badge[data-v-07f777df] {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  background: #ffc107;\n  color: #212529;\n  padding: 4px 8px;\n  border-radius: 12px;\n  font-size: 0.75rem;\n  font-weight: 500;\n  white-space: nowrap;\n}\n.member-item.readonly[data-v-07f777df] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  padding: 12px;\n  background: #f8f9fa;\n  border-radius: 6px;\n  border: 1px solid #e9ecef;\n  margin-bottom: 8px;\n}\n.member-display-name[data-v-07f777df] {\n  font-weight: 500;\n  color: #333;\n  font-size: 0.9rem;\n}\n.member-address[data-v-07f777df] {\n  font-family: monospace;\n  color: #6c757d;\n  font-size: 0.8rem;\n  word-break: break-all;\n}\n.empty-state[data-v-07f777df] {\n  text-align: center;\n  padding: 40px 20px;\n  color: #6c757d;\n}\n.empty-icon[data-v-07f777df] {\n  font-size: 2.5rem;\n  display: block;\n  margin-bottom: 12px;\n}\n.empty-state p[data-v-07f777df] {\n  margin: 0 0 8px 0;\n  font-weight: 500;\n  color: #495057;\n}\n.empty-state small[data-v-07f777df] {\n  color: #6c757d;\n}\n.remove-btn[data-v-07f777df] {\n  background: #dc3545;\n  color: white;\n  border: none;\n  border-radius: 50%;\n  width: 32px;\n  height: 32px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.add-member-btn[data-v-07f777df] {\n  background: #28a745;\n  color: white;\n  border: none;\n  padding: 8px 16px;\n  border-radius: 4px;\n  cursor: pointer;\n  font-size: 0.9rem;\n}\n.form-actions[data-v-07f777df] {\n  display: flex;\n  gap: 12px;\n  margin-top: 24px;\n}\n.save-btn[data-v-07f777df] {\n  background: #007bff;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.reset-btn[data-v-07f777df] {\n  background: #6c757d;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.voting-stats[data-v-07f777df] {\n  display: grid;\n  grid-template-columns: repeat(4, 1fr);\n  gap: 20px;\n  margin-bottom: 24px;\n}\n.stat-card[data-v-07f777df] {\n  background: #f8f9fa;\n  padding: 20px;\n  border-radius: 8px;\n  text-align: center;\n}\n.stat-number[data-v-07f777df] {\n  font-size: 2rem;\n  font-weight: 700;\n  color: #007bff;\n  margin-bottom: 8px;\n}\n.stat-label[data-v-07f777df] {\n  font-size: 0.9rem;\n  color: #666;\n  font-weight: 500;\n}\n.voting-history-list[data-v-07f777df] {\n  max-height: 400px;\n  overflow-y: auto;\n}\n.vote-item[data-v-07f777df] {\n  background: white;\n  border: 1px solid #e9ecef;\n  border-radius: 6px;\n  padding: 16px;\n  margin-bottom: 12px;\n}\n.vote-header[data-v-07f777df] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 8px;\n}\n.proposal-id[data-v-07f777df] {\n  font-weight: 600;\n  color: #007bff;\n}\n.vote-badge[data-v-07f777df] {\n  padding: 4px 8px;\n  border-radius: 4px;\n  font-size: 0.8rem;\n  font-weight: 500;\n}\n.vote-badge.aye[data-v-07f777df] {\n  background: #d4edda;\n  color: #155724;\n}\n.vote-badge.nay[data-v-07f777df] {\n  background: #f8d7da;\n  color: #721c24;\n}\n.vote-badge.abstain[data-v-07f777df] {\n  background: #e2e3e5;\n  color: #383d41;\n}\n.vote-title[data-v-07f777df] {\n  font-weight: 500;\n  margin-bottom: 4px;\n}\n.vote-date[data-v-07f777df] {\n  font-size: 0.8rem;\n  color: #666;\n}\n.sync-controls[data-v-07f777df] {\n  background: #f8f9fa;\n  padding: 20px;\n  border-radius: 8px;\n}\n.sync-status[data-v-07f777df] {\n  margin-bottom: 16px;\n}\n.status-item[data-v-07f777df] {\n  display: flex;\n  justify-content: space-between;\n  margin-bottom: 8px;\n}\n.status-label[data-v-07f777df] {\n  font-weight: 500;\n}\n.status-value[data-v-07f777df] {\n  font-family: monospace;\n}\n.status-value.connected[data-v-07f777df] {\n  color: #28a745;\n}\n.status-value.error[data-v-07f777df] {\n  color: #dc3545;\n}\n.sync-actions[data-v-07f777df] {\n  display: flex;\n  gap: 12px;\n}\n.sync-btn[data-v-07f777df] {\n  background: #007bff;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.sync-btn[data-v-07f777df]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.clear-cache-btn[data-v-07f777df] {\n  background: #dc3545;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.coming-soon[data-v-07f777df],\n.under-review[data-v-07f777df] {\n  text-align: center;\n  padding: 40px 20px;\n  background: #f8f9fa;\n  border-radius: 8px;\n}\n.coming-soon-icon[data-v-07f777df],\n.under-review-icon[data-v-07f777df] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n}\n.coming-soon h4[data-v-07f777df],\n.under-review h4[data-v-07f777df] {\n  margin: 0 0 12px 0;\n  color: #333;\n}\n.coming-soon p[data-v-07f777df],\n.under-review p[data-v-07f777df] {\n  margin: 0 0 16px 0;\n  color: #666;\n}\n.coming-soon ul[data-v-07f777df] {\n  text-align: left;\n  max-width: 300px;\n  margin: 0 auto;\n}\n.temp-actions[data-v-07f777df] {\n  margin-top: 20px;\n}\n.refresh-btn[data-v-07f777df] {\n  background: #007bff;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.refresh-btn[data-v-07f777df]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.help-content[data-v-07f777df],\n.about-content[data-v-07f777df] {\n  max-width: 600px;\n}\n.help-section[data-v-07f777df],\n.about-section[data-v-07f777df] {\n  margin-bottom: 24px;\n}\n.help-section h4[data-v-07f777df],\n.about-section h4[data-v-07f777df] {\n  margin: 0 0 12px 0;\n  color: #333;\n  font-size: 1.1rem;\n}\n.help-section ul[data-v-07f777df],\n.help-section ol[data-v-07f777df],\n.about-section ul[data-v-07f777df] {\n  margin: 0;\n  padding-left: 20px;\n}\n.help-section li[data-v-07f777df],\n.about-section li[data-v-07f777df] {\n  margin-bottom: 8px;\n  line-height: 1.5;\n}\n.help-links[data-v-07f777df],\n.about-links[data-v-07f777df] {\n  display: flex;\n  gap: 16px;\n  margin-top: 24px;\n}\n.help-link[data-v-07f777df],\n.about-link[data-v-07f777df] {\n  display: inline-flex;\n  align-items: center;\n  padding: 10px 16px;\n  background: #007bff;\n  color: white;\n  text-decoration: none;\n  border-radius: 6px;\n  font-size: 0.9rem;\n  font-weight: 500;\n  transition: background-color 0.2s ease;\n}\n.help-link[data-v-07f777df]:hover,\n.about-link[data-v-07f777df]:hover {\n  background: #0056b3;\n}\n.empty-state[data-v-07f777df] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 200px;\n  text-align: center;\n}\n.empty-icon[data-v-07f777df] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n}\n.empty-state h4[data-v-07f777df] {\n  margin: 0 0 8px 0;\n  color: #333;\n}\n.empty-state p[data-v-07f777df] {\n  margin: 0;\n  color: #666;\n}\n.activity-list[data-v-07f777df] {\n  max-height: 400px;\n  overflow-y: auto;\n}\n.activity-item[data-v-07f777df] {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  padding: 12px 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n  margin-bottom: 8px;\n}\n.activity-icon[data-v-07f777df] {\n  font-size: 1.2rem;\n}\n.activity-details[data-v-07f777df] {\n  flex: 1;\n}\n.activity-description[data-v-07f777df] {\n  font-size: 0.9rem;\n  color: #333;\n  margin-bottom: 2px;\n}\n.activity-time[data-v-07f777df] {\n  font-size: 0.8rem;\n  color: #666;\n}\n.modal-content[data-v-07f777df] {\n  max-height: 80vh;\n  overflow-y: auto;\n  padding: 20px;\n  background: white;\n  border-radius: 8px;\n  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);\n}\n.settings-section[data-v-07f777df] {\n  margin-bottom: 24px;\n  overflow-y: auto;\n  max-height: calc(80vh - 120px); /* Account for header and padding */\n}\n\n/* Scrollbar styling */\n[data-v-07f777df]::-webkit-scrollbar {\n  width: 8px;\n}\n[data-v-07f777df]::-webkit-scrollbar-track {\n  background: #f1f1f1;\n  border-radius: 4px;\n}\n[data-v-07f777df]::-webkit-scrollbar-thumb {\n  background: #888;\n  border-radius: 4px;\n}\n[data-v-07f777df]::-webkit-scrollbar-thumb:hover {\n  background: #555;\n}\n\n/* Firefox scrollbar */\n[data-v-07f777df] {\n  scrollbar-width: thin;\n  scrollbar-color: #888 #f1f1f1;\n}\n.form-note[data-v-07f777df] {\n  margin-top: 24px;\n  padding: 16px;\n  background: #f8f9ff;\n  border: 1px solid #e1e5f2;\n  border-radius: 8px;\n}\n.form-note p[data-v-07f777df] {\n  margin: 0 0 12px 0;\n  color: #333;\n  font-weight: 500;\n}\n.form-note ol[data-v-07f777df] {\n  margin: 0;\n  padding-left: 20px;\n  color: #666;\n}\n.form-note ol li[data-v-07f777df] {\n  margin-bottom: 4px;\n}\n.sync-section[data-v-07f777df] {\n  background: #f8f9fa;\n  border: 1px solid #e1e5e9;\n  border-radius: 8px;\n  padding: 20px;\n}\n.sync-description[data-v-07f777df] {\n  margin-bottom: 20px;\n}\n.sync-description p[data-v-07f777df] {\n  margin: 0;\n  color: #666;\n  line-height: 1.5;\n}\n.sync-actions[data-v-07f777df] {\n  display: flex;\n  gap: 12px;\n  margin-bottom: 16px;\n}\n.sync-btn[data-v-07f777df] {\n  padding: 10px 20px;\n  border: 1px solid #007bff;\n  border-radius: 6px;\n  background: white;\n  color: #007bff;\n  cursor: pointer;\n  font-weight: 500;\n  transition: all 0.2s ease;\n  flex: 1;\n}\n.sync-btn[data-v-07f777df]:hover:not(:disabled) {\n  background: #007bff;\n  color: white;\n}\n.sync-btn[data-v-07f777df]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.sync-btn.deep[data-v-07f777df] {\n  border-color: #28a745;\n  color: #28a745;\n}\n.sync-btn.deep[data-v-07f777df]:hover:not(:disabled) {\n  background: #28a745;\n  color: white;\n}\n.sync-info[data-v-07f777df] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n.sync-type[data-v-07f777df] {\n  font-size: 0.9rem;\n  color: #666;\n  line-height: 1.4;\n}\n\n/* Backend Configuration Styles */\n.backend-config[data-v-07f777df] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n.backend-actions[data-v-07f777df] {\n  display: flex;\n  gap: 8px;\n}\n.test-btn[data-v-07f777df],\n.save-backend-btn[data-v-07f777df] {\n  padding: 8px 16px;\n  border: 1px solid #007bff;\n  border-radius: 4px;\n  background: white;\n  color: #007bff;\n  cursor: pointer;\n  font-size: 0.85rem;\n  font-weight: 500;\n  transition: all 0.2s ease;\n  flex: 1;\n}\n.test-btn[data-v-07f777df]:hover:not(:disabled),\n.save-backend-btn[data-v-07f777df]:hover:not(:disabled) {\n  background: #007bff;\n  color: white;\n}\n.save-backend-btn[data-v-07f777df] {\n  border-color: #28a745;\n  color: #28a745;\n}\n.save-backend-btn[data-v-07f777df]:hover:not(:disabled) {\n  background: #28a745;\n  color: white;\n}\n.test-btn[data-v-07f777df]:disabled,\n.save-backend-btn[data-v-07f777df]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.backend-status[data-v-07f777df] {\n  padding: 8px 12px;\n  border-radius: 4px;\n  font-size: 0.85rem;\n  margin-top: 8px;\n}\n.backend-status.success[data-v-07f777df] {\n  background: #d4edda;\n  color: #155724;\n  border: 1px solid #c3e6cb;\n}\n.backend-status.error[data-v-07f777df] {\n  background: #f8d7da;\n  color: #721c24;\n  border: 1px solid #f5c6cb;\n}\n.backend-status.info[data-v-07f777df] {\n  background: #d1ecf1;\n  color: #0c5460;\n  border: 1px solid #bee5eb;\n}\n\n/* Modal styles */\n.modal-overlay[data-v-a01f811b] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.status-modal[data-v-a01f811b] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-a01f811b] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-a01f811b] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-a01f811b] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-a01f811b]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-a01f811b] {\n  padding: 24px;\n  flex: 1;\n  overflow-y: auto;\n}\n.modal-content p[data-v-a01f811b] {\n  margin: 0 0 16px 0;\n  color: #495057;\n}\n.status-options[data-v-a01f811b] {\n  margin: 16px 0;\n}\n.status-options label[data-v-a01f811b] {\n  display: block;\n  margin-bottom: 8px;\n  font-weight: 600;\n  color: #495057;\n}\n.status-list[data-v-a01f811b] {\n  max-height: 300px;\n  overflow-y: auto;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  margin-bottom: 16px;\n}\n.status-option[data-v-a01f811b] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 12px 16px;\n  border: none;\n  border-bottom: 1px solid #f0f0f0;\n  background: white;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  font-size: 0.9rem;\n  width: 100%;\n  text-align: left;\n}\n.status-option[data-v-a01f811b]:last-child {\n  border-bottom: none;\n}\n.status-option[data-v-a01f811b]:hover {\n  background: #f8f9fa;\n}\n.status-option.selected[data-v-a01f811b] {\n  background: linear-gradient(135deg, #fff5f8, #ffe8f0);\n  border-left: 4px solid #e6007a;\n}\n.option-text[data-v-a01f811b] {\n  font-weight: 500;\n  color: #333;\n}\n.selected-indicator[data-v-a01f811b] {\n  color: #e6007a;\n  font-weight: bold;\n  font-size: 1rem;\n}\n.reason-section[data-v-a01f811b] {\n  margin: 16px 0;\n}\n.reason-section label[data-v-a01f811b] {\n  display: block;\n  margin-bottom: 8px;\n  font-weight: 600;\n  color: #495057;\n}\n.reason-section textarea[data-v-a01f811b] {\n  width: 100%;\n  padding: 12px;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  font-family: inherit;\n  font-size: 0.9rem;\n  resize: vertical;\n  transition: border-color 0.2s ease;\n}\n.reason-section textarea[data-v-a01f811b]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.modal-actions[data-v-a01f811b] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-a01f811b] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n.btn[data-v-a01f811b]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-primary[data-v-a01f811b] {\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border: 1px solid #b3005f;\n}\n.btn-primary[data-v-a01f811b]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #8a0047);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-secondary[data-v-a01f811b] {\n  background: #6c757d;\n  color: white;\n  border: 1px solid #6c757d;\n}\n.btn-secondary[data-v-a01f811b]:hover:not(:disabled) {\n  background: #5a6268;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);\n}\n@media (max-width: 768px) {\n.status-grid[data-v-a01f811b] {\n    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));\n}\n}\n\n.content-area[data-v-52f3a33e] {\n  flex: 1;\n  overflow-y: auto;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.proposals-list[data-v-52f3a33e] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.proposal-item[data-v-52f3a33e] {\n  background: #ffffff;\n  border-radius: 8px;\n  padding: 1rem;\n  box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.proposal-item[data-v-52f3a33e]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n}\n.proposal-header[data-v-52f3a33e] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 0.5rem;\n}\n.proposal-id[data-v-52f3a33e] {\n  font-size: 0.875rem;\n  color: #6b46c1;\n  font-weight: 600;\n}\n.proposal-title[data-v-52f3a33e] {\n  margin: 0.5rem 0;\n  font-size: 1rem;\n  color: #2d3748;\n}\n.proposal-meta[data-v-52f3a33e] {\n  display: flex;\n  gap: 1rem;\n  font-size: 0.875rem;\n  color: #718096;\n}\n.meta-item[data-v-52f3a33e] {\n  display: flex;\n  align-items: center;\n  gap: 0.25rem;\n}\n.empty-state[data-v-52f3a33e] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-52f3a33e] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n\n.content-area[data-v-c914a971] {\n  flex: 1;\n  overflow-y: auto;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.proposals-list[data-v-c914a971] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.proposal-item[data-v-c914a971] {\n  background: #ffffff;\n  border-radius: 8px;\n  padding: 1rem;\n  box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.proposal-item[data-v-c914a971]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n}\n.proposal-header[data-v-c914a971] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 0.5rem;\n}\n.proposal-id[data-v-c914a971] {\n  font-size: 0.875rem;\n  color: #6b46c1;\n  font-weight: 600;\n}\n.proposal-title[data-v-c914a971] {\n  margin: 0.5rem 0;\n  font-size: 1rem;\n  color: #2d3748;\n}\n.proposal-meta[data-v-c914a971] {\n  display: flex;\n  gap: 1rem;\n  font-size: 0.875rem;\n  color: #718096;\n}\n.meta-item[data-v-c914a971] {\n  display: flex;\n  align-items: center;\n  gap: 0.25rem;\n}\n.meta-item.action-type[data-v-c914a971] {\n  flex-basis: 100%;\n}\n.action-badge[data-v-c914a971] {\n  padding: 4px 8px;\n  border-radius: 12px;\n  font-size: 0.8rem;\n  font-weight: 500;\n  margin-left: 4px;\n}\n.action-badge.evaluation[data-v-c914a971] {\n  background: #fff3cd;\n  color: #856404;\n}\n.action-badge.team-vote[data-v-c914a971] {\n  background: #d1ecf1;\n  color: #0c5460;\n}\n.empty-state[data-v-c914a971] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-c914a971] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n\n.content-area[data-v-9dd5dc87] {\n  flex: 1;\n  overflow-y: auto;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.proposals-list[data-v-9dd5dc87] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.proposal-item[data-v-9dd5dc87] {\n  background: #ffffff;\n  border-radius: 8px;\n  padding: 1rem;\n  box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.proposal-item[data-v-9dd5dc87]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n}\n.proposal-header[data-v-9dd5dc87] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 0.5rem;\n}\n.proposal-id[data-v-9dd5dc87] {\n  font-size: 0.875rem;\n  color: #6b46c1;\n  font-weight: 600;\n}\n.proposal-title[data-v-9dd5dc87] {\n  margin: 0.5rem 0;\n  font-size: 1rem;\n  color: #2d3748;\n}\n.evaluation-info[data-v-9dd5dc87] {\n  margin: 16px 0;\n  padding: 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n}\n.vote-recommendation[data-v-9dd5dc87] {\n  margin-bottom: 8px;\n}\n.vote-badge[data-v-9dd5dc87] {\n  padding: 4px 8px;\n  background: #007bff;\n  color: white;\n  border-radius: 4px;\n  font-size: 0.8rem;\n  margin-left: 8px;\n}\n.vote-reason[data-v-9dd5dc87] {\n  font-size: 0.9rem;\n  color: #666;\n  margin-top: 8px;\n}\n.proposal-meta[data-v-9dd5dc87] {\n  display: flex;\n  gap: 1rem;\n  font-size: 0.875rem;\n  color: #718096;\n  margin-top: 16px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.meta-item[data-v-9dd5dc87] {\n  display: flex;\n  align-items: center;\n  gap: 0.25rem;\n}\n.empty-state[data-v-9dd5dc87] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-9dd5dc87] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n\n.content-area[data-v-a4d8a9e4] {\n  flex: 1;\n  overflow-y: auto;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.empty-state[data-v-a4d8a9e4] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-a4d8a9e4] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n\n.my-dashboard[data-v-f4aa978b] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n}\n\n/* Loading and Error States */\n.loading-state[data-v-f4aa978b],\n.error-state[data-v-f4aa978b] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  padding: 2rem;\n  text-align: center;\n}\n.loading-spinner[data-v-f4aa978b] {\n  width: 50px;\n  height: 50px;\n  border: 4px solid #f3f3f3;\n  border-top: 4px solid #6b46c1;\n  border-radius: 50%;\n  animation: spin-f4aa978b 1s linear infinite;\n  margin-bottom: 1rem;\n}\n@keyframes spin-f4aa978b {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.error-icon[data-v-f4aa978b] {\n  font-size: 3rem;\n  margin-bottom: 1rem;\n}\n.retry-btn[data-v-f4aa978b] {\n  margin-top: 1rem;\n  padding: 0.75rem 1.5rem;\n  background: #6b46c1;\n  color: white;\n  border: none;\n  border-radius: 8px;\n  font-size: 1rem;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.retry-btn[data-v-f4aa978b]:hover {\n  background: #5a37a1;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 8px rgba(0,0,0,0.15);\n}\n.stats-section[data-v-f4aa978b] {\n  margin-bottom: 1rem;\n}\n.stats-section-container[data-v-f4aa978b] {\n  margin: 16px;\n  display: flex;\n  gap: 1rem;\n}\n.stat-card[data-v-f4aa978b] {\n  flex: 1;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n  transition: all 0.3s ease;\n  cursor: pointer;\n  position: relative;\n  border: 2px solid transparent;\n  min-width: 150px;\n}\n.stat-card[data-v-f4aa978b]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 8px rgba(0,0,0,0.15);\n}\n.stat-card.active[data-v-f4aa978b] {\n  border-color: #6b46c1;\n  background: #f8f4ff;\n}\n.stat-number[data-v-f4aa978b] {\n  font-size: 2.5rem;\n  font-weight: bold;\n  color: #2d3748;\n  margin-bottom: 0.5rem;\n}\n.stat-label[data-v-f4aa978b] {\n  font-size: 1rem;\n  color: #4a5568;\n  margin-bottom: 0.5rem;\n}\n.content-section[data-v-f4aa978b] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  padding: 0 16px;\n}\n\n.proposal-item[data-v-254d3b0b] {\n  background: #ffffff;\n  border-radius: 8px;\n  padding: 1rem;\n  box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.proposal-item[data-v-254d3b0b]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n}\n.agreement-item[data-v-254d3b0b] {\n  border-left: 4px solid #ffc107;\n}\n.agreement-item-complete[data-v-254d3b0b] {\n  border-left: 4px solid #28a745;\n}\n.ready-item[data-v-254d3b0b] {\n  border-left: 4px solid #28a745;\n}\n.discussion-item[data-v-254d3b0b] {\n  border-left: 4px solid #17a2b8;\n}\n.vetoed-item[data-v-254d3b0b] {\n  border-left: 4px solid #dc3545;\n}\n.proposal-header[data-v-254d3b0b] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 0.5rem;\n}\n.proposal-id[data-v-254d3b0b] {\n  font-size: 0.875rem;\n  color: #6b46c1;\n  font-weight: 600;\n}\n.proposal-title[data-v-254d3b0b] {\n  margin: 0.5rem 0;\n  font-size: 1rem;\n  color: #2d3748;\n}\n.agreement-progress[data-v-254d3b0b] {\n  margin: 16px 0;\n  padding: 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n}\n.progress-header[data-v-254d3b0b] {\n  display: flex;\n  justify-content: space-between;\n  margin-bottom: 8px;\n  font-size: 0.9rem;\n  font-weight: 500;\n}\n.progress-count[data-v-254d3b0b] {\n  color: #007bff;\n  font-weight: 600;\n}\n.progress-bar[data-v-254d3b0b] {\n  height: 8px;\n  background: #e9ecef;\n  border-radius: 4px;\n  overflow: hidden;\n  position: relative;\n}\n.progress-fill[data-v-254d3b0b] {\n  height: 100%;\n  transition: width 0.3s ease, background-color 0.3s ease;\n  border-radius: 4px;\n}\n.team-status[data-v-254d3b0b] {\n  display: grid;\n  grid-template-columns: 1fr 1fr;\n  gap: 20px;\n  margin: 16px 0;\n}\n.status-section h5[data-v-254d3b0b] {\n  margin: 0 0 8px 0;\n  font-size: 0.9rem;\n  font-weight: 600;\n  color: #333;\n}\n.member-list[data-v-254d3b0b] {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 6px;\n}\n.member-badge[data-v-254d3b0b] {\n  padding: 4px 8px;\n  border-radius: 12px;\n  font-size: 0.8rem;\n  font-weight: 500;\n}\n.member-badge.agreed[data-v-254d3b0b] {\n  background: #d4edda;\n  color: #155724;\n}\n.member-badge.discussion[data-v-254d3b0b] {\n  background: #d1ecf1;\n  color: #0c5460;\n}\n.voting-info[data-v-254d3b0b],\n.discussion-info[data-v-254d3b0b],\n.veto-info[data-v-254d3b0b] {\n  margin: 16px 0;\n  padding: 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n}\n.vote-recommendation[data-v-254d3b0b] {\n  margin-bottom: 8px;\n}\n.vote-badge[data-v-254d3b0b] {\n  padding: 4px 8px;\n  background: #007bff;\n  color: white;\n  border-radius: 4px;\n  font-size: 0.8rem;\n  margin-left: 8px;\n}\n.vote-reason[data-v-254d3b0b] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.veto-alert[data-v-254d3b0b] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  color: #721c24;\n}\n.alert-icon[data-v-254d3b0b] {\n  font-size: 1.2rem;\n}\n.veto-reason[data-v-254d3b0b] {\n  margin-top: 0.5rem;\n  font-size: 0.875rem;\n  color: #718096;\n}\n.veto-date[data-v-254d3b0b] {\n  margin-top: 0.25rem;\n  font-size: 0.875rem;\n  color: #718096;\n}\n.no-members[data-v-254d3b0b] {\n  color: #666;\n  font-style: italic;\n  font-size: 0.9rem;\n}\n.proposal-meta[data-v-254d3b0b] {\n  display: flex;\n  gap: 1rem;\n  font-size: 0.875rem;\n  color: #718096;\n  margin-top: 16px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.meta-item[data-v-254d3b0b] {\n  display: flex;\n  align-items: center;\n  gap: 0.25rem;\n}\n.not-set[data-v-254d3b0b] {\n  color: #dc3545;\n  font-weight: 500;\n}\n\n.content-area[data-v-869dab61] {\n  flex: 1;\n  overflow-y: auto;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.panel-header[data-v-869dab61] {\n  margin-bottom: 24px;\n}\n.panel-header h3[data-v-869dab61] {\n  margin: 0 0 8px 0;\n  color: #333;\n  font-size: 1.2rem;\n}\n.panel-header p[data-v-869dab61] {\n  margin: 0;\n  color: #666;\n  font-size: 0.9rem;\n}\n.proposals-list[data-v-869dab61] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.empty-state[data-v-869dab61] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-869dab61] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n\n.content-area[data-v-aac09e73] {\n  flex: 1;\n  overflow-y: auto;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.panel-header[data-v-aac09e73] {\n  margin-bottom: 24px;\n}\n.panel-header h3[data-v-aac09e73] {\n  margin: 0 0 8px 0;\n  color: #333;\n  font-size: 1.2rem;\n}\n.panel-header p[data-v-aac09e73] {\n  margin: 0;\n  color: #666;\n  font-size: 0.9rem;\n}\n.proposals-list[data-v-aac09e73] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.empty-state[data-v-aac09e73] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-aac09e73] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n.send-to-mimir-btn[data-v-aac09e73] {\n  background: #e6007a;\n  color: white;\n  border: none;\n  border-radius: 6px;\n  padding: 8px 16px;\n  font-size: 14px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  min-width: 120px;\n  margin-top: 12px;\n  transition: background 0.3s, opacity 0.3s;\n}\n.send-to-mimir-btn[data-v-aac09e73]:hover:not(:disabled) {\n  background: #c40069;\n}\n.send-to-mimir-btn[data-v-aac09e73]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.loading-spinner[data-v-aac09e73] {\n  width: 16px;\n  height: 16px;\n  border: 2px solid #f3f3f3;\n  border-top: 2px solid #ffffff;\n  border-radius: 50%;\n  animation: spin-aac09e73 1s linear infinite;\n}\n@keyframes spin-aac09e73 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n\n.content-area[data-v-2e7af979] {\n  flex: 1;\n  overflow-y: auto;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.panel-header[data-v-2e7af979] {\n  margin-bottom: 24px;\n}\n.panel-header h3[data-v-2e7af979] {\n  margin: 0 0 8px 0;\n  color: #333;\n  font-size: 1.2rem;\n}\n.panel-header p[data-v-2e7af979] {\n  margin: 0;\n  color: #666;\n  font-size: 0.9rem;\n}\n.proposals-list[data-v-2e7af979] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.empty-state[data-v-2e7af979] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-2e7af979] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n\n.content-area[data-v-03d5c226] {\n  flex: 1;\n  overflow-y: auto;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.panel-header[data-v-03d5c226] {\n  margin-bottom: 24px;\n}\n.panel-header h3[data-v-03d5c226] {\n  margin: 0 0 8px 0;\n  color: #333;\n  font-size: 1.2rem;\n}\n.panel-header p[data-v-03d5c226] {\n  margin: 0;\n  color: #666;\n  font-size: 0.9rem;\n}\n.proposals-list[data-v-03d5c226] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.empty-state[data-v-03d5c226] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-03d5c226] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n\n.modal-overlay[data-v-cafa1a99] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.modal-content[data-v-cafa1a99] {\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);\n  border: 1px solid #e1e5e9;\n  width: 400px;\n  max-width: 90vw;\n}\n.modal-header[data-v-cafa1a99] {\n  padding: 20px 24px 0;\n  display: flex;\n  align-items: center;\n  gap: 12px;\n}\n.icon[data-v-cafa1a99] {\n  font-size: 24px;\n}\n.icon-success[data-v-cafa1a99] { color: #28a745;\n}\n.icon-error[data-v-cafa1a99] { color: #dc3545;\n}\n.icon-warning[data-v-cafa1a99] { color: #ffc107;\n}\n.icon-info[data-v-cafa1a99] { color: #007bff;\n}\n.modal-header h3[data-v-cafa1a99] {\n  margin: 0;\n  font-size: 18px;\n  font-weight: 600;\n  color: #333;\n}\n.modal-body[data-v-cafa1a99] {\n  padding: 16px 24px 20px;\n}\n.modal-body p[data-v-cafa1a99] {\n  margin: 0;\n  color: #666;\n  line-height: 1.5;\n}\n.modal-actions[data-v-cafa1a99] {\n  padding: 0 24px 24px;\n  display: flex;\n  justify-content: flex-end;\n}\n.ok-btn[data-v-cafa1a99] {\n  padding: 8px 24px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  color: white;\n}\n.ok-btn.success[data-v-cafa1a99] {\n  background: #28a745;\n  border-color: #28a745;\n}\n.ok-btn.success[data-v-cafa1a99]:hover {\n  background: #218838;\n  border-color: #218838;\n}\n.ok-btn.error[data-v-cafa1a99] {\n  background: #dc3545;\n  border-color: #dc3545;\n}\n.ok-btn.error[data-v-cafa1a99]:hover {\n  background: #c82333;\n  border-color: #c82333;\n}\n.ok-btn.warning[data-v-cafa1a99] {\n  background: #ffc107;\n  border-color: #ffc107;\n  color: #212529;\n}\n.ok-btn.warning[data-v-cafa1a99]:hover {\n  background: #e0a800;\n  border-color: #e0a800;\n}\n.ok-btn.info[data-v-cafa1a99] {\n  background: #007bff;\n  border-color: #007bff;\n}\n.ok-btn.info[data-v-cafa1a99]:hover {\n  background: #0056b3;\n  border-color: #0056b3;\n}\n\n.workflow[data-v-1401d533] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n}\n.stats-section[data-v-1401d533] {\n  margin-bottom: 1rem;\n}\n.stats-section-container[data-v-1401d533] {\n  margin: 16px;\n  display: flex;\n  gap: 1rem;\n}\n.stat-card[data-v-1401d533] {\n  flex: 1;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n  transition: all 0.3s ease;\n  cursor: pointer;\n  position: relative;\n  border: 2px solid transparent;\n  min-width: 150px;\n}\n.stat-card[data-v-1401d533]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 8px rgba(0,0,0,0.15);\n}\n.stat-card.active[data-v-1401d533] {\n  border-color: #6b46c1;\n  background: #f8f4ff;\n}\n.stat-number[data-v-1401d533] {\n  font-size: 2.5rem;\n  font-weight: bold;\n  color: #2d3748;\n  margin-bottom: 0.5rem;\n}\n.stat-label[data-v-1401d533] {\n  font-size: 1rem;\n  color: #4a5568;\n  margin-bottom: 0.5rem;\n}\n.content-section[data-v-1401d533] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  padding: 0 16px;\n}\n.loading-state[data-v-1401d533],\n.error-state[data-v-1401d533] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 300px;\n  text-align: center;\n}\n.loading-spinner[data-v-1401d533] {\n  width: 40px;\n  height: 40px;\n  border: 3px solid #f3f3f3;\n  border-top: 3px solid #007bff;\n  border-radius: 50%;\n  animation: spin-1401d533 1s linear infinite;\n  margin-bottom: 16px;\n}\n@keyframes spin-1401d533 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.error-icon[data-v-1401d533] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n  color: #dc3545;\n}\n.error-state h3[data-v-1401d533] {\n  margin: 0 0 8px 0;\n  color: #dc3545;\n}\n.error-state p[data-v-1401d533] {\n  margin: 0 0 16px 0;\n  color: #666;\n}\n.retry-btn[data-v-1401d533] {\n  padding: 8px 16px;\n  background: #007bff;\n  color: white;\n  border: none;\n  border-radius: 4px;\n  cursor: pointer;\n  font-size: 0.9rem;\n  font-weight: 500;\n  transition: background-color 0.2s ease;\n}\n.retry-btn[data-v-1401d533]:hover {\n  background: #0056b3;\n}\n\n.modal-overlay[data-v-5114e1db] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.dashboard-modal[data-v-5114e1db] {\n  background: white;\n  border-radius: 12px;\n  width: 95vw;\n  height: 90vh;\n  max-width: 1400px;\n  display: flex;\n  flex-direction: column;\n  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);\n}\n.modal-header[data-v-5114e1db] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: #f8f9fa;\n  border-radius: 12px 12px 0 0;\n}\n.header-content[data-v-5114e1db] {\n  display: flex;\n  flex-direction: row;\n  width: 100%;\n  justify-content: space-between;\n  align-items: center;\n  gap: 6px;\n}\n.modal-header h2[data-v-5114e1db] {\n  margin: 0;\n  font-size: 1.5rem;\n  font-weight: 600;\n  color: #333;\n}\n.dao-name[data-v-5114e1db] {\n  font-size: 1.2rem;\n  font-weight: 500;\n  color: #666;\n  margin-left: 8px;\n}\n.multisig-info[data-v-5114e1db] {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n  font-size: 0.85rem;\n}\n.multisig-label[data-v-5114e1db] {\n  color: #666;\n  font-weight: 500;\n}\n.multisig-address[data-v-5114e1db] {\n  color: #e6007a;\n  font-family: 'Courier New', monospace;\n  font-weight: 600;\n  background: rgba(230, 0, 122, 0.1);\n  padding: 2px 8px;\n  border-radius: 4px;\n}\n.close-btn[data-v-5114e1db] {\n  background: none;\n  border: none;\n  font-size: 2rem;\n  cursor: pointer;\n  color: #6c757d;\n  padding: 0;\n  width: 40px;\n  height: 40px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  transition: all 0.2s ease;\n}\n.close-btn[data-v-5114e1db]:hover {\n  background: #e9ecef;\n  color: #495057;\n}\n.dashboard-content[data-v-5114e1db] {\n  display: flex;\n  flex: 1;\n  flex-direction: column;\n  overflow: hidden;\n}\n.auth-required[data-v-5114e1db] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  text-align: center;\n  padding: 2rem;\n}\n.auth-icon[data-v-5114e1db] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n}\n.auth-required h3[data-v-5114e1db] {\n  margin: 0 0 8px 0;\n  color: #333;\n}\n.auth-required p[data-v-5114e1db] {\n  margin: 0 0 16px 0;\n  color: #666;\n}\n.connect-btn[data-v-5114e1db] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 8px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.connect-btn[data-v-5114e1db]:hover {\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n\n/* Tab Navigation */\n.tab-navigation[data-v-5114e1db] {\n  display: flex;\n  border-bottom: 1px solid #e9ecef;\n  background: white;\n  padding: 0 16px;\n}\n.tab-btn[data-v-5114e1db] {\n  flex: 1;\n  padding: 16px 20px;\n  border: none;\n  background: none;\n  cursor: pointer;\n  font-size: 0.9rem;\n  font-weight: 500;\n  color: #666;\n  border-bottom: 3px solid transparent;\n  transition: all 0.2s ease;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 8px;\n}\n.tab-btn.active[data-v-5114e1db] {\n  color: #007bff;\n  border-bottom-color: #007bff;\n  background: #f8f9fa;\n}\n.tab-btn[data-v-5114e1db]:hover:not(.active) {\n  background: #f8f9fa;\n  color: #333;\n}\n.tab-icon[data-v-5114e1db] {\n  font-size: 1.1rem;\n}\n.tab-content[data-v-5114e1db] {\n  flex: 1;\n  display: flex;\n  overflow: hidden;\n}\n\n/* Scrollbar styling */\n[data-v-5114e1db]::-webkit-scrollbar {\n  width: 8px;\n}\n[data-v-5114e1db]::-webkit-scrollbar-track {\n  background: #f1f1f1;\n  border-radius: 4px;\n}\n[data-v-5114e1db]::-webkit-scrollbar-thumb {\n  background: #888;\n  border-radius: 4px;\n}\n[data-v-5114e1db]::-webkit-scrollbar-thumb:hover {\n  background: #555;\n}\n\n/* Firefox scrollbar */\n[data-v-5114e1db] {\n  scrollbar-width: thin;\n  scrollbar-color: #888 #f1f1f1;\n}\n\n.menu-container[data-v-e2e1959b] {\n  width: 100%;\n}\n.user-status[data-v-e2e1959b] {\n  padding: 16px 20px;\n  border-bottom: 1px solid #f0f0f0;\n  background: #f8f9fa;\n}\n.user-info[data-v-e2e1959b] {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n}\n.user-avatar[data-v-e2e1959b] {\n  width: 40px;\n  height: 40px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: white;\n  font-weight: bold;\n  font-size: 14px;\n}\n.user-details[data-v-e2e1959b] {\n  flex: 1;\n}\n.user-name[data-v-e2e1959b] {\n  font-weight: 600;\n  color: #333;\n  font-size: 14px;\n  margin-bottom: 2px;\n}\n.user-address[data-v-e2e1959b] {\n  font-family: monospace;\n  font-size: 12px;\n  color: #666;\n  margin-bottom: 2px;\n}\n.user-network[data-v-e2e1959b] {\n  font-size: 11px;\n  color: #999;\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n}\n.logout-btn[data-v-e2e1959b] {\n  background: #dc3545;\n  color: white;\n  border: none;\n  padding: 6px 12px;\n  border-radius: 6px;\n  font-size: 12px;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n}\n.logout-btn[data-v-e2e1959b]:hover:not(:disabled) {\n  background: #c82333;\n}\n.logout-btn[data-v-e2e1959b]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.login-prompt[data-v-e2e1959b] {\n  text-align: center;\n  padding: 20px 0;\n}\n.login-icon[data-v-e2e1959b] {\n  font-size: 32px;\n  margin-bottom: 8px;\n}\n.login-text[data-v-e2e1959b] {\n  color: #666;\n  font-size: 14px;\n  margin-bottom: 16px;\n}\n.connect-btn[data-v-e2e1959b] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 8px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.connect-btn[data-v-e2e1959b]:hover {\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.menu-items[data-v-e2e1959b] {\n  display: flex;\n  flex-direction: column;\n  gap: 0.5rem;\n}\n.menu-item[data-v-e2e1959b] {\n  padding: 1rem;\n  border-radius: 8px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  background: #ffffff;\n  box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n  display: flex;\n  align-items: center;\n  gap: 0.75rem;\n}\n.menu-item[data-v-e2e1959b]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n}\n.menu-item .icon[data-v-e2e1959b] {\n  font-size: 1.25rem;\n  width: 1.5rem;\n  text-align: center;\n}\n.menu-item span[data-v-e2e1959b]:not(.icon) {\n  font-size: 1rem;\n  color: #2d3748;\n  font-weight: 500;\n}\n\n/* Modal styles */\n.modal-overlay[data-v-e2e1959b] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.modal-content[data-v-e2e1959b] {\n  background: white;\n  border-radius: 12px;\n  padding: 24px;\n  max-width: 90vw;\n  max-height: 90vh;\n  overflow: auto;\n}\n\n.voting-tool-container[data-v-c1fca634] {\n  position: fixed;\n  bottom: 20px;\n  right: 20px;\n  z-index: 999999;\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n  pointer-events: none; /* Allow clicks to pass through the container */\n}\n\n/* Floating Button */\n.floating-button[data-v-c1fca634] {\n  width: 60px;\n  height: 60px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  cursor: pointer;\n  box-shadow: 0 4px 20px rgba(230, 0, 122, 0.4);\n  transition: all 0.3s ease;\n  border: 3px solid white;\n  pointer-events: auto; /* Make the button clickable */\n}\n.floating-button[data-v-c1fca634]:hover {\n  transform: scale(1.1);\n  box-shadow: 0 6px 25px rgba(230, 0, 122, 0.6);\n}\n.floating-button.menu-open[data-v-c1fca634] {\n  background: linear-gradient(135deg, #ff1493, #e6007a);\n}\n.button-icon[data-v-c1fca634] {\n  font-size: 24px;\n  color: white;\n  font-weight: bold;\n}\n.hamburger-icon[data-v-c1fca634] {\n  display: flex;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  gap: 3px;\n}\n.hamburger-icon span[data-v-c1fca634] {\n  width: 20px;\n  height: 2px;\n  background-color: white;\n  border-radius: 1px;\n  transition: all 0.3s ease;\n}\n\n/* Dropdown Menu */\n.dropdown-menu[data-v-c1fca634] {\n  position: absolute;\n  bottom: 0;\n  right: 70px;\n  width: 280px;\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);\n  border: 1px solid #e1e5e9;\n  overflow: hidden;\n  animation: smoothExpand-c1fca634 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);\n  transform-origin: bottom right;\n  pointer-events: auto; /* Make the menu clickable */\n}\n@keyframes smoothExpand-c1fca634 {\n0% {\n    opacity: 0;\n    transform: scale(0.1);\n}\n100% {\n    opacity: 1;\n    transform: scale(1);\n}\n}\n.menu-content[data-v-c1fca634] {\n  padding: 16px 0;\n}\n.menu-item[data-v-c1fca634] {\n  display: flex;\n  align-items: center;\n  padding: 16px 20px;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n  border-bottom: 1px solid #f0f0f0;\n}\n.menu-item[data-v-c1fca634]:last-child {\n  border-bottom: none;\n}\n.menu-item[data-v-c1fca634]:hover {\n  background-color: #f8f9fa;\n}\n.menu-item .icon[data-v-c1fca634] {\n  font-size: 20px;\n  margin-right: 12px;\n  width: 24px;\n  text-align: center;\n}\n.menu-item span[data-v-c1fca634]:last-child {\n  font-size: 14px;\n  color: #333;\n  font-weight: 500;\n}\n\n/* Modal styles */\n.modal-overlay[data-v-5f7a28c8] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.assign-modal[data-v-5f7a28c8] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  overflow-y: auto;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-5f7a28c8] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-5f7a28c8] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-5f7a28c8] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-5f7a28c8]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-5f7a28c8] {\n  padding: 24px;\n}\n.modal-content p[data-v-5f7a28c8] {\n  margin: 0 0 16px 0;\n  color: #495057;\n}\n.modal-actions[data-v-5f7a28c8] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-5f7a28c8] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n.btn[data-v-5f7a28c8]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-primary[data-v-5f7a28c8] {\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border: 1px solid #b3005f;\n}\n.btn-primary[data-v-5f7a28c8]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #8a0047);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-secondary[data-v-5f7a28c8] {\n  background: #6c757d;\n  color: white;\n  border: 1px solid #6c757d;\n}\n.btn-secondary[data-v-5f7a28c8]:hover:not(:disabled) {\n  background: #5a6268;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);\n}\n.error-message[data-v-5f7a28c8] {\n  background-color: #fff2f0;\n  border: 1px solid #ffccc7;\n  color: #ff4d4f;\n  padding: 12px;\n  border-radius: 8px;\n  margin-bottom: 16px;\n  font-size: 0.9rem;\n}\n\n/* Modal styles */\n.modal-overlay[data-v-281fbad4] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.unassign-modal[data-v-281fbad4] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  overflow-y: auto;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-281fbad4] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-281fbad4] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-281fbad4] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-281fbad4]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-281fbad4] {\n  padding: 24px;\n}\n.modal-content p[data-v-281fbad4] {\n  margin: 0 0 16px 0;\n  color: #495057;\n}\n.form-group[data-v-281fbad4] {\n  margin-bottom: 20px;\n}\n.form-group label[data-v-281fbad4] {\n  display: block;\n  margin-bottom: 8px;\n  color: #495057;\n  font-weight: 500;\n}\n.form-control[data-v-281fbad4] {\n  width: 100%;\n  padding: 10px;\n  border: 1px solid #ced4da;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  line-height: 1.5;\n  transition: border-color 0.2s ease;\n  resize: vertical;\n}\n.form-control[data-v-281fbad4]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 2px rgba(230, 0, 122, 0.1);\n}\n.current-values[data-v-281fbad4] {\n  background: #f8f9fa;\n  padding: 16px;\n  border-radius: 8px;\n  margin-bottom: 20px;\n}\n.current-values ul[data-v-281fbad4] {\n  margin: 8px 0 0 0;\n  padding-left: 20px;\n  color: #6c757d;\n}\n.error-message[data-v-281fbad4] {\n  background-color: #fff2f0;\n  border: 1px solid #ffccc7;\n  color: #ff4d4f;\n  padding: 12px;\n  border-radius: 8px;\n  margin-bottom: 16px;\n  font-size: 0.9rem;\n}\n.modal-actions[data-v-281fbad4] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-281fbad4] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n.btn[data-v-281fbad4]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-primary[data-v-281fbad4] {\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border: 1px solid #b3005f;\n}\n.btn-primary[data-v-281fbad4]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #8a0047);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-secondary[data-v-281fbad4] {\n  background: #6c757d;\n  color: white;\n  border: 1px solid #6c757d;\n}\n.btn-secondary[data-v-281fbad4]:hover:not(:disabled) {\n  background: #5a6268;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);\n}\n\n/* Modal styles */\n.modal-overlay[data-v-eeb2c9ac] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.vote-modal[data-v-eeb2c9ac] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  overflow-y: auto;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-eeb2c9ac] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-eeb2c9ac] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-eeb2c9ac] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-eeb2c9ac]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-eeb2c9ac] {\n  padding: 24px;\n}\n.modal-content p[data-v-eeb2c9ac] {\n  margin: 0 0 16px 0;\n  color: #495057;\n}\n.vote-options[data-v-eeb2c9ac] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n  margin: 16px 0;\n}\n.vote-option[data-v-eeb2c9ac] {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  justify-content: center;\n  gap: 12px;\n  padding: 16px 20px;\n  border: 2px solid #e9ecef;\n  border-radius: 8px;\n  background: white;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  font-size: 1rem;\n  text-align: center;\n}\n.vote-option[data-v-eeb2c9ac]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);\n}\n.vote-option.selected[data-v-eeb2c9ac] {\n  border-color: #e6007a;\n  background: linear-gradient(135deg, #fff5f8, #ffe8f0);\n}\n.vote-option.aye[data-v-eeb2c9ac]:hover,\n.vote-option.aye.selected[data-v-eeb2c9ac] {\n  border-color: #28a745;\n  background: linear-gradient(135deg, #f8fff9, #e8f5e8);\n}\n.vote-option.nay[data-v-eeb2c9ac]:hover,\n.vote-option.nay.selected[data-v-eeb2c9ac] {\n  border-color: #dc3545;\n  background: linear-gradient(135deg, #fff8f8, #ffe8e8);\n}\n.vote-option.abstain[data-v-eeb2c9ac]:hover,\n.vote-option.abstain.selected[data-v-eeb2c9ac] {\n  border-color: #6f42c1;\n  background: linear-gradient(135deg, #faf8ff, #f0e8ff);\n}\n.vote-icon[data-v-eeb2c9ac] {\n  font-size: 1.5rem;\n}\n.vote-text[data-v-eeb2c9ac] {\n  font-weight: 600;\n}\n.reason-section[data-v-eeb2c9ac] {\n  margin: 16px 0;\n}\n.reason-section label[data-v-eeb2c9ac] {\n  display: block;\n  margin-bottom: 8px;\n  font-weight: 600;\n  color: #495057;\n}\n.reason-section textarea[data-v-eeb2c9ac] {\n  width: 100%;\n  padding: 12px;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  font-family: inherit;\n  font-size: 0.9rem;\n  resize: vertical;\n  transition: border-color 0.2s ease;\n}\n.reason-section textarea[data-v-eeb2c9ac]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.modal-actions[data-v-eeb2c9ac] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-eeb2c9ac] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n.btn[data-v-eeb2c9ac]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-primary[data-v-eeb2c9ac] {\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border: 1px solid #b3005f;\n}\n.btn-primary[data-v-eeb2c9ac]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #8a0047);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-secondary[data-v-eeb2c9ac] {\n  background: #6c757d;\n  color: white;\n  border: 1px solid #6c757d;\n}\n.btn-secondary[data-v-eeb2c9ac]:hover:not(:disabled) {\n  background: #5a6268;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);\n}\n@media (max-width: 768px) {\n.vote-options[data-v-eeb2c9ac] {\n    flex-direction: column;\n}\n}\n\n.modal-overlay[data-v-e479232c] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.modal-content[data-v-e479232c] {\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);\n  border: 1px solid #e1e5e9;\n  width: 400px;\n  max-width: 90vw;\n}\n.modal-header[data-v-e479232c] {\n  padding: 20px 24px 0;\n}\n.modal-header h3[data-v-e479232c] {\n  margin: 0;\n  font-size: 18px;\n  font-weight: 600;\n  color: #333;\n}\n.modal-body[data-v-e479232c] {\n  padding: 16px 24px 20px;\n}\n.modal-body p[data-v-e479232c] {\n  margin: 0;\n  color: #666;\n  line-height: 1.5;\n}\n.modal-actions[data-v-e479232c] {\n  padding: 0 24px 24px;\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n}\n.cancel-btn[data-v-e479232c], .confirm-btn[data-v-e479232c] {\n  padding: 8px 16px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.cancel-btn[data-v-e479232c] {\n  background: white;\n  color: #666;\n}\n.cancel-btn[data-v-e479232c]:hover {\n  background: #f8f9fa;\n}\n.confirm-btn[data-v-e479232c] {\n  background: #007bff;\n  color: white;\n  border-color: #007bff;\n}\n.confirm-btn[data-v-e479232c]:hover {\n  background: #0056b3;\n  border-color: #0056b3;\n}\n.confirm-btn.danger[data-v-e479232c] {\n  background: #dc3545;\n  border-color: #dc3545;\n}\n.confirm-btn.danger[data-v-e479232c]:hover {\n  background: #c82333;\n  border-color: #c82333;\n}\n.confirm-btn.warning[data-v-e479232c] {\n  background: #ffc107;\n  border-color: #ffc107;\n  color: #212529;\n}\n.confirm-btn.warning[data-v-e479232c]:hover {\n  background: #e0a800;\n  border-color: #e0a800;\n}\n.confirm-btn.primary[data-v-e479232c] {\n  background: #007bff;\n  border-color: #007bff;\n}\n.confirm-btn.primary[data-v-e479232c]:hover {\n  background: #0056b3;\n  border-color: #0056b3;\n}\n\n.team-actions-panel[data-v-bf6bd4a9] {\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);\n  border: 1px solid #e1e5e9;\n  width: 500px;\n  max-height: 700px;\n  overflow: hidden;\n  display: flex;\n  flex-direction: column;\n}\n.panel-header[data-v-bf6bd4a9] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 16px 20px;\n  border-bottom: 1px solid #f0f0f0;\n  background: #f8f9fa;\n}\n.panel-header h3[data-v-bf6bd4a9] {\n  margin: 0;\n  font-size: 16px;\n  font-weight: 600;\n  color: #333;\n}\n.close-btn[data-v-bf6bd4a9] {\n  background: none;\n  border: none;\n  font-size: 18px;\n  cursor: pointer;\n  color: #666;\n  padding: 4px;\n  border-radius: 4px;\n}\n.close-btn[data-v-bf6bd4a9]:hover {\n  background: #e9ecef;\n}\n.loading-state[data-v-bf6bd4a9] {\n  padding: 40px 20px;\n  text-align: center;\n  color: #666;\n}\n.spinner[data-v-bf6bd4a9] {\n  width: 32px;\n  height: 32px;\n  border: 3px solid #f0f0f0;\n  border-top: 3px solid #e6007a;\n  border-radius: 50%;\n  animation: spin-bf6bd4a9 1s linear infinite;\n  margin: 0 auto 16px;\n}\n@keyframes spin-bf6bd4a9 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.panel-content[data-v-bf6bd4a9] {\n  flex: 1;\n  overflow-y: auto;\n  padding: 20px;\n}\n.agreement-section[data-v-bf6bd4a9],\n.team-status-section[data-v-bf6bd4a9],\n.user-actions-section[data-v-bf6bd4a9],\n.vote-section[data-v-bf6bd4a9],\n.discussion-section[data-v-bf6bd4a9] {\n  margin-bottom: 24px;\n}\n.agreement-section h4[data-v-bf6bd4a9],\n.team-status-section h4[data-v-bf6bd4a9],\n.user-actions-section h4[data-v-bf6bd4a9],\n.vote-section h4[data-v-bf6bd4a9],\n.discussion-section h4[data-v-bf6bd4a9] {\n  margin: 0 0 12px 0;\n  font-size: 14px;\n  font-weight: 600;\n  color: #333;\n}\n.agreement-bar[data-v-bf6bd4a9] {\n  margin-bottom: 8px;\n}\n.progress-bar[data-v-bf6bd4a9] {\n  width: 100%;\n  height: 8px;\n  background: #f0f0f0;\n  border-radius: 4px;\n  overflow: hidden;\n  margin-bottom: 8px;\n}\n.progress-fill[data-v-bf6bd4a9] {\n  height: 100%;\n  background: linear-gradient(135deg, #28a745, #20c997);\n  transition: width 0.3s ease;\n}\n.progress-fill.vetoed[data-v-bf6bd4a9] {\n  background: linear-gradient(135deg, #dc3545, #c82333);\n}\n.agreement-text[data-v-bf6bd4a9] {\n  font-size: 12px;\n  color: #666;\n  text-align: center;\n}\n.veto-text[data-v-bf6bd4a9] {\n  color: #dc3545;\n  font-weight: 600;\n}\n.veto-reason[data-v-bf6bd4a9] {\n  margin-top: 8px;\n  padding: 8px;\n  background: #f8d7da;\n  border: 1px solid #f5c6cb;\n  border-radius: 4px;\n  font-size: 12px;\n  color: #721c24;\n}\n.team-members[data-v-bf6bd4a9] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n.member-status[data-v-bf6bd4a9] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 8px;\n  border-radius: 6px;\n  border: 1px solid #e9ecef;\n}\n.member-status.agreed[data-v-bf6bd4a9] {\n  background: #d4edda;\n  border-color: #c3e6cb;\n}\n.member-status.recused[data-v-bf6bd4a9] {\n  background: #f8f9fa;\n  border-color: #dee2e6;\n}\n.member-status.discuss[data-v-bf6bd4a9] {\n  background: #fff3cd;\n  border-color: #ffeaa7;\n}\n.member-info[data-v-bf6bd4a9] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n.member-avatar[data-v-bf6bd4a9] {\n  width: 24px;\n  height: 24px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: white;\n  font-weight: bold;\n  font-size: 10px;\n}\n.member-name[data-v-bf6bd4a9] {\n  font-size: 12px;\n  font-weight: 500;\n  color: #333;\n}\n.member-address[data-v-bf6bd4a9] {\n  font-size: 10px;\n  color: #666;\n  font-family: monospace;\n}\n.action-badge[data-v-bf6bd4a9] {\n  font-size: 10px;\n  padding: 2px 6px;\n  border-radius: 3px;\n  font-weight: 500;\n}\n.action-agreed[data-v-bf6bd4a9] {\n  background: #28a745;\n  color: white;\n}\n.action-recused[data-v-bf6bd4a9] {\n  background: #6c757d;\n  color: white;\n}\n.action-discuss[data-v-bf6bd4a9] {\n  background: #ffc107;\n  color: #212529;\n}\n.action-pending[data-v-bf6bd4a9] {\n  background: #e9ecef;\n  color: #666;\n}\n.action-buttons[data-v-bf6bd4a9] {\n  display: grid;\n  grid-template-columns: 1fr 1fr;\n  gap: 8px;\n}\n.action-btn[data-v-bf6bd4a9] {\n  padding: 8px 12px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  background: white;\n  cursor: pointer;\n  font-size: 12px;\n  font-weight: 500;\n  transition: all 0.2s ease;\n}\n.action-btn[data-v-bf6bd4a9]:hover:not(:disabled) {\n  background: #f8f9fa;\n}\n.action-btn.active[data-v-bf6bd4a9] {\n  border-color: #e6007a;\n  background: #e6007a;\n  color: white;\n}\n.action-btn[data-v-bf6bd4a9]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.agree-btn.active[data-v-bf6bd4a9] {\n  background: #28a745;\n  border-color: #28a745;\n}\n.discuss-btn.active[data-v-bf6bd4a9] {\n  background: #ffc107;\n  border-color: #ffc107;\n  color: #212529;\n}\n.veto-btn.active[data-v-bf6bd4a9] {\n  background: #dc3545;\n  border-color: #dc3545;\n}\n.recuse-btn.active[data-v-bf6bd4a9] {\n  background: #6c757d;\n  border-color: #6c757d;\n}\n.vote-buttons[data-v-bf6bd4a9] {\n  display: flex;\n  gap: 8px;\n  margin-bottom: 12px;\n}\n.vote-btn[data-v-bf6bd4a9] {\n  flex: 1;\n  padding: 8px 12px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  background: white;\n  cursor: pointer;\n  font-size: 12px;\n  font-weight: 500;\n  transition: all 0.2s ease;\n}\n.vote-btn[data-v-bf6bd4a9]:hover:not(:disabled) {\n  background: #f8f9fa;\n}\n.vote-btn.active[data-v-bf6bd4a9] {\n  color: white;\n}\n.aye-btn.active[data-v-bf6bd4a9] {\n  background: #28a745;\n  border-color: #28a745;\n}\n.nay-btn.active[data-v-bf6bd4a9] {\n  background: #dc3545;\n  border-color: #dc3545;\n}\n.abstain-btn.active[data-v-bf6bd4a9] {\n  background: #6c757d;\n  border-color: #6c757d;\n}\n.reason-input[data-v-bf6bd4a9] {\n  width: 100%;\n  min-height: 60px;\n  padding: 8px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 12px;\n  resize: vertical;\n}\n.comments-list[data-v-bf6bd4a9] {\n  max-height: 280px;\n  overflow-y: auto;\n  margin-bottom: 16px;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  background: #fafbfc;\n}\n.comment[data-v-bf6bd4a9] {\n  padding: 12px;\n  border-bottom: 1px solid #f0f0f0;\n}\n.comment[data-v-bf6bd4a9]:last-child {\n  border-bottom: none;\n}\n.comment-header[data-v-bf6bd4a9] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 8px;\n}\n.comment-author[data-v-bf6bd4a9] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n.author-avatar[data-v-bf6bd4a9] {\n  width: 20px;\n  height: 20px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: white;\n  font-weight: bold;\n  font-size: 8px;\n}\n.author-name[data-v-bf6bd4a9] {\n  font-size: 11px;\n  font-weight: 500;\n  color: #333;\n}\n.comment-time[data-v-bf6bd4a9] {\n  font-size: 10px;\n  color: #666;\n}\n.delete-comment-btn[data-v-bf6bd4a9] {\n  background: none;\n  border: none;\n  font-size: 12px;\n  cursor: pointer;\n  color: #666;\n  padding: 2px;\n  border-radius: 3px;\n}\n.delete-comment-btn[data-v-bf6bd4a9]:hover {\n  background: #f8f9fa;\n}\n.comment-content[data-v-bf6bd4a9] {\n  font-size: 12px;\n  color: #333;\n  line-height: 1.4;\n}\n.no-comments[data-v-bf6bd4a9] {\n  padding: 40px 20px;\n  text-align: center;\n}\n.empty-state[data-v-bf6bd4a9] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 8px;\n}\n.empty-icon[data-v-bf6bd4a9] {\n  font-size: 32px;\n  opacity: 0.5;\n}\n.empty-text[data-v-bf6bd4a9] {\n  font-size: 14px;\n  font-weight: 500;\n  color: #666;\n}\n.empty-subtext[data-v-bf6bd4a9] {\n  font-size: 12px;\n  color: #999;\n}\n.add-comment[data-v-bf6bd4a9] {\n  border-top: 1px solid #e9ecef;\n  padding-top: 16px;\n}\n.comment-input-wrapper[data-v-bf6bd4a9] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n.comment-input[data-v-bf6bd4a9] {\n  min-height: 80px;\n  padding: 12px;\n  border: 2px solid #dee2e6;\n  border-radius: 8px;\n  font-size: 13px;\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n  resize: vertical;\n  transition: border-color 0.2s ease;\n}\n.comment-input[data-v-bf6bd4a9]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.comment-actions[data-v-bf6bd4a9] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}\n.comment-hint[data-v-bf6bd4a9] {\n  flex: 1;\n}\n.hint-text[data-v-bf6bd4a9] {\n  font-size: 11px;\n  color: #666;\n}\n.add-comment-btn[data-v-bf6bd4a9] {\n  padding: 8px 16px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n  border: none;\n  border-radius: 8px;\n  font-size: 13px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  display: flex;\n  align-items: center;\n  gap: 4px;\n}\n.add-comment-btn[data-v-bf6bd4a9]:hover:not(:disabled) {\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.add-comment-btn[data-v-bf6bd4a9]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n/* Modal Styles */\n.modal-overlay[data-v-bf6bd4a9] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.modal-content[data-v-bf6bd4a9] {\n  background: white;\n  border-radius: 12px;\n  padding: 24px;\n  max-width: 400px;\n  width: 90%;\n}\n.modal-content h3[data-v-bf6bd4a9] {\n  margin: 0 0 16px 0;\n  font-size: 18px;\n  color: #333;\n}\n.veto-reason-input[data-v-bf6bd4a9] {\n  width: 100%;\n  min-height: 80px;\n  padding: 12px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 14px;\n  margin: 16px 0;\n  resize: vertical;\n}\n.modal-actions[data-v-bf6bd4a9] {\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n}\n.cancel-btn[data-v-bf6bd4a9],\n.veto-confirm-btn[data-v-bf6bd4a9] {\n  padding: 8px 16px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 14px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.cancel-btn[data-v-bf6bd4a9] {\n  background: white;\n  color: #333;\n}\n.cancel-btn[data-v-bf6bd4a9]:hover {\n  background: #f8f9fa;\n}\n.veto-confirm-btn[data-v-bf6bd4a9] {\n  background: #dc3545;\n  color: white;\n  border-color: #dc3545;\n}\n.veto-confirm-btn[data-v-bf6bd4a9]:hover:not(:disabled) {\n  background: #c82333;\n}\n.veto-confirm-btn[data-v-bf6bd4a9]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n/* Veto Reason Section */\n.veto-reason-section[data-v-bf6bd4a9] {\n  background: #fff5f5;\n  border: 1px solid #fed7d7;\n  border-radius: 8px;\n  padding: 16px;\n  margin-bottom: 20px;\n}\n.veto-reason-section h4[data-v-bf6bd4a9] {\n  margin: 0 0 12px 0;\n  color: #e53e3e;\n  font-size: 1rem;\n  font-weight: 600;\n}\n.veto-reason-content[data-v-bf6bd4a9] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n.veto-by[data-v-bf6bd4a9] {\n  font-size: 0.9rem;\n  color: #e53e3e;\n}\n.veto-reason-text[data-v-bf6bd4a9] {\n  font-size: 0.9rem;\n  color: #2d3748;\n  background: white;\n  padding: 12px;\n  border-radius: 6px;\n  white-space: pre-wrap;\n}\n\n.voting-tool-controls[data-v-175e6cdb] {\n  background: linear-gradient(135deg, #ffffff, #f8f9fa);\n  border: 2px solid #e6007a;\n  border-radius: 12px;\n  padding: 16px;\n  margin-bottom: 16px;\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.15);\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n}\n.controls-header[data-v-175e6cdb] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 12px;\n}\n.controls-title[data-v-175e6cdb] {\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #e6007a;\n  margin: 0;\n}\n.status-badge-wrapper[data-v-175e6cdb] {\n  display: flex;\n  align-items: center;\n}\n.status-badge[data-v-175e6cdb] {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  padding: 6px 12px;\n  border-radius: 12px;\n  font-size: 0.8rem;\n  font-weight: 600;\n  border: 1px solid rgba(255, 255, 255, 0.6);\n  transition: all 0.2s ease;\n  user-select: none;\n  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);\n  backdrop-filter: blur(3px);\n  white-space: nowrap;\n  min-width: 100px;\n  justify-content: center;\n}\n.status-clickable[data-v-175e6cdb] {\n  cursor: pointer;\n}\n.status-clickable[data-v-175e6cdb]:hover {\n  transform: translateY(-1px) scale(1.02);\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);\n  border-color: rgba(255, 255, 255, 1);\n}\n.status-icon[data-v-175e6cdb] {\n  font-size: 0.9rem;\n}\n.edit-icon[data-v-175e6cdb] {\n  font-size: 0.8rem;\n  opacity: 0.7;\n}\n\n/* Status color classes */\n.status-not-started[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #6c757d, #5a6268); \n  color: white;\n}\n.status-considering[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #ffc107, #e0a800); \n  color: #212529;\n}\n.status-ready-for-approval[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #17a2b8, #138496); \n  color: white;\n}\n.status-waiting-for-agreement[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #fd7e14, #e8680b); \n  color: white;\n}\n.status-ready-to-vote[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #28a745, #1e7e34); \n  color: white;\n}\n.status-reconsidering[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #dc3545, #c82333); \n  color: white;\n}\n.status-voted-----aye----[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #198754, #155724); \n  color: white;\n}\n.status-voted-----nay----[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #dc3545, #c82333); \n  color: white;\n}\n.status-voted------abstain------[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #6f42c1, #5a32a3); \n  color: white;\n}\n.status-not-voted[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #e9ecef, #dee2e6); \n  color: #495057;\n}\n.controls-actions[data-v-175e6cdb] {\n  display: flex;\n  gap: 12px;\n  flex-wrap: wrap;\n}\n.control-btn[data-v-175e6cdb] {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n  padding: 8px 16px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n  flex: 1;\n  justify-content: center;\n  min-width: 140px;\n}\n.control-btn[data-v-175e6cdb]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.assign-btn[data-v-175e6cdb] {\n  background: var(--assign-gradient);\n  color: white;\n  border: 1px solid var(--assign-border);\n}\n.assign-btn[data-v-175e6cdb]:hover:not(:disabled) {\n  background: var(--assign-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px var(--assign-shadow);\n}\n.vote-btn[data-v-175e6cdb] {\n  background: var(--primary-gradient);\n  color: white;\n  border: 1px solid var(--primary-border);\n}\n.vote-btn[data-v-175e6cdb]:hover:not(:disabled) {\n  background: var(--primary-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px var(--primary-shadow);\n}\n.btn-icon[data-v-175e6cdb] {\n  font-size: 1rem;\n}\n.btn-text[data-v-175e6cdb] {\n  font-size: 0.9rem;\n}\n\n/* Team Panel Styles */\n.team-btn[data-v-175e6cdb] {\n  background: var(--team-gradient);\n  color: white;\n  border: 1px solid var(--team-border);\n}\n.team-btn[data-v-175e6cdb]:hover:not(:disabled) {\n  background: var(--team-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px var(--team-shadow);\n}\n.team-panel-overlay[data-v-175e6cdb] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.team-panel-wrapper[data-v-175e6cdb] {\n  max-width: 90vw;\n  max-height: 90vh;\n  overflow: auto;\n}\n\n/* Removed modal styles - now in separate modal components */\n@media (max-width: 768px) {\n.controls-actions[data-v-175e6cdb] {\n    flex-direction: column;\n}\n.control-btn[data-v-175e6cdb] {\n    min-width: auto;\n}\n.vote-options[data-v-175e6cdb] {\n    flex-direction: column;\n}\n.status-grid[data-v-175e6cdb] {\n    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));\n}\n}\n/* OpenGov VotingTool Design System */\n/* Based on Polkassembly design patterns but platform-agnostic */\n\n:root {\n  /* Color Palette - Polkassembly-inspired */\n  --primary: #e6007a;          /* Polkadot pink */\n  --primary-dark: #b3005f;\n  --primary-light: #ff1a8c;\n  --primary-gradient: linear-gradient(135deg, var(--primary), var(--primary-dark));\n  --primary-gradient-hover: linear-gradient(135deg, var(--primary-dark), #8a0047);\n  --primary-shadow: rgba(230, 0, 122, 0.3);\n  \n  --secondary: #000000;        /* Kusama black */\n  --secondary-light: #333333;\n  --secondary-gradient: linear-gradient(135deg, var(--gray-500), var(--gray-600));\n  --secondary-gradient-hover: linear-gradient(135deg, var(--gray-600), var(--gray-700));\n  --secondary-shadow: rgba(108, 117, 125, 0.3);\n  \n  --accent: #007bff;           /* Blue accent */\n  --accent-light: #3399ff;\n  --accent-dark: #0056b3;\n  \n  /* Team Action Colors */\n  --team: #17a2b8;\n  --team-dark: #138496;\n  --team-gradient: linear-gradient(135deg, var(--team), var(--team-dark));\n  --team-gradient-hover: linear-gradient(135deg, var(--team-dark), #117a8b);\n  --team-shadow: rgba(23, 162, 184, 0.3);\n  \n  /* Assign Button Colors */\n  --assign: #28a745;\n  --assign-dark: #1e7e34;\n  --assign-gradient: linear-gradient(135deg, var(--assign), var(--assign-dark));\n  --assign-gradient-hover: linear-gradient(135deg, var(--assign-dark), #155724);\n  --assign-shadow: rgba(40, 167, 69, 0.3);\n  \n  /* Status Colors */\n  --success: var(--assign);\n  --warning: #ffc107;\n  --danger: #dc3545;\n  --info: var(--team);\n  \n  /* Status-specific Colors */\n  --status-not-started: var(--gray-500);\n  --status-considering: var(--warning);\n  --status-ready-for-approval: var(--info);\n  --status-waiting-for-agreement: #fd7e14;\n  --status-ready-to-vote: var(--success);\n  --status-reconsidering: var(--danger);\n  --status-voted-aye: #198754;\n  --status-voted-nay: var(--danger);\n  --status-voted-abstain: #6f42c1;\n  --status-not-voted: var(--gray-100);\n  \n  /* Neutral Colors */\n  --white: #ffffff;\n  --gray-50: #f8f9fa;\n  --gray-100: #e9ecef;\n  --gray-200: #dee2e6;\n  --gray-300: #ced4da;\n  --gray-400: #adb5bd;\n  --gray-500: #6c757d;\n  --gray-600: #495057;\n  --gray-700: #343a40;\n  --gray-800: #212529;\n  --gray-900: #000000;\n  \n  /* Typography */\n  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n  --font-size-xs: 0.75rem;\n  --font-size-sm: 0.875rem;\n  --font-size-base: 1rem;\n  --font-size-lg: 1.125rem;\n  --font-size-xl: 1.25rem;\n  --font-size-2xl: 1.5rem;\n  --font-size-3xl: 1.875rem;\n  \n  /* Spacing */\n  --spacing-1: 0.25rem;\n  --spacing-2: 0.5rem;\n  --spacing-3: 0.75rem;\n  --spacing-4: 1rem;\n  --spacing-5: 1.25rem;\n  --spacing-6: 1.5rem;\n  --spacing-8: 2rem;\n  --spacing-10: 2.5rem;\n  --spacing-12: 3rem;\n  --spacing-16: 4rem;\n  \n  /* Border Radius */\n  --radius-sm: 0.25rem;\n  --radius-md: 0.375rem;\n  --radius-lg: 0.5rem;\n  --radius-xl: 0.75rem;\n  --radius-2xl: 1rem;\n  --radius-3xl: 1.5rem;\n  \n  /* Shadows */\n  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);\n  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);\n  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);\n  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);\n  \n  /* Z-index */\n  --z-dropdown: 1000;\n  --z-sticky: 1020;\n  --z-fixed: 1030;\n  --z-modal-backdrop: 1040;\n  --z-modal: 1050;\n  --z-popover: 1060;\n  --z-tooltip: 1070;\n  --z-overlay: 999999;\n}\n\n/* Base Styles */\n* {\n  box-sizing: border-box;\n}\n\nbody {\n  font-family: var(--font-family);\n  line-height: 1.5;\n  color: var(--gray-800);\n}\n\n/* Typography */\n.text-xs { font-size: var(--font-size-xs); }\n.text-sm { font-size: var(--font-size-sm); }\n.text-base { font-size: var(--font-size-base); }\n.text-lg { font-size: var(--font-size-lg); }\n.text-xl { font-size: var(--font-size-xl); }\n.text-2xl { font-size: var(--font-size-2xl); }\n.text-3xl { font-size: var(--font-size-3xl); }\n\n.font-normal { font-weight: 400; }\n.font-medium { font-weight: 500; }\n.font-semibold { font-weight: 600; }\n.font-bold { font-weight: 700; }\n\n/* Buttons */\n.btn {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  padding: var(--spacing-3) var(--spacing-4);\n  border: none;\n  border-radius: var(--radius-lg);\n  font-size: var(--font-size-sm);\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n\n.btn:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n.btn-primary {\n  background: var(--primary-gradient);\n  color: var(--white);\n  border: 1px solid var(--primary-dark);\n}\n\n.btn-primary:hover:not(:disabled) {\n  background: var(--primary-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 0 10px var(--primary-shadow);\n}\n\n.btn-secondary {\n  background: var(--secondary-gradient);\n  color: var(--white);\n  border: 1px solid var(--gray-600);\n}\n\n.btn-secondary:hover:not(:disabled) {\n  background: var(--secondary-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 0 10px var(--secondary-shadow);\n}\n\n.btn-team {\n  background: var(--team-gradient);\n  color: var(--white);\n  border: 1px solid var(--team-dark);\n}\n\n.btn-team:hover:not(:disabled) {\n  background: var(--team-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 0 10px var(--team-shadow);\n}\n\n.btn-assign {\n  background: var(--assign-gradient);\n  color: var(--white);\n  border: 1px solid var(--assign-dark);\n}\n\n.btn-assign:hover:not(:disabled) {\n  background: var(--assign-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 0 10px var(--assign-shadow);\n}\n\n.btn-outline {\n  background: transparent;\n  color: var(--primary);\n  border: 2px solid var(--primary);\n}\n\n.btn-outline:hover:not(:disabled) {\n  background: var(--primary-gradient);\n  color: var(--white);\n}\n\n/* Status-specific buttons */\n.btn-status {\n  font-weight: 600;\n  padding: var(--spacing-2) var(--spacing-4);\n  border-radius: var(--radius-lg);\n  transition: all 0.2s ease;\n}\n\n.btn-status-not-started { background: var(--status-not-started); color: var(--white); }\n.btn-status-considering { background: var(--status-considering); color: var(--gray-900); }\n.btn-status-ready-for-approval { background: var(--status-ready-for-approval); color: var(--white); }\n.btn-status-waiting-for-agreement { background: var(--status-waiting-for-agreement); color: var(--white); }\n.btn-status-ready-to-vote { background: var(--status-ready-to-vote); color: var(--white); }\n.btn-status-reconsidering { background: var(--status-reconsidering); color: var(--white); }\n.btn-status-voted-aye { background: var(--status-voted-aye); color: var(--white); }\n.btn-status-voted-nay { background: var(--status-voted-nay); color: var(--white); }\n.btn-status-voted-abstain { background: var(--status-voted-abstain); color: var(--white); }\n.btn-status-not-voted { background: var(--status-not-voted); color: var(--gray-900); }\n\n/* Cards */\n.card {\n  background: var(--white);\n  border-radius: var(--radius-xl);\n  box-shadow: var(--shadow-lg);\n  overflow: hidden;\n}\n\n.card-header {\n  padding: var(--spacing-6);\n  border-bottom: 1px solid var(--gray-200);\n  background: var(--gray-50);\n}\n\n.card-body {\n  padding: var(--spacing-6);\n}\n\n.card-footer {\n  padding: var(--spacing-6);\n  border-top: 1px solid var(--gray-200);\n  background: var(--gray-50);\n}\n\n/* Badges */\n.badge {\n  display: inline-flex;\n  align-items: center;\n  padding: var(--spacing-1) var(--spacing-2);\n  border-radius: var(--radius-2xl);\n  font-size: var(--font-size-xs);\n  font-weight: 600;\n  text-align: center;\n  white-space: nowrap;\n}\n\n.badge-primary { background: var(--primary); color: var(--white); }\n.badge-secondary { background: var(--secondary); color: var(--white); }\n.badge-accent { background: var(--accent); color: var(--white); }\n.badge-success { background: var(--success); color: var(--white); }\n.badge-warning { background: var(--warning); color: var(--gray-800); }\n.badge-danger { background: var(--danger); color: var(--white); }\n.badge-info { background: var(--info); color: var(--white); }\n\n/* Forms */\n.form-group {\n  margin-bottom: var(--spacing-4);\n}\n\n.form-label {\n  display: block;\n  margin-bottom: var(--spacing-2);\n  font-weight: 600;\n  color: var(--gray-700);\n}\n\n.form-control {\n  width: 100%;\n  padding: var(--spacing-3);\n  border: 2px solid var(--gray-300);\n  border-radius: var(--radius-lg);\n  font-size: var(--font-size-base);\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n\n.form-control:focus {\n  outline: none;\n  border-color: var(--primary);\n  box-shadow: 0 0 0 3px var(--primary-shadow);\n}\n\n.form-control:disabled {\n  background-color: var(--gray-100);\n  color: var(--gray-500);\n}\n\n/* Modals */\n.modal-overlay {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: var(--z-modal-backdrop);\n}\n\n.modal {\n  background: var(--white);\n  border-radius: var(--radius-xl);\n  box-shadow: var(--shadow-xl);\n  width: 90%;\n  max-width: 500px;\n  max-height: 90vh;\n  overflow-y: auto;\n  z-index: var(--z-modal);\n}\n\n.modal-header {\n  padding: var(--spacing-4) var(--spacing-6);\n  border-bottom: 1px solid var(--gray-200);\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n}\n\n.modal-header h3 {\n  margin: 0;\n  font-size: var(--font-size-xl);\n  color: var(--gray-900);\n}\n\n.modal-content {\n  padding: var(--spacing-6);\n}\n\n.modal-footer {\n  padding: var(--spacing-4) var(--spacing-6);\n  border-top: 1px solid var(--gray-200);\n  display: flex;\n  justify-content: flex-end;\n  gap: var(--spacing-3);\n}\n\n.close-btn {\n  background: transparent;\n  border: none;\n  font-size: var(--font-size-xl);\n  color: var(--gray-500);\n  cursor: pointer;\n  padding: var(--spacing-1) var(--spacing-2);\n  border-radius: var(--radius-md);\n  transition: all 0.2s ease;\n}\n\n.close-btn:hover {\n  color: var(--gray-700);\n  background: var(--gray-100);\n}\n\n/* Component-specific Modals */\n.assign-modal,\n.unassign-modal {\n  background: var(--white);\n  border-radius: var(--radius-xl);\n  box-shadow: var(--shadow-xl);\n  width: 90%;\n  max-width: 500px;\n  max-height: 90vh;\n  overflow-y: auto;\n  z-index: var(--z-modal);\n}\n\n.assign-modal .modal-content,\n.unassign-modal .modal-content {\n  display: flex;\n  flex-direction: column;\n  gap: var(--spacing-4);\n}\n\n.assign-modal .form-group,\n.unassign-modal .form-group {\n  margin-bottom: 0;\n}\n\n.assign-modal .error-message,\n.unassign-modal .error-message {\n  color: var(--danger);\n  font-size: var(--font-size-sm);\n  margin-top: var(--spacing-2);\n  padding: var(--spacing-2);\n  background: rgba(220, 53, 69, 0.1);\n  border-radius: var(--radius-md);\n}\n\n.assign-modal .old-value,\n.unassign-modal .old-value {\n  color: var(--gray-500);\n  text-decoration: line-through;\n}\n\n.assign-modal .new-value,\n.unassign-modal .new-value {\n  color: var(--success);\n  font-weight: 600;\n}\n\n/* Settings Panel */\n.settings-panel {\n  background: var(--white);\n  border-radius: var(--radius-xl);\n  box-shadow: var(--shadow-lg);\n  overflow: hidden;\n}\n\n.settings-panel-header {\n  padding: var(--spacing-4) var(--spacing-6);\n  background: var(--gray-50);\n  border-bottom: 1px solid var(--gray-200);\n}\n\n.settings-panel-content {\n  padding: var(--spacing-6);\n}\n\n.settings-panel-footer {\n  padding: var(--spacing-4) var(--spacing-6);\n  background: var(--gray-50);\n  border-top: 1px solid var(--gray-200);\n  border-bottom-left-radius: var(--radius-xl);\n  border-bottom-right-radius: var(--radius-xl);\n}\n\n/* Utilities */\n.text-center { text-align: center; }\n.text-left { text-align: left; }\n.text-right { text-align: right; }\n\n.mt-1 { margin-top: var(--spacing-1); }\n.mt-2 { margin-top: var(--spacing-2); }\n.mt-3 { margin-top: var(--spacing-3); }\n.mt-4 { margin-top: var(--spacing-4); }\n.mt-5 { margin-top: var(--spacing-5); }\n.mt-6 { margin-top: var(--spacing-6); }\n\n.mb-1 { margin-bottom: var(--spacing-1); }\n.mb-2 { margin-bottom: var(--spacing-2); }\n.mb-3 { margin-bottom: var(--spacing-3); }\n.mb-4 { margin-bottom: var(--spacing-4); }\n.mb-5 { margin-bottom: var(--spacing-5); }\n.mb-6 { margin-bottom: var(--spacing-6); }\n\n.p-1 { padding: var(--spacing-1); }\n.p-2 { padding: var(--spacing-2); }\n.p-3 { padding: var(--spacing-3); }\n.p-4 { padding: var(--spacing-4); }\n.p-5 { padding: var(--spacing-5); }\n.p-6 { padding: var(--spacing-6); }\n\n/* Responsive */\n@media (max-width: 768px) {\n  .btn {\n    width: 100%;\n    justify-content: center;\n  }\n  \n  .card-header,\n  .card-body,\n  .card-footer {\n    padding: var(--spacing-4);\n  }\n} /*$vite$:1*/";
+  __vite_style__.textContent = "\n.wallet-connect[data-v-f019dfb4] {\n  min-width: 400px;\n  max-width: 500px;\n}\n.connect-header[data-v-f019dfb4] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 24px;\n  padding-bottom: 16px;\n  border-bottom: 1px solid #e1e5e9;\n}\n.connect-header h3[data-v-f019dfb4] {\n  margin: 0;\n  color: #333;\n  font-size: 18px;\n}\n.close-btn[data-v-f019dfb4] {\n  background: none;\n  border: none;\n  font-size: 20px;\n  cursor: pointer;\n  color: #666;\n  padding: 4px;\n  border-radius: 4px;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-f019dfb4]:hover {\n  background-color: #f0f0f0;\n}\n.step-content[data-v-f019dfb4] {\n  margin-bottom: 24px;\n}\n.step-description[data-v-f019dfb4] {\n  color: #666;\n  margin-bottom: 20px;\n  text-align: center;\n}\n.wallet-options[data-v-f019dfb4] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n  margin-bottom: 20px;\n}\n.wallet-list[data-v-f019dfb4] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n.wallet-option[data-v-f019dfb4] {\n  display: flex;\n  align-items: center;\n  padding: 16px;\n  border: 2px solid #e1e5e9;\n  border-radius: 8px;\n  background: white;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  position: relative;\n}\n.wallet-option[data-v-f019dfb4]:hover:not(:disabled) {\n  border-color: #e6007a;\n  box-shadow: 0 2px 8px rgba(230, 0, 122, 0.1);\n}\n.wallet-option[data-v-f019dfb4]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.wallet-icon[data-v-f019dfb4] {\n  width: 32px;\n  height: 32px;\n  margin-right: 16px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.wallet-icon img[data-v-f019dfb4] {\n  width: 100%;\n  height: 100%;\n  border-radius: 50%;\n  object-fit: cover;\n}\n.wallet-icon-fallback[data-v-f019dfb4] {\n  font-size: 20px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.wallet-info[data-v-f019dfb4] {\n  flex: 1;\n}\n.wallet-name[data-v-f019dfb4] {\n  font-weight: 600;\n  color: #333;\n  margin-bottom: 4px;\n}\n.wallet-description[data-v-f019dfb4] {\n  font-size: 14px;\n  color: #666;\n}\n.loading-spinner[data-v-f019dfb4] {\n  width: 20px;\n  height: 20px;\n  border: 2px solid #f3f3f3;\n  border-top: 2px solid #e6007a;\n  border-radius: 50%;\n  animation: spin-f019dfb4 1s linear infinite;\n}\n@keyframes spin-f019dfb4 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.extension-status[data-v-f019dfb4] {\n  text-align: center;\n  padding: 16px;\n  border-radius: 8px;\n  background: #f8f9fa;\n  border: 1px solid #e1e5e9;\n}\n.status-checking[data-v-f019dfb4] {\n  color: #0066cc;\n  font-weight: 500;\n}\n.status-not-found[data-v-f019dfb4] {\n  color: #dc3545;\n  font-weight: 500;\n}\n.status-found[data-v-f019dfb4] {\n  color: #28a745;\n  font-weight: 500;\n}\n.status-help[data-v-f019dfb4] {\n  margin-top: 8px;\n  font-size: 14px;\n  color: #666;\n}\n.status-help a[data-v-f019dfb4] {\n  color: #e6007a;\n  text-decoration: none;\n  font-weight: 500;\n}\n.status-help a[data-v-f019dfb4]:hover {\n  text-decoration: underline;\n}\n.status-actions[data-v-f019dfb4] {\n  display: flex;\n  gap: 12px;\n  margin-top: 16px;\n}\n.account-list[data-v-f019dfb4] {\n  max-height: 300px;\n  overflow-y: auto;\n  border: 1px solid #e1e5e9;\n  border-radius: 8px;\n}\n.account-item[data-v-f019dfb4] {\n  display: flex;\n  align-items: center;\n  padding: 16px;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n  border-bottom: 1px solid #f0f0f0;\n}\n.account-item[data-v-f019dfb4]:last-child {\n  border-bottom: none;\n}\n.account-item[data-v-f019dfb4]:hover {\n  background-color: #f8f9fa;\n}\n.account-item.selected[data-v-f019dfb4] {\n  background-color: #e8f4fd;\n  border-left: 3px solid #e6007a;\n}\n.account-avatar[data-v-f019dfb4] {\n  width: 32px;\n  height: 32px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: white;\n  font-weight: bold;\n  font-size: 12px;\n  margin-right: 12px;\n}\n.account-info[data-v-f019dfb4] {\n  flex: 1;\n}\n.account-name[data-v-f019dfb4] {\n  font-weight: 500;\n  color: #333;\n  margin-bottom: 2px;\n}\n.account-address[data-v-f019dfb4] {\n  font-family: monospace;\n  font-size: 12px;\n  color: #666;\n}\n.account-check[data-v-f019dfb4] {\n  color: #e6007a;\n  font-weight: bold;\n  font-size: 18px;\n}\n.sign-message[data-v-f019dfb4] {\n  background: #f8f9fa;\n  border: 1px solid #e1e5e9;\n  border-radius: 8px;\n  padding: 16px;\n  margin-bottom: 20px;\n}\n.message-label[data-v-f019dfb4] {\n  font-weight: 500;\n  color: #333;\n  margin-bottom: 8px;\n}\n.message-content[data-v-f019dfb4] {\n  font-family: monospace;\n  font-size: 12px;\n  color: #666;\n  white-space: pre-wrap;\n  word-break: break-all;\n}\n.step-actions[data-v-f019dfb4] {\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n}\n.btn-primary[data-v-f019dfb4], .btn-secondary[data-v-f019dfb4] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.btn-primary[data-v-f019dfb4] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n}\n.btn-primary[data-v-f019dfb4]:hover:not(:disabled) {\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-primary[data-v-f019dfb4]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-secondary[data-v-f019dfb4] {\n  background: #6c757d;\n  color: white;\n}\n.btn-secondary[data-v-f019dfb4]:hover {\n  background: #5a6268;\n}\n.error-message[data-v-f019dfb4] {\n  text-align: left;\n  padding: 24px;\n  background: #fff5f5;\n  border: 1px solid #fed7d7;\n  border-radius: 8px;\n}\n.error-icon[data-v-f019dfb4] {\n  font-size: 24px;\n  margin-bottom: 8px;\n  display: block;\n}\n.error-text[data-v-f019dfb4] {\n  color: #c53030;\n  font-weight: 500;\n  white-space: pre-line;\n  line-height: 1.5;\n  margin-bottom: 16px;\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n}\n.error-actions[data-v-f019dfb4] {\n  display: flex;\n  justify-content: center;\n}\n.no-wallets[data-v-f019dfb4] {\n  text-align: center;\n  padding: 24px;\n  color: #666;\n}\n.no-wallets-icon[data-v-f019dfb4] {\n  font-size: 32px;\n  margin-bottom: 8px;\n}\n.no-wallets-text[data-v-f019dfb4] {\n  font-size: 14px;\n}\n.success-container[data-v-f019dfb4] {\n  text-align: center;\n  padding: 24px;\n}\n.success-icon[data-v-f019dfb4] {\n  font-size: 48px;\n  margin-bottom: 16px;\n}\n.success-title[data-v-f019dfb4] {\n  font-size: 20px;\n  font-weight: 600;\n  color: #28a745;\n  margin-bottom: 16px;\n}\n.dao-info[data-v-f019dfb4] {\n  background: #f8f9fa;\n  border: 1px solid #e1e5e9;\n  border-radius: 8px;\n  padding: 16px;\n  margin-bottom: 16px;\n}\n.dao-label[data-v-f019dfb4] {\n  font-size: 12px;\n  color: #666;\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n  margin-bottom: 8px;\n}\n.dao-name-display[data-v-f019dfb4] {\n  font-size: 18px;\n  font-weight: 600;\n  color: #e6007a;\n}\n.success-description[data-v-f019dfb4] {\n  color: #666;\n  margin-bottom: 24px;\n  line-height: 1.5;\n}\n\n.modal-overlay[data-v-973fd79d] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.config-modal[data-v-973fd79d] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 90vh;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-973fd79d] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-973fd79d] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-973fd79d] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-973fd79d]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-973fd79d] {\n  padding: 24px;\n  flex: 1;\n  overflow-y: auto;\n}\n.config-sections[data-v-973fd79d] {\n  display: flex;\n  flex-direction: column;\n  gap: 24px;\n}\n.config-section[data-v-973fd79d] {\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  padding: 20px;\n}\n.config-section h4[data-v-973fd79d] {\n  margin: 0 0 16px 0;\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #333;\n  border-bottom: 2px solid #e6007a;\n  padding-bottom: 8px;\n}\n.form-group[data-v-973fd79d] {\n  margin-bottom: 16px;\n}\n.form-group label[data-v-973fd79d] {\n  display: block;\n  margin-bottom: 6px;\n  font-weight: 500;\n  color: #555;\n}\n.form-input[data-v-973fd79d] {\n  width: 100%;\n  padding: 10px 12px;\n  border: 2px solid #e9ecef;\n  border-radius: 6px;\n  font-size: 14px;\n  transition: border-color 0.2s ease;\n}\n.form-input[data-v-973fd79d]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.number-input[data-v-973fd79d] {\n  max-width: 120px;\n}\n.input-help[data-v-973fd79d] {\n  margin-top: 6px;\n  font-size: 12px;\n  color: #666;\n  line-height: 1.4;\n}\n.agreement-preview[data-v-973fd79d] {\n  margin-top: 16px;\n  padding: 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n}\n.preview-label[data-v-973fd79d] {\n  font-size: 12px;\n  font-weight: 500;\n  color: #666;\n  margin-bottom: 8px;\n}\n.preview-bar[data-v-973fd79d] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n.progress-bar[data-v-973fd79d] {\n  width: 100%;\n  height: 8px;\n  background: #e9ecef;\n  border-radius: 4px;\n  overflow: hidden;\n}\n.progress-fill[data-v-973fd79d] {\n  height: 100%;\n  background: linear-gradient(135deg, #28a745, #20c997);\n  transition: width 0.3s ease;\n}\n.progress-text[data-v-973fd79d] {\n  font-size: 12px;\n  color: #666;\n  text-align: center;\n}\n.modal-actions[data-v-973fd79d] {\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-973fd79d] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.btn-secondary[data-v-973fd79d] {\n  background: #f8f9fa;\n  color: #666;\n  border: 1px solid #dee2e6;\n}\n.btn-secondary[data-v-973fd79d]:hover {\n  background: #e9ecef;\n}\n.btn-primary[data-v-973fd79d] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n}\n.btn-primary[data-v-973fd79d]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #cc1177);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn[data-v-973fd79d]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n.modal-overlay[data-v-09f03f11] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.registration-modal[data-v-09f03f11] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 600px;\n  max-height: 90vh;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-09f03f11] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-09f03f11] {\n  margin: 0;\n  font-size: 1.3rem;\n  font-weight: 600;\n}\n.close-btn[data-v-09f03f11] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-09f03f11]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-09f03f11] {\n  padding: 24px;\n  flex: 1;\n  overflow-y: auto;\n}\n.info-section[data-v-09f03f11] {\n  display: flex;\n  gap: 12px;\n  align-items: flex-start;\n  background: #f0f8ff;\n  padding: 16px;\n  border-radius: 8px;\n  border-left: 4px solid #e6007a;\n  margin-bottom: 24px;\n}\n.info-icon[data-v-09f03f11] {\n  font-size: 1.5rem;\n  flex-shrink: 0;\n}\n.info-text[data-v-09f03f11] {\n  margin: 0;\n  color: #555;\n  font-size: 0.95rem;\n  line-height: 1.5;\n}\n.form-section[data-v-09f03f11] {\n  display: flex;\n  flex-direction: column;\n  gap: 20px;\n}\n.form-group[data-v-09f03f11] {\n  display: flex;\n  flex-direction: column;\n}\n.form-group label[data-v-09f03f11] {\n  display: block;\n  margin-bottom: 6px;\n  font-weight: 500;\n  color: #333;\n  font-size: 0.95rem;\n}\n.form-input[data-v-09f03f11] {\n  width: 100%;\n  padding: 10px 12px;\n  border: 2px solid #e9ecef;\n  border-radius: 6px;\n  font-size: 14px;\n  transition: border-color 0.2s ease;\n  font-family: inherit;\n}\n.form-input[data-v-09f03f11]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.form-input[data-v-09f03f11]:disabled {\n  background: #f8f9fa;\n  cursor: not-allowed;\n}\ntextarea.form-input[data-v-09f03f11] {\n  resize: vertical;\n  min-height: 80px;\n}\n.input-help[data-v-09f03f11] {\n  margin-top: 6px;\n  font-size: 12px;\n  color: #666;\n  line-height: 1.4;\n}\n.error-message[data-v-09f03f11] {\n  margin-top: 6px;\n  font-size: 12px;\n  color: #dc3545;\n}\n.error-banner[data-v-09f03f11] {\n  margin-top: 20px;\n  padding: 16px;\n  background: #fff5f5;\n  border: 1px solid #feb2b2;\n  border-radius: 8px;\n  color: #c53030;\n}\n.error-banner strong[data-v-09f03f11] {\n  display: block;\n  margin-bottom: 8px;\n}\n.error-banner p[data-v-09f03f11] {\n  margin: 4px 0;\n}\n.error-banner ul[data-v-09f03f11] {\n  margin: 8px 0 0 20px;\n  padding: 0;\n}\n.error-banner li[data-v-09f03f11] {\n  margin: 4px 0;\n}\n.loading-state[data-v-09f03f11] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  padding: 40px 20px;\n  text-align: center;\n}\n.spinner[data-v-09f03f11] {\n  width: 48px;\n  height: 48px;\n  border: 4px solid #f0f0f0;\n  border-top: 4px solid #e6007a;\n  border-radius: 50%;\n  animation: spin-09f03f11 1s linear infinite;\n  margin-bottom: 20px;\n}\n@keyframes spin-09f03f11 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.loading-text[data-v-09f03f11] {\n  font-size: 1.1rem;\n  font-weight: 500;\n  color: #333;\n  margin: 0 0 8px 0;\n}\n.loading-subtext[data-v-09f03f11] {\n  font-size: 0.9rem;\n  color: #666;\n  margin: 0;\n}\n.success-state[data-v-09f03f11] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  padding: 40px 20px;\n  text-align: center;\n}\n.success-icon[data-v-09f03f11] {\n  font-size: 4rem;\n  margin-bottom: 16px;\n}\n.success-state h4[data-v-09f03f11] {\n  font-size: 1.5rem;\n  color: #333;\n  margin: 0 0 12px 0;\n}\n.success-state p[data-v-09f03f11] {\n  font-size: 1rem;\n  color: #666;\n  margin: 8px 0;\n}\n.success-subtext[data-v-09f03f11] {\n  font-size: 0.9rem;\n  color: #999;\n}\n.modal-actions[data-v-09f03f11] {\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-09f03f11] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.btn-secondary[data-v-09f03f11] {\n  background: #f8f9fa;\n  color: #666;\n  border: 1px solid #dee2e6;\n}\n.btn-secondary[data-v-09f03f11]:hover:not(:disabled) {\n  background: #e9ecef;\n}\n.btn-primary[data-v-09f03f11] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n}\n.btn-primary[data-v-09f03f11]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #cc1177);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn[data-v-09f03f11]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n  transform: none !important;\n}\n\n.status-badge-container[data-v-c49d2203] {\n  position: relative;\n  display: inline-block;\n}\n.status-badge[data-v-c49d2203] {\n  display: inline-flex;\n  align-items: center;\n  gap: 3px;\n  padding: 4px 8px;\n  border-radius: 12px;\n  font-size: 0.7rem;\n  font-weight: 600;\n  border: 1px solid rgba(255, 255, 255, 0.6);\n  transition: all 0.2s ease;\n  user-select: none;\n  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);\n  backdrop-filter: blur(3px);\n  white-space: nowrap;\n  min-width: 80px;\n  justify-content: center;\n}\n.status-clickable[data-v-c49d2203] {\n  cursor: pointer;\n}\n.status-clickable[data-v-c49d2203]:hover {\n  transform: translateY(-2px) scale(1.02);\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);\n  border-color: rgba(255, 255, 255, 1);\n}\n.status-icon[data-v-c49d2203] {\n  font-size: 0.8rem;\n}\n.edit-icon[data-v-c49d2203] {\n  font-size: 0.7rem;\n  opacity: 0.7;\n}\n\n/* Status color classes with enhanced floating design */\n.status-not-started[data-v-c49d2203] { \n  background: linear-gradient(135deg, #6c757d, #5a6268); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-considering[data-v-c49d2203] { \n  background: linear-gradient(135deg, #ffc107, #e0a800); \n  color: #212529; \n  border-color: rgba(33, 37, 41, 0.2);\n}\n.status-ready-for-approval[data-v-c49d2203] { \n  background: linear-gradient(135deg, #17a2b8, #138496); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-waiting-for-agreement[data-v-c49d2203] { \n  background: linear-gradient(135deg, #fd7e14, #e8680b); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-ready-to-vote[data-v-c49d2203] { \n  background: linear-gradient(135deg, #28a745, #1e7e34); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-reconsidering[data-v-c49d2203] { \n  background: linear-gradient(135deg, #dc3545, #c82333); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-voted-aye[data-v-c49d2203] { \n  background: linear-gradient(135deg, #198754, #155724); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-voted-nay[data-v-c49d2203] { \n  background: linear-gradient(135deg, #dc3545, #c82333); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-voted-abstain[data-v-c49d2203] { \n  background: linear-gradient(135deg, #6f42c1, #5a32a3); \n  color: white; \n  border-color: rgba(255, 255, 255, 0.3);\n}\n.status-not-voted[data-v-c49d2203] { \n  background: linear-gradient(135deg, #e9ecef, #dee2e6); \n  color: #495057; \n  border-color: rgba(73, 80, 87, 0.2);\n}\n\n\n.modal-overlay[data-v-a8c3d704] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.proposal-browser-modal[data-v-a8c3d704] {\n  background: white;\n  border-radius: 12px;\n  width: 95vw;\n  height: 90vh;\n  max-width: 1400px;\n  display: flex;\n  flex-direction: column;\n  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);\n}\n.modal-header[data-v-a8c3d704] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: #f8f9fa;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h2[data-v-a8c3d704] {\n  margin: 0;\n  font-size: 1.5rem;\n  font-weight: 600;\n  color: #333;\n}\n.close-btn[data-v-a8c3d704] {\n  background: none;\n  border: none;\n  font-size: 2rem;\n  cursor: pointer;\n  color: #6c757d;\n  padding: 0;\n  width: 40px;\n  height: 40px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  transition: all 0.2s ease;\n}\n.close-btn[data-v-a8c3d704]:hover {\n  background: #e9ecef;\n  color: #495057;\n}\n.browser-content[data-v-a8c3d704] {\n  display: flex;\n  flex: 1;\n  overflow: hidden;\n}\n.filter-panel[data-v-a8c3d704] {\n  width: 280px;\n  background: #f8f9fa;\n  border-right: 1px solid #e9ecef;\n  padding: 20px;\n  overflow-y: auto;\n}\n.filter-section h3[data-v-a8c3d704] {\n  margin: 0 0 16px 0;\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #333;\n}\n.filter-group[data-v-a8c3d704] {\n  margin-bottom: 16px;\n}\n.filter-group label[data-v-a8c3d704] {\n  display: block;\n  margin-bottom: 6px;\n  font-weight: 500;\n  font-size: 0.9rem;\n  color: #555;\n}\n.search-input[data-v-a8c3d704],\n.filter-select[data-v-a8c3d704] {\n  width: 100%;\n  padding: 8px 12px;\n  border: 1px solid #ced4da;\n  border-radius: 6px;\n  font-size: 0.9rem;\n  background: white;\n}\n.search-input[data-v-a8c3d704]:focus,\n.filter-select[data-v-a8c3d704]:focus {\n  outline: none;\n  border-color: #007bff;\n  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);\n}\n.clear-filters-btn[data-v-a8c3d704] {\n  width: 100%;\n  padding: 8px 16px;\n  background: #dc3545;\n  color: white;\n  border: none;\n  border-radius: 6px;\n  font-size: 0.9rem;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n}\n.clear-filters-btn[data-v-a8c3d704]:hover {\n  background: #c82333;\n}\n.content-area[data-v-a8c3d704] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n}\n.view-controls[data-v-a8c3d704] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 16px 20px;\n  border-bottom: 1px solid #e9ecef;\n  background: white;\n}\n.view-modes[data-v-a8c3d704] {\n  display: flex;\n  gap: 8px;\n}\n.view-btn[data-v-a8c3d704] {\n  padding: 6px 12px;\n  border: 1px solid #ced4da;\n  background: white;\n  border-radius: 6px;\n  cursor: pointer;\n  font-size: 0.9rem;\n  transition: all 0.2s ease;\n}\n.view-btn.active[data-v-a8c3d704] {\n  background: #007bff;\n  color: white;\n  border-color: #007bff;\n}\n.sort-controls[data-v-a8c3d704] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n.sort-select[data-v-a8c3d704] {\n  padding: 6px 10px;\n  border: 1px solid #ced4da;\n  border-radius: 6px;\n  font-size: 0.9rem;\n}\n.sort-order-btn[data-v-a8c3d704] {\n  padding: 6px 10px;\n  border: 1px solid #ced4da;\n  background: white;\n  border-radius: 6px;\n  cursor: pointer;\n  font-size: 1rem;\n}\n.results-info[data-v-a8c3d704] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.proposals-container[data-v-a8c3d704] {\n  flex: 1;\n  overflow-y: auto;\n  padding: 20px;\n}\n.loading-state[data-v-a8c3d704],\n.empty-state[data-v-a8c3d704] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 300px;\n  text-align: center;\n}\n.spinner[data-v-a8c3d704] {\n  width: 40px;\n  height: 40px;\n  border: 4px solid #f3f3f3;\n  border-top: 4px solid #007bff;\n  border-radius: 50%;\n  animation: spin-a8c3d704 1s linear infinite;\n}\n@keyframes spin-a8c3d704 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.empty-icon[data-v-a8c3d704] {\n  font-size: 4rem;\n  margin-bottom: 16px;\n}\n.proposals-list[data-v-a8c3d704] {\n  display: flex;\n  flex-direction: column;\n  gap: 1px;\n  background: #e9ecef;\n  border-radius: 8px;\n  overflow: hidden;\n}\n.proposal-item[data-v-a8c3d704] {\n  display: grid;\n  grid-template-columns: 80px 1fr 200px 150px 120px;\n  gap: 16px;\n  padding: 16px 20px;\n  background: white;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n  align-items: center;\n}\n.proposal-item[data-v-a8c3d704]:hover {\n  background: #f8f9fa;\n}\n.proposal-id[data-v-a8c3d704] {\n  font-weight: 600;\n  color: #007bff;\n}\n.proposal-title[data-v-a8c3d704] {\n  font-weight: 500;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n.proposal-assignment[data-v-a8c3d704] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  font-size: 0.9rem;\n  color: #666;\n}\n.assign-btn[data-v-a8c3d704] {\n  padding: 4px 8px;\n  background: var(--assign-gradient);\n  color: white;\n  border: 1px solid var(--assign-border);\n  border-radius: 4px;\n  font-size: 0.8rem;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.assign-btn[data-v-a8c3d704]:hover {\n  background: var(--assign-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 2px 6px var(--assign-shadow);\n}\n.proposal-updated[data-v-a8c3d704] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.proposals-cards[data-v-a8c3d704] {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));\n  gap: 20px;\n}\n.proposal-card[data-v-a8c3d704] {\n  background: white;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  padding: 20px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.proposal-card[data-v-a8c3d704]:hover {\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);\n  transform: translateY(-2px);\n}\n.card-header[data-v-a8c3d704] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 12px;\n}\n.card-title[data-v-a8c3d704] {\n  margin: 0 0 12px 0;\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #333;\n  display: -webkit-box;\n  -webkit-line-clamp: 2;\n  line-clamp: 2;\n  -webkit-box-orient: vertical;\n  overflow: hidden;\n}\n.card-meta[data-v-a8c3d704] {\n  display: flex;\n  flex-direction: column;\n  gap: 6px;\n}\n.meta-item[data-v-a8c3d704] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.pagination[data-v-a8c3d704] {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  gap: 16px;\n  margin-top: 20px;\n  padding: 20px;\n}\n.page-btn[data-v-a8c3d704] {\n  padding: 8px 16px;\n  border: 1px solid #ced4da;\n  background: white;\n  border-radius: 6px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.page-btn[data-v-a8c3d704]:hover:not(:disabled) {\n  background: #f8f9fa;\n}\n.page-btn[data-v-a8c3d704]:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n.page-info[data-v-a8c3d704] {\n  font-size: 0.9rem;\n  color: #666;\n}\n.modal-content[data-v-a8c3d704] {\n  max-height: 80vh;\n  overflow-y: auto;\n  padding: 20px;\n  background: white;\n  border-radius: 8px;\n  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);\n}\n.proposal-list[data-v-a8c3d704] {\n  overflow-y: auto;\n  max-height: calc(80vh - 180px); /* Account for header, filters, and padding */\n  padding-right: 16px; /* Space for scrollbar */\n}\n\n/* Scrollbar styling */\n[data-v-a8c3d704]::-webkit-scrollbar {\n  width: 8px;\n}\n[data-v-a8c3d704]::-webkit-scrollbar-track {\n  background: #f1f1f1;\n  border-radius: 4px;\n}\n[data-v-a8c3d704]::-webkit-scrollbar-thumb {\n  background: #888;\n  border-radius: 4px;\n}\n[data-v-a8c3d704]::-webkit-scrollbar-thumb:hover {\n  background: #555;\n}\n\n/* Firefox scrollbar */\n[data-v-a8c3d704] {\n  scrollbar-width: thin;\n  scrollbar-color: #888 #f1f1f1;\n}\n\n.modal-overlay[data-v-929f421b] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.settings-modal[data-v-929f421b] {\n  background: white;\n  border-radius: 12px;\n  width: 90vw;\n  height: 85vh;\n  max-width: 1200px;\n  display: flex;\n  flex-direction: column;\n  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);\n  overflow: hidden; /* Add this to fix border-radius clipping */\n}\n.modal-header[data-v-929f421b] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: #f8f9fa;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h2[data-v-929f421b] {\n  margin: 0;\n  font-size: 1.5rem;\n  font-weight: 600;\n  color: #333;\n}\n.close-btn[data-v-929f421b] {\n  background: none;\n  border: none;\n  font-size: 2rem;\n  cursor: pointer;\n  color: #6c757d;\n  padding: 0;\n  width: 40px;\n  height: 40px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  transition: all 0.2s ease;\n}\n.close-btn[data-v-929f421b]:hover {\n  background: #e9ecef;\n  color: #495057;\n}\n.settings-content[data-v-929f421b] {\n  flex: 1;\n  display: flex;\n  overflow: hidden;\n}\n.settings-nav[data-v-929f421b] {\n  width: 280px;\n  background: #f8f9fa;\n  border-right: 1px solid #e9ecef;\n  padding: 20px;\n  overflow-y: auto;\n}\n.nav-section[data-v-929f421b] {\n  margin-bottom: 24px;\n}\n.nav-section h3[data-v-929f421b] {\n  margin: 0 0 12px 0;\n  font-size: 0.9rem;\n  font-weight: 600;\n  color: #666;\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n}\n.nav-item[data-v-929f421b] {\n  display: flex;\n  align-items: center;\n  width: 100%;\n  padding: 12px 16px;\n  border: none;\n  background: none;\n  cursor: pointer;\n  border-radius: 6px;\n  margin-bottom: 4px;\n  transition: all 0.2s ease;\n  text-align: left;\n  font-size: 0.9rem;\n  color: #333;\n}\n.nav-item[data-v-929f421b]:hover:not(:disabled) {\n  background: #e9ecef;\n}\n.nav-item[data-v-929f421b]:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n  color: #999;\n}\n.nav-item[data-v-929f421b]:disabled:hover {\n  background: transparent;\n  color: #999;\n}\n.nav-item.active[data-v-929f421b] {\n  background: #007bff;\n  color: white;\n}\n.nav-icon[data-v-929f421b] {\n  margin-right: 12px;\n  font-size: 1.1rem;\n}\n.settings-main[data-v-929f421b] {\n  flex: 1;\n  overflow-y: auto;\n  padding: 24px;\n}\n.section-content[data-v-929f421b] {\n  max-width: 800px;\n}\n.section-header[data-v-929f421b] {\n  margin-bottom: 24px;\n}\n.section-header h3[data-v-929f421b] {\n  margin: 0 0 8px 0;\n  font-size: 1.3rem;\n  font-weight: 600;\n  color: #333;\n}\n.section-header p[data-v-929f421b] {\n  margin: 0;\n  color: #666;\n  font-size: 0.95rem;\n}\n.form-group[data-v-929f421b] {\n  margin-bottom: 20px;\n}\n.form-group label[data-v-929f421b] {\n  display: block;\n  margin-bottom: 6px;\n  font-weight: 500;\n  color: #333;\n  font-size: 0.9rem;\n}\n.form-input[data-v-929f421b],\n.form-select[data-v-929f421b] {\n  width: 100%;\n  padding: 10px 12px;\n  border: 1px solid #ced4da;\n  border-radius: 6px;\n  font-size: 0.9rem;\n}\n.form-input[data-v-929f421b]:focus,\n.form-select[data-v-929f421b]:focus {\n  outline: none;\n  border-color: #007bff;\n  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);\n}\n.form-group small[data-v-929f421b] {\n  display: block;\n  margin-top: 4px;\n  color: #666;\n  font-size: 0.8rem;\n}\n.form-note[data-v-929f421b] {\n  margin: 0 0 12px 0;\n  color: #666;\n  font-size: 0.9rem;\n  font-style: italic;\n}\n.checkbox-label[data-v-929f421b] {\n  display: flex;\n  align-items: center;\n  cursor: pointer;\n}\n.checkbox-label input[data-v-929f421b] {\n  margin-right: 8px;\n  width: auto;\n}\n.team-members-list[data-v-929f421b] {\n  border: 1px solid #e9ecef;\n  border-radius: 6px;\n  padding: 16px;\n}\n.member-item[data-v-929f421b] {\n  display: flex;\n  gap: 12px;\n  margin-bottom: 12px;\n  align-items: center;\n}\n.member-name[data-v-929f421b] {\n  flex: 1;\n  padding: 8px 12px;\n  border: 1px solid #ced4da;\n  border-radius: 4px;\n}\n.member-address[data-v-929f421b] {\n  flex: 2;\n  padding: 8px 12px;\n  border: 1px solid #ced4da;\n  border-radius: 4px;\n  font-family: monospace;\n  background: #f8f9fa;\n}\n.member-info[data-v-929f421b] {\n  font-size: 0.8rem;\n  color: #666;\n  font-style: italic;\n}\n.no-members[data-v-929f421b] {\n  text-align: center;\n  color: #666;\n  font-style: italic;\n  padding: 20px;\n}\n.readonly-field[data-v-929f421b] {\n  position: relative;\n  display: flex;\n  align-items: center;\n  gap: 12px;\n}\n.readonly-field input[readonly][data-v-929f421b] {\n  background: #f8f9fa;\n  color: #6c757d;\n  cursor: not-allowed;\n  flex: 1;\n}\n.readonly-field-header[data-v-929f421b] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 8px;\n}\n.refresh-members-btn[data-v-929f421b] {\n  background: #007bff;\n  color: white;\n  border: none;\n  padding: 6px 12px;\n  border-radius: 6px;\n  font-size: 0.85rem;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.refresh-members-btn[data-v-929f421b]:hover:not(:disabled) {\n  background: #0056b3;\n}\n.refresh-members-btn[data-v-929f421b]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.multisig-badge[data-v-929f421b] {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  background: #ffc107;\n  color: #212529;\n  padding: 4px 8px;\n  border-radius: 12px;\n  font-size: 0.75rem;\n  font-weight: 500;\n  white-space: nowrap;\n}\n.member-item.readonly[data-v-929f421b] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n  padding: 12px;\n  background: #f8f9fa;\n  border-radius: 6px;\n  border: 1px solid #e9ecef;\n  margin-bottom: 8px;\n}\n.member-display-name[data-v-929f421b] {\n  font-weight: 500;\n  color: #333;\n  font-size: 0.9rem;\n}\n.member-address[data-v-929f421b] {\n  font-family: monospace;\n  color: #6c757d;\n  font-size: 0.8rem;\n  word-break: break-all;\n}\n.empty-state[data-v-929f421b] {\n  text-align: center;\n  padding: 40px 20px;\n  color: #6c757d;\n}\n.empty-icon[data-v-929f421b] {\n  font-size: 2.5rem;\n  display: block;\n  margin-bottom: 12px;\n}\n.empty-state p[data-v-929f421b] {\n  margin: 0 0 8px 0;\n  font-weight: 500;\n  color: #495057;\n}\n.empty-state small[data-v-929f421b] {\n  color: #6c757d;\n}\n.remove-btn[data-v-929f421b] {\n  background: #dc3545;\n  color: white;\n  border: none;\n  border-radius: 50%;\n  width: 32px;\n  height: 32px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n.add-member-btn[data-v-929f421b] {\n  background: #28a745;\n  color: white;\n  border: none;\n  padding: 8px 16px;\n  border-radius: 4px;\n  cursor: pointer;\n  font-size: 0.9rem;\n}\n.form-actions[data-v-929f421b] {\n  display: flex;\n  gap: 12px;\n  margin-top: 24px;\n}\n.save-btn[data-v-929f421b] {\n  background: #007bff;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.reset-btn[data-v-929f421b] {\n  background: #6c757d;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.voting-stats[data-v-929f421b] {\n  display: grid;\n  grid-template-columns: repeat(4, 1fr);\n  gap: 20px;\n  margin-bottom: 24px;\n}\n.stat-card[data-v-929f421b] {\n  background: #f8f9fa;\n  padding: 20px;\n  border-radius: 8px;\n  text-align: center;\n}\n.stat-number[data-v-929f421b] {\n  font-size: 2rem;\n  font-weight: 700;\n  color: #007bff;\n  margin-bottom: 8px;\n}\n.stat-label[data-v-929f421b] {\n  font-size: 0.9rem;\n  color: #666;\n  font-weight: 500;\n}\n.voting-history-list[data-v-929f421b] {\n  max-height: 400px;\n  overflow-y: auto;\n}\n.vote-item[data-v-929f421b] {\n  background: white;\n  border: 1px solid #e9ecef;\n  border-radius: 6px;\n  padding: 16px;\n  margin-bottom: 12px;\n}\n.vote-header[data-v-929f421b] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 8px;\n}\n.proposal-id[data-v-929f421b] {\n  font-weight: 600;\n  color: #007bff;\n}\n.vote-badge[data-v-929f421b] {\n  padding: 4px 8px;\n  border-radius: 4px;\n  font-size: 0.8rem;\n  font-weight: 500;\n}\n.vote-badge.aye[data-v-929f421b] {\n  background: #d4edda;\n  color: #155724;\n}\n.vote-badge.nay[data-v-929f421b] {\n  background: #f8d7da;\n  color: #721c24;\n}\n.vote-badge.abstain[data-v-929f421b] {\n  background: #e2e3e5;\n  color: #383d41;\n}\n.vote-title[data-v-929f421b] {\n  font-weight: 500;\n  margin-bottom: 4px;\n}\n.vote-date[data-v-929f421b] {\n  font-size: 0.8rem;\n  color: #666;\n}\n.sync-controls[data-v-929f421b] {\n  background: #f8f9fa;\n  padding: 20px;\n  border-radius: 8px;\n}\n.sync-status[data-v-929f421b] {\n  margin-bottom: 16px;\n}\n.status-item[data-v-929f421b] {\n  display: flex;\n  justify-content: space-between;\n  margin-bottom: 8px;\n}\n.status-label[data-v-929f421b] {\n  font-weight: 500;\n}\n.status-value[data-v-929f421b] {\n  font-family: monospace;\n}\n.status-value.connected[data-v-929f421b] {\n  color: #28a745;\n}\n.status-value.error[data-v-929f421b] {\n  color: #dc3545;\n}\n.sync-actions[data-v-929f421b] {\n  display: flex;\n  gap: 12px;\n}\n.sync-btn[data-v-929f421b] {\n  background: #007bff;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.sync-btn[data-v-929f421b]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.clear-cache-btn[data-v-929f421b] {\n  background: #dc3545;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.coming-soon[data-v-929f421b],\n.under-review[data-v-929f421b] {\n  text-align: center;\n  padding: 40px 20px;\n  background: #f8f9fa;\n  border-radius: 8px;\n}\n.coming-soon-icon[data-v-929f421b],\n.under-review-icon[data-v-929f421b] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n}\n.coming-soon h4[data-v-929f421b],\n.under-review h4[data-v-929f421b] {\n  margin: 0 0 12px 0;\n  color: #333;\n}\n.coming-soon p[data-v-929f421b],\n.under-review p[data-v-929f421b] {\n  margin: 0 0 16px 0;\n  color: #666;\n}\n.coming-soon ul[data-v-929f421b] {\n  text-align: left;\n  max-width: 300px;\n  margin: 0 auto;\n}\n.temp-actions[data-v-929f421b] {\n  margin-top: 20px;\n}\n.refresh-btn[data-v-929f421b] {\n  background: #007bff;\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 6px;\n  cursor: pointer;\n  font-weight: 500;\n}\n.refresh-btn[data-v-929f421b]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.help-content[data-v-929f421b],\n.about-content[data-v-929f421b] {\n  max-width: 600px;\n}\n.help-section[data-v-929f421b],\n.about-section[data-v-929f421b] {\n  margin-bottom: 24px;\n}\n.help-section h4[data-v-929f421b],\n.about-section h4[data-v-929f421b] {\n  margin: 0 0 12px 0;\n  color: #333;\n  font-size: 1.1rem;\n}\n.help-section ul[data-v-929f421b],\n.help-section ol[data-v-929f421b],\n.about-section ul[data-v-929f421b] {\n  margin: 0;\n  padding-left: 20px;\n}\n.help-section li[data-v-929f421b],\n.about-section li[data-v-929f421b] {\n  margin-bottom: 8px;\n  line-height: 1.5;\n}\n.help-links[data-v-929f421b],\n.about-links[data-v-929f421b] {\n  display: flex;\n  gap: 16px;\n  margin-top: 24px;\n}\n.help-link[data-v-929f421b],\n.about-link[data-v-929f421b] {\n  display: inline-flex;\n  align-items: center;\n  padding: 10px 16px;\n  background: #007bff;\n  color: white;\n  text-decoration: none;\n  border-radius: 6px;\n  font-size: 0.9rem;\n  font-weight: 500;\n  transition: background-color 0.2s ease;\n}\n.help-link[data-v-929f421b]:hover,\n.about-link[data-v-929f421b]:hover {\n  background: #0056b3;\n}\n.empty-state[data-v-929f421b] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 200px;\n  text-align: center;\n}\n.empty-icon[data-v-929f421b] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n}\n.empty-state h4[data-v-929f421b] {\n  margin: 0 0 8px 0;\n  color: #333;\n}\n.empty-state p[data-v-929f421b] {\n  margin: 0;\n  color: #666;\n}\n.activity-list[data-v-929f421b] {\n  max-height: 400px;\n  overflow-y: auto;\n}\n.activity-item[data-v-929f421b] {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  padding: 12px 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n  margin-bottom: 8px;\n}\n.activity-icon[data-v-929f421b] {\n  font-size: 1.2rem;\n}\n.activity-details[data-v-929f421b] {\n  flex: 1;\n}\n.activity-description[data-v-929f421b] {\n  font-size: 0.9rem;\n  color: #333;\n  margin-bottom: 2px;\n}\n.activity-time[data-v-929f421b] {\n  font-size: 0.8rem;\n  color: #666;\n}\n.modal-content[data-v-929f421b] {\n  max-height: 80vh;\n  overflow-y: auto;\n  padding: 20px;\n  background: white;\n  border-radius: 8px;\n  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);\n}\n.settings-section[data-v-929f421b] {\n  margin-bottom: 24px;\n  overflow-y: auto;\n  max-height: calc(80vh - 120px); /* Account for header and padding */\n}\n\n/* Scrollbar styling */\n[data-v-929f421b]::-webkit-scrollbar {\n  width: 8px;\n}\n[data-v-929f421b]::-webkit-scrollbar-track {\n  background: #f1f1f1;\n  border-radius: 4px;\n}\n[data-v-929f421b]::-webkit-scrollbar-thumb {\n  background: #888;\n  border-radius: 4px;\n}\n[data-v-929f421b]::-webkit-scrollbar-thumb:hover {\n  background: #555;\n}\n\n/* Firefox scrollbar */\n[data-v-929f421b] {\n  scrollbar-width: thin;\n  scrollbar-color: #888 #f1f1f1;\n}\n.form-note[data-v-929f421b] {\n  margin-top: 24px;\n  padding: 16px;\n  background: #f8f9ff;\n  border: 1px solid #e1e5f2;\n  border-radius: 8px;\n}\n.form-note p[data-v-929f421b] {\n  margin: 0 0 12px 0;\n  color: #333;\n  font-weight: 500;\n}\n.form-note ol[data-v-929f421b] {\n  margin: 0;\n  padding-left: 20px;\n  color: #666;\n}\n.form-note ol li[data-v-929f421b] {\n  margin-bottom: 4px;\n}\n.sync-section[data-v-929f421b] {\n  background: #f8f9fa;\n  border: 1px solid #e1e5e9;\n  border-radius: 8px;\n  padding: 20px;\n}\n.sync-description[data-v-929f421b] {\n  margin-bottom: 20px;\n}\n.sync-description p[data-v-929f421b] {\n  margin: 0;\n  color: #666;\n  line-height: 1.5;\n}\n.sync-actions[data-v-929f421b] {\n  display: flex;\n  gap: 12px;\n  margin-bottom: 16px;\n}\n.sync-btn[data-v-929f421b] {\n  padding: 10px 20px;\n  border: 1px solid #007bff;\n  border-radius: 6px;\n  background: white;\n  color: #007bff;\n  cursor: pointer;\n  font-weight: 500;\n  transition: all 0.2s ease;\n  flex: 1;\n}\n.sync-btn[data-v-929f421b]:hover:not(:disabled) {\n  background: #007bff;\n  color: white;\n}\n.sync-btn[data-v-929f421b]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.sync-btn.deep[data-v-929f421b] {\n  border-color: #28a745;\n  color: #28a745;\n}\n.sync-btn.deep[data-v-929f421b]:hover:not(:disabled) {\n  background: #28a745;\n  color: white;\n}\n.sync-info[data-v-929f421b] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n.sync-type[data-v-929f421b] {\n  font-size: 0.9rem;\n  color: #666;\n  line-height: 1.4;\n}\n\n/* Backend Configuration Styles */\n.backend-config[data-v-929f421b] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n.backend-actions[data-v-929f421b] {\n  display: flex;\n  gap: 8px;\n}\n.test-btn[data-v-929f421b],\n.save-backend-btn[data-v-929f421b] {\n  padding: 8px 16px;\n  border: 1px solid #007bff;\n  border-radius: 4px;\n  background: white;\n  color: #007bff;\n  cursor: pointer;\n  font-size: 0.85rem;\n  font-weight: 500;\n  transition: all 0.2s ease;\n  flex: 1;\n}\n.test-btn[data-v-929f421b]:hover:not(:disabled),\n.save-backend-btn[data-v-929f421b]:hover:not(:disabled) {\n  background: #007bff;\n  color: white;\n}\n.save-backend-btn[data-v-929f421b] {\n  border-color: #28a745;\n  color: #28a745;\n}\n.save-backend-btn[data-v-929f421b]:hover:not(:disabled) {\n  background: #28a745;\n  color: white;\n}\n.test-btn[data-v-929f421b]:disabled,\n.save-backend-btn[data-v-929f421b]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.backend-status[data-v-929f421b] {\n  padding: 8px 12px;\n  border-radius: 4px;\n  font-size: 0.85rem;\n  margin-top: 8px;\n}\n.backend-status.success[data-v-929f421b] {\n  background: #d4edda;\n  color: #155724;\n  border: 1px solid #c3e6cb;\n}\n.backend-status.error[data-v-929f421b] {\n  background: #f8d7da;\n  color: #721c24;\n  border: 1px solid #f5c6cb;\n}\n.backend-status.info[data-v-929f421b] {\n  background: #d1ecf1;\n  color: #0c5460;\n  border: 1px solid #bee5eb;\n}\n\n/* Modal styles */\n.modal-overlay[data-v-a01f811b] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.status-modal[data-v-a01f811b] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-a01f811b] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-a01f811b] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-a01f811b] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-a01f811b]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-a01f811b] {\n  padding: 24px;\n  flex: 1;\n  overflow-y: auto;\n}\n.modal-content p[data-v-a01f811b] {\n  margin: 0 0 16px 0;\n  color: #495057;\n}\n.status-options[data-v-a01f811b] {\n  margin: 16px 0;\n}\n.status-options label[data-v-a01f811b] {\n  display: block;\n  margin-bottom: 8px;\n  font-weight: 600;\n  color: #495057;\n}\n.status-list[data-v-a01f811b] {\n  max-height: 300px;\n  overflow-y: auto;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  margin-bottom: 16px;\n}\n.status-option[data-v-a01f811b] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 12px 16px;\n  border: none;\n  border-bottom: 1px solid #f0f0f0;\n  background: white;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  font-size: 0.9rem;\n  width: 100%;\n  text-align: left;\n}\n.status-option[data-v-a01f811b]:last-child {\n  border-bottom: none;\n}\n.status-option[data-v-a01f811b]:hover {\n  background: #f8f9fa;\n}\n.status-option.selected[data-v-a01f811b] {\n  background: linear-gradient(135deg, #fff5f8, #ffe8f0);\n  border-left: 4px solid #e6007a;\n}\n.option-text[data-v-a01f811b] {\n  font-weight: 500;\n  color: #333;\n}\n.selected-indicator[data-v-a01f811b] {\n  color: #e6007a;\n  font-weight: bold;\n  font-size: 1rem;\n}\n.reason-section[data-v-a01f811b] {\n  margin: 16px 0;\n}\n.reason-section label[data-v-a01f811b] {\n  display: block;\n  margin-bottom: 8px;\n  font-weight: 600;\n  color: #495057;\n}\n.reason-section textarea[data-v-a01f811b] {\n  width: 100%;\n  padding: 12px;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  font-family: inherit;\n  font-size: 0.9rem;\n  resize: vertical;\n  transition: border-color 0.2s ease;\n}\n.reason-section textarea[data-v-a01f811b]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.modal-actions[data-v-a01f811b] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-a01f811b] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n.btn[data-v-a01f811b]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-primary[data-v-a01f811b] {\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border: 1px solid #b3005f;\n}\n.btn-primary[data-v-a01f811b]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #8a0047);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-secondary[data-v-a01f811b] {\n  background: #6c757d;\n  color: white;\n  border: 1px solid #6c757d;\n}\n.btn-secondary[data-v-a01f811b]:hover:not(:disabled) {\n  background: #5a6268;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);\n}\n@media (max-width: 768px) {\n.status-grid[data-v-a01f811b] {\n    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));\n}\n}\n\n.content-area[data-v-52f3a33e] {\n  flex: 1;\n  overflow-y: auto;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.proposals-list[data-v-52f3a33e] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.proposal-item[data-v-52f3a33e] {\n  background: #ffffff;\n  border-radius: 8px;\n  padding: 1rem;\n  box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.proposal-item[data-v-52f3a33e]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n}\n.proposal-header[data-v-52f3a33e] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 0.5rem;\n}\n.proposal-id[data-v-52f3a33e] {\n  font-size: 0.875rem;\n  color: #6b46c1;\n  font-weight: 600;\n}\n.proposal-title[data-v-52f3a33e] {\n  margin: 0.5rem 0;\n  font-size: 1rem;\n  color: #2d3748;\n}\n.proposal-meta[data-v-52f3a33e] {\n  display: flex;\n  gap: 1rem;\n  font-size: 0.875rem;\n  color: #718096;\n}\n.meta-item[data-v-52f3a33e] {\n  display: flex;\n  align-items: center;\n  gap: 0.25rem;\n}\n.empty-state[data-v-52f3a33e] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-52f3a33e] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n\n.content-area[data-v-9d4ddd79] {\n  flex: 1;\n  overflow-y: auto;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.proposals-list[data-v-9d4ddd79] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.proposal-item[data-v-9d4ddd79] {\n  background: #ffffff;\n  border-radius: 8px;\n  padding: 1rem;\n  box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.proposal-item[data-v-9d4ddd79]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n}\n.proposal-header[data-v-9d4ddd79] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 0.5rem;\n}\n.proposal-id[data-v-9d4ddd79] {\n  font-size: 0.875rem;\n  color: #6b46c1;\n  font-weight: 600;\n}\n.proposal-title[data-v-9d4ddd79] {\n  margin: 0.5rem 0;\n  font-size: 1rem;\n  color: #2d3748;\n}\n.proposal-meta[data-v-9d4ddd79] {\n  display: flex;\n  gap: 1rem;\n  font-size: 0.875rem;\n  color: #718096;\n}\n.meta-item[data-v-9d4ddd79] {\n  display: flex;\n  align-items: center;\n  gap: 0.25rem;\n}\n.meta-item.action-type[data-v-9d4ddd79] {\n  flex-basis: 100%;\n}\n.action-badge[data-v-9d4ddd79] {\n  padding: 4px 8px;\n  border-radius: 12px;\n  font-size: 0.8rem;\n  font-weight: 500;\n  margin-left: 4px;\n}\n.action-badge.evaluation[data-v-9d4ddd79] {\n  background: #fff3cd;\n  color: #856404;\n}\n.action-badge.team-vote[data-v-9d4ddd79] {\n  background: #d1ecf1;\n  color: #0c5460;\n}\n.empty-state[data-v-9d4ddd79] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-9d4ddd79] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n\n.content-area[data-v-c11b38eb] {\n  flex: 1;\n  overflow-y: auto;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.proposals-list[data-v-c11b38eb] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.proposal-item[data-v-c11b38eb] {\n  background: #ffffff;\n  border-radius: 8px;\n  padding: 1rem;\n  box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.proposal-item[data-v-c11b38eb]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n}\n.proposal-header[data-v-c11b38eb] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 0.5rem;\n}\n.proposal-id[data-v-c11b38eb] {\n  font-size: 0.875rem;\n  color: #6b46c1;\n  font-weight: 600;\n}\n.proposal-title[data-v-c11b38eb] {\n  margin: 0.5rem 0;\n  font-size: 1rem;\n  color: #2d3748;\n}\n.evaluation-info[data-v-c11b38eb] {\n  margin: 16px 0;\n  padding: 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n}\n.vote-recommendation[data-v-c11b38eb] {\n  margin-bottom: 8px;\n}\n.vote-badge[data-v-c11b38eb] {\n  padding: 4px 8px;\n  border-radius: 4px;\n  font-size: 0.8rem;\n  margin-left: 8px;\n  font-weight: 500;\n}\n.vote-badge.vote-aye[data-v-c11b38eb] {\n  background: #d4edda;\n  color: #155724;\n}\n.vote-badge.vote-nay[data-v-c11b38eb] {\n  background: #f8d7da;\n  color: #721c24;\n}\n.vote-badge.vote-abstain[data-v-c11b38eb] {\n  background: #e2e3e5;\n  color: #383d41;\n}\n.vote-reason[data-v-c11b38eb] {\n  font-size: 0.9rem;\n  color: #666;\n  margin-top: 8px;\n}\n.proposal-meta[data-v-c11b38eb] {\n  display: flex;\n  gap: 1rem;\n  font-size: 0.875rem;\n  color: #718096;\n  margin-top: 16px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.meta-item[data-v-c11b38eb] {\n  display: flex;\n  align-items: center;\n  gap: 0.25rem;\n}\n.empty-state[data-v-c11b38eb] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-c11b38eb] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n\n.content-area[data-v-a4d8a9e4] {\n  flex: 1;\n  overflow-y: auto;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.empty-state[data-v-a4d8a9e4] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-a4d8a9e4] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n\n.my-dashboard[data-v-6d128393] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n}\n\n/* Loading and Error States */\n.loading-state[data-v-6d128393],\n.error-state[data-v-6d128393] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  padding: 2rem;\n  text-align: center;\n}\n.loading-spinner[data-v-6d128393] {\n  width: 50px;\n  height: 50px;\n  border: 4px solid #f3f3f3;\n  border-top: 4px solid #6b46c1;\n  border-radius: 50%;\n  animation: spin-6d128393 1s linear infinite;\n  margin-bottom: 1rem;\n}\n@keyframes spin-6d128393 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.error-icon[data-v-6d128393] {\n  font-size: 3rem;\n  margin-bottom: 1rem;\n}\n.retry-btn[data-v-6d128393] {\n  margin-top: 1rem;\n  padding: 0.75rem 1.5rem;\n  background: #6b46c1;\n  color: white;\n  border: none;\n  border-radius: 8px;\n  font-size: 1rem;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.retry-btn[data-v-6d128393]:hover {\n  background: #5a37a1;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 8px rgba(0,0,0,0.15);\n}\n.stats-section[data-v-6d128393] {\n  margin-bottom: 1rem;\n}\n.stats-section-container[data-v-6d128393] {\n  margin: 16px;\n  display: flex;\n  gap: 1rem;\n}\n.stat-card[data-v-6d128393] {\n  flex: 1;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n  transition: all 0.3s ease;\n  cursor: pointer;\n  position: relative;\n  border: 2px solid transparent;\n  min-width: 150px;\n}\n.stat-card[data-v-6d128393]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 8px rgba(0,0,0,0.15);\n}\n.stat-card.active[data-v-6d128393] {\n  border-color: #6b46c1;\n  background: #f8f4ff;\n}\n.stat-number[data-v-6d128393] {\n  font-size: 2.5rem;\n  font-weight: bold;\n  color: #2d3748;\n  margin-bottom: 0.5rem;\n}\n.stat-label[data-v-6d128393] {\n  font-size: 1rem;\n  color: #4a5568;\n  margin-bottom: 0.5rem;\n}\n.content-section[data-v-6d128393] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  padding: 0 16px;\n}\n\n.proposal-item[data-v-6c411c28] {\n  background: #ffffff;\n  border-radius: 8px;\n  padding: 1rem;\n  box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.proposal-item[data-v-6c411c28]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n}\n.agreement-item[data-v-6c411c28] {\n  border-left: 4px solid #ffc107;\n}\n.agreement-item-complete[data-v-6c411c28] {\n  border-left: 4px solid #28a745;\n}\n.ready-item[data-v-6c411c28] {\n  border-left: 4px solid #28a745;\n}\n.discussion-item[data-v-6c411c28] {\n  border-left: 4px solid #17a2b8;\n}\n.vetoed-item[data-v-6c411c28] {\n  border-left: 4px solid #dc3545;\n}\n.proposal-header[data-v-6c411c28] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 0.5rem;\n}\n.proposal-id[data-v-6c411c28] {\n  font-size: 0.875rem;\n  color: #6b46c1;\n  font-weight: 600;\n}\n.proposal-title[data-v-6c411c28] {\n  margin: 0.5rem 0;\n  font-size: 1rem;\n  color: #2d3748;\n}\n.agreement-progress[data-v-6c411c28] {\n  margin: 16px 0;\n  padding: 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n}\n.progress-header[data-v-6c411c28] {\n  display: flex;\n  justify-content: space-between;\n  margin-bottom: 8px;\n  font-size: 0.9rem;\n  font-weight: 500;\n}\n.progress-count[data-v-6c411c28] {\n  color: #007bff;\n  font-weight: 600;\n}\n.progress-bar[data-v-6c411c28] {\n  height: 8px;\n  background: #e9ecef;\n  border-radius: 4px;\n  overflow: hidden;\n  position: relative;\n}\n.progress-fill[data-v-6c411c28] {\n  height: 100%;\n  transition: width 0.3s ease, background-color 0.3s ease;\n  border-radius: 4px;\n}\n.team-status[data-v-6c411c28] {\n  display: grid;\n  grid-template-columns: 1fr 1fr;\n  gap: 20px;\n  margin: 16px 0;\n}\n.status-section h5[data-v-6c411c28] {\n  margin: 0 0 8px 0;\n  font-size: 0.9rem;\n  font-weight: 600;\n  color: #333;\n}\n.member-list[data-v-6c411c28] {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 6px;\n}\n.member-badge[data-v-6c411c28] {\n  padding: 4px 8px;\n  border-radius: 12px;\n  font-size: 0.8rem;\n  font-weight: 500;\n}\n.member-badge.agreed[data-v-6c411c28] {\n  background: #d4edda;\n  color: #155724;\n}\n.member-badge.discussion[data-v-6c411c28] {\n  background: #d1ecf1;\n  color: #0c5460;\n}\n.discussion-info[data-v-6c411c28],\n.veto-info[data-v-6c411c28] {\n  margin: 16px 0;\n  padding: 16px;\n  background: #f8f9fa;\n  border-radius: 6px;\n}\n.veto-alert[data-v-6c411c28] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n  color: #721c24;\n}\n.alert-icon[data-v-6c411c28] {\n  font-size: 1.2rem;\n}\n.veto-reason[data-v-6c411c28] {\n  margin-top: 0.5rem;\n  font-size: 0.875rem;\n  color: #718096;\n}\n.veto-date[data-v-6c411c28] {\n  margin-top: 0.25rem;\n  font-size: 0.875rem;\n  color: #718096;\n}\n.no-members[data-v-6c411c28] {\n  color: #666;\n  font-style: italic;\n  font-size: 0.9rem;\n}\n.proposal-meta[data-v-6c411c28] {\n  display: flex;\n  gap: 1rem;\n  font-size: 0.875rem;\n  color: #718096;\n  margin-top: 16px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.meta-item[data-v-6c411c28] {\n  display: flex;\n  align-items: center;\n  gap: 0.25rem;\n}\n.vote-badge-small[data-v-6c411c28] {\n  padding: 4px 8px;\n  border-radius: 4px;\n  font-size: 0.8rem;\n  margin-left: 8px;\n  font-weight: 500;\n}\n.vote-badge-small.vote-aye[data-v-6c411c28] {\n  background: #d4edda;\n  color: #155724;\n}\n.vote-badge-small.vote-nay[data-v-6c411c28] {\n  background: #f8d7da;\n  color: #721c24;\n}\n.vote-badge-small.vote-abstain[data-v-6c411c28] {\n  background: #e2e3e5;\n  color: #383d41;\n}\n.not-set[data-v-6c411c28] {\n  color: #dc3545;\n  font-weight: 500;\n}\n\n.content-area[data-v-11940616] {\n  flex: 1;\n  overflow-y: auto;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.panel-header[data-v-11940616] {\n  margin-bottom: 24px;\n}\n.panel-header h3[data-v-11940616] {\n  margin: 0 0 8px 0;\n  color: #333;\n  font-size: 1.2rem;\n}\n.panel-header p[data-v-11940616] {\n  margin: 0;\n  color: #666;\n  font-size: 0.9rem;\n}\n.proposals-list[data-v-11940616] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.empty-state[data-v-11940616] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-11940616] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n\n.content-area[data-v-aac09e73] {\n  flex: 1;\n  overflow-y: auto;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.panel-header[data-v-aac09e73] {\n  margin-bottom: 24px;\n}\n.panel-header h3[data-v-aac09e73] {\n  margin: 0 0 8px 0;\n  color: #333;\n  font-size: 1.2rem;\n}\n.panel-header p[data-v-aac09e73] {\n  margin: 0;\n  color: #666;\n  font-size: 0.9rem;\n}\n.proposals-list[data-v-aac09e73] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.empty-state[data-v-aac09e73] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-aac09e73] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n.send-to-mimir-btn[data-v-aac09e73] {\n  background: #e6007a;\n  color: white;\n  border: none;\n  border-radius: 6px;\n  padding: 8px 16px;\n  font-size: 14px;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  min-width: 120px;\n  margin-top: 12px;\n  transition: background 0.3s, opacity 0.3s;\n}\n.send-to-mimir-btn[data-v-aac09e73]:hover:not(:disabled) {\n  background: #c40069;\n}\n.send-to-mimir-btn[data-v-aac09e73]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.loading-spinner[data-v-aac09e73] {\n  width: 16px;\n  height: 16px;\n  border: 2px solid #f3f3f3;\n  border-top: 2px solid #ffffff;\n  border-radius: 50%;\n  animation: spin-aac09e73 1s linear infinite;\n}\n@keyframes spin-aac09e73 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n\n.content-area[data-v-b5ea048b] {\n  flex: 1;\n  overflow-y: auto;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.panel-header[data-v-b5ea048b] {\n  margin-bottom: 24px;\n}\n.panel-header h3[data-v-b5ea048b] {\n  margin: 0 0 8px 0;\n  color: #333;\n  font-size: 1.2rem;\n}\n.panel-header p[data-v-b5ea048b] {\n  margin: 0;\n  color: #666;\n  font-size: 0.9rem;\n}\n.proposals-list[data-v-b5ea048b] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.empty-state[data-v-b5ea048b] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-b5ea048b] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n\n.content-area[data-v-d55f45ac] {\n  flex: 1;\n  overflow-y: auto;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n}\n.panel-header[data-v-d55f45ac] {\n  margin-bottom: 24px;\n}\n.panel-header h3[data-v-d55f45ac] {\n  margin: 0 0 8px 0;\n  color: #333;\n  font-size: 1.2rem;\n}\n.panel-header p[data-v-d55f45ac] {\n  margin: 0;\n  color: #666;\n  font-size: 0.9rem;\n}\n.proposals-list[data-v-d55f45ac] {\n  display: flex;\n  flex-direction: column;\n  gap: 1rem;\n}\n.empty-state[data-v-d55f45ac] {\n  text-align: center;\n  padding: 2rem;\n  color: #718096;\n}\n.empty-icon[data-v-d55f45ac] {\n  font-size: 2rem;\n  margin-bottom: 1rem;\n}\n\n.modal-overlay[data-v-cafa1a99] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.modal-content[data-v-cafa1a99] {\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);\n  border: 1px solid #e1e5e9;\n  width: 400px;\n  max-width: 90vw;\n}\n.modal-header[data-v-cafa1a99] {\n  padding: 20px 24px 0;\n  display: flex;\n  align-items: center;\n  gap: 12px;\n}\n.icon[data-v-cafa1a99] {\n  font-size: 24px;\n}\n.icon-success[data-v-cafa1a99] { color: #28a745;\n}\n.icon-error[data-v-cafa1a99] { color: #dc3545;\n}\n.icon-warning[data-v-cafa1a99] { color: #ffc107;\n}\n.icon-info[data-v-cafa1a99] { color: #007bff;\n}\n.modal-header h3[data-v-cafa1a99] {\n  margin: 0;\n  font-size: 18px;\n  font-weight: 600;\n  color: #333;\n}\n.modal-body[data-v-cafa1a99] {\n  padding: 16px 24px 20px;\n}\n.modal-body p[data-v-cafa1a99] {\n  margin: 0;\n  color: #666;\n  line-height: 1.5;\n}\n.modal-actions[data-v-cafa1a99] {\n  padding: 0 24px 24px;\n  display: flex;\n  justify-content: flex-end;\n}\n.ok-btn[data-v-cafa1a99] {\n  padding: 8px 24px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  color: white;\n}\n.ok-btn.success[data-v-cafa1a99] {\n  background: #28a745;\n  border-color: #28a745;\n}\n.ok-btn.success[data-v-cafa1a99]:hover {\n  background: #218838;\n  border-color: #218838;\n}\n.ok-btn.error[data-v-cafa1a99] {\n  background: #dc3545;\n  border-color: #dc3545;\n}\n.ok-btn.error[data-v-cafa1a99]:hover {\n  background: #c82333;\n  border-color: #c82333;\n}\n.ok-btn.warning[data-v-cafa1a99] {\n  background: #ffc107;\n  border-color: #ffc107;\n  color: #212529;\n}\n.ok-btn.warning[data-v-cafa1a99]:hover {\n  background: #e0a800;\n  border-color: #e0a800;\n}\n.ok-btn.info[data-v-cafa1a99] {\n  background: #007bff;\n  border-color: #007bff;\n}\n.ok-btn.info[data-v-cafa1a99]:hover {\n  background: #0056b3;\n  border-color: #0056b3;\n}\n\n.workflow[data-v-1401d533] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n}\n.stats-section[data-v-1401d533] {\n  margin-bottom: 1rem;\n}\n.stats-section-container[data-v-1401d533] {\n  margin: 16px;\n  display: flex;\n  gap: 1rem;\n}\n.stat-card[data-v-1401d533] {\n  flex: 1;\n  background: #ffffff;\n  border-radius: 12px;\n  padding: 1.5rem;\n  box-shadow: 0 2px 4px rgba(0,0,0,0.1);\n  transition: all 0.3s ease;\n  cursor: pointer;\n  position: relative;\n  border: 2px solid transparent;\n  min-width: 150px;\n}\n.stat-card[data-v-1401d533]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 8px rgba(0,0,0,0.15);\n}\n.stat-card.active[data-v-1401d533] {\n  border-color: #6b46c1;\n  background: #f8f4ff;\n}\n.stat-number[data-v-1401d533] {\n  font-size: 2.5rem;\n  font-weight: bold;\n  color: #2d3748;\n  margin-bottom: 0.5rem;\n}\n.stat-label[data-v-1401d533] {\n  font-size: 1rem;\n  color: #4a5568;\n  margin-bottom: 0.5rem;\n}\n.content-section[data-v-1401d533] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  padding: 0 16px;\n}\n.loading-state[data-v-1401d533],\n.error-state[data-v-1401d533] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 300px;\n  text-align: center;\n}\n.loading-spinner[data-v-1401d533] {\n  width: 40px;\n  height: 40px;\n  border: 3px solid #f3f3f3;\n  border-top: 3px solid #007bff;\n  border-radius: 50%;\n  animation: spin-1401d533 1s linear infinite;\n  margin-bottom: 16px;\n}\n@keyframes spin-1401d533 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.error-icon[data-v-1401d533] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n  color: #dc3545;\n}\n.error-state h3[data-v-1401d533] {\n  margin: 0 0 8px 0;\n  color: #dc3545;\n}\n.error-state p[data-v-1401d533] {\n  margin: 0 0 16px 0;\n  color: #666;\n}\n.retry-btn[data-v-1401d533] {\n  padding: 8px 16px;\n  background: #007bff;\n  color: white;\n  border: none;\n  border-radius: 4px;\n  cursor: pointer;\n  font-size: 0.9rem;\n  font-weight: 500;\n  transition: background-color 0.2s ease;\n}\n.retry-btn[data-v-1401d533]:hover {\n  background: #0056b3;\n}\n\n.modal-overlay[data-v-5114e1db] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.dashboard-modal[data-v-5114e1db] {\n  background: white;\n  border-radius: 12px;\n  width: 95vw;\n  height: 90vh;\n  max-width: 1400px;\n  display: flex;\n  flex-direction: column;\n  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);\n}\n.modal-header[data-v-5114e1db] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: #f8f9fa;\n  border-radius: 12px 12px 0 0;\n}\n.header-content[data-v-5114e1db] {\n  display: flex;\n  flex-direction: row;\n  width: 100%;\n  justify-content: space-between;\n  align-items: center;\n  gap: 6px;\n}\n.modal-header h2[data-v-5114e1db] {\n  margin: 0;\n  font-size: 1.5rem;\n  font-weight: 600;\n  color: #333;\n}\n.dao-name[data-v-5114e1db] {\n  font-size: 1.2rem;\n  font-weight: 500;\n  color: #666;\n  margin-left: 8px;\n}\n.multisig-info[data-v-5114e1db] {\n  display: flex;\n  align-items: center;\n  gap: 6px;\n  font-size: 0.85rem;\n}\n.multisig-label[data-v-5114e1db] {\n  color: #666;\n  font-weight: 500;\n}\n.multisig-address[data-v-5114e1db] {\n  color: #e6007a;\n  font-family: 'Courier New', monospace;\n  font-weight: 600;\n  background: rgba(230, 0, 122, 0.1);\n  padding: 2px 8px;\n  border-radius: 4px;\n}\n.close-btn[data-v-5114e1db] {\n  background: none;\n  border: none;\n  font-size: 2rem;\n  cursor: pointer;\n  color: #6c757d;\n  padding: 0;\n  width: 40px;\n  height: 40px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  border-radius: 50%;\n  transition: all 0.2s ease;\n}\n.close-btn[data-v-5114e1db]:hover {\n  background: #e9ecef;\n  color: #495057;\n}\n.dashboard-content[data-v-5114e1db] {\n  display: flex;\n  flex: 1;\n  flex-direction: column;\n  overflow: hidden;\n}\n.auth-required[data-v-5114e1db] {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  text-align: center;\n  padding: 2rem;\n}\n.auth-icon[data-v-5114e1db] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n}\n.auth-required h3[data-v-5114e1db] {\n  margin: 0 0 8px 0;\n  color: #333;\n}\n.auth-required p[data-v-5114e1db] {\n  margin: 0 0 16px 0;\n  color: #666;\n}\n.connect-btn[data-v-5114e1db] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 8px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.connect-btn[data-v-5114e1db]:hover {\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n\n/* Tab Navigation */\n.tab-navigation[data-v-5114e1db] {\n  display: flex;\n  border-bottom: 1px solid #e9ecef;\n  background: white;\n  padding: 0 16px;\n}\n.tab-btn[data-v-5114e1db] {\n  flex: 1;\n  padding: 16px 20px;\n  border: none;\n  background: none;\n  cursor: pointer;\n  font-size: 0.9rem;\n  font-weight: 500;\n  color: #666;\n  border-bottom: 3px solid transparent;\n  transition: all 0.2s ease;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: 8px;\n}\n.tab-btn.active[data-v-5114e1db] {\n  color: #007bff;\n  border-bottom-color: #007bff;\n  background: #f8f9fa;\n}\n.tab-btn[data-v-5114e1db]:hover:not(.active) {\n  background: #f8f9fa;\n  color: #333;\n}\n.tab-icon[data-v-5114e1db] {\n  font-size: 1.1rem;\n}\n.tab-content[data-v-5114e1db] {\n  flex: 1;\n  display: flex;\n  overflow: hidden;\n}\n\n/* Scrollbar styling */\n[data-v-5114e1db]::-webkit-scrollbar {\n  width: 8px;\n}\n[data-v-5114e1db]::-webkit-scrollbar-track {\n  background: #f1f1f1;\n  border-radius: 4px;\n}\n[data-v-5114e1db]::-webkit-scrollbar-thumb {\n  background: #888;\n  border-radius: 4px;\n}\n[data-v-5114e1db]::-webkit-scrollbar-thumb:hover {\n  background: #555;\n}\n\n/* Firefox scrollbar */\n[data-v-5114e1db] {\n  scrollbar-width: thin;\n  scrollbar-color: #888 #f1f1f1;\n}\n\n.menu-container[data-v-594274fc] {\n  width: 100%;\n}\n.user-status[data-v-594274fc] {\n  padding: 16px 20px;\n  border-bottom: 1px solid #f0f0f0;\n  background: #f8f9fa;\n}\n.user-info[data-v-594274fc] {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n}\n.user-avatar[data-v-594274fc] {\n  width: 40px;\n  height: 40px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: white;\n  font-weight: bold;\n  font-size: 14px;\n}\n.user-details[data-v-594274fc] {\n  flex: 1;\n}\n.user-name[data-v-594274fc] {\n  font-weight: 600;\n  color: #333;\n  font-size: 14px;\n  margin-bottom: 2px;\n}\n.user-address[data-v-594274fc] {\n  font-family: monospace;\n  font-size: 12px;\n  color: #666;\n  margin-bottom: 2px;\n}\n.user-network[data-v-594274fc] {\n  font-size: 11px;\n  color: #999;\n  text-transform: uppercase;\n  letter-spacing: 0.5px;\n}\n.logout-btn[data-v-594274fc] {\n  background: #dc3545;\n  color: white;\n  border: none;\n  padding: 6px 12px;\n  border-radius: 6px;\n  font-size: 12px;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n}\n.logout-btn[data-v-594274fc]:hover:not(:disabled) {\n  background: #c82333;\n}\n.logout-btn[data-v-594274fc]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.login-prompt[data-v-594274fc] {\n  text-align: center;\n  padding: 20px 0;\n}\n.login-icon[data-v-594274fc] {\n  font-size: 32px;\n  margin-bottom: 8px;\n}\n.login-text[data-v-594274fc] {\n  color: #666;\n  font-size: 14px;\n  margin-bottom: 16px;\n}\n.connect-btn[data-v-594274fc] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n  border: none;\n  padding: 10px 20px;\n  border-radius: 8px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.connect-btn[data-v-594274fc]:hover {\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.menu-items[data-v-594274fc] {\n  display: flex;\n  flex-direction: column;\n  gap: 0.5rem;\n}\n.menu-item[data-v-594274fc] {\n  padding: 1rem;\n  border-radius: 8px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  background: #ffffff;\n  box-shadow: 0 1px 3px rgba(0,0,0,0.1);\n  display: flex;\n  align-items: center;\n  gap: 0.75rem;\n}\n.menu-item[data-v-594274fc]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 6px rgba(0,0,0,0.1);\n}\n.menu-item .icon[data-v-594274fc] {\n  font-size: 1.25rem;\n  width: 1.5rem;\n  text-align: center;\n}\n.menu-item span[data-v-594274fc]:not(.icon) {\n  font-size: 1rem;\n  color: #2d3748;\n  font-weight: 500;\n}\n\n/* Modal styles */\n.modal-overlay[data-v-594274fc] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.modal-content[data-v-594274fc] {\n  background: white;\n  border-radius: 12px;\n  padding: 24px;\n  max-width: 90vw;\n  max-height: 90vh;\n  overflow: auto;\n}\n\n/* Loading state */\n.loading-container[data-v-594274fc] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  padding: 40px 20px;\n  text-align: center;\n}\n.spinner-small[data-v-594274fc] {\n  width: 32px;\n  height: 32px;\n  border: 3px solid #f0f0f0;\n  border-top: 3px solid #e6007a;\n  border-radius: 50%;\n  animation: spin-594274fc 1s linear infinite;\n  margin-bottom: 12px;\n}\n@keyframes spin-594274fc {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.loading-text[data-v-594274fc] {\n  font-size: 0.9rem;\n  color: #666;\n  margin: 0;\n}\n\n/* Registration prompt */\n.registration-prompt[data-v-594274fc] {\n  padding: 32px 20px;\n  text-align: center;\n  background: linear-gradient(135deg, #fff5f7, #fef5f8);\n  border-radius: 12px;\n  margin: 16px;\n  border: 2px dashed #e6007a;\n}\n.prompt-icon[data-v-594274fc] {\n  font-size: 3rem;\n  margin-bottom: 16px;\n}\n.registration-prompt h4[data-v-594274fc] {\n  font-size: 1.3rem;\n  color: #333;\n  margin: 0 0 12px 0;\n  font-weight: 600;\n}\n.registration-prompt p[data-v-594274fc] {\n  font-size: 0.95rem;\n  color: #666;\n  margin: 0 0 20px 0;\n  line-height: 1.5;\n}\n.register-btn[data-v-594274fc] {\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n  border: none;\n  padding: 12px 32px;\n  border-radius: 8px;\n  font-size: 1rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  box-shadow: 0 2px 8px rgba(230, 0, 122, 0.2);\n}\n.register-btn[data-v-594274fc]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 16px rgba(230, 0, 122, 0.3);\n}\n.prompt-note[data-v-594274fc] {\n  font-size: 0.85rem !important;\n  color: #999 !important;\n  margin-top: 16px !important;\n  font-style: italic;\n}\n.settings-link-btn[data-v-594274fc] {\n  background: transparent;\n  color: #666;\n  border: 1px solid #dee2e6;\n  padding: 8px 16px;\n  border-radius: 6px;\n  font-size: 0.9rem;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  margin-top: 12px;\n}\n.settings-link-btn[data-v-594274fc]:hover {\n  background: #f8f9fa;\n  border-color: #adb5bd;\n}\n.settings-link-btn-small[data-v-594274fc] {\n  background: transparent;\n  color: #666;\n  border: 1px solid #dee2e6;\n  padding: 6px 12px;\n  border-radius: 6px;\n  font-size: 0.85rem;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  margin-top: 12px;\n}\n.settings-link-btn-small[data-v-594274fc]:hover {\n  background: #f8f9fa;\n  border-color: #adb5bd;\n}\n\n.voting-tool-container[data-v-c1fca634] {\n  position: fixed;\n  bottom: 20px;\n  right: 20px;\n  z-index: 999999;\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n  pointer-events: none; /* Allow clicks to pass through the container */\n}\n\n/* Floating Button */\n.floating-button[data-v-c1fca634] {\n  width: 60px;\n  height: 60px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  cursor: pointer;\n  box-shadow: 0 4px 20px rgba(230, 0, 122, 0.4);\n  transition: all 0.3s ease;\n  border: 3px solid white;\n  pointer-events: auto; /* Make the button clickable */\n}\n.floating-button[data-v-c1fca634]:hover {\n  transform: scale(1.1);\n  box-shadow: 0 6px 25px rgba(230, 0, 122, 0.6);\n}\n.floating-button.menu-open[data-v-c1fca634] {\n  background: linear-gradient(135deg, #ff1493, #e6007a);\n}\n.button-icon[data-v-c1fca634] {\n  font-size: 24px;\n  color: white;\n  font-weight: bold;\n}\n.hamburger-icon[data-v-c1fca634] {\n  display: flex;\n  flex-direction: column;\n  justify-content: center;\n  align-items: center;\n  gap: 3px;\n}\n.hamburger-icon span[data-v-c1fca634] {\n  width: 20px;\n  height: 2px;\n  background-color: white;\n  border-radius: 1px;\n  transition: all 0.3s ease;\n}\n\n/* Dropdown Menu */\n.dropdown-menu[data-v-c1fca634] {\n  position: absolute;\n  bottom: 0;\n  right: 70px;\n  width: 280px;\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);\n  border: 1px solid #e1e5e9;\n  overflow: hidden;\n  animation: smoothExpand-c1fca634 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);\n  transform-origin: bottom right;\n  pointer-events: auto; /* Make the menu clickable */\n}\n@keyframes smoothExpand-c1fca634 {\n0% {\n    opacity: 0;\n    transform: scale(0.1);\n}\n100% {\n    opacity: 1;\n    transform: scale(1);\n}\n}\n.menu-content[data-v-c1fca634] {\n  padding: 16px 0;\n}\n.menu-item[data-v-c1fca634] {\n  display: flex;\n  align-items: center;\n  padding: 16px 20px;\n  cursor: pointer;\n  transition: background-color 0.2s ease;\n  border-bottom: 1px solid #f0f0f0;\n}\n.menu-item[data-v-c1fca634]:last-child {\n  border-bottom: none;\n}\n.menu-item[data-v-c1fca634]:hover {\n  background-color: #f8f9fa;\n}\n.menu-item .icon[data-v-c1fca634] {\n  font-size: 20px;\n  margin-right: 12px;\n  width: 24px;\n  text-align: center;\n}\n.menu-item span[data-v-c1fca634]:last-child {\n  font-size: 14px;\n  color: #333;\n  font-weight: 500;\n}\n\n/* Modal styles */\n.modal-overlay[data-v-5f7a28c8] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.assign-modal[data-v-5f7a28c8] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  overflow-y: auto;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-5f7a28c8] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-5f7a28c8] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-5f7a28c8] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-5f7a28c8]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-5f7a28c8] {\n  padding: 24px;\n}\n.modal-content p[data-v-5f7a28c8] {\n  margin: 0 0 16px 0;\n  color: #495057;\n}\n.modal-actions[data-v-5f7a28c8] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-5f7a28c8] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n.btn[data-v-5f7a28c8]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-primary[data-v-5f7a28c8] {\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border: 1px solid #b3005f;\n}\n.btn-primary[data-v-5f7a28c8]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #8a0047);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-secondary[data-v-5f7a28c8] {\n  background: #6c757d;\n  color: white;\n  border: 1px solid #6c757d;\n}\n.btn-secondary[data-v-5f7a28c8]:hover:not(:disabled) {\n  background: #5a6268;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);\n}\n.error-message[data-v-5f7a28c8] {\n  background-color: #fff2f0;\n  border: 1px solid #ffccc7;\n  color: #ff4d4f;\n  padding: 12px;\n  border-radius: 8px;\n  margin-bottom: 16px;\n  font-size: 0.9rem;\n}\n\n/* Modal styles */\n.modal-overlay[data-v-281fbad4] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.unassign-modal[data-v-281fbad4] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  overflow-y: auto;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-281fbad4] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-281fbad4] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-281fbad4] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-281fbad4]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-281fbad4] {\n  padding: 24px;\n}\n.modal-content p[data-v-281fbad4] {\n  margin: 0 0 16px 0;\n  color: #495057;\n}\n.form-group[data-v-281fbad4] {\n  margin-bottom: 20px;\n}\n.form-group label[data-v-281fbad4] {\n  display: block;\n  margin-bottom: 8px;\n  color: #495057;\n  font-weight: 500;\n}\n.form-control[data-v-281fbad4] {\n  width: 100%;\n  padding: 10px;\n  border: 1px solid #ced4da;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  line-height: 1.5;\n  transition: border-color 0.2s ease;\n  resize: vertical;\n}\n.form-control[data-v-281fbad4]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 2px rgba(230, 0, 122, 0.1);\n}\n.current-values[data-v-281fbad4] {\n  background: #f8f9fa;\n  padding: 16px;\n  border-radius: 8px;\n  margin-bottom: 20px;\n}\n.current-values ul[data-v-281fbad4] {\n  margin: 8px 0 0 0;\n  padding-left: 20px;\n  color: #6c757d;\n}\n.error-message[data-v-281fbad4] {\n  background-color: #fff2f0;\n  border: 1px solid #ffccc7;\n  color: #ff4d4f;\n  padding: 12px;\n  border-radius: 8px;\n  margin-bottom: 16px;\n  font-size: 0.9rem;\n}\n.modal-actions[data-v-281fbad4] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-281fbad4] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n.btn[data-v-281fbad4]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-primary[data-v-281fbad4] {\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border: 1px solid #b3005f;\n}\n.btn-primary[data-v-281fbad4]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #8a0047);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-secondary[data-v-281fbad4] {\n  background: #6c757d;\n  color: white;\n  border: 1px solid #6c757d;\n}\n.btn-secondary[data-v-281fbad4]:hover:not(:disabled) {\n  background: #5a6268;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);\n}\n\n/* Modal styles */\n.modal-overlay[data-v-eeb2c9ac] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 1000000;\n  backdrop-filter: blur(2px);\n}\n.vote-modal[data-v-eeb2c9ac] {\n  background: white;\n  border-radius: 12px;\n  width: 90%;\n  max-width: 500px;\n  max-height: 80vh;\n  overflow-y: auto;\n  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);\n}\n.modal-header[data-v-eeb2c9ac] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 20px 24px;\n  border-bottom: 1px solid #e9ecef;\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border-radius: 12px 12px 0 0;\n}\n.modal-header h3[data-v-eeb2c9ac] {\n  margin: 0;\n  font-size: 1.2rem;\n  font-weight: 600;\n}\n.close-btn[data-v-eeb2c9ac] {\n  background: rgba(255, 255, 255, 0.2);\n  border: none;\n  color: white;\n  font-size: 1.5rem;\n  width: 32px;\n  height: 32px;\n  border-radius: 50%;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: background-color 0.2s ease;\n}\n.close-btn[data-v-eeb2c9ac]:hover {\n  background: rgba(255, 255, 255, 0.3);\n}\n.modal-content[data-v-eeb2c9ac] {\n  padding: 24px;\n}\n.modal-content p[data-v-eeb2c9ac] {\n  margin: 0 0 16px 0;\n  color: #495057;\n}\n.vote-options[data-v-eeb2c9ac] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n  margin: 16px 0;\n}\n.vote-option[data-v-eeb2c9ac] {\n  display: flex;\n  flex-direction: row;\n  align-items: center;\n  justify-content: center;\n  gap: 12px;\n  padding: 16px 20px;\n  border: 2px solid #e9ecef;\n  border-radius: 8px;\n  background: white;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  font-size: 1rem;\n  text-align: center;\n}\n.vote-option[data-v-eeb2c9ac]:hover {\n  transform: translateY(-2px);\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);\n}\n.vote-option.selected[data-v-eeb2c9ac] {\n  border-color: #e6007a;\n  background: linear-gradient(135deg, #fff5f8, #ffe8f0);\n}\n.vote-option.aye[data-v-eeb2c9ac]:hover,\n.vote-option.aye.selected[data-v-eeb2c9ac] {\n  border-color: #28a745;\n  background: linear-gradient(135deg, #f8fff9, #e8f5e8);\n}\n.vote-option.nay[data-v-eeb2c9ac]:hover,\n.vote-option.nay.selected[data-v-eeb2c9ac] {\n  border-color: #dc3545;\n  background: linear-gradient(135deg, #fff8f8, #ffe8e8);\n}\n.vote-option.abstain[data-v-eeb2c9ac]:hover,\n.vote-option.abstain.selected[data-v-eeb2c9ac] {\n  border-color: #6f42c1;\n  background: linear-gradient(135deg, #faf8ff, #f0e8ff);\n}\n.vote-icon[data-v-eeb2c9ac] {\n  font-size: 1.5rem;\n}\n.vote-text[data-v-eeb2c9ac] {\n  font-weight: 600;\n}\n.reason-section[data-v-eeb2c9ac] {\n  margin: 16px 0;\n}\n.reason-section label[data-v-eeb2c9ac] {\n  display: block;\n  margin-bottom: 8px;\n  font-weight: 600;\n  color: #495057;\n}\n.reason-section textarea[data-v-eeb2c9ac] {\n  width: 100%;\n  padding: 12px;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  font-family: inherit;\n  font-size: 0.9rem;\n  resize: vertical;\n  transition: border-color 0.2s ease;\n}\n.reason-section textarea[data-v-eeb2c9ac]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.modal-actions[data-v-eeb2c9ac] {\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n  margin-top: 24px;\n  padding-top: 16px;\n  border-top: 1px solid #e9ecef;\n}\n.btn[data-v-eeb2c9ac] {\n  padding: 10px 20px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n.btn[data-v-eeb2c9ac]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.btn-primary[data-v-eeb2c9ac] {\n  background: linear-gradient(135deg, #e6007a, #b3005f);\n  color: white;\n  border: 1px solid #b3005f;\n}\n.btn-primary[data-v-eeb2c9ac]:hover:not(:disabled) {\n  background: linear-gradient(135deg, #b3005f, #8a0047);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.btn-secondary[data-v-eeb2c9ac] {\n  background: #6c757d;\n  color: white;\n  border: 1px solid #6c757d;\n}\n.btn-secondary[data-v-eeb2c9ac]:hover:not(:disabled) {\n  background: #5a6268;\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);\n}\n@media (max-width: 768px) {\n.vote-options[data-v-eeb2c9ac] {\n    flex-direction: column;\n}\n}\n\n.modal-overlay[data-v-e479232c] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.modal-content[data-v-e479232c] {\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);\n  border: 1px solid #e1e5e9;\n  width: 400px;\n  max-width: 90vw;\n}\n.modal-header[data-v-e479232c] {\n  padding: 20px 24px 0;\n}\n.modal-header h3[data-v-e479232c] {\n  margin: 0;\n  font-size: 18px;\n  font-weight: 600;\n  color: #333;\n}\n.modal-body[data-v-e479232c] {\n  padding: 16px 24px 20px;\n}\n.modal-body p[data-v-e479232c] {\n  margin: 0;\n  color: #666;\n  line-height: 1.5;\n}\n.modal-actions[data-v-e479232c] {\n  padding: 0 24px 24px;\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n}\n.cancel-btn[data-v-e479232c], .confirm-btn[data-v-e479232c] {\n  padding: 8px 16px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 14px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.cancel-btn[data-v-e479232c] {\n  background: white;\n  color: #666;\n}\n.cancel-btn[data-v-e479232c]:hover {\n  background: #f8f9fa;\n}\n.confirm-btn[data-v-e479232c] {\n  background: #007bff;\n  color: white;\n  border-color: #007bff;\n}\n.confirm-btn[data-v-e479232c]:hover {\n  background: #0056b3;\n  border-color: #0056b3;\n}\n.confirm-btn.danger[data-v-e479232c] {\n  background: #dc3545;\n  border-color: #dc3545;\n}\n.confirm-btn.danger[data-v-e479232c]:hover {\n  background: #c82333;\n  border-color: #c82333;\n}\n.confirm-btn.warning[data-v-e479232c] {\n  background: #ffc107;\n  border-color: #ffc107;\n  color: #212529;\n}\n.confirm-btn.warning[data-v-e479232c]:hover {\n  background: #e0a800;\n  border-color: #e0a800;\n}\n.confirm-btn.primary[data-v-e479232c] {\n  background: #007bff;\n  border-color: #007bff;\n}\n.confirm-btn.primary[data-v-e479232c]:hover {\n  background: #0056b3;\n  border-color: #0056b3;\n}\n\n.team-actions-panel[data-v-bf6bd4a9] {\n  background: white;\n  border-radius: 12px;\n  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);\n  border: 1px solid #e1e5e9;\n  width: 500px;\n  max-height: 700px;\n  overflow: hidden;\n  display: flex;\n  flex-direction: column;\n}\n.panel-header[data-v-bf6bd4a9] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 16px 20px;\n  border-bottom: 1px solid #f0f0f0;\n  background: #f8f9fa;\n}\n.panel-header h3[data-v-bf6bd4a9] {\n  margin: 0;\n  font-size: 16px;\n  font-weight: 600;\n  color: #333;\n}\n.close-btn[data-v-bf6bd4a9] {\n  background: none;\n  border: none;\n  font-size: 18px;\n  cursor: pointer;\n  color: #666;\n  padding: 4px;\n  border-radius: 4px;\n}\n.close-btn[data-v-bf6bd4a9]:hover {\n  background: #e9ecef;\n}\n.loading-state[data-v-bf6bd4a9] {\n  padding: 40px 20px;\n  text-align: center;\n  color: #666;\n}\n.spinner[data-v-bf6bd4a9] {\n  width: 32px;\n  height: 32px;\n  border: 3px solid #f0f0f0;\n  border-top: 3px solid #e6007a;\n  border-radius: 50%;\n  animation: spin-bf6bd4a9 1s linear infinite;\n  margin: 0 auto 16px;\n}\n@keyframes spin-bf6bd4a9 {\n0% { transform: rotate(0deg);\n}\n100% { transform: rotate(360deg);\n}\n}\n.panel-content[data-v-bf6bd4a9] {\n  flex: 1;\n  overflow-y: auto;\n  padding: 20px;\n}\n.agreement-section[data-v-bf6bd4a9],\n.team-status-section[data-v-bf6bd4a9],\n.user-actions-section[data-v-bf6bd4a9],\n.vote-section[data-v-bf6bd4a9],\n.discussion-section[data-v-bf6bd4a9] {\n  margin-bottom: 24px;\n}\n.agreement-section h4[data-v-bf6bd4a9],\n.team-status-section h4[data-v-bf6bd4a9],\n.user-actions-section h4[data-v-bf6bd4a9],\n.vote-section h4[data-v-bf6bd4a9],\n.discussion-section h4[data-v-bf6bd4a9] {\n  margin: 0 0 12px 0;\n  font-size: 14px;\n  font-weight: 600;\n  color: #333;\n}\n.agreement-bar[data-v-bf6bd4a9] {\n  margin-bottom: 8px;\n}\n.progress-bar[data-v-bf6bd4a9] {\n  width: 100%;\n  height: 8px;\n  background: #f0f0f0;\n  border-radius: 4px;\n  overflow: hidden;\n  margin-bottom: 8px;\n}\n.progress-fill[data-v-bf6bd4a9] {\n  height: 100%;\n  background: linear-gradient(135deg, #28a745, #20c997);\n  transition: width 0.3s ease;\n}\n.progress-fill.vetoed[data-v-bf6bd4a9] {\n  background: linear-gradient(135deg, #dc3545, #c82333);\n}\n.agreement-text[data-v-bf6bd4a9] {\n  font-size: 12px;\n  color: #666;\n  text-align: center;\n}\n.veto-text[data-v-bf6bd4a9] {\n  color: #dc3545;\n  font-weight: 600;\n}\n.veto-reason[data-v-bf6bd4a9] {\n  margin-top: 8px;\n  padding: 8px;\n  background: #f8d7da;\n  border: 1px solid #f5c6cb;\n  border-radius: 4px;\n  font-size: 12px;\n  color: #721c24;\n}\n.team-members[data-v-bf6bd4a9] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n.member-status[data-v-bf6bd4a9] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  padding: 8px;\n  border-radius: 6px;\n  border: 1px solid #e9ecef;\n}\n.member-status.agreed[data-v-bf6bd4a9] {\n  background: #d4edda;\n  border-color: #c3e6cb;\n}\n.member-status.recused[data-v-bf6bd4a9] {\n  background: #f8f9fa;\n  border-color: #dee2e6;\n}\n.member-status.discuss[data-v-bf6bd4a9] {\n  background: #fff3cd;\n  border-color: #ffeaa7;\n}\n.member-info[data-v-bf6bd4a9] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n.member-avatar[data-v-bf6bd4a9] {\n  width: 24px;\n  height: 24px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: white;\n  font-weight: bold;\n  font-size: 10px;\n}\n.member-name[data-v-bf6bd4a9] {\n  font-size: 12px;\n  font-weight: 500;\n  color: #333;\n}\n.member-address[data-v-bf6bd4a9] {\n  font-size: 10px;\n  color: #666;\n  font-family: monospace;\n}\n.action-badge[data-v-bf6bd4a9] {\n  font-size: 10px;\n  padding: 2px 6px;\n  border-radius: 3px;\n  font-weight: 500;\n}\n.action-agreed[data-v-bf6bd4a9] {\n  background: #28a745;\n  color: white;\n}\n.action-recused[data-v-bf6bd4a9] {\n  background: #6c757d;\n  color: white;\n}\n.action-discuss[data-v-bf6bd4a9] {\n  background: #ffc107;\n  color: #212529;\n}\n.action-pending[data-v-bf6bd4a9] {\n  background: #e9ecef;\n  color: #666;\n}\n.action-buttons[data-v-bf6bd4a9] {\n  display: grid;\n  grid-template-columns: 1fr 1fr;\n  gap: 8px;\n}\n.action-btn[data-v-bf6bd4a9] {\n  padding: 8px 12px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  background: white;\n  cursor: pointer;\n  font-size: 12px;\n  font-weight: 500;\n  transition: all 0.2s ease;\n}\n.action-btn[data-v-bf6bd4a9]:hover:not(:disabled) {\n  background: #f8f9fa;\n}\n.action-btn.active[data-v-bf6bd4a9] {\n  border-color: #e6007a;\n  background: #e6007a;\n  color: white;\n}\n.action-btn[data-v-bf6bd4a9]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.agree-btn.active[data-v-bf6bd4a9] {\n  background: #28a745;\n  border-color: #28a745;\n}\n.discuss-btn.active[data-v-bf6bd4a9] {\n  background: #ffc107;\n  border-color: #ffc107;\n  color: #212529;\n}\n.veto-btn.active[data-v-bf6bd4a9] {\n  background: #dc3545;\n  border-color: #dc3545;\n}\n.recuse-btn.active[data-v-bf6bd4a9] {\n  background: #6c757d;\n  border-color: #6c757d;\n}\n.vote-buttons[data-v-bf6bd4a9] {\n  display: flex;\n  gap: 8px;\n  margin-bottom: 12px;\n}\n.vote-btn[data-v-bf6bd4a9] {\n  flex: 1;\n  padding: 8px 12px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  background: white;\n  cursor: pointer;\n  font-size: 12px;\n  font-weight: 500;\n  transition: all 0.2s ease;\n}\n.vote-btn[data-v-bf6bd4a9]:hover:not(:disabled) {\n  background: #f8f9fa;\n}\n.vote-btn.active[data-v-bf6bd4a9] {\n  color: white;\n}\n.aye-btn.active[data-v-bf6bd4a9] {\n  background: #28a745;\n  border-color: #28a745;\n}\n.nay-btn.active[data-v-bf6bd4a9] {\n  background: #dc3545;\n  border-color: #dc3545;\n}\n.abstain-btn.active[data-v-bf6bd4a9] {\n  background: #6c757d;\n  border-color: #6c757d;\n}\n.reason-input[data-v-bf6bd4a9] {\n  width: 100%;\n  min-height: 60px;\n  padding: 8px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 12px;\n  resize: vertical;\n}\n.comments-list[data-v-bf6bd4a9] {\n  max-height: 280px;\n  overflow-y: auto;\n  margin-bottom: 16px;\n  border: 1px solid #e9ecef;\n  border-radius: 8px;\n  background: #fafbfc;\n}\n.comment[data-v-bf6bd4a9] {\n  padding: 12px;\n  border-bottom: 1px solid #f0f0f0;\n}\n.comment[data-v-bf6bd4a9]:last-child {\n  border-bottom: none;\n}\n.comment-header[data-v-bf6bd4a9] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 8px;\n}\n.comment-author[data-v-bf6bd4a9] {\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n.author-avatar[data-v-bf6bd4a9] {\n  width: 20px;\n  height: 20px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  border-radius: 50%;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  color: white;\n  font-weight: bold;\n  font-size: 8px;\n}\n.author-name[data-v-bf6bd4a9] {\n  font-size: 11px;\n  font-weight: 500;\n  color: #333;\n}\n.comment-time[data-v-bf6bd4a9] {\n  font-size: 10px;\n  color: #666;\n}\n.delete-comment-btn[data-v-bf6bd4a9] {\n  background: none;\n  border: none;\n  font-size: 12px;\n  cursor: pointer;\n  color: #666;\n  padding: 2px;\n  border-radius: 3px;\n}\n.delete-comment-btn[data-v-bf6bd4a9]:hover {\n  background: #f8f9fa;\n}\n.comment-content[data-v-bf6bd4a9] {\n  font-size: 12px;\n  color: #333;\n  line-height: 1.4;\n}\n.no-comments[data-v-bf6bd4a9] {\n  padding: 40px 20px;\n  text-align: center;\n}\n.empty-state[data-v-bf6bd4a9] {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  gap: 8px;\n}\n.empty-icon[data-v-bf6bd4a9] {\n  font-size: 32px;\n  opacity: 0.5;\n}\n.empty-text[data-v-bf6bd4a9] {\n  font-size: 14px;\n  font-weight: 500;\n  color: #666;\n}\n.empty-subtext[data-v-bf6bd4a9] {\n  font-size: 12px;\n  color: #999;\n}\n.add-comment[data-v-bf6bd4a9] {\n  border-top: 1px solid #e9ecef;\n  padding-top: 16px;\n}\n.comment-input-wrapper[data-v-bf6bd4a9] {\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n.comment-input[data-v-bf6bd4a9] {\n  min-height: 80px;\n  padding: 12px;\n  border: 2px solid #dee2e6;\n  border-radius: 8px;\n  font-size: 13px;\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n  resize: vertical;\n  transition: border-color 0.2s ease;\n}\n.comment-input[data-v-bf6bd4a9]:focus {\n  outline: none;\n  border-color: #e6007a;\n  box-shadow: 0 0 0 3px rgba(230, 0, 122, 0.1);\n}\n.comment-actions[data-v-bf6bd4a9] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}\n.comment-hint[data-v-bf6bd4a9] {\n  flex: 1;\n}\n.hint-text[data-v-bf6bd4a9] {\n  font-size: 11px;\n  color: #666;\n}\n.add-comment-btn[data-v-bf6bd4a9] {\n  padding: 8px 16px;\n  background: linear-gradient(135deg, #e6007a, #ff1493);\n  color: white;\n  border: none;\n  border-radius: 8px;\n  font-size: 13px;\n  font-weight: 500;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  display: flex;\n  align-items: center;\n  gap: 4px;\n}\n.add-comment-btn[data-v-bf6bd4a9]:hover:not(:disabled) {\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.3);\n}\n.add-comment-btn[data-v-bf6bd4a9]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n/* Modal Styles */\n.modal-overlay[data-v-bf6bd4a9] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.modal-content[data-v-bf6bd4a9] {\n  background: white;\n  border-radius: 12px;\n  padding: 24px;\n  max-width: 400px;\n  width: 90%;\n}\n.modal-content h3[data-v-bf6bd4a9] {\n  margin: 0 0 16px 0;\n  font-size: 18px;\n  color: #333;\n}\n.veto-reason-input[data-v-bf6bd4a9] {\n  width: 100%;\n  min-height: 80px;\n  padding: 12px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 14px;\n  margin: 16px 0;\n  resize: vertical;\n}\n.modal-actions[data-v-bf6bd4a9] {\n  display: flex;\n  gap: 12px;\n  justify-content: flex-end;\n}\n.cancel-btn[data-v-bf6bd4a9],\n.veto-confirm-btn[data-v-bf6bd4a9] {\n  padding: 8px 16px;\n  border: 1px solid #dee2e6;\n  border-radius: 6px;\n  font-size: 14px;\n  cursor: pointer;\n  transition: all 0.2s ease;\n}\n.cancel-btn[data-v-bf6bd4a9] {\n  background: white;\n  color: #333;\n}\n.cancel-btn[data-v-bf6bd4a9]:hover {\n  background: #f8f9fa;\n}\n.veto-confirm-btn[data-v-bf6bd4a9] {\n  background: #dc3545;\n  color: white;\n  border-color: #dc3545;\n}\n.veto-confirm-btn[data-v-bf6bd4a9]:hover:not(:disabled) {\n  background: #c82333;\n}\n.veto-confirm-btn[data-v-bf6bd4a9]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n/* Veto Reason Section */\n.veto-reason-section[data-v-bf6bd4a9] {\n  background: #fff5f5;\n  border: 1px solid #fed7d7;\n  border-radius: 8px;\n  padding: 16px;\n  margin-bottom: 20px;\n}\n.veto-reason-section h4[data-v-bf6bd4a9] {\n  margin: 0 0 12px 0;\n  color: #e53e3e;\n  font-size: 1rem;\n  font-weight: 600;\n}\n.veto-reason-content[data-v-bf6bd4a9] {\n  display: flex;\n  flex-direction: column;\n  gap: 8px;\n}\n.veto-by[data-v-bf6bd4a9] {\n  font-size: 0.9rem;\n  color: #e53e3e;\n}\n.veto-reason-text[data-v-bf6bd4a9] {\n  font-size: 0.9rem;\n  color: #2d3748;\n  background: white;\n  padding: 12px;\n  border-radius: 6px;\n  white-space: pre-wrap;\n}\n\n.voting-tool-controls[data-v-175e6cdb] {\n  background: linear-gradient(135deg, #ffffff, #f8f9fa);\n  border: 2px solid #e6007a;\n  border-radius: 12px;\n  padding: 16px;\n  margin-bottom: 16px;\n  box-shadow: 0 4px 12px rgba(230, 0, 122, 0.15);\n  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n}\n.controls-header[data-v-175e6cdb] {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: 12px;\n}\n.controls-title[data-v-175e6cdb] {\n  font-size: 1.1rem;\n  font-weight: 600;\n  color: #e6007a;\n  margin: 0;\n}\n.status-badge-wrapper[data-v-175e6cdb] {\n  display: flex;\n  align-items: center;\n}\n.status-badge[data-v-175e6cdb] {\n  display: inline-flex;\n  align-items: center;\n  gap: 4px;\n  padding: 6px 12px;\n  border-radius: 12px;\n  font-size: 0.8rem;\n  font-weight: 600;\n  border: 1px solid rgba(255, 255, 255, 0.6);\n  transition: all 0.2s ease;\n  user-select: none;\n  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);\n  backdrop-filter: blur(3px);\n  white-space: nowrap;\n  min-width: 100px;\n  justify-content: center;\n}\n.status-clickable[data-v-175e6cdb] {\n  cursor: pointer;\n}\n.status-clickable[data-v-175e6cdb]:hover {\n  transform: translateY(-1px) scale(1.02);\n  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);\n  border-color: rgba(255, 255, 255, 1);\n}\n.status-icon[data-v-175e6cdb] {\n  font-size: 0.9rem;\n}\n.edit-icon[data-v-175e6cdb] {\n  font-size: 0.8rem;\n  opacity: 0.7;\n}\n\n/* Status color classes */\n.status-not-started[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #6c757d, #5a6268); \n  color: white;\n}\n.status-considering[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #ffc107, #e0a800); \n  color: #212529;\n}\n.status-ready-for-approval[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #17a2b8, #138496); \n  color: white;\n}\n.status-waiting-for-agreement[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #fd7e14, #e8680b); \n  color: white;\n}\n.status-ready-to-vote[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #28a745, #1e7e34); \n  color: white;\n}\n.status-reconsidering[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #dc3545, #c82333); \n  color: white;\n}\n.status-voted-----aye----[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #198754, #155724); \n  color: white;\n}\n.status-voted-----nay----[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #dc3545, #c82333); \n  color: white;\n}\n.status-voted------abstain------[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #6f42c1, #5a32a3); \n  color: white;\n}\n.status-not-voted[data-v-175e6cdb] { \n  background: linear-gradient(135deg, #e9ecef, #dee2e6); \n  color: #495057;\n}\n.controls-actions[data-v-175e6cdb] {\n  display: flex;\n  gap: 12px;\n  flex-wrap: wrap;\n}\n.control-btn[data-v-175e6cdb] {\n  display: inline-flex;\n  align-items: center;\n  gap: 6px;\n  padding: 8px 16px;\n  border: none;\n  border-radius: 8px;\n  font-size: 0.9rem;\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n  flex: 1;\n  justify-content: center;\n  min-width: 140px;\n}\n.control-btn[data-v-175e6cdb]:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n.assign-btn[data-v-175e6cdb] {\n  background: var(--assign-gradient);\n  color: white;\n  border: 1px solid var(--assign-border);\n}\n.assign-btn[data-v-175e6cdb]:hover:not(:disabled) {\n  background: var(--assign-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px var(--assign-shadow);\n}\n.vote-btn[data-v-175e6cdb] {\n  background: var(--primary-gradient);\n  color: white;\n  border: 1px solid var(--primary-border);\n}\n.vote-btn[data-v-175e6cdb]:hover:not(:disabled) {\n  background: var(--primary-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px var(--primary-shadow);\n}\n.btn-icon[data-v-175e6cdb] {\n  font-size: 1rem;\n}\n.btn-text[data-v-175e6cdb] {\n  font-size: 0.9rem;\n}\n\n/* Team Panel Styles */\n.team-btn[data-v-175e6cdb] {\n  background: var(--team-gradient);\n  color: white;\n  border: 1px solid var(--team-border);\n}\n.team-btn[data-v-175e6cdb]:hover:not(:disabled) {\n  background: var(--team-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 4px 12px var(--team-shadow);\n}\n.team-panel-overlay[data-v-175e6cdb] {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: 10000;\n}\n.team-panel-wrapper[data-v-175e6cdb] {\n  max-width: 90vw;\n  max-height: 90vh;\n  overflow: auto;\n}\n\n/* Removed modal styles - now in separate modal components */\n@media (max-width: 768px) {\n.controls-actions[data-v-175e6cdb] {\n    flex-direction: column;\n}\n.control-btn[data-v-175e6cdb] {\n    min-width: auto;\n}\n.vote-options[data-v-175e6cdb] {\n    flex-direction: column;\n}\n.status-grid[data-v-175e6cdb] {\n    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));\n}\n}\n/* OpenGov VotingTool Design System */\n/* Based on Polkassembly design patterns but platform-agnostic */\n\n:root {\n  /* Color Palette - Polkassembly-inspired */\n  --primary: #e6007a;          /* Polkadot pink */\n  --primary-dark: #b3005f;\n  --primary-light: #ff1a8c;\n  --primary-gradient: linear-gradient(135deg, var(--primary), var(--primary-dark));\n  --primary-gradient-hover: linear-gradient(135deg, var(--primary-dark), #8a0047);\n  --primary-shadow: rgba(230, 0, 122, 0.3);\n  \n  --secondary: #000000;        /* Kusama black */\n  --secondary-light: #333333;\n  --secondary-gradient: linear-gradient(135deg, var(--gray-500), var(--gray-600));\n  --secondary-gradient-hover: linear-gradient(135deg, var(--gray-600), var(--gray-700));\n  --secondary-shadow: rgba(108, 117, 125, 0.3);\n  \n  --accent: #007bff;           /* Blue accent */\n  --accent-light: #3399ff;\n  --accent-dark: #0056b3;\n  \n  /* Team Action Colors */\n  --team: #17a2b8;\n  --team-dark: #138496;\n  --team-gradient: linear-gradient(135deg, var(--team), var(--team-dark));\n  --team-gradient-hover: linear-gradient(135deg, var(--team-dark), #117a8b);\n  --team-shadow: rgba(23, 162, 184, 0.3);\n  \n  /* Assign Button Colors */\n  --assign: #28a745;\n  --assign-dark: #1e7e34;\n  --assign-gradient: linear-gradient(135deg, var(--assign), var(--assign-dark));\n  --assign-gradient-hover: linear-gradient(135deg, var(--assign-dark), #155724);\n  --assign-shadow: rgba(40, 167, 69, 0.3);\n  \n  /* Status Colors */\n  --success: var(--assign);\n  --warning: #ffc107;\n  --danger: #dc3545;\n  --info: var(--team);\n  \n  /* Status-specific Colors */\n  --status-not-started: var(--gray-500);\n  --status-considering: var(--warning);\n  --status-ready-for-approval: var(--info);\n  --status-waiting-for-agreement: #fd7e14;\n  --status-ready-to-vote: var(--success);\n  --status-reconsidering: var(--danger);\n  --status-voted-aye: #198754;\n  --status-voted-nay: var(--danger);\n  --status-voted-abstain: #6f42c1;\n  --status-not-voted: var(--gray-100);\n  \n  /* Neutral Colors */\n  --white: #ffffff;\n  --gray-50: #f8f9fa;\n  --gray-100: #e9ecef;\n  --gray-200: #dee2e6;\n  --gray-300: #ced4da;\n  --gray-400: #adb5bd;\n  --gray-500: #6c757d;\n  --gray-600: #495057;\n  --gray-700: #343a40;\n  --gray-800: #212529;\n  --gray-900: #000000;\n  \n  /* Typography */\n  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n  --font-size-xs: 0.75rem;\n  --font-size-sm: 0.875rem;\n  --font-size-base: 1rem;\n  --font-size-lg: 1.125rem;\n  --font-size-xl: 1.25rem;\n  --font-size-2xl: 1.5rem;\n  --font-size-3xl: 1.875rem;\n  \n  /* Spacing */\n  --spacing-1: 0.25rem;\n  --spacing-2: 0.5rem;\n  --spacing-3: 0.75rem;\n  --spacing-4: 1rem;\n  --spacing-5: 1.25rem;\n  --spacing-6: 1.5rem;\n  --spacing-8: 2rem;\n  --spacing-10: 2.5rem;\n  --spacing-12: 3rem;\n  --spacing-16: 4rem;\n  \n  /* Border Radius */\n  --radius-sm: 0.25rem;\n  --radius-md: 0.375rem;\n  --radius-lg: 0.5rem;\n  --radius-xl: 0.75rem;\n  --radius-2xl: 1rem;\n  --radius-3xl: 1.5rem;\n  \n  /* Shadows */\n  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);\n  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);\n  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);\n  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);\n  \n  /* Z-index */\n  --z-dropdown: 1000;\n  --z-sticky: 1020;\n  --z-fixed: 1030;\n  --z-modal-backdrop: 1040;\n  --z-modal: 1050;\n  --z-popover: 1060;\n  --z-tooltip: 1070;\n  --z-overlay: 999999;\n}\n\n/* Base Styles */\n* {\n  box-sizing: border-box;\n}\n\nbody {\n  font-family: var(--font-family);\n  line-height: 1.5;\n  color: var(--gray-800);\n}\n\n/* Typography */\n.text-xs { font-size: var(--font-size-xs); }\n.text-sm { font-size: var(--font-size-sm); }\n.text-base { font-size: var(--font-size-base); }\n.text-lg { font-size: var(--font-size-lg); }\n.text-xl { font-size: var(--font-size-xl); }\n.text-2xl { font-size: var(--font-size-2xl); }\n.text-3xl { font-size: var(--font-size-3xl); }\n\n.font-normal { font-weight: 400; }\n.font-medium { font-weight: 500; }\n.font-semibold { font-weight: 600; }\n.font-bold { font-weight: 700; }\n\n/* Buttons */\n.btn {\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  padding: var(--spacing-3) var(--spacing-4);\n  border: none;\n  border-radius: var(--radius-lg);\n  font-size: var(--font-size-sm);\n  font-weight: 600;\n  cursor: pointer;\n  transition: all 0.2s ease;\n  text-decoration: none;\n  white-space: nowrap;\n}\n\n.btn:disabled {\n  opacity: 0.6;\n  cursor: not-allowed;\n}\n\n.btn-primary {\n  background: var(--primary-gradient);\n  color: var(--white);\n  border: 1px solid var(--primary-dark);\n}\n\n.btn-primary:hover:not(:disabled) {\n  background: var(--primary-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 0 10px var(--primary-shadow);\n}\n\n.btn-secondary {\n  background: var(--secondary-gradient);\n  color: var(--white);\n  border: 1px solid var(--gray-600);\n}\n\n.btn-secondary:hover:not(:disabled) {\n  background: var(--secondary-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 0 10px var(--secondary-shadow);\n}\n\n.btn-team {\n  background: var(--team-gradient);\n  color: var(--white);\n  border: 1px solid var(--team-dark);\n}\n\n.btn-team:hover:not(:disabled) {\n  background: var(--team-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 0 10px var(--team-shadow);\n}\n\n.btn-assign {\n  background: var(--assign-gradient);\n  color: var(--white);\n  border: 1px solid var(--assign-dark);\n}\n\n.btn-assign:hover:not(:disabled) {\n  background: var(--assign-gradient-hover);\n  transform: translateY(-1px);\n  box-shadow: 0 0 10px var(--assign-shadow);\n}\n\n.btn-outline {\n  background: transparent;\n  color: var(--primary);\n  border: 2px solid var(--primary);\n}\n\n.btn-outline:hover:not(:disabled) {\n  background: var(--primary-gradient);\n  color: var(--white);\n}\n\n/* Status-specific buttons */\n.btn-status {\n  font-weight: 600;\n  padding: var(--spacing-2) var(--spacing-4);\n  border-radius: var(--radius-lg);\n  transition: all 0.2s ease;\n}\n\n.btn-status-not-started { background: var(--status-not-started); color: var(--white); }\n.btn-status-considering { background: var(--status-considering); color: var(--gray-900); }\n.btn-status-ready-for-approval { background: var(--status-ready-for-approval); color: var(--white); }\n.btn-status-waiting-for-agreement { background: var(--status-waiting-for-agreement); color: var(--white); }\n.btn-status-ready-to-vote { background: var(--status-ready-to-vote); color: var(--white); }\n.btn-status-reconsidering { background: var(--status-reconsidering); color: var(--white); }\n.btn-status-voted-aye { background: var(--status-voted-aye); color: var(--white); }\n.btn-status-voted-nay { background: var(--status-voted-nay); color: var(--white); }\n.btn-status-voted-abstain { background: var(--status-voted-abstain); color: var(--white); }\n.btn-status-not-voted { background: var(--status-not-voted); color: var(--gray-900); }\n\n/* Cards */\n.card {\n  background: var(--white);\n  border-radius: var(--radius-xl);\n  box-shadow: var(--shadow-lg);\n  overflow: hidden;\n}\n\n.card-header {\n  padding: var(--spacing-6);\n  border-bottom: 1px solid var(--gray-200);\n  background: var(--gray-50);\n}\n\n.card-body {\n  padding: var(--spacing-6);\n}\n\n.card-footer {\n  padding: var(--spacing-6);\n  border-top: 1px solid var(--gray-200);\n  background: var(--gray-50);\n}\n\n/* Badges */\n.badge {\n  display: inline-flex;\n  align-items: center;\n  padding: var(--spacing-1) var(--spacing-2);\n  border-radius: var(--radius-2xl);\n  font-size: var(--font-size-xs);\n  font-weight: 600;\n  text-align: center;\n  white-space: nowrap;\n}\n\n.badge-primary { background: var(--primary); color: var(--white); }\n.badge-secondary { background: var(--secondary); color: var(--white); }\n.badge-accent { background: var(--accent); color: var(--white); }\n.badge-success { background: var(--success); color: var(--white); }\n.badge-warning { background: var(--warning); color: var(--gray-800); }\n.badge-danger { background: var(--danger); color: var(--white); }\n.badge-info { background: var(--info); color: var(--white); }\n\n/* Forms */\n.form-group {\n  margin-bottom: var(--spacing-4);\n}\n\n.form-label {\n  display: block;\n  margin-bottom: var(--spacing-2);\n  font-weight: 600;\n  color: var(--gray-700);\n}\n\n.form-control {\n  width: 100%;\n  padding: var(--spacing-3);\n  border: 2px solid var(--gray-300);\n  border-radius: var(--radius-lg);\n  font-size: var(--font-size-base);\n  transition: border-color 0.2s ease, box-shadow 0.2s ease;\n}\n\n.form-control:focus {\n  outline: none;\n  border-color: var(--primary);\n  box-shadow: 0 0 0 3px var(--primary-shadow);\n}\n\n.form-control:disabled {\n  background-color: var(--gray-100);\n  color: var(--gray-500);\n}\n\n/* Modals */\n.modal-overlay {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background: rgba(0, 0, 0, 0.5);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  z-index: var(--z-modal-backdrop);\n}\n\n.modal {\n  background: var(--white);\n  border-radius: var(--radius-xl);\n  box-shadow: var(--shadow-xl);\n  width: 90%;\n  max-width: 500px;\n  max-height: 90vh;\n  overflow-y: auto;\n  z-index: var(--z-modal);\n}\n\n.modal-header {\n  padding: var(--spacing-4) var(--spacing-6);\n  border-bottom: 1px solid var(--gray-200);\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n}\n\n.modal-header h3 {\n  margin: 0;\n  font-size: var(--font-size-xl);\n  color: var(--gray-900);\n}\n\n.modal-content {\n  padding: var(--spacing-6);\n}\n\n.modal-footer {\n  padding: var(--spacing-4) var(--spacing-6);\n  border-top: 1px solid var(--gray-200);\n  display: flex;\n  justify-content: flex-end;\n  gap: var(--spacing-3);\n}\n\n.close-btn {\n  background: transparent;\n  border: none;\n  font-size: var(--font-size-xl);\n  color: var(--gray-500);\n  cursor: pointer;\n  padding: var(--spacing-1) var(--spacing-2);\n  border-radius: var(--radius-md);\n  transition: all 0.2s ease;\n}\n\n.close-btn:hover {\n  color: var(--gray-700);\n  background: var(--gray-100);\n}\n\n/* Component-specific Modals */\n.assign-modal,\n.unassign-modal {\n  background: var(--white);\n  border-radius: var(--radius-xl);\n  box-shadow: var(--shadow-xl);\n  width: 90%;\n  max-width: 500px;\n  max-height: 90vh;\n  overflow-y: auto;\n  z-index: var(--z-modal);\n}\n\n.assign-modal .modal-content,\n.unassign-modal .modal-content {\n  display: flex;\n  flex-direction: column;\n  gap: var(--spacing-4);\n}\n\n.assign-modal .form-group,\n.unassign-modal .form-group {\n  margin-bottom: 0;\n}\n\n.assign-modal .error-message,\n.unassign-modal .error-message {\n  color: var(--danger);\n  font-size: var(--font-size-sm);\n  margin-top: var(--spacing-2);\n  padding: var(--spacing-2);\n  background: rgba(220, 53, 69, 0.1);\n  border-radius: var(--radius-md);\n}\n\n.assign-modal .old-value,\n.unassign-modal .old-value {\n  color: var(--gray-500);\n  text-decoration: line-through;\n}\n\n.assign-modal .new-value,\n.unassign-modal .new-value {\n  color: var(--success);\n  font-weight: 600;\n}\n\n/* Settings Panel */\n.settings-panel {\n  background: var(--white);\n  border-radius: var(--radius-xl);\n  box-shadow: var(--shadow-lg);\n  overflow: hidden;\n}\n\n.settings-panel-header {\n  padding: var(--spacing-4) var(--spacing-6);\n  background: var(--gray-50);\n  border-bottom: 1px solid var(--gray-200);\n}\n\n.settings-panel-content {\n  padding: var(--spacing-6);\n}\n\n.settings-panel-footer {\n  padding: var(--spacing-4) var(--spacing-6);\n  background: var(--gray-50);\n  border-top: 1px solid var(--gray-200);\n  border-bottom-left-radius: var(--radius-xl);\n  border-bottom-right-radius: var(--radius-xl);\n}\n\n/* Utilities */\n.text-center { text-align: center; }\n.text-left { text-align: left; }\n.text-right { text-align: right; }\n\n.mt-1 { margin-top: var(--spacing-1); }\n.mt-2 { margin-top: var(--spacing-2); }\n.mt-3 { margin-top: var(--spacing-3); }\n.mt-4 { margin-top: var(--spacing-4); }\n.mt-5 { margin-top: var(--spacing-5); }\n.mt-6 { margin-top: var(--spacing-6); }\n\n.mb-1 { margin-bottom: var(--spacing-1); }\n.mb-2 { margin-bottom: var(--spacing-2); }\n.mb-3 { margin-bottom: var(--spacing-3); }\n.mb-4 { margin-bottom: var(--spacing-4); }\n.mb-5 { margin-bottom: var(--spacing-5); }\n.mb-6 { margin-bottom: var(--spacing-6); }\n\n.p-1 { padding: var(--spacing-1); }\n.p-2 { padding: var(--spacing-2); }\n.p-3 { padding: var(--spacing-3); }\n.p-4 { padding: var(--spacing-4); }\n.p-5 { padding: var(--spacing-5); }\n.p-6 { padding: var(--spacing-6); }\n\n/* Responsive */\n@media (max-width: 768px) {\n  .btn {\n    width: 100%;\n    justify-content: center;\n  }\n  \n  .card-header,\n  .card-body,\n  .card-footer {\n    padding: var(--spacing-4);\n  }\n} /*$vite$:1*/";
   document.head.appendChild(__vite_style__);
   const scriptRel = "modulepreload";
   const assetsURL = function(dep) {
@@ -7355,9 +7355,143 @@ var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "
         console.error("Error setting up DAO context:", error);
         return void 0;
       }
+    },
+    // Refresh user info from DAO members (after registration)
+    async refreshUserInfo() {
+      if (!state$2.user || !state$2.isAuthenticated) {
+        console.warn("Cannot refresh user info: not authenticated");
+        return;
+      }
+      try {
+        const apiService = ApiService.getInstance();
+        const config2 = await apiService.getDAOConfig();
+        if (config2 && config2.team_members) {
+          const userAddress = state$2.user.address;
+          const member = config2.team_members.find((m) => {
+            const memberAddr = m.wallet_address || m.address;
+            return memberAddr && memberAddr.toLowerCase() === userAddress.toLowerCase();
+          });
+          if (member) {
+            const updatedUser = __spreadProps(__spreadValues({}, state$2.user), {
+              name: member.team_member_name || member.name || state$2.user.name
+            });
+            state$2.user = updatedUser;
+            localStorage.setItem("opengov-auth-user", JSON.stringify(updatedUser));
+            console.log("✅ User info refreshed:", updatedUser.name);
+            window.dispatchEvent(new CustomEvent("authStateChanged", {
+              detail: { isAuthenticated: true, user: updatedUser }
+            }));
+          }
+        }
+      } catch (error) {
+        console.error("Error refreshing user info:", error);
+      }
     }
   };
   authStore.initializeFromStorage();
+  const state$1 = reactive({
+    teamMembers: [],
+    daoConfig: null,
+    loading: false,
+    error: null
+  });
+  const teamStore = {
+    // State
+    state: readonly(state$1),
+    // Getters
+    get teamMembers() {
+      return state$1.teamMembers;
+    },
+    get daoConfig() {
+      return state$1.daoConfig;
+    },
+    get isLoading() {
+      return state$1.loading;
+    },
+    get error() {
+      return state$1.error;
+    },
+    // Actions
+    async fetchTeamData() {
+      state$1.loading = true;
+      state$1.error = null;
+      try {
+        if (!authStore.state.isAuthenticated) {
+          console.warn("Not authenticated, cannot fetch team data");
+          return;
+        }
+        const apiService = ApiService.getInstance();
+        const daoConfig = await apiService.getDAOConfig();
+        if (daoConfig) {
+          state$1.daoConfig = {
+            name: daoConfig.name || "",
+            required_agreements: daoConfig.required_agreements || 4,
+            multisig_address: daoConfig.multisig_address
+          };
+          state$1.teamMembers = (daoConfig.team_members || []).map((member) => ({
+            name: member.team_member_name || member.name || "Unknown",
+            address: member.wallet_address || member.address || ""
+          }));
+        }
+      } catch (err) {
+        state$1.error = err instanceof Error ? err.message : "Failed to fetch team data";
+        console.error("Failed to fetch team data:", err);
+      } finally {
+        state$1.loading = false;
+      }
+    },
+    setTeamMembers(members) {
+      state$1.teamMembers = members;
+    },
+    addTeamMember(member) {
+      state$1.teamMembers.push(member);
+    },
+    removeTeamMember(address) {
+      state$1.teamMembers = state$1.teamMembers.filter(
+        (m) => (m.wallet_address || m.address) !== address
+      );
+    },
+    updateTeamMember(address, updates) {
+      const index = state$1.teamMembers.findIndex(
+        (m) => (m.wallet_address || m.address) === address
+      );
+      if (index !== -1) {
+        state$1.teamMembers[index] = __spreadValues(__spreadValues({}, state$1.teamMembers[index]), updates);
+      }
+    },
+    // Note: DAO config is now automatically calculated from team members on the backend.
+    // Use fetchTeamData() to refresh the config instead of updating it directly.
+    // Helper methods
+    findTeamMemberByAddress(address) {
+      return state$1.teamMembers.find(
+        (member) => member.wallet_address === address || member.address === address
+      ) || null;
+    },
+    getTeamMemberName(address) {
+      if (!address) return "Unknown";
+      const member = this.findTeamMemberByAddress(address);
+      return (member == null ? void 0 : member.team_member_name) || (member == null ? void 0 : member.name) || `${address.slice(0, 6)}...${address.slice(-6)}`;
+    },
+    // Initialize team data if authenticated
+    async initialize() {
+      if (authStore.state.isAuthenticated && state$1.teamMembers.length === 0) {
+        await this.fetchTeamData();
+      }
+    }
+  };
+  window.addEventListener("authStateChanged", (event) => {
+    if (event.detail.isAuthenticated) {
+      teamStore.initialize();
+    } else {
+      state$1.teamMembers = [];
+      state$1.daoConfig = null;
+      state$1.error = null;
+    }
+  });
+  const teamStore$1 = /* @__PURE__ */ Object.freeze(/* @__PURE__ */ Object.defineProperty({
+    __proto__: null,
+    teamStore
+  }, Symbol.toStringTag, { value: "Module" }));
   function evaluateThis(fn) {
     return fn("return this");
   }
@@ -11166,102 +11300,6 @@ var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "
     return base58Encode(u8aConcat(input, sshash(input).subarray(0, [32, 33].includes(u8a.length) ? 2 : 1)));
   }
   const ss58Exceptions = [29972];
-  const state$1 = reactive({
-    teamMembers: [],
-    daoConfig: null,
-    loading: false,
-    error: null
-  });
-  const teamStore = {
-    // State
-    state: readonly(state$1),
-    // Getters
-    get teamMembers() {
-      return state$1.teamMembers;
-    },
-    get daoConfig() {
-      return state$1.daoConfig;
-    },
-    get isLoading() {
-      return state$1.loading;
-    },
-    get error() {
-      return state$1.error;
-    },
-    // Actions
-    async fetchTeamData() {
-      state$1.loading = true;
-      state$1.error = null;
-      try {
-        if (!authStore.state.isAuthenticated) {
-          console.warn("Not authenticated, cannot fetch team data");
-          return;
-        }
-        const apiService = ApiService.getInstance();
-        const daoConfig = await apiService.getDAOConfig();
-        if (daoConfig) {
-          state$1.daoConfig = {
-            name: daoConfig.name || "",
-            required_agreements: daoConfig.required_agreements || 4,
-            multisig_address: daoConfig.multisig_address
-          };
-          state$1.teamMembers = daoConfig.team_members || [];
-        }
-      } catch (err) {
-        state$1.error = err instanceof Error ? err.message : "Failed to fetch team data";
-        console.error("Failed to fetch team data:", err);
-      } finally {
-        state$1.loading = false;
-      }
-    },
-    setTeamMembers(members) {
-      state$1.teamMembers = members;
-    },
-    addTeamMember(member) {
-      state$1.teamMembers.push(member);
-    },
-    removeTeamMember(address) {
-      state$1.teamMembers = state$1.teamMembers.filter(
-        (m) => (m.wallet_address || m.address) !== address
-      );
-    },
-    updateTeamMember(address, updates) {
-      const index = state$1.teamMembers.findIndex(
-        (m) => (m.wallet_address || m.address) === address
-      );
-      if (index !== -1) {
-        state$1.teamMembers[index] = __spreadValues(__spreadValues({}, state$1.teamMembers[index]), updates);
-      }
-    },
-    // Note: DAO config is now automatically calculated from team members on the backend.
-    // Use fetchTeamData() to refresh the config instead of updating it directly.
-    // Helper methods
-    findTeamMemberByAddress(address) {
-      return state$1.teamMembers.find(
-        (member) => member.wallet_address === address || member.address === address
-      ) || null;
-    },
-    getTeamMemberName(address) {
-      if (!address) return "Unknown";
-      const member = this.findTeamMemberByAddress(address);
-      return (member == null ? void 0 : member.team_member_name) || (member == null ? void 0 : member.name) || `${address.slice(0, 6)}...${address.slice(-6)}`;
-    },
-    // Initialize team data if authenticated
-    async initialize() {
-      if (authStore.state.isAuthenticated && state$1.teamMembers.length === 0) {
-        await this.fetchTeamData();
-      }
-    }
-  };
-  window.addEventListener("authStateChanged", (event) => {
-    if (event.detail.isAuthenticated) {
-      teamStore.initialize();
-    } else {
-      state$1.teamMembers = [];
-      state$1.daoConfig = null;
-      state$1.error = null;
-    }
-  });
   const formatAddress = (address, options) => {
     if (!address) return "";
     const {
@@ -11296,32 +11334,37 @@ var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "
     }
     return member;
   };
+  const getTeamMemberName = (address) => {
+    if (!address) return "Unassigned";
+    const member = findTeamMemberByAddress(address);
+    return (member == null ? void 0 : member.team_member_name) || (member == null ? void 0 : member.name) || formatAddress(address);
+  };
   const formatDate = (dateString) => {
     if (!dateString) return "";
     return new Date(dateString).toLocaleDateString();
   };
-  const _hoisted_1$q = { class: "wallet-connect" };
-  const _hoisted_2$p = { class: "connect-header" };
-  const _hoisted_3$p = { class: "connect-content" };
-  const _hoisted_4$k = {
+  const _hoisted_1$r = { class: "wallet-connect" };
+  const _hoisted_2$q = { class: "connect-header" };
+  const _hoisted_3$q = { class: "connect-content" };
+  const _hoisted_4$l = {
     key: 0,
     class: "step-content"
   };
-  const _hoisted_5$j = { class: "wallet-options" };
-  const _hoisted_6$h = {
+  const _hoisted_5$k = { class: "wallet-options" };
+  const _hoisted_6$i = {
     key: 0,
     class: "wallet-list"
   };
-  const _hoisted_7$g = ["onClick", "disabled"];
-  const _hoisted_8$e = { class: "wallet-icon" };
-  const _hoisted_9$d = ["src", "alt"];
-  const _hoisted_10$d = {
+  const _hoisted_7$h = ["onClick", "disabled"];
+  const _hoisted_8$f = { class: "wallet-icon" };
+  const _hoisted_9$e = ["src", "alt"];
+  const _hoisted_10$e = {
     class: "wallet-icon-fallback",
     style: { "display": "none" }
   };
-  const _hoisted_11$9 = { class: "wallet-info" };
-  const _hoisted_12$7 = { class: "wallet-name" };
-  const _hoisted_13$5 = {
+  const _hoisted_11$a = { class: "wallet-info" };
+  const _hoisted_12$9 = { class: "wallet-name" };
+  const _hoisted_13$7 = {
     key: 0,
     class: "loading-spinner"
   };
@@ -11329,30 +11372,30 @@ var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "
     key: 1,
     class: "no-wallets"
   };
-  const _hoisted_15$4 = { class: "extension-status" };
-  const _hoisted_16$4 = {
+  const _hoisted_15$5 = { class: "extension-status" };
+  const _hoisted_16$5 = {
     key: 0,
     class: "status-checking"
   };
-  const _hoisted_17$4 = {
+  const _hoisted_17$5 = {
     key: 1,
     class: "status-not-found"
   };
-  const _hoisted_18$4 = {
+  const _hoisted_18$5 = {
     key: 2,
     class: "status-found"
   };
-  const _hoisted_19$4 = {
+  const _hoisted_19$5 = {
     key: 1,
     class: "step-content"
   };
-  const _hoisted_20$4 = { class: "account-list" };
-  const _hoisted_21$4 = ["onClick"];
-  const _hoisted_22$4 = { class: "account-avatar" };
-  const _hoisted_23$4 = { class: "account-info" };
-  const _hoisted_24$4 = { class: "account-name" };
-  const _hoisted_25$4 = { class: "account-address" };
-  const _hoisted_26$4 = { class: "account-check" };
+  const _hoisted_20$5 = { class: "account-list" };
+  const _hoisted_21$5 = ["onClick"];
+  const _hoisted_22$5 = { class: "account-avatar" };
+  const _hoisted_23$3 = { class: "account-info" };
+  const _hoisted_24$3 = { class: "account-name" };
+  const _hoisted_25$3 = { class: "account-address" };
+  const _hoisted_26$3 = { class: "account-check" };
   const _hoisted_27$3 = { class: "step-actions" };
   const _hoisted_28$3 = ["disabled"];
   const _hoisted_29$3 = {
@@ -11379,7 +11422,7 @@ var __privateSet = (obj, member, value, setter) => (__accessCheck(obj, member, "
     class: "error-message"
   };
   const _hoisted_40$3 = { class: "error-text" };
-  const _sfc_main$q = /* @__PURE__ */ defineComponent({
+  const _sfc_main$r = /* @__PURE__ */ defineComponent({
     __name: "WalletConnect",
     emits: ["close"],
     setup(__props, { emit: __emit }) {
@@ -11611,19 +11654,19 @@ Your address: ${address}${configuredMultisigs}
 💡 ${suggestion}`;
       };
       return (_ctx, _cache) => {
-        return openBlock(), createElementBlock("div", _hoisted_1$q, [
-          createBaseVNode("div", _hoisted_2$p, [
+        return openBlock(), createElementBlock("div", _hoisted_1$r, [
+          createBaseVNode("div", _hoisted_2$q, [
             _cache[4] || (_cache[4] = createBaseVNode("h3", null, "Connect Wallet", -1)),
             createBaseVNode("button", {
               onClick: _cache[0] || (_cache[0] = ($event) => _ctx.$emit("close")),
               class: "close-btn"
             }, "✕")
           ]),
-          createBaseVNode("div", _hoisted_3$p, [
-            step.value === "select" ? (openBlock(), createElementBlock("div", _hoisted_4$k, [
+          createBaseVNode("div", _hoisted_3$q, [
+            step.value === "select" ? (openBlock(), createElementBlock("div", _hoisted_4$l, [
               _cache[9] || (_cache[9] = createBaseVNode("div", { class: "step-description" }, " Choose your Polkadot wallet to connect: ", -1)),
-              createBaseVNode("div", _hoisted_5$j, [
-                availableWallets.value.length > 0 ? (openBlock(), createElementBlock("div", _hoisted_6$h, [
+              createBaseVNode("div", _hoisted_5$k, [
+                availableWallets.value.length > 0 ? (openBlock(), createElementBlock("div", _hoisted_6$i, [
                   (openBlock(true), createElementBlock(Fragment, null, renderList(availableWallets.value, (wallet) => {
                     return openBlock(), createElementBlock("div", {
                       key: wallet.key,
@@ -11631,29 +11674,29 @@ Your address: ${address}${configuredMultisigs}
                       class: "wallet-option",
                       disabled: isConnecting.value
                     }, [
-                      createBaseVNode("div", _hoisted_8$e, [
+                      createBaseVNode("div", _hoisted_8$f, [
                         createBaseVNode("img", {
                           src: getWalletIcon(wallet.key),
                           alt: wallet.name,
                           onError: handleIconError,
                           onerror: `this.style.display='none'; this.nextElementSibling.style.display='block'`
-                        }, null, 40, _hoisted_9$d),
-                        createBaseVNode("span", _hoisted_10$d, toDisplayString(getWalletEmoji(wallet.key)), 1)
+                        }, null, 40, _hoisted_9$e),
+                        createBaseVNode("span", _hoisted_10$e, toDisplayString(getWalletEmoji(wallet.key)), 1)
                       ]),
-                      createBaseVNode("div", _hoisted_11$9, [
-                        createBaseVNode("div", _hoisted_12$7, toDisplayString(wallet.name), 1),
+                      createBaseVNode("div", _hoisted_11$a, [
+                        createBaseVNode("div", _hoisted_12$9, toDisplayString(wallet.name), 1),
                         _cache[5] || (_cache[5] = createBaseVNode("div", { class: "wallet-description" }, "Click to connect", -1))
                       ]),
-                      isConnecting.value ? (openBlock(), createElementBlock("div", _hoisted_13$5)) : createCommentVNode("", true)
-                    ], 8, _hoisted_7$g);
+                      isConnecting.value ? (openBlock(), createElementBlock("div", _hoisted_13$7)) : createCommentVNode("", true)
+                    ], 8, _hoisted_7$h);
                   }), 128))
                 ])) : (openBlock(), createElementBlock("div", _hoisted_14$5, [..._cache[6] || (_cache[6] = [
                   createBaseVNode("div", { class: "no-wallets-icon" }, "⚠️", -1),
                   createBaseVNode("div", { class: "no-wallets-text" }, "No wallet extensions found", -1)
                 ])]))
               ]),
-              createBaseVNode("div", _hoisted_15$4, [
-                extensionStatus.value === "checking" ? (openBlock(), createElementBlock("div", _hoisted_16$4, " 🔍 Checking for Polkadot Extension... ")) : extensionStatus.value === "not-found" ? (openBlock(), createElementBlock("div", _hoisted_17$4, [
+              createBaseVNode("div", _hoisted_15$5, [
+                extensionStatus.value === "checking" ? (openBlock(), createElementBlock("div", _hoisted_16$5, " 🔍 Checking for Polkadot Extension... ")) : extensionStatus.value === "not-found" ? (openBlock(), createElementBlock("div", _hoisted_17$5, [
                   _cache[7] || (_cache[7] = createTextVNode(" ⚠️ Polkadot Extension not found ", -1)),
                   _cache[8] || (_cache[8] = createBaseVNode("div", { class: "status-help" }, [
                     createTextVNode(" Please install the "),
@@ -11674,12 +11717,12 @@ Your address: ${address}${configuredMultisigs}
                       class: "btn-secondary"
                     }, " 🔍 Manual Check ")
                   ])
-                ])) : extensionStatus.value === "found" ? (openBlock(), createElementBlock("div", _hoisted_18$4, " ✅ Polkadot Extension detected ")) : createCommentVNode("", true)
+                ])) : extensionStatus.value === "found" ? (openBlock(), createElementBlock("div", _hoisted_18$5, " ✅ Polkadot Extension detected ")) : createCommentVNode("", true)
               ])
             ])) : createCommentVNode("", true),
-            step.value === "accounts" ? (openBlock(), createElementBlock("div", _hoisted_19$4, [
+            step.value === "accounts" ? (openBlock(), createElementBlock("div", _hoisted_19$5, [
               _cache[10] || (_cache[10] = createBaseVNode("div", { class: "step-description" }, " Select an account to connect: ", -1)),
-              createBaseVNode("div", _hoisted_20$4, [
+              createBaseVNode("div", _hoisted_20$5, [
                 (openBlock(true), createElementBlock(Fragment, null, renderList(accounts.value, (account) => {
                   var _a, _b;
                   return openBlock(), createElementBlock("div", {
@@ -11687,13 +11730,13 @@ Your address: ${address}${configuredMultisigs}
                     onClick: ($event) => selectAccount(account),
                     class: normalizeClass(["account-item", { selected: ((_a = selectedAccount.value) == null ? void 0 : _a.address) === account.address }])
                   }, [
-                    createBaseVNode("div", _hoisted_22$4, toDisplayString(getAccountInitials(account.name || account.address)), 1),
-                    createBaseVNode("div", _hoisted_23$4, [
-                      createBaseVNode("div", _hoisted_24$4, toDisplayString(account.name || "Unnamed Account"), 1),
-                      createBaseVNode("div", _hoisted_25$4, toDisplayString(unref(formatAddress)(account.address)), 1)
+                    createBaseVNode("div", _hoisted_22$5, toDisplayString(getAccountInitials(account.name || account.address)), 1),
+                    createBaseVNode("div", _hoisted_23$3, [
+                      createBaseVNode("div", _hoisted_24$3, toDisplayString(account.name || "Unnamed Account"), 1),
+                      createBaseVNode("div", _hoisted_25$3, toDisplayString(unref(formatAddress)(account.address)), 1)
                     ]),
-                    createBaseVNode("div", _hoisted_26$4, toDisplayString(((_b = selectedAccount.value) == null ? void 0 : _b.address) === account.address ? "✓" : ""), 1)
-                  ], 10, _hoisted_21$4);
+                    createBaseVNode("div", _hoisted_26$3, toDisplayString(((_b = selectedAccount.value) == null ? void 0 : _b.address) === account.address ? "✓" : ""), 1)
+                  ], 10, _hoisted_21$5);
                 }), 128))
               ]),
               createBaseVNode("div", _hoisted_27$3, [
@@ -11765,19 +11808,19 @@ Your address: ${address}${configuredMultisigs}
     }
     return target;
   };
-  const WalletConnect = /* @__PURE__ */ _export_sfc(_sfc_main$q, [["__scopeId", "data-v-f019dfb4"]]);
-  const _hoisted_1$p = { class: "modal-header" };
-  const _hoisted_2$o = { class: "modal-content" };
-  const _hoisted_3$o = { class: "config-sections" };
-  const _hoisted_4$j = { class: "config-section" };
-  const _hoisted_5$i = { class: "form-group" };
-  const _hoisted_6$g = { class: "number-input-wrapper" };
-  const _hoisted_7$f = { class: "agreement-preview" };
-  const _hoisted_8$d = { class: "preview-bar" };
-  const _hoisted_9$c = { class: "progress-text" };
-  const _hoisted_10$c = { class: "modal-actions" };
-  const _hoisted_11$8 = ["disabled"];
-  const _sfc_main$p = /* @__PURE__ */ defineComponent({
+  const WalletConnect = /* @__PURE__ */ _export_sfc(_sfc_main$r, [["__scopeId", "data-v-f019dfb4"]]);
+  const _hoisted_1$q = { class: "modal-header" };
+  const _hoisted_2$p = { class: "modal-content" };
+  const _hoisted_3$p = { class: "config-sections" };
+  const _hoisted_4$k = { class: "config-section" };
+  const _hoisted_5$j = { class: "form-group" };
+  const _hoisted_6$h = { class: "number-input-wrapper" };
+  const _hoisted_7$g = { class: "agreement-preview" };
+  const _hoisted_8$e = { class: "preview-bar" };
+  const _hoisted_9$d = { class: "progress-text" };
+  const _hoisted_10$d = { class: "modal-actions" };
+  const _hoisted_11$9 = ["disabled"];
+  const _sfc_main$q = /* @__PURE__ */ defineComponent({
     __name: "DAOConfigModal",
     props: {
       show: { type: Boolean }
@@ -11813,20 +11856,20 @@ Your address: ${address}${configuredMultisigs}
             onClick: _cache[3] || (_cache[3] = withModifiers(() => {
             }, ["stop"]))
           }, [
-            createBaseVNode("div", _hoisted_1$p, [
+            createBaseVNode("div", _hoisted_1$q, [
               _cache[5] || (_cache[5] = createBaseVNode("h3", null, "DAO Configuration", -1)),
               createBaseVNode("button", {
                 class: "close-btn",
                 onClick: _cache[0] || (_cache[0] = ($event) => _ctx.$emit("close"))
               }, "×")
             ]),
-            createBaseVNode("div", _hoisted_2$o, [
-              createBaseVNode("div", _hoisted_3$o, [
-                createBaseVNode("div", _hoisted_4$j, [
+            createBaseVNode("div", _hoisted_2$p, [
+              createBaseVNode("div", _hoisted_3$p, [
+                createBaseVNode("div", _hoisted_4$k, [
                   _cache[10] || (_cache[10] = createBaseVNode("h4", null, "Agreement Requirements", -1)),
-                  createBaseVNode("div", _hoisted_5$i, [
+                  createBaseVNode("div", _hoisted_5$j, [
                     _cache[7] || (_cache[7] = createBaseVNode("label", { for: "required-agreements" }, "Required Agreements", -1)),
-                    createBaseVNode("div", _hoisted_6$g, [
+                    createBaseVNode("div", _hoisted_6$h, [
                       withDirectives(createBaseVNode("input", {
                         id: "required-agreements",
                         "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => requiredAgreements.value = $event),
@@ -11845,21 +11888,21 @@ Your address: ${address}${configuredMultisigs}
                       _cache[6] || (_cache[6] = createBaseVNode("div", { class: "input-help" }, ' Number of team members who must agree before a proposal can move to "Ready to vote" ', -1))
                     ])
                   ]),
-                  createBaseVNode("div", _hoisted_7$f, [
+                  createBaseVNode("div", _hoisted_7$g, [
                     _cache[9] || (_cache[9] = createBaseVNode("div", { class: "preview-label" }, "Preview:", -1)),
-                    createBaseVNode("div", _hoisted_8$d, [
+                    createBaseVNode("div", _hoisted_8$e, [
                       _cache[8] || (_cache[8] = createBaseVNode("div", { class: "progress-bar" }, [
                         createBaseVNode("div", {
                           class: "progress-fill",
                           style: { width: "60%" }
                         })
                       ], -1)),
-                      createBaseVNode("div", _hoisted_9$c, toDisplayString(Math.ceil(requiredAgreements.value * 0.6)) + " / " + toDisplayString(requiredAgreements.value) + " agreements ", 1)
+                      createBaseVNode("div", _hoisted_9$d, toDisplayString(Math.ceil(requiredAgreements.value * 0.6)) + " / " + toDisplayString(requiredAgreements.value) + " agreements ", 1)
                     ])
                   ])
                 ])
               ]),
-              createBaseVNode("div", _hoisted_10$c, [
+              createBaseVNode("div", _hoisted_10$d, [
                 createBaseVNode("button", {
                   class: "btn btn-secondary",
                   onClick: _cache[2] || (_cache[2] = ($event) => _ctx.$emit("close"))
@@ -11868,7 +11911,7 @@ Your address: ${address}${configuredMultisigs}
                   class: "btn btn-primary",
                   onClick: handleSave,
                   disabled: requiredAgreements.value < 1
-                }, " Save Configuration ", 8, _hoisted_11$8)
+                }, " Save Configuration ", 8, _hoisted_11$9)
               ])
             ])
           ])
@@ -11876,7 +11919,335 @@ Your address: ${address}${configuredMultisigs}
       };
     }
   });
-  const DAOConfigModal = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["__scopeId", "data-v-973fd79d"]]);
+  const DAOConfigModal = /* @__PURE__ */ _export_sfc(_sfc_main$q, [["__scopeId", "data-v-973fd79d"]]);
+  const _hoisted_1$p = { class: "modal-content" };
+  const _hoisted_2$o = {
+    key: 0,
+    class: "registration-form"
+  };
+  const _hoisted_3$o = { class: "form-section" };
+  const _hoisted_4$j = { class: "form-group" };
+  const _hoisted_5$i = ["disabled"];
+  const _hoisted_6$g = {
+    key: 0,
+    class: "error-message"
+  };
+  const _hoisted_7$f = { class: "form-group" };
+  const _hoisted_8$d = ["disabled"];
+  const _hoisted_9$c = { class: "form-group" };
+  const _hoisted_10$c = ["disabled"];
+  const _hoisted_11$8 = {
+    key: 0,
+    class: "error-message"
+  };
+  const _hoisted_12$8 = { class: "form-group" };
+  const _hoisted_13$6 = ["disabled"];
+  const _hoisted_14$4 = {
+    key: 0,
+    class: "error-message"
+  };
+  const _hoisted_15$4 = {
+    key: 0,
+    class: "error-banner"
+  };
+  const _hoisted_16$4 = { key: 0 };
+  const _hoisted_17$4 = {
+    key: 1,
+    class: "loading-state"
+  };
+  const _hoisted_18$4 = {
+    key: 2,
+    class: "success-state"
+  };
+  const _hoisted_19$4 = {
+    key: 3,
+    class: "modal-actions"
+  };
+  const _hoisted_20$4 = ["disabled"];
+  const _hoisted_21$4 = ["disabled"];
+  const _hoisted_22$4 = {
+    key: 4,
+    class: "modal-actions"
+  };
+  const _sfc_main$p = /* @__PURE__ */ defineComponent({
+    __name: "DAORegistrationModal",
+    props: {
+      show: { type: Boolean }
+    },
+    emits: ["close", "registered"],
+    setup(__props, { emit: __emit }) {
+      const emit2 = __emit;
+      const daoName = ref("");
+      const description = ref("");
+      const polkadotMultisig = ref("");
+      const kusamaMultisig = ref("");
+      const isRegistering = ref(false);
+      const registrationSuccess = ref(false);
+      const errorMessage = ref("");
+      const errorDetails = ref([]);
+      const errors = ref({});
+      const isFormValid = computed(() => {
+        return daoName.value.trim().length > 0 && (polkadotMultisig.value.trim().length > 0 || kusamaMultisig.value.trim().length > 0);
+      });
+      const validateForm = () => {
+        errors.value = {};
+        if (!daoName.value.trim()) {
+          errors.value.name = "DAO name is required";
+        }
+        if (!polkadotMultisig.value.trim() && !kusamaMultisig.value.trim()) {
+          errors.value.polkadotMultisig = "At least one multisig address is required";
+          errors.value.kusamaMultisig = "At least one multisig address is required";
+        }
+        return Object.keys(errors.value).length === 0;
+      };
+      const handleRegister = async () => {
+        var _a;
+        if (!validateForm()) return;
+        if (!((_a = authStore.state.user) == null ? void 0 : _a.address)) {
+          errorMessage.value = "No wallet address found. Please reconnect your wallet.";
+          return;
+        }
+        isRegistering.value = true;
+        errorMessage.value = "";
+        errorDetails.value = [];
+        try {
+          const message = `Register DAO: ${daoName.value.trim()}
+Timestamp: ${Date.now()}`;
+          const signature = await requestWalletSignature(message);
+          if (!signature) {
+            errorMessage.value = "Signature was cancelled or failed. Please ensure your wallet extension is unlocked and has access to the address you authenticated with.";
+            isRegistering.value = false;
+            return;
+          }
+          const apiService = ApiService.getInstance();
+          const result = await apiService.registerDAO({
+            name: daoName.value.trim(),
+            description: description.value.trim() || void 0,
+            polkadotMultisig: polkadotMultisig.value.trim() || void 0,
+            kusamaMultisig: kusamaMultisig.value.trim() || void 0,
+            walletAddress: authStore.state.user.address,
+            signature,
+            message
+          });
+          if (result.success) {
+            registrationSuccess.value = true;
+            await authStore.setupDaoContext(apiService);
+            try {
+              const { teamStore: teamStore2 } = await __vitePreload(async () => {
+                const { teamStore: teamStore3 } = await Promise.resolve().then(() => teamStore$1);
+                return { teamStore: teamStore3 };
+              }, false ? __VITE_PRELOAD__ : void 0);
+              await teamStore2.fetchTeamData();
+              console.log("✅ Team data pre-fetched after registration");
+            } catch (error) {
+              console.warn("Failed to pre-fetch team data after registration:", error);
+            }
+            emit2("registered", daoName.value.trim());
+          } else {
+            errorMessage.value = result.error || "Registration failed";
+            errorDetails.value = result.errors || [];
+          }
+        } catch (error) {
+          console.error("Registration error:", error);
+          errorMessage.value = error.message || "An unexpected error occurred during registration";
+        } finally {
+          isRegistering.value = false;
+        }
+      };
+      const requestWalletSignature = async (message) => {
+        return new Promise((resolve) => {
+          var _a;
+          if (!((_a = authStore.state.user) == null ? void 0 : _a.address)) {
+            console.error("❌ No user address available");
+            resolve(null);
+            return;
+          }
+          console.log("🔐 Requesting signature for address:", authStore.state.user.address);
+          console.log("📝 Message to sign:", message);
+          if (window.opengovVotingToolResult) {
+            delete window.opengovVotingToolResult.signatureResult;
+          }
+          window.postMessage({
+            type: "SIGN_MESSAGE",
+            address: authStore.state.user.address,
+            message
+            // Plain text message
+          }, "*");
+          let attempts = 0;
+          const maxAttempts = 160;
+          const checkInterval = setInterval(() => {
+            var _a2;
+            attempts++;
+            if ((_a2 = window.opengovVotingToolResult) == null ? void 0 : _a2.signatureResult) {
+              clearInterval(checkInterval);
+              const result = window.opengovVotingToolResult.signatureResult;
+              if (result.success && result.signature) {
+                console.log("✅ Signature received from wallet:", result.wallet);
+                resolve(result.signature);
+              } else {
+                console.error("❌ Signature failed:", result.error);
+                resolve(null);
+              }
+            } else if (attempts >= maxAttempts) {
+              clearInterval(checkInterval);
+              console.error("❌ Signature request timed out after 80 seconds");
+              resolve(null);
+            }
+          }, 500);
+        });
+      };
+      const handleClose = () => {
+        if (!isRegistering.value) {
+          emit2("close");
+        }
+      };
+      const handleComplete = () => {
+        emit2("close");
+      };
+      const handleEscKey = (event) => {
+        if (event.key === "Escape" && !isRegistering.value) {
+          emit2("close");
+        }
+      };
+      onMounted(() => {
+        document.addEventListener("keydown", handleEscKey);
+      });
+      onUnmounted(() => {
+        document.removeEventListener("keydown", handleEscKey);
+      });
+      return (_ctx, _cache) => {
+        return _ctx.show ? (openBlock(), createElementBlock("div", {
+          key: 0,
+          class: "modal-overlay",
+          onClick: handleClose
+        }, [
+          createBaseVNode("div", {
+            class: "registration-modal",
+            onClick: _cache[4] || (_cache[4] = withModifiers(() => {
+            }, ["stop"]))
+          }, [
+            createBaseVNode("div", { class: "modal-header" }, [
+              _cache[5] || (_cache[5] = createBaseVNode("h3", null, "Register Your DAO", -1)),
+              createBaseVNode("button", {
+                class: "close-btn",
+                onClick: handleClose
+              }, "×")
+            ]),
+            createBaseVNode("div", _hoisted_1$p, [
+              !isRegistering.value && !registrationSuccess.value ? (openBlock(), createElementBlock("div", _hoisted_2$o, [
+                _cache[13] || (_cache[13] = createBaseVNode("div", { class: "info-section" }, [
+                  createBaseVNode("div", { class: "info-icon" }, "🏛️"),
+                  createBaseVNode("p", { class: "info-text" }, " Register your DAO by providing a multisig address. The system will automatically verify that you are a member of this multisig on-chain before allowing registration. ")
+                ], -1)),
+                createBaseVNode("div", _hoisted_3$o, [
+                  createBaseVNode("div", _hoisted_4$j, [
+                    _cache[6] || (_cache[6] = createBaseVNode("label", { for: "dao-name" }, "DAO Name *", -1)),
+                    withDirectives(createBaseVNode("input", {
+                      id: "dao-name",
+                      "onUpdate:modelValue": _cache[0] || (_cache[0] = ($event) => daoName.value = $event),
+                      type: "text",
+                      class: "form-input",
+                      placeholder: "e.g., My DAO",
+                      disabled: isRegistering.value
+                    }, null, 8, _hoisted_5$i), [
+                      [vModelText, daoName.value]
+                    ]),
+                    errors.value.name ? (openBlock(), createElementBlock("div", _hoisted_6$g, toDisplayString(errors.value.name), 1)) : createCommentVNode("", true)
+                  ]),
+                  createBaseVNode("div", _hoisted_7$f, [
+                    _cache[7] || (_cache[7] = createBaseVNode("label", { for: "dao-description" }, "Description (Optional)", -1)),
+                    withDirectives(createBaseVNode("textarea", {
+                      id: "dao-description",
+                      "onUpdate:modelValue": _cache[1] || (_cache[1] = ($event) => description.value = $event),
+                      class: "form-input",
+                      rows: "3",
+                      placeholder: "Brief description of your DAO...",
+                      disabled: isRegistering.value
+                    }, null, 8, _hoisted_8$d), [
+                      [vModelText, description.value]
+                    ])
+                  ]),
+                  createBaseVNode("div", _hoisted_9$c, [
+                    _cache[8] || (_cache[8] = createBaseVNode("label", { for: "polkadot-multisig" }, "Polkadot Multisig Address", -1)),
+                    withDirectives(createBaseVNode("input", {
+                      id: "polkadot-multisig",
+                      "onUpdate:modelValue": _cache[2] || (_cache[2] = ($event) => polkadotMultisig.value = $event),
+                      type: "text",
+                      class: "form-input",
+                      placeholder: "1... (Polkadot address)",
+                      disabled: isRegistering.value
+                    }, null, 8, _hoisted_10$c), [
+                      [vModelText, polkadotMultisig.value]
+                    ]),
+                    _cache[9] || (_cache[9] = createBaseVNode("div", { class: "input-help" }, " Can be a direct multisig or a proxy address. Leave empty if your DAO only uses Kusama. ", -1)),
+                    errors.value.polkadotMultisig ? (openBlock(), createElementBlock("div", _hoisted_11$8, toDisplayString(errors.value.polkadotMultisig), 1)) : createCommentVNode("", true)
+                  ]),
+                  createBaseVNode("div", _hoisted_12$8, [
+                    _cache[10] || (_cache[10] = createBaseVNode("label", { for: "kusama-multisig" }, "Kusama Multisig Address", -1)),
+                    withDirectives(createBaseVNode("input", {
+                      id: "kusama-multisig",
+                      "onUpdate:modelValue": _cache[3] || (_cache[3] = ($event) => kusamaMultisig.value = $event),
+                      type: "text",
+                      class: "form-input",
+                      placeholder: "D... (Kusama address)",
+                      disabled: isRegistering.value
+                    }, null, 8, _hoisted_13$6), [
+                      [vModelText, kusamaMultisig.value]
+                    ]),
+                    _cache[11] || (_cache[11] = createBaseVNode("div", { class: "input-help" }, " Can be a direct multisig or a proxy address. Leave empty if your DAO only uses Polkadot. ", -1)),
+                    errors.value.kusamaMultisig ? (openBlock(), createElementBlock("div", _hoisted_14$4, toDisplayString(errors.value.kusamaMultisig), 1)) : createCommentVNode("", true)
+                  ])
+                ]),
+                errorMessage.value ? (openBlock(), createElementBlock("div", _hoisted_15$4, [
+                  _cache[12] || (_cache[12] = createBaseVNode("strong", null, "Registration Failed:", -1)),
+                  createBaseVNode("p", null, toDisplayString(errorMessage.value), 1),
+                  errorDetails.value && errorDetails.value.length > 0 ? (openBlock(), createElementBlock("ul", _hoisted_16$4, [
+                    (openBlock(true), createElementBlock(Fragment, null, renderList(errorDetails.value, (detail, index) => {
+                      return openBlock(), createElementBlock("li", { key: index }, toDisplayString(detail), 1);
+                    }), 128))
+                  ])) : createCommentVNode("", true)
+                ])) : createCommentVNode("", true)
+              ])) : createCommentVNode("", true),
+              isRegistering.value ? (openBlock(), createElementBlock("div", _hoisted_17$4, [..._cache[14] || (_cache[14] = [
+                createBaseVNode("div", { class: "spinner" }, null, -1),
+                createBaseVNode("p", { class: "loading-text" }, "Verifying multisig membership on-chain...", -1),
+                createBaseVNode("p", { class: "loading-subtext" }, "This may take a few moments", -1)
+              ])])) : createCommentVNode("", true),
+              registrationSuccess.value ? (openBlock(), createElementBlock("div", _hoisted_18$4, [
+                _cache[17] || (_cache[17] = createBaseVNode("div", { class: "success-icon" }, "✅", -1)),
+                _cache[18] || (_cache[18] = createBaseVNode("h4", null, "Registration Successful!", -1)),
+                createBaseVNode("p", null, [
+                  _cache[15] || (_cache[15] = createTextVNode("Your DAO ", -1)),
+                  createBaseVNode("strong", null, toDisplayString(daoName.value), 1),
+                  _cache[16] || (_cache[16] = createTextVNode(" has been registered successfully.", -1))
+                ]),
+                _cache[19] || (_cache[19] = createBaseVNode("p", { class: "success-subtext" }, "You can now access all features of the voting tool.", -1))
+              ])) : createCommentVNode("", true),
+              !isRegistering.value && !registrationSuccess.value ? (openBlock(), createElementBlock("div", _hoisted_19$4, [
+                createBaseVNode("button", {
+                  class: "btn btn-secondary",
+                  onClick: handleClose,
+                  disabled: isRegistering.value
+                }, " Cancel ", 8, _hoisted_20$4),
+                createBaseVNode("button", {
+                  class: "btn btn-primary",
+                  onClick: handleRegister,
+                  disabled: isRegistering.value || !isFormValid.value
+                }, toDisplayString(isRegistering.value ? "Registering..." : "Register DAO"), 9, _hoisted_21$4)
+              ])) : createCommentVNode("", true),
+              registrationSuccess.value ? (openBlock(), createElementBlock("div", _hoisted_22$4, [
+                createBaseVNode("button", {
+                  class: "btn btn-primary",
+                  onClick: handleComplete
+                }, " Continue ")
+              ])) : createCommentVNode("", true)
+            ])
+          ])
+        ])) : createCommentVNode("", true);
+      };
+    }
+  });
+  const DAORegistrationModal = /* @__PURE__ */ _export_sfc(_sfc_main$p, [["__scopeId", "data-v-09f03f11"]]);
   const state = reactive({
     proposals: [],
     currentProposal: null,
@@ -12113,9 +12484,9 @@ Your address: ${address}${configuredMultisigs}
   const _hoisted_9$b = ["value"];
   const _hoisted_10$b = { class: "filter-group" };
   const _hoisted_11$7 = { class: "filter-group" };
-  const _hoisted_12$6 = { class: "content-area" };
-  const _hoisted_13$4 = { class: "view-controls" };
-  const _hoisted_14$4 = { class: "view-modes" };
+  const _hoisted_12$7 = { class: "content-area" };
+  const _hoisted_13$5 = { class: "view-controls" };
+  const _hoisted_14$3 = { class: "view-modes" };
   const _hoisted_15$3 = { class: "sort-controls" };
   const _hoisted_16$3 = { class: "results-info" };
   const _hoisted_17$3 = {
@@ -12133,10 +12504,10 @@ Your address: ${address}${configuredMultisigs}
   };
   const _hoisted_21$3 = ["onClick"];
   const _hoisted_22$3 = { class: "proposal-id" };
-  const _hoisted_23$3 = { class: "proposal-title" };
-  const _hoisted_24$3 = { class: "proposal-status" };
-  const _hoisted_25$3 = { class: "proposal-assignment" };
-  const _hoisted_26$3 = ["onClick"];
+  const _hoisted_23$2 = { class: "proposal-title" };
+  const _hoisted_24$2 = { class: "proposal-status" };
+  const _hoisted_25$2 = { class: "proposal-assignment" };
+  const _hoisted_26$2 = ["onClick"];
   const _hoisted_27$2 = { class: "proposal-updated" };
   const _hoisted_28$2 = {
     key: 1,
@@ -12251,7 +12622,7 @@ Your address: ${address}${configuredMultisigs}
                 var _a2;
                 return (_a2 = p2.team_actions) == null ? void 0 : _a2.some((action) => {
                   var _a3;
-                  const actionType = (_a3 = action.role_type) == null ? void 0 : _a3.toLowerCase();
+                  const actionType = (_a3 = action.action || action.role_type) == null ? void 0 : _a3.toLowerCase();
                   const selectedType = selectedTeamAction.value.toLowerCase();
                   const normalizedType = selectedType.replace(" ", "_");
                   return action.wallet_address === currentUser && (actionType === selectedType || actionType === normalizedType);
@@ -12439,7 +12810,7 @@ Your address: ${address}${configuredMultisigs}
                       "onUpdate:modelValue": _cache[5] || (_cache[5] = ($event) => selectedTeamAction.value = $event),
                       class: "filter-select"
                     }, [..._cache[22] || (_cache[22] = [
-                      createStaticVNode('<option value="" data-v-3a33c8f2>All Actions</option><option value="none" data-v-3a33c8f2>No Action Taken</option><option value="Agree" data-v-3a33c8f2>Agreed</option><option value="To be discussed" data-v-3a33c8f2>To be Discussed</option><option value="NO WAY" data-v-3a33c8f2>Vetoed</option><option value="Recuse" data-v-3a33c8f2>Recused</option>', 6)
+                      createStaticVNode('<option value="" data-v-a8c3d704>All Actions</option><option value="none" data-v-a8c3d704>No Action Taken</option><option value="Agree" data-v-a8c3d704>Agreed</option><option value="To be discussed" data-v-a8c3d704>To be Discussed</option><option value="NO WAY" data-v-a8c3d704>Vetoed</option><option value="Recuse" data-v-a8c3d704>Recused</option>', 6)
                     ])], 512), [
                       [vModelSelect, selectedTeamAction.value]
                     ])
@@ -12450,9 +12821,9 @@ Your address: ${address}${configuredMultisigs}
                   }, " Clear All Filters ")
                 ])
               ]),
-              createBaseVNode("div", _hoisted_12$6, [
-                createBaseVNode("div", _hoisted_13$4, [
-                  createBaseVNode("div", _hoisted_14$4, [
+              createBaseVNode("div", _hoisted_12$7, [
+                createBaseVNode("div", _hoisted_13$5, [
+                  createBaseVNode("div", _hoisted_14$3, [
                     createBaseVNode("button", {
                       onClick: _cache[6] || (_cache[6] = ($event) => viewMode.value = "list"),
                       class: normalizeClass([{ active: viewMode.value === "list" }, "view-btn"])
@@ -12467,7 +12838,7 @@ Your address: ${address}${configuredMultisigs}
                       "onUpdate:modelValue": _cache[8] || (_cache[8] = ($event) => sortBy.value = $event),
                       class: "sort-select"
                     }, [..._cache[25] || (_cache[25] = [
-                      createStaticVNode('<option value="updated_at" data-v-3a33c8f2>Last Updated</option><option value="created_at" data-v-3a33c8f2>Created Date</option><option value="post_id" data-v-3a33c8f2>Proposal ID</option><option value="title" data-v-3a33c8f2>Title</option><option value="internal_status" data-v-3a33c8f2>Status</option>', 5)
+                      createStaticVNode('<option value="updated_at" data-v-a8c3d704>Last Updated</option><option value="created_at" data-v-a8c3d704>Created Date</option><option value="post_id" data-v-a8c3d704>Proposal ID</option><option value="title" data-v-a8c3d704>Title</option><option value="internal_status" data-v-a8c3d704>Status</option>', 5)
                     ])], 512), [
                       [vModelSelect, sortBy.value]
                     ]),
@@ -12497,21 +12868,21 @@ Your address: ${address}${configuredMultisigs}
                           onClick: ($event) => openProposal(proposal)
                         }, [
                           createBaseVNode("div", _hoisted_22$3, "#" + toDisplayString(proposal.post_id), 1),
-                          createBaseVNode("div", _hoisted_23$3, toDisplayString(proposal.title), 1),
-                          createBaseVNode("div", _hoisted_24$3, [
+                          createBaseVNode("div", _hoisted_23$2, toDisplayString(proposal.title), 1),
+                          createBaseVNode("div", _hoisted_24$2, [
                             createVNode(StatusBadge, {
                               status: proposal.internal_status,
                               "proposal-id": proposal.post_id,
                               editable: false
                             }, null, 8, ["status", "proposal-id"])
                           ]),
-                          createBaseVNode("div", _hoisted_25$3, [
+                          createBaseVNode("div", _hoisted_25$2, [
                             createBaseVNode("span", null, toDisplayString(unref(teamStore).getTeamMemberName(proposal.assigned_to) || unref(formatAddress)(proposal.assigned_to) || "Unassigned"), 1),
                             !proposal.assigned_to ? (openBlock(), createElementBlock("button", {
                               key: 0,
                               onClick: ($event) => assignToMe(proposal, $event),
                               class: "assign-btn"
-                            }, " Assign to me ", 8, _hoisted_26$3)) : createCommentVNode("", true)
+                            }, " Assign to me ", 8, _hoisted_26$2)) : createCommentVNode("", true)
                           ]),
                           createBaseVNode("div", _hoisted_27$2, toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
                         ], 8, _hoisted_21$3);
@@ -12572,7 +12943,7 @@ Your address: ${address}${configuredMultisigs}
       };
     }
   });
-  const ProposalBrowser = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["__scopeId", "data-v-3a33c8f2"]]);
+  const ProposalBrowser = /* @__PURE__ */ _export_sfc(_sfc_main$n, [["__scopeId", "data-v-a8c3d704"]]);
   const _hoisted_1$m = { class: "modal-header" };
   const _hoisted_2$l = { class: "settings-content" };
   const _hoisted_3$l = { class: "settings-nav" };
@@ -12587,84 +12958,86 @@ Your address: ${address}${configuredMultisigs}
   const _hoisted_9$a = { class: "config-form" };
   const _hoisted_10$a = { class: "form-group" };
   const _hoisted_11$6 = { class: "backend-config" };
-  const _hoisted_12$5 = { class: "backend-actions" };
-  const _hoisted_13$3 = ["disabled"];
-  const _hoisted_14$3 = ["disabled"];
+  const _hoisted_12$6 = { class: "backend-actions" };
+  const _hoisted_13$4 = ["disabled"];
+  const _hoisted_14$2 = ["disabled"];
   const _hoisted_15$2 = { class: "form-group" };
   const _hoisted_16$2 = { class: "readonly-field" };
   const _hoisted_17$2 = { class: "form-group" };
-  const _hoisted_18$2 = { class: "team-members-list" };
-  const _hoisted_19$2 = { class: "member-display-name" };
-  const _hoisted_20$2 = { class: "member-address" };
-  const _hoisted_21$2 = {
+  const _hoisted_18$2 = { class: "readonly-field-header" };
+  const _hoisted_19$2 = ["disabled"];
+  const _hoisted_20$2 = { class: "team-members-list" };
+  const _hoisted_21$2 = { class: "member-display-name" };
+  const _hoisted_22$2 = { class: "member-address" };
+  const _hoisted_23$1 = {
     key: 0,
     class: "no-members"
   };
-  const _hoisted_22$2 = {
+  const _hoisted_24$1 = {
     key: 1,
     class: "section-content"
   };
-  const _hoisted_23$2 = {
+  const _hoisted_25$1 = {
     key: 2,
     class: "section-content"
   };
-  const _hoisted_24$2 = { class: "voting-stats" };
-  const _hoisted_25$2 = { class: "stat-card" };
-  const _hoisted_26$2 = { class: "stat-number" };
+  const _hoisted_26$1 = { class: "voting-stats" };
   const _hoisted_27$1 = { class: "stat-card" };
   const _hoisted_28$1 = { class: "stat-number" };
   const _hoisted_29$1 = { class: "stat-card" };
   const _hoisted_30$1 = { class: "stat-number" };
   const _hoisted_31$1 = { class: "stat-card" };
   const _hoisted_32$1 = { class: "stat-number" };
-  const _hoisted_33$1 = { class: "voting-history-list" };
-  const _hoisted_34$1 = {
+  const _hoisted_33$1 = { class: "stat-card" };
+  const _hoisted_34$1 = { class: "stat-number" };
+  const _hoisted_35$1 = { class: "voting-history-list" };
+  const _hoisted_36$1 = {
     key: 0,
     class: "empty-state"
   };
-  const _hoisted_35$1 = { key: 1 };
-  const _hoisted_36$1 = { class: "vote-header" };
-  const _hoisted_37$1 = { class: "proposal-id" };
-  const _hoisted_38$1 = { class: "vote-title" };
-  const _hoisted_39$1 = { class: "vote-date" };
-  const _hoisted_40$1 = {
+  const _hoisted_37$1 = { key: 1 };
+  const _hoisted_38$1 = { class: "vote-header" };
+  const _hoisted_39$1 = { class: "proposal-id" };
+  const _hoisted_40$1 = { class: "vote-title" };
+  const _hoisted_41$1 = { class: "vote-date" };
+  const _hoisted_42$1 = {
     key: 3,
     class: "section-content"
   };
-  const _hoisted_41$1 = { class: "activity-log" };
-  const _hoisted_42$1 = {
+  const _hoisted_43$1 = { class: "activity-log" };
+  const _hoisted_44$1 = {
     key: 0,
     class: "empty-state"
   };
-  const _hoisted_43$1 = {
+  const _hoisted_45$1 = {
     key: 1,
     class: "activity-list"
   };
-  const _hoisted_44$1 = { class: "activity-icon" };
-  const _hoisted_45$1 = { class: "activity-details" };
-  const _hoisted_46$1 = { class: "activity-description" };
-  const _hoisted_47$1 = { class: "activity-time" };
-  const _hoisted_48$1 = {
+  const _hoisted_46$1 = { class: "activity-icon" };
+  const _hoisted_47$1 = { class: "activity-details" };
+  const _hoisted_48$1 = { class: "activity-description" };
+  const _hoisted_49$1 = { class: "activity-time" };
+  const _hoisted_50$1 = {
     key: 4,
     class: "section-content"
   };
-  const _hoisted_49$1 = { class: "sync-section" };
-  const _hoisted_50$1 = { class: "sync-actions" };
-  const _hoisted_51 = ["disabled"];
-  const _hoisted_52 = ["disabled"];
-  const _hoisted_53 = {
+  const _hoisted_51 = { class: "sync-section" };
+  const _hoisted_52 = { class: "sync-actions" };
+  const _hoisted_53 = ["disabled"];
+  const _hoisted_54 = ["disabled"];
+  const _hoisted_55 = {
     key: 5,
     class: "section-content"
   };
-  const _hoisted_54 = { class: "help-content" };
-  const _hoisted_55 = { class: "help-links" };
-  const _hoisted_56 = {
+  const _hoisted_56 = { class: "help-content" };
+  const _hoisted_57 = { class: "help-links" };
+  const _hoisted_58 = {
     key: 6,
     class: "section-content"
   };
-  const _hoisted_57 = { class: "about-content" };
-  const _hoisted_58 = { class: "about-section" };
-  const _hoisted_59 = { class: "about-links" };
+  const _hoisted_59 = { class: "about-content" };
+  const _hoisted_60 = { class: "about-section" };
+  const _hoisted_61 = { class: "about-links" };
   const _sfc_main$m = /* @__PURE__ */ defineComponent({
     __name: "SettingsMore",
     props: {
@@ -12723,6 +13096,16 @@ Your address: ${address}${configuredMultisigs}
           }
         } catch (error) {
           console.error("Failed to load settings:", error);
+        } finally {
+          refreshing.value = false;
+        }
+      };
+      const refreshTeamMembers = async () => {
+        refreshing.value = true;
+        try {
+          await teamStore.fetchTeamData();
+        } catch (error) {
+          console.error("Failed to refresh team members:", error);
         } finally {
           refreshing.value = false;
         }
@@ -13009,17 +13392,17 @@ Your address: ${address}${configuredMultisigs}
                         }, null, 544), [
                           [vModelText, backendUrl.value]
                         ]),
-                        createBaseVNode("div", _hoisted_12$5, [
+                        createBaseVNode("div", _hoisted_12$6, [
                           createBaseVNode("button", {
                             onClick: testBackendConnection,
                             class: "test-btn",
                             disabled: testingConnection.value || !backendUrl.value
-                          }, toDisplayString(testingConnection.value ? "Testing..." : "Test"), 9, _hoisted_13$3),
+                          }, toDisplayString(testingConnection.value ? "Testing..." : "Test"), 9, _hoisted_13$4),
                           createBaseVNode("button", {
                             onClick: saveBackendUrl,
                             class: "save-backend-btn",
                             disabled: savingBackend.value || !backendUrl.value
-                          }, toDisplayString(savingBackend.value ? "Saving..." : "Save"), 9, _hoisted_14$3)
+                          }, toDisplayString(savingBackend.value ? "Saving..." : "Save"), 9, _hoisted_14$2)
                         ])
                       ]),
                       backendStatus.value.message ? (openBlock(), createElementBlock("div", {
@@ -13044,23 +13427,28 @@ Your address: ${address}${configuredMultisigs}
                       _cache[30] || (_cache[30] = createBaseVNode("small", null, "Number of team members required to agree before voting (managed by multisig)", -1))
                     ]),
                     createBaseVNode("div", _hoisted_17$2, [
-                      _cache[33] || (_cache[33] = createBaseVNode("label", null, "Team Members", -1)),
-                      _cache[34] || (_cache[34] = createBaseVNode("div", { class: "readonly-field-header" }, [
-                        createBaseVNode("span", { class: "multisig-badge" }, "🔒 Controlled by Multisig")
-                      ], -1)),
-                      _cache[35] || (_cache[35] = createBaseVNode("p", { class: "form-note" }, "Team members are automatically synced from the multisig configuration.", -1)),
+                      _cache[34] || (_cache[34] = createBaseVNode("label", null, "Team Members", -1)),
                       createBaseVNode("div", _hoisted_18$2, [
+                        createBaseVNode("button", {
+                          onClick: refreshTeamMembers,
+                          class: "refresh-members-btn",
+                          disabled: refreshing.value
+                        }, toDisplayString(refreshing.value ? "⏳ Refreshing..." : "🔄 Refresh Members"), 9, _hoisted_19$2),
+                        _cache[31] || (_cache[31] = createBaseVNode("span", { class: "multisig-badge" }, "🔒 Controlled by Multisig", -1))
+                      ]),
+                      _cache[35] || (_cache[35] = createBaseVNode("p", { class: "form-note" }, "Team members are automatically synced from the multisig configuration.", -1)),
+                      createBaseVNode("div", _hoisted_20$2, [
                         (openBlock(true), createElementBlock(Fragment, null, renderList(daoConfig.value.teamMembers, (member, index) => {
                           return openBlock(), createElementBlock("div", {
                             key: index,
                             class: "member-item readonly"
                           }, [
-                            createBaseVNode("div", _hoisted_19$2, toDisplayString(member.name || "Team Member " + (index + 1)), 1),
-                            createBaseVNode("div", _hoisted_20$2, toDisplayString(member.address), 1),
-                            _cache[31] || (_cache[31] = createBaseVNode("span", { class: "member-info" }, "From multisig", -1))
+                            createBaseVNode("div", _hoisted_21$2, toDisplayString(member.name || "Team Member " + (index + 1)), 1),
+                            createBaseVNode("div", _hoisted_22$2, toDisplayString(member.address), 1),
+                            _cache[32] || (_cache[32] = createBaseVNode("span", { class: "member-info" }, "From multisig", -1))
                           ]);
                         }), 128)),
-                        daoConfig.value.teamMembers.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_21$2, [..._cache[32] || (_cache[32] = [
+                        daoConfig.value.teamMembers.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_23$1, [..._cache[33] || (_cache[33] = [
                           createBaseVNode("div", { class: "empty-state" }, [
                             createBaseVNode("span", { class: "empty-icon" }, "👥"),
                             createBaseVNode("p", null, "No team members found"),
@@ -13077,102 +13465,102 @@ Your address: ${address}${configuredMultisigs}
                     ], -1))
                   ])
                 ])) : createCommentVNode("", true),
-                activeSection.value === "preferences" ? (openBlock(), createElementBlock("div", _hoisted_22$2, [..._cache[38] || (_cache[38] = [
-                  createStaticVNode('<div class="section-header" data-v-07f777df><h3 data-v-07f777df>User Preferences</h3><p data-v-07f777df>Customize your extension experience (coming soon)</p></div><div class="coming-soon" data-v-07f777df><div class="coming-soon-icon" data-v-07f777df>🚧</div><h4 data-v-07f777df>Feature in Development</h4><p data-v-07f777df>User preferences will be available in a future update. This will include:</p><ul data-v-07f777df><li data-v-07f777df>Notification settings</li><li data-v-07f777df>Default view modes</li><li data-v-07f777df>Theme customization</li><li data-v-07f777df>Auto-sync preferences</li></ul></div>', 2)
+                activeSection.value === "preferences" ? (openBlock(), createElementBlock("div", _hoisted_24$1, [..._cache[38] || (_cache[38] = [
+                  createStaticVNode('<div class="section-header" data-v-929f421b><h3 data-v-929f421b>User Preferences</h3><p data-v-929f421b>Customize your extension experience (coming soon)</p></div><div class="coming-soon" data-v-929f421b><div class="coming-soon-icon" data-v-929f421b>🚧</div><h4 data-v-929f421b>Feature in Development</h4><p data-v-929f421b>User preferences will be available in a future update. This will include:</p><ul data-v-929f421b><li data-v-929f421b>Notification settings</li><li data-v-929f421b>Default view modes</li><li data-v-929f421b>Theme customization</li><li data-v-929f421b>Auto-sync preferences</li></ul></div>', 2)
                 ])])) : createCommentVNode("", true),
-                activeSection.value === "voting-history" ? (openBlock(), createElementBlock("div", _hoisted_23$2, [
+                activeSection.value === "voting-history" ? (openBlock(), createElementBlock("div", _hoisted_25$1, [
                   _cache[44] || (_cache[44] = createBaseVNode("div", { class: "section-header" }, [
                     createBaseVNode("h3", null, "Voting History"),
                     createBaseVNode("p", null, "Your voting record and participation statistics")
                   ], -1)),
-                  createBaseVNode("div", _hoisted_24$2, [
-                    createBaseVNode("div", _hoisted_25$2, [
-                      createBaseVNode("div", _hoisted_26$2, toDisplayString(votingStats.value.totalVotes), 1),
+                  createBaseVNode("div", _hoisted_26$1, [
+                    createBaseVNode("div", _hoisted_27$1, [
+                      createBaseVNode("div", _hoisted_28$1, toDisplayString(votingStats.value.totalVotes), 1),
                       _cache[39] || (_cache[39] = createBaseVNode("div", { class: "stat-label" }, "Total Votes", -1))
                     ]),
-                    createBaseVNode("div", _hoisted_27$1, [
-                      createBaseVNode("div", _hoisted_28$1, toDisplayString(votingStats.value.ayeVotes), 1),
+                    createBaseVNode("div", _hoisted_29$1, [
+                      createBaseVNode("div", _hoisted_30$1, toDisplayString(votingStats.value.ayeVotes), 1),
                       _cache[40] || (_cache[40] = createBaseVNode("div", { class: "stat-label" }, "Aye Votes", -1))
                     ]),
-                    createBaseVNode("div", _hoisted_29$1, [
-                      createBaseVNode("div", _hoisted_30$1, toDisplayString(votingStats.value.nayVotes), 1),
+                    createBaseVNode("div", _hoisted_31$1, [
+                      createBaseVNode("div", _hoisted_32$1, toDisplayString(votingStats.value.nayVotes), 1),
                       _cache[41] || (_cache[41] = createBaseVNode("div", { class: "stat-label" }, "Nay Votes", -1))
                     ]),
-                    createBaseVNode("div", _hoisted_31$1, [
-                      createBaseVNode("div", _hoisted_32$1, toDisplayString(votingStats.value.abstainVotes), 1),
+                    createBaseVNode("div", _hoisted_33$1, [
+                      createBaseVNode("div", _hoisted_34$1, toDisplayString(votingStats.value.abstainVotes), 1),
                       _cache[42] || (_cache[42] = createBaseVNode("div", { class: "stat-label" }, "Abstain Votes", -1))
                     ])
                   ]),
-                  createBaseVNode("div", _hoisted_33$1, [
-                    votingHistory.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_34$1, [..._cache[43] || (_cache[43] = [
+                  createBaseVNode("div", _hoisted_35$1, [
+                    votingHistory.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_36$1, [..._cache[43] || (_cache[43] = [
                       createBaseVNode("div", { class: "empty-icon" }, "🗳️", -1),
                       createBaseVNode("h4", null, "No voting history", -1),
                       createBaseVNode("p", null, "Your voting history will appear here", -1)
-                    ])])) : (openBlock(), createElementBlock("div", _hoisted_35$1, [
+                    ])])) : (openBlock(), createElementBlock("div", _hoisted_37$1, [
                       (openBlock(true), createElementBlock(Fragment, null, renderList(votingHistory.value, (vote) => {
                         return openBlock(), createElementBlock("div", {
                           key: `${vote.chain}-${vote.postId}`,
                           class: "vote-item"
                         }, [
-                          createBaseVNode("div", _hoisted_36$1, [
-                            createBaseVNode("span", _hoisted_37$1, "#" + toDisplayString(vote.postId), 1),
+                          createBaseVNode("div", _hoisted_38$1, [
+                            createBaseVNode("span", _hoisted_39$1, "#" + toDisplayString(vote.postId), 1),
                             createBaseVNode("span", {
                               class: normalizeClass(["vote-badge", vote.vote.toLowerCase()])
                             }, toDisplayString(vote.vote), 3)
                           ]),
-                          createBaseVNode("div", _hoisted_38$1, toDisplayString(vote.title), 1),
-                          createBaseVNode("div", _hoisted_39$1, toDisplayString(formatDate2(vote.votedAt)), 1)
+                          createBaseVNode("div", _hoisted_40$1, toDisplayString(vote.title), 1),
+                          createBaseVNode("div", _hoisted_41$1, toDisplayString(formatDate2(vote.votedAt)), 1)
                         ]);
                       }), 128))
                     ]))
                   ])
                 ])) : createCommentVNode("", true),
-                activeSection.value === "activity-log" ? (openBlock(), createElementBlock("div", _hoisted_40$1, [
+                activeSection.value === "activity-log" ? (openBlock(), createElementBlock("div", _hoisted_42$1, [
                   _cache[46] || (_cache[46] = createBaseVNode("div", { class: "section-header" }, [
                     createBaseVNode("h3", null, "Activity Log"),
                     createBaseVNode("p", null, "Recent actions and system events")
                   ], -1)),
-                  createBaseVNode("div", _hoisted_41$1, [
-                    activityLog.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_42$1, [..._cache[45] || (_cache[45] = [
+                  createBaseVNode("div", _hoisted_43$1, [
+                    activityLog.value.length === 0 ? (openBlock(), createElementBlock("div", _hoisted_44$1, [..._cache[45] || (_cache[45] = [
                       createBaseVNode("div", { class: "empty-icon" }, "📊", -1),
                       createBaseVNode("h4", null, "No activity logged", -1),
                       createBaseVNode("p", null, "Your activity will be tracked here", -1)
-                    ])])) : (openBlock(), createElementBlock("div", _hoisted_43$1, [
+                    ])])) : (openBlock(), createElementBlock("div", _hoisted_45$1, [
                       (openBlock(true), createElementBlock(Fragment, null, renderList(activityLog.value, (activity) => {
                         return openBlock(), createElementBlock("div", {
                           key: activity.id,
                           class: "activity-item"
                         }, [
-                          createBaseVNode("div", _hoisted_44$1, toDisplayString(getActivityIcon(activity.type)), 1),
-                          createBaseVNode("div", _hoisted_45$1, [
-                            createBaseVNode("div", _hoisted_46$1, toDisplayString(activity.description), 1),
-                            createBaseVNode("div", _hoisted_47$1, toDisplayString(formatDate2(activity.timestamp)), 1)
+                          createBaseVNode("div", _hoisted_46$1, toDisplayString(getActivityIcon(activity.type)), 1),
+                          createBaseVNode("div", _hoisted_47$1, [
+                            createBaseVNode("div", _hoisted_48$1, toDisplayString(activity.description), 1),
+                            createBaseVNode("div", _hoisted_49$1, toDisplayString(formatDate2(activity.timestamp)), 1)
                           ])
                         ]);
                       }), 128))
                     ]))
                   ])
                 ])) : createCommentVNode("", true),
-                activeSection.value === "data-sync" ? (openBlock(), createElementBlock("div", _hoisted_48$1, [
+                activeSection.value === "data-sync" ? (openBlock(), createElementBlock("div", _hoisted_50$1, [
                   _cache[49] || (_cache[49] = createBaseVNode("div", { class: "section-header" }, [
                     createBaseVNode("h3", null, "Data Synchronization"),
                     createBaseVNode("p", null, "Manage data sync with Polkassembly and backend (under review)")
                   ], -1)),
-                  createBaseVNode("div", _hoisted_49$1, [
+                  createBaseVNode("div", _hoisted_51, [
                     _cache[47] || (_cache[47] = createBaseVNode("div", { class: "sync-description" }, [
                       createBaseVNode("p", null, "Manually trigger data synchronization with Polkassembly to get the latest referendum information.")
                     ], -1)),
-                    createBaseVNode("div", _hoisted_50$1, [
+                    createBaseVNode("div", _hoisted_52, [
                       createBaseVNode("button", {
                         onClick: normalSync,
                         class: "sync-btn",
                         disabled: syncing.value
-                      }, toDisplayString(syncing.value ? "🔄 Syncing..." : "🔄 Normal Sync"), 9, _hoisted_51),
+                      }, toDisplayString(syncing.value ? "🔄 Syncing..." : "🔄 Normal Sync"), 9, _hoisted_53),
                       createBaseVNode("button", {
                         onClick: deepSync,
                         class: "sync-btn deep",
                         disabled: syncing.value
-                      }, toDisplayString(syncing.value ? "🔄 Syncing..." : "⚡ Deep Sync"), 9, _hoisted_52)
+                      }, toDisplayString(syncing.value ? "🔄 Syncing..." : "⚡ Deep Sync"), 9, _hoisted_54)
                     ]),
                     _cache[48] || (_cache[48] = createBaseVNode("div", { class: "sync-info" }, [
                       createBaseVNode("div", { class: "sync-type" }, [
@@ -13186,14 +13574,14 @@ Your address: ${address}${configuredMultisigs}
                     ], -1))
                   ])
                 ])) : createCommentVNode("", true),
-                activeSection.value === "help" ? (openBlock(), createElementBlock("div", _hoisted_53, [
+                activeSection.value === "help" ? (openBlock(), createElementBlock("div", _hoisted_55, [
                   _cache[51] || (_cache[51] = createBaseVNode("div", { class: "section-header" }, [
                     createBaseVNode("h3", null, "Help & Guide"),
                     createBaseVNode("p", null, "Learn how to use the DAO Voting Tool extension")
                   ], -1)),
-                  createBaseVNode("div", _hoisted_54, [
-                    _cache[50] || (_cache[50] = createStaticVNode('<div class="help-section" data-v-07f777df><h4 data-v-07f777df>Getting Started</h4><ul data-v-07f777df><li data-v-07f777df>Connect your wallet to authenticate</li><li data-v-07f777df>Browse and filter proposals</li><li data-v-07f777df>Assign proposals to team members</li><li data-v-07f777df>Participate in team discussions</li></ul></div><div class="help-section" data-v-07f777df><h4 data-v-07f777df>Team Workflow</h4><ul data-v-07f777df><li data-v-07f777df><strong data-v-07f777df>Agree:</strong> Support the proposal evaluation</li><li data-v-07f777df><strong data-v-07f777df>To be discussed:</strong> Mark for team discussion</li><li data-v-07f777df><strong data-v-07f777df>NO WAY (Veto):</strong> Forces Nay (needs reasoning)</li><li data-v-07f777df><strong data-v-07f777df>Recuse:</strong> Abstain due to conflict of interest</li></ul></div><div class="help-section" data-v-07f777df><h4 data-v-07f777df>Status Flow</h4><ol data-v-07f777df><li data-v-07f777df>Not started → Considering</li><li data-v-07f777df>Considering → Ready for approval</li><li data-v-07f777df>Ready for approval → Waiting for agreement</li><li data-v-07f777df>Waiting for agreement → Ready to vote</li><li data-v-07f777df>Ready to vote → Voted</li></ol></div>', 3)),
-                    createBaseVNode("div", _hoisted_55, [
+                  createBaseVNode("div", _hoisted_56, [
+                    _cache[50] || (_cache[50] = createStaticVNode('<div class="help-section" data-v-929f421b><h4 data-v-929f421b>Getting Started</h4><ul data-v-929f421b><li data-v-929f421b>Connect your wallet to authenticate</li><li data-v-929f421b>Browse and filter proposals</li><li data-v-929f421b>Assign proposals to team members</li><li data-v-929f421b>Participate in team discussions</li></ul></div><div class="help-section" data-v-929f421b><h4 data-v-929f421b>Team Workflow</h4><ul data-v-929f421b><li data-v-929f421b><strong data-v-929f421b>Agree:</strong> Support the proposal evaluation</li><li data-v-929f421b><strong data-v-929f421b>To be discussed:</strong> Mark for team discussion</li><li data-v-929f421b><strong data-v-929f421b>NO WAY (Veto):</strong> Forces Nay (needs reasoning)</li><li data-v-929f421b><strong data-v-929f421b>Recuse:</strong> Abstain due to conflict of interest</li></ul></div><div class="help-section" data-v-929f421b><h4 data-v-929f421b>Status Flow</h4><ol data-v-929f421b><li data-v-929f421b>Not started → Considering</li><li data-v-929f421b>Considering → Ready for approval</li><li data-v-929f421b>Ready for approval → Waiting for agreement</li><li data-v-929f421b>Waiting for agreement → Ready to vote</li><li data-v-929f421b>Ready to vote → Voted</li></ol></div>', 3)),
+                    createBaseVNode("div", _hoisted_57, [
                       createBaseVNode("a", {
                         href: "#",
                         onClick: _cache[10] || (_cache[10] = ($event) => openExternal("https://github.com/ZelmaCorp/VotingTool")),
@@ -13207,13 +13595,13 @@ Your address: ${address}${configuredMultisigs}
                     ])
                   ])
                 ])) : createCommentVNode("", true),
-                activeSection.value === "about" ? (openBlock(), createElementBlock("div", _hoisted_56, [
+                activeSection.value === "about" ? (openBlock(), createElementBlock("div", _hoisted_58, [
                   _cache[55] || (_cache[55] = createBaseVNode("div", { class: "section-header" }, [
                     createBaseVNode("h3", null, "About DAO Voting Tool"),
                     createBaseVNode("p", null, "Information about this extension")
                   ], -1)),
-                  createBaseVNode("div", _hoisted_57, [
-                    createBaseVNode("div", _hoisted_58, [
+                  createBaseVNode("div", _hoisted_59, [
+                    createBaseVNode("div", _hoisted_60, [
                       _cache[52] || (_cache[52] = createBaseVNode("h4", null, "Version", -1)),
                       createBaseVNode("p", null, toDisplayString(extensionVersion.value), 1)
                     ]),
@@ -13231,7 +13619,7 @@ Your address: ${address}${configuredMultisigs}
                         createBaseVNode("li", null, "Discussion management")
                       ])
                     ], -1)),
-                    createBaseVNode("div", _hoisted_59, [
+                    createBaseVNode("div", _hoisted_61, [
                       createBaseVNode("a", {
                         href: "#",
                         onClick: _cache[12] || (_cache[12] = ($event) => openExternal("https://github.com/ZelmaCorp/VotingTool/")),
@@ -13247,7 +13635,7 @@ Your address: ${address}${configuredMultisigs}
       };
     }
   });
-  const SettingsMore = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["__scopeId", "data-v-07f777df"]]);
+  const SettingsMore = /* @__PURE__ */ _export_sfc(_sfc_main$m, [["__scopeId", "data-v-929f421b"]]);
   const _hoisted_1$l = { class: "modal-header" };
   const _hoisted_2$k = { class: "modal-content" };
   const _hoisted_3$k = { class: "status-options" };
@@ -13543,7 +13931,7 @@ Your address: ${address}${configuredMultisigs}
     key: 1,
     class: "meta-item action-type"
   };
-  const _hoisted_12$4 = { class: "meta-item" };
+  const _hoisted_12$5 = { class: "meta-item" };
   const _sfc_main$j = /* @__PURE__ */ defineComponent({
     __name: "ActionsNeededTab",
     props: {
@@ -13611,7 +13999,7 @@ Your address: ${address}${configuredMultisigs}
                 createBaseVNode("div", _hoisted_8$8, [
                   createBaseVNode("div", _hoisted_9$7, [
                     _cache[1] || (_cache[1] = createBaseVNode("strong", null, "Assigned to:", -1)),
-                    createTextVNode(" " + toDisplayString(proposal.assigned_to || "Unassigned"), 1)
+                    createTextVNode(" " + toDisplayString(unref(getTeamMemberName)(proposal.assigned_to)), 1)
                   ]),
                   proposal.assigned_to === _ctx.currentUserAddress ? (openBlock(), createElementBlock("div", _hoisted_10$7, [..._cache[2] || (_cache[2] = [
                     createBaseVNode("strong", null, "Action:", -1),
@@ -13622,7 +14010,7 @@ Your address: ${address}${configuredMultisigs}
                     createTextVNode(),
                     createBaseVNode("span", { class: "action-badge team-vote" }, "Needs Your Team Vote", -1)
                   ])])),
-                  createBaseVNode("div", _hoisted_12$4, [
+                  createBaseVNode("div", _hoisted_12$5, [
                     _cache[4] || (_cache[4] = createBaseVNode("strong", null, "Updated:", -1)),
                     createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
                   ])
@@ -13641,7 +14029,7 @@ Your address: ${address}${configuredMultisigs}
       };
     }
   });
-  const ActionsNeededTab = /* @__PURE__ */ _export_sfc(_sfc_main$j, [["__scopeId", "data-v-c914a971"]]);
+  const ActionsNeededTab = /* @__PURE__ */ _export_sfc(_sfc_main$j, [["__scopeId", "data-v-9d4ddd79"]]);
   const _hoisted_1$i = { class: "content-area" };
   const _hoisted_2$h = {
     key: 0,
@@ -13657,14 +14045,13 @@ Your address: ${address}${configuredMultisigs}
   const _hoisted_7$9 = { class: "proposal-title" };
   const _hoisted_8$7 = { class: "evaluation-info" };
   const _hoisted_9$6 = { class: "vote-recommendation" };
-  const _hoisted_10$6 = { class: "vote-badge" };
-  const _hoisted_11$4 = {
+  const _hoisted_10$6 = {
     key: 0,
     class: "vote-reason"
   };
-  const _hoisted_12$3 = { class: "proposal-meta" };
-  const _hoisted_13$2 = { class: "meta-item" };
-  const _hoisted_14$2 = { class: "meta-item" };
+  const _hoisted_11$4 = { class: "proposal-meta" };
+  const _hoisted_12$4 = { class: "meta-item" };
+  const _hoisted_13$3 = { class: "meta-item" };
   const _sfc_main$i = /* @__PURE__ */ defineComponent({
     __name: "MyEvaluationsTab",
     props: {
@@ -13680,6 +14067,7 @@ Your address: ${address}${configuredMultisigs}
             createBaseVNode("p", null, "You haven't completed any evaluations", -1)
           ])])) : (openBlock(), createElementBlock("div", _hoisted_3$h, [
             (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.evaluations, (proposal) => {
+              var _a, _b, _c;
               return openBlock(), createElementBlock("div", {
                 key: `${proposal.chain}-${proposal.post_id}`,
                 class: "proposal-item",
@@ -13697,19 +14085,25 @@ Your address: ${address}${configuredMultisigs}
                 createBaseVNode("div", _hoisted_8$7, [
                   createBaseVNode("div", _hoisted_9$6, [
                     _cache[1] || (_cache[1] = createBaseVNode("strong", null, "Your Recommendation:", -1)),
-                    createBaseVNode("span", _hoisted_10$6, toDisplayString(proposal.suggested_vote), 1)
+                    createBaseVNode("span", {
+                      class: normalizeClass(["vote-badge", {
+                        "vote-aye": (_a = proposal.suggested_vote) == null ? void 0 : _a.toLowerCase().includes("aye"),
+                        "vote-nay": (_b = proposal.suggested_vote) == null ? void 0 : _b.toLowerCase().includes("nay"),
+                        "vote-abstain": (_c = proposal.suggested_vote) == null ? void 0 : _c.toLowerCase().includes("abstain")
+                      }])
+                    }, toDisplayString(proposal.suggested_vote), 3)
                   ]),
-                  proposal.reason_for_vote ? (openBlock(), createElementBlock("div", _hoisted_11$4, [
+                  proposal.reason_for_vote ? (openBlock(), createElementBlock("div", _hoisted_10$6, [
                     _cache[2] || (_cache[2] = createBaseVNode("strong", null, "Reason:", -1)),
                     createTextVNode(" " + toDisplayString(proposal.reason_for_vote), 1)
                   ])) : createCommentVNode("", true)
                 ]),
-                createBaseVNode("div", _hoisted_12$3, [
-                  createBaseVNode("div", _hoisted_13$2, [
+                createBaseVNode("div", _hoisted_11$4, [
+                  createBaseVNode("div", _hoisted_12$4, [
                     _cache[3] || (_cache[3] = createBaseVNode("strong", null, "Timeline:", -1)),
                     createTextVNode(" " + toDisplayString(proposal.referendum_timeline || "Unknown"), 1)
                   ]),
-                  createBaseVNode("div", _hoisted_14$2, [
+                  createBaseVNode("div", _hoisted_13$3, [
                     _cache[4] || (_cache[4] = createBaseVNode("strong", null, "Updated:", -1)),
                     createTextVNode(" " + toDisplayString(unref(formatDate)(proposal.updated_at || proposal.created_at)), 1)
                   ])
@@ -13721,7 +14115,7 @@ Your address: ${address}${configuredMultisigs}
       };
     }
   });
-  const MyEvaluationsTab = /* @__PURE__ */ _export_sfc(_sfc_main$i, [["__scopeId", "data-v-9dd5dc87"]]);
+  const MyEvaluationsTab = /* @__PURE__ */ _export_sfc(_sfc_main$i, [["__scopeId", "data-v-c11b38eb"]]);
   const _hoisted_1$h = { class: "content-area" };
   const _sfc_main$h = /* @__PURE__ */ defineComponent({
     __name: "MyActivityTab",
@@ -13783,9 +14177,10 @@ Your address: ${address}${configuredMultisigs}
           if (!inActionableStatus) {
             return false;
           }
-          const hasTeamAction = (_a2 = p2.team_actions) == null ? void 0 : _a2.some(
-            (action) => action.wallet_address === currentUser && ["Agree", "NO WAY", "Recuse", "To be discussed", "agree", "no_way", "recuse", "to_be_discussed"].includes(action.role_type)
-          );
+          const hasTeamAction = (_a2 = p2.team_actions) == null ? void 0 : _a2.some((action) => {
+            const actionType = action.action || action.role_type;
+            return action.wallet_address === currentUser && ["Agree", "NO WAY", "Recuse", "To be discussed", "agree", "no_way", "recuse", "to_be_discussed"].includes(actionType);
+          });
           return !hasTeamAction;
         });
       });
@@ -13966,7 +14361,7 @@ Your address: ${address}${configuredMultisigs}
       };
     }
   });
-  const MyDashboard = /* @__PURE__ */ _export_sfc(_sfc_main$g, [["__scopeId", "data-v-f4aa978b"]]);
+  const MyDashboard = /* @__PURE__ */ _export_sfc(_sfc_main$g, [["__scopeId", "data-v-6d128393"]]);
   const _hoisted_1$f = { class: "proposal-header" };
   const _hoisted_2$f = { class: "proposal-id" };
   const _hoisted_3$f = { class: "proposal-title" };
@@ -13987,45 +14382,35 @@ Your address: ${address}${configuredMultisigs}
     key: 0,
     class: "no-members"
   };
-  const _hoisted_12$2 = {
+  const _hoisted_12$3 = {
     key: 2,
-    class: "voting-info"
-  };
-  const _hoisted_13$1 = { class: "vote-recommendation" };
-  const _hoisted_14$1 = { class: "vote-badge" };
-  const _hoisted_15$1 = {
-    key: 0,
-    class: "vote-reason"
-  };
-  const _hoisted_16$1 = {
-    key: 3,
     class: "discussion-info"
   };
-  const _hoisted_17$1 = { class: "discussion-members" };
-  const _hoisted_18$1 = { class: "member-list" };
-  const _hoisted_19$1 = {
-    key: 4,
+  const _hoisted_13$2 = { class: "discussion-members" };
+  const _hoisted_14$1 = { class: "member-list" };
+  const _hoisted_15$1 = {
+    key: 3,
     class: "veto-info"
   };
-  const _hoisted_20$1 = { class: "veto-alert" };
-  const _hoisted_21$1 = {
+  const _hoisted_16$1 = { class: "veto-alert" };
+  const _hoisted_17$1 = {
     key: 0,
     class: "veto-reason"
   };
-  const _hoisted_22$1 = {
+  const _hoisted_18$1 = {
     key: 1,
     class: "veto-date"
   };
-  const _hoisted_23$1 = { class: "proposal-meta" };
-  const _hoisted_24$1 = {
+  const _hoisted_19$1 = { class: "proposal-meta" };
+  const _hoisted_20$1 = {
     key: 0,
     class: "meta-item"
   };
-  const _hoisted_25$1 = {
+  const _hoisted_21$1 = {
     key: 1,
     class: "meta-item"
   };
-  const _hoisted_26$1 = { class: "meta-item" };
+  const _hoisted_22$1 = { class: "meta-item" };
   const _sfc_main$f = /* @__PURE__ */ defineComponent({
     __name: "ProposalItem",
     props: {
@@ -14053,20 +14438,27 @@ Your address: ${address}${configuredMultisigs}
         emit2("status-click", props.proposal);
       };
       const evaluatorName = computed(() => {
-        if (!props.proposal.assigned_to) {
-          return "Unassigned";
-        }
-        const member = findTeamMemberByAddress(props.proposal.assigned_to);
-        return member ? member.name : props.proposal.assigned_to;
+        const name = getTeamMemberName(props.proposal.assigned_to);
+        return name;
       });
       const vetoByName = computed(() => {
+        const proposalVetoName = props.proposal.veto_by_name;
+        if (proposalVetoName) {
+          return proposalVetoName;
+        }
         if (!props.vetoBy) {
           return "Unknown";
         }
-        const member = findTeamMemberByAddress(props.vetoBy);
-        return member ? member.name : props.vetoBy;
+        return getTeamMemberName(props.vetoBy);
+      });
+      const actualVetoReason = computed(() => {
+        return props.proposal.veto_reason || props.vetoReason;
+      });
+      const actualVetoDate = computed(() => {
+        return props.proposal.veto_date || props.vetoDate;
       });
       return (_ctx, _cache) => {
+        var _a, _b, _c;
         return openBlock(), createElementBlock("div", {
           class: normalizeClass(["proposal-item", {
             "agreement-item": _ctx.type === "agreement" && _ctx.agreementCount < _ctx.requiredAgreements,
@@ -14116,20 +14508,10 @@ Your address: ${address}${configuredMultisigs}
               ])
             ])
           ])) : createCommentVNode("", true),
-          _ctx.type === "ready" ? (openBlock(), createElementBlock("div", _hoisted_12$2, [
-            createBaseVNode("div", _hoisted_13$1, [
-              _cache[3] || (_cache[3] = createBaseVNode("strong", null, "Team Recommendation:", -1)),
-              createBaseVNode("span", _hoisted_14$1, toDisplayString(_ctx.proposal.suggested_vote || "Not set"), 1)
-            ]),
-            _ctx.proposal.reason_for_vote ? (openBlock(), createElementBlock("div", _hoisted_15$1, [
-              _cache[4] || (_cache[4] = createBaseVNode("strong", null, "Reason:", -1)),
-              createTextVNode(" " + toDisplayString(_ctx.proposal.reason_for_vote), 1)
-            ])) : createCommentVNode("", true)
-          ])) : createCommentVNode("", true),
-          _ctx.type === "discussion" ? (openBlock(), createElementBlock("div", _hoisted_16$1, [
-            createBaseVNode("div", _hoisted_17$1, [
-              _cache[5] || (_cache[5] = createBaseVNode("strong", null, "Marked for discussion by:", -1)),
-              createBaseVNode("div", _hoisted_18$1, [
+          _ctx.type === "discussion" ? (openBlock(), createElementBlock("div", _hoisted_12$3, [
+            createBaseVNode("div", _hoisted_13$2, [
+              _cache[3] || (_cache[3] = createBaseVNode("strong", null, "Marked for discussion by:", -1)),
+              createBaseVNode("div", _hoisted_14$1, [
                 (openBlock(true), createElementBlock(Fragment, null, renderList(_ctx.discussionMembers, (member) => {
                   return openBlock(), createElementBlock("span", {
                     key: member.address,
@@ -14139,34 +14521,39 @@ Your address: ${address}${configuredMultisigs}
               ])
             ])
           ])) : createCommentVNode("", true),
-          _ctx.type === "vetoed" ? (openBlock(), createElementBlock("div", _hoisted_19$1, [
-            createBaseVNode("div", _hoisted_20$1, [
-              _cache[6] || (_cache[6] = createBaseVNode("span", { class: "alert-icon" }, "🚫", -1)),
-              _cache[7] || (_cache[7] = createBaseVNode("strong", null, "NO WAYed by:", -1)),
+          _ctx.type === "vetoed" ? (openBlock(), createElementBlock("div", _hoisted_15$1, [
+            createBaseVNode("div", _hoisted_16$1, [
+              _cache[4] || (_cache[4] = createBaseVNode("span", { class: "alert-icon" }, "🚫", -1)),
+              _cache[5] || (_cache[5] = createBaseVNode("strong", null, "NO WAYed by:", -1)),
               createTextVNode(" " + toDisplayString(vetoByName.value), 1)
             ]),
-            _ctx.vetoReason ? (openBlock(), createElementBlock("div", _hoisted_21$1, [
-              _cache[8] || (_cache[8] = createBaseVNode("strong", null, "Reason:", -1)),
-              createTextVNode(" " + toDisplayString(_ctx.vetoReason), 1)
+            actualVetoReason.value ? (openBlock(), createElementBlock("div", _hoisted_17$1, [
+              _cache[6] || (_cache[6] = createBaseVNode("strong", null, "Reason:", -1)),
+              createTextVNode(" " + toDisplayString(actualVetoReason.value), 1)
             ])) : createCommentVNode("", true),
-            _ctx.vetoDate ? (openBlock(), createElementBlock("div", _hoisted_22$1, [
-              _cache[9] || (_cache[9] = createBaseVNode("strong", null, "NO WAYed on:", -1)),
-              createTextVNode(" " + toDisplayString(unref(formatDate)(_ctx.vetoDate)), 1)
+            actualVetoDate.value ? (openBlock(), createElementBlock("div", _hoisted_18$1, [
+              _cache[7] || (_cache[7] = createBaseVNode("strong", null, "NO WAYed on:", -1)),
+              createTextVNode(" " + toDisplayString(unref(formatDate)(actualVetoDate.value)), 1)
             ])) : createCommentVNode("", true)
           ])) : createCommentVNode("", true),
-          createBaseVNode("div", _hoisted_23$1, [
-            _ctx.showEvaluator ? (openBlock(), createElementBlock("div", _hoisted_24$1, [
-              _cache[10] || (_cache[10] = createBaseVNode("strong", null, "Evaluator:", -1)),
+          createBaseVNode("div", _hoisted_19$1, [
+            _ctx.showEvaluator ? (openBlock(), createElementBlock("div", _hoisted_20$1, [
+              _cache[8] || (_cache[8] = createBaseVNode("strong", null, "Evaluator:", -1)),
               createTextVNode(" " + toDisplayString(evaluatorName.value), 1)
             ])) : createCommentVNode("", true),
-            _ctx.showSuggestedVote ? (openBlock(), createElementBlock("div", _hoisted_25$1, [
-              _cache[11] || (_cache[11] = createBaseVNode("strong", null, "Suggested Vote:", -1)),
+            _ctx.showSuggestedVote ? (openBlock(), createElementBlock("div", _hoisted_21$1, [
+              _cache[9] || (_cache[9] = createBaseVNode("strong", null, "Suggested Vote:", -1)),
               createBaseVNode("span", {
-                class: normalizeClass({ "not-set": !_ctx.proposal.suggested_vote })
+                class: normalizeClass(["vote-badge-small", {
+                  "vote-aye": (_a = _ctx.proposal.suggested_vote) == null ? void 0 : _a.toLowerCase().includes("aye"),
+                  "vote-nay": (_b = _ctx.proposal.suggested_vote) == null ? void 0 : _b.toLowerCase().includes("nay"),
+                  "vote-abstain": (_c = _ctx.proposal.suggested_vote) == null ? void 0 : _c.toLowerCase().includes("abstain"),
+                  "not-set": !_ctx.proposal.suggested_vote
+                }])
               }, toDisplayString(_ctx.proposal.suggested_vote || "Not set"), 3)
             ])) : createCommentVNode("", true),
-            createBaseVNode("div", _hoisted_26$1, [
-              _cache[12] || (_cache[12] = createBaseVNode("strong", null, "Updated:", -1)),
+            createBaseVNode("div", _hoisted_22$1, [
+              _cache[10] || (_cache[10] = createBaseVNode("strong", null, "Updated:", -1)),
               createTextVNode(" " + toDisplayString(unref(formatDate)(_ctx.proposal.updated_at || _ctx.proposal.created_at)), 1)
             ])
           ])
@@ -14174,7 +14561,7 @@ Your address: ${address}${configuredMultisigs}
       };
     }
   });
-  const ProposalItem = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["__scopeId", "data-v-254d3b0b"]]);
+  const ProposalItem = /* @__PURE__ */ _export_sfc(_sfc_main$f, [["__scopeId", "data-v-6c411c28"]]);
   const _hoisted_1$e = { class: "content-area" };
   const _hoisted_2$e = { class: "panel-header" };
   const _hoisted_3$e = {
@@ -14226,44 +14613,54 @@ Your address: ${address}${configuredMultisigs}
         }
       };
       const parseTeamActions = (proposal) => {
-        if (!proposal.team_actions) return [];
-        if (Array.isArray(proposal.team_actions)) {
-          return proposal.team_actions;
+        const teamActions = proposal.team_actions;
+        if (!teamActions) return [];
+        if (Array.isArray(teamActions)) {
+          return teamActions;
         }
-        return proposal.team_actions.split(",").map((actionStr) => {
-          const [team_member_id, role_type, reason, created_at] = actionStr.split(":");
-          return {
-            team_member_id,
-            wallet_address: team_member_id,
-            // For compatibility
-            role_type,
-            reason,
-            created_at,
-            team_member_name: teamStore.getTeamMemberName(team_member_id)
-          };
-        });
+        if (typeof teamActions === "string") {
+          return teamActions.split(",").map((actionStr) => {
+            const [team_member_id, role_type, reason, created_at] = actionStr.split(":");
+            return {
+              team_member_id,
+              wallet_address: team_member_id,
+              role_type,
+              reason,
+              created_at,
+              team_member_name: teamStore.getTeamMemberName(team_member_id)
+            };
+          });
+        }
+        return [];
       };
       const getAgreementCount = (proposal) => {
         const actions = parseTeamActions(proposal);
-        return actions.filter(
-          (action) => {
-            var _a;
-            return ((_a = action.role_type) == null ? void 0 : _a.toLowerCase()) === "agree";
-          }
-        ).length;
+        console.log("📊 Agreement count debug:", {
+          proposalId: proposal.post_id,
+          actions,
+          filtered: actions.filter((a) => {
+            const actionType = a.action || a.role_type;
+            return (actionType == null ? void 0 : actionType.toLowerCase()) === "agree";
+          })
+        });
+        return actions.filter((action) => {
+          const actionType = action.action || action.role_type;
+          return (actionType == null ? void 0 : actionType.toLowerCase()) === "agree";
+        }).length;
       };
       const getAgreedMembers = (proposal) => {
         const actions = parseTeamActions(proposal);
-        const agreeActions = actions.filter(
-          (action) => {
-            var _a;
-            return ((_a = action.role_type) == null ? void 0 : _a.toLowerCase()) === "agree";
-          }
-        );
-        return agreeActions.map((action) => ({
-          name: action.team_member_name || teamStore.getTeamMemberName(action.team_member_id),
-          address: action.team_member_id
-        }));
+        const agreeActions = actions.filter((action) => {
+          const actionType = action.action || action.role_type;
+          return (actionType == null ? void 0 : actionType.toLowerCase()) === "agree";
+        });
+        return agreeActions.map((action) => {
+          const memberId = action.wallet_address || action.team_member_id;
+          return {
+            address: memberId,
+            name: action.team_member_name || teamStore.getTeamMemberName(memberId)
+          };
+        });
       };
       return (_ctx, _cache) => {
         var _a, _b;
@@ -14302,7 +14699,7 @@ Your address: ${address}${configuredMultisigs}
       };
     }
   });
-  const NeedsAgreementTab = /* @__PURE__ */ _export_sfc(_sfc_main$e, [["__scopeId", "data-v-869dab61"]]);
+  const NeedsAgreementTab = /* @__PURE__ */ _export_sfc(_sfc_main$e, [["__scopeId", "data-v-11940616"]]);
   const _hoisted_1$d = { class: "content-area" };
   const _hoisted_2$d = { class: "panel-header" };
   const _hoisted_3$d = ["disabled"];
@@ -14377,32 +14774,39 @@ Your address: ${address}${configuredMultisigs}
     emits: ["open-proposal"],
     setup(__props) {
       const parseTeamActions = (proposal) => {
-        if (!proposal.team_actions) return [];
-        if (Array.isArray(proposal.team_actions)) {
-          return proposal.team_actions;
+        const teamActions = proposal.team_actions;
+        if (!teamActions) return [];
+        if (Array.isArray(teamActions)) {
+          return teamActions;
         }
-        return proposal.team_actions.split(",").map((actionStr) => {
-          const [team_member_id, role_type, reason, created_at] = actionStr.split(":");
-          return {
-            team_member_id,
-            wallet_address: team_member_id,
-            // For compatibility
-            role_type,
-            reason,
-            created_at,
-            team_member_name: teamStore.getTeamMemberName(team_member_id)
-          };
-        });
+        if (typeof teamActions === "string") {
+          return teamActions.split(",").map((actionStr) => {
+            const [team_member_id, role_type, reason, created_at] = actionStr.split(":");
+            return {
+              team_member_id,
+              wallet_address: team_member_id,
+              role_type,
+              reason,
+              created_at,
+              team_member_name: teamStore.getTeamMemberName(team_member_id)
+            };
+          });
+        }
+        return [];
       };
       const getDiscussionMembers = (proposal) => {
         const actions = parseTeamActions(proposal);
-        const discussionActions = actions.filter(
-          (action) => action.role_type === "to_be_discussed"
-        );
-        return discussionActions.map((action) => ({
-          name: action.team_member_name || teamStore.getTeamMemberName(action.team_member_id),
-          address: action.team_member_id
-        }));
+        const discussionActions = actions.filter((action) => {
+          const actionType = action.action || action.role_type;
+          return actionType === "to_be_discussed";
+        });
+        return discussionActions.map((action) => {
+          const memberId = action.wallet_address || action.team_member_id;
+          return {
+            address: memberId,
+            name: action.team_member_name || teamStore.getTeamMemberName(memberId)
+          };
+        });
       };
       return (_ctx, _cache) => {
         return openBlock(), createElementBlock("div", _hoisted_1$c, [
@@ -14430,7 +14834,7 @@ Your address: ${address}${configuredMultisigs}
       };
     }
   });
-  const ForDiscussionTab = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["__scopeId", "data-v-2e7af979"]]);
+  const ForDiscussionTab = /* @__PURE__ */ _export_sfc(_sfc_main$c, [["__scopeId", "data-v-b5ea048b"]]);
   const _hoisted_1$b = { class: "content-area" };
   const _hoisted_2$b = {
     key: 0,
@@ -14464,15 +14868,20 @@ Your address: ${address}${configuredMultisigs}
                 proposal,
                 type: "vetoed",
                 editable: false,
+                "show-evaluator": false,
+                "show-suggested-vote": false,
+                "veto-by": proposal.veto_by,
+                "veto-reason": proposal.veto_reason,
+                "veto-date": proposal.veto_date,
                 onClick: ($event) => _ctx.$emit("open-proposal", proposal)
-              }, null, 8, ["proposal", "onClick"]);
+              }, null, 8, ["proposal", "veto-by", "veto-reason", "veto-date", "onClick"]);
             }), 128))
           ]))
         ]);
       };
     }
   });
-  const VetoedTab = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["__scopeId", "data-v-03d5c226"]]);
+  const VetoedTab = /* @__PURE__ */ _export_sfc(_sfc_main$b, [["__scopeId", "data-v-d55f45ac"]]);
   const _hoisted_1$a = { class: "modal-header" };
   const _hoisted_2$a = { class: "modal-body" };
   const _hoisted_3$a = { class: "modal-actions" };
@@ -14895,15 +15304,29 @@ Your address: ${address}${configuredMultisigs}
     key: 1,
     class: "login-prompt"
   };
-  const _hoisted_11$2 = { class: "menu-items" };
+  const _hoisted_11$2 = {
+    key: 0,
+    class: "loading-container"
+  };
+  const _hoisted_12$2 = {
+    key: 1,
+    class: "registration-prompt"
+  };
+  const _hoisted_13$1 = {
+    key: 2,
+    class: "menu-items"
+  };
   const _sfc_main$7 = /* @__PURE__ */ defineComponent({
     __name: "Menu",
     setup(__props) {
       const showWalletConnect = ref(false);
       const showDAOConfig = ref(false);
+      const showDAORegistration = ref(false);
       const showProposalBrowser = ref(false);
       const showUnifiedDashboard = ref(false);
       const showSettingsMore = ref(false);
+      const isDaoMember = ref(false);
+      const isCheckingDaoMembership = ref(false);
       const getUserInitials = () => {
         var _a;
         const name = (_a = authStore.state.user) == null ? void 0 : _a.name;
@@ -14912,6 +15335,7 @@ Your address: ${address}${configuredMultisigs}
       };
       const handleLogout = async () => {
         await authStore.logout();
+        isDaoMember.value = false;
       };
       const handleAction = (action) => {
         switch (action) {
@@ -14924,11 +15348,72 @@ Your address: ${address}${configuredMultisigs}
           case "settings-more":
             showSettingsMore.value = true;
             break;
+          case "register-dao":
+            showDAORegistration.value = true;
+            break;
         }
       };
       const handleConfigSaved = () => {
         showDAOConfig.value = false;
       };
+      const handleDaoRegistered = async (daoName) => {
+        console.log("DAO registered:", daoName);
+        showDAORegistration.value = false;
+        await checkDaoMembership();
+        await authStore.refreshUserInfo();
+        window.dispatchEvent(new CustomEvent("daoRegistered", {
+          detail: { daoName }
+        }));
+      };
+      const checkDaoMembership = async () => {
+        if (!authStore.state.isAuthenticated) {
+          isDaoMember.value = false;
+          return;
+        }
+        isCheckingDaoMembership.value = true;
+        try {
+          const apiService = ApiService.getInstance();
+          const config2 = await apiService.getDAOConfig();
+          if (config2 && config2.name) {
+            isDaoMember.value = true;
+            console.log("✅ User is member of DAO:", config2.name);
+            await authStore.refreshUserInfo();
+          } else {
+            isDaoMember.value = false;
+            console.log("ℹ️ User is not a member of any DAO - registration required");
+          }
+        } catch (error) {
+          console.error("❌ Error checking DAO membership:", error);
+          if (error.status === 401) {
+            console.warn("⚠️ Token invalid, logging out...");
+            await authStore.logout();
+          }
+          isDaoMember.value = false;
+        } finally {
+          isCheckingDaoMembership.value = false;
+        }
+      };
+      onMounted(async () => {
+        await checkDaoMembership();
+        if (authStore.state.isAuthenticated && isDaoMember.value) {
+          try {
+            await teamStore.fetchTeamData();
+            console.log("✅ Team data pre-fetched, backend cache should be warmed");
+          } catch (error) {
+            console.warn("Failed to pre-fetch team data:", error);
+          }
+        }
+      });
+      watch(() => authStore.state.isAuthenticated, (newValue) => {
+        if (newValue) {
+          checkDaoMembership();
+        } else {
+          isDaoMember.value = false;
+        }
+      });
+      window.addEventListener("authStateChanged", () => {
+        checkDaoMembership();
+      });
       return (_ctx, _cache) => {
         var _a, _b, _c;
         return openBlock(), createElementBlock("div", _hoisted_1$7, [
@@ -14946,77 +15431,104 @@ Your address: ${address}${configuredMultisigs}
                 disabled: unref(authStore).state.isLoading
               }, toDisplayString(unref(authStore).state.isLoading ? "..." : "Logout"), 9, _hoisted_9$2)
             ])) : (openBlock(), createElementBlock("div", _hoisted_10$2, [
-              _cache[11] || (_cache[11] = createBaseVNode("div", { class: "login-icon" }, "🔐", -1)),
-              _cache[12] || (_cache[12] = createBaseVNode("div", { class: "login-text" }, "Connect your wallet to continue", -1)),
+              _cache[15] || (_cache[15] = createBaseVNode("div", { class: "login-icon" }, "🔐", -1)),
+              _cache[16] || (_cache[16] = createBaseVNode("div", { class: "login-text" }, "Connect your wallet to continue", -1)),
               createBaseVNode("button", {
                 onClick: _cache[0] || (_cache[0] = ($event) => showWalletConnect.value = true),
                 class: "connect-btn"
-              }, " Connect Wallet ")
+              }, " Connect Wallet "),
+              createBaseVNode("button", {
+                onClick: _cache[1] || (_cache[1] = ($event) => handleAction("settings-more")),
+                class: "settings-link-btn"
+              }, " ⚙️ Configure Backend URL ")
             ]))
           ]),
-          createBaseVNode("div", _hoisted_11$2, [
+          unref(authStore).state.isAuthenticated && isCheckingDaoMembership.value ? (openBlock(), createElementBlock("div", _hoisted_11$2, [..._cache[17] || (_cache[17] = [
+            createBaseVNode("div", { class: "spinner-small" }, null, -1),
+            createBaseVNode("p", { class: "loading-text" }, "Checking DAO membership...", -1)
+          ])])) : createCommentVNode("", true),
+          unref(authStore).state.isAuthenticated && !isCheckingDaoMembership.value && !isDaoMember.value ? (openBlock(), createElementBlock("div", _hoisted_12$2, [
+            _cache[18] || (_cache[18] = createBaseVNode("div", { class: "prompt-icon" }, "🏛️", -1)),
+            _cache[19] || (_cache[19] = createBaseVNode("h4", null, "Register Your DAO", -1)),
+            _cache[20] || (_cache[20] = createBaseVNode("p", null, "To access the voting tool features, you need to register your DAO's multisig.", -1)),
+            createBaseVNode("button", {
+              onClick: _cache[2] || (_cache[2] = ($event) => handleAction("register-dao")),
+              class: "register-btn"
+            }, " Register DAO "),
+            _cache[21] || (_cache[21] = createBaseVNode("p", { class: "prompt-note" }, " You must be a member of the multisig to complete registration. ", -1)),
+            createBaseVNode("button", {
+              onClick: _cache[3] || (_cache[3] = ($event) => handleAction("settings-more")),
+              class: "settings-link-btn-small"
+            }, " ⚙️ Settings ")
+          ])) : createCommentVNode("", true),
+          unref(authStore).state.isAuthenticated && !isCheckingDaoMembership.value && isDaoMember.value ? (openBlock(), createElementBlock("div", _hoisted_13$1, [
             createBaseVNode("div", {
               class: "menu-item",
-              onClick: _cache[1] || (_cache[1] = ($event) => handleAction("browse-proposals")),
+              onClick: _cache[4] || (_cache[4] = ($event) => handleAction("browse-proposals")),
               title: "All proposals with advanced filters"
-            }, [..._cache[13] || (_cache[13] = [
+            }, [..._cache[22] || (_cache[22] = [
               createBaseVNode("span", { class: "icon" }, "📋", -1),
               createBaseVNode("span", null, "Browse Proposals", -1)
             ])]),
             createBaseVNode("div", {
               class: "menu-item",
-              onClick: _cache[2] || (_cache[2] = ($event) => handleAction("unified-dashboard")),
+              onClick: _cache[5] || (_cache[5] = ($event) => handleAction("unified-dashboard")),
               title: "My dashboard & team workflow"
-            }, [..._cache[14] || (_cache[14] = [
+            }, [..._cache[23] || (_cache[23] = [
               createBaseVNode("span", { class: "icon" }, "📊", -1),
               createBaseVNode("span", null, "Dashboard & Workflow", -1)
             ])]),
             createBaseVNode("div", {
               class: "menu-item",
-              onClick: _cache[3] || (_cache[3] = ($event) => handleAction("settings-more")),
+              onClick: _cache[6] || (_cache[6] = ($event) => handleAction("settings-more")),
               title: "Configuration, history & help"
-            }, [..._cache[15] || (_cache[15] = [
+            }, [..._cache[24] || (_cache[24] = [
               createBaseVNode("span", { class: "icon" }, "⚙️", -1),
               createBaseVNode("span", null, "Settings & More", -1)
             ])])
-          ]),
+          ])) : createCommentVNode("", true),
           showWalletConnect.value ? (openBlock(), createElementBlock("div", {
-            key: 0,
+            key: 3,
             class: "modal-overlay",
-            onClick: _cache[6] || (_cache[6] = ($event) => showWalletConnect.value = false)
+            onClick: _cache[9] || (_cache[9] = ($event) => showWalletConnect.value = false)
           }, [
             createBaseVNode("div", {
               class: "modal-content",
-              onClick: _cache[5] || (_cache[5] = withModifiers(() => {
+              onClick: _cache[8] || (_cache[8] = withModifiers(() => {
               }, ["stop"]))
             }, [
               createVNode(WalletConnect, {
-                onClose: _cache[4] || (_cache[4] = ($event) => showWalletConnect.value = false)
+                onClose: _cache[7] || (_cache[7] = ($event) => showWalletConnect.value = false)
               })
             ])
           ])) : createCommentVNode("", true),
           createVNode(ProposalBrowser, {
             show: showProposalBrowser.value,
-            onClose: _cache[7] || (_cache[7] = ($event) => showProposalBrowser.value = false)
+            onClose: _cache[10] || (_cache[10] = ($event) => showProposalBrowser.value = false)
           }, null, 8, ["show"]),
           createVNode(Dashboard, {
             show: showUnifiedDashboard.value,
-            onClose: _cache[8] || (_cache[8] = ($event) => showUnifiedDashboard.value = false)
+            onClose: _cache[11] || (_cache[11] = ($event) => showUnifiedDashboard.value = false)
           }, null, 8, ["show"]),
           createVNode(SettingsMore, {
             show: showSettingsMore.value,
-            onClose: _cache[9] || (_cache[9] = ($event) => showSettingsMore.value = false)
+            onClose: _cache[12] || (_cache[12] = ($event) => showSettingsMore.value = false)
           }, null, 8, ["show"]),
           createVNode(DAOConfigModal, {
             show: showDAOConfig.value,
-            onClose: _cache[10] || (_cache[10] = ($event) => showDAOConfig.value = false),
+            onClose: _cache[13] || (_cache[13] = ($event) => showDAOConfig.value = false),
             onSaved: handleConfigSaved
+          }, null, 8, ["show"]),
+          createVNode(DAORegistrationModal, {
+            show: showDAORegistration.value,
+            onClose: _cache[14] || (_cache[14] = ($event) => showDAORegistration.value = false),
+            onRegistered: handleDaoRegistered
           }, null, 8, ["show"])
         ]);
       };
     }
   });
-  const Menu = /* @__PURE__ */ _export_sfc(_sfc_main$7, [["__scopeId", "data-v-e2e1959b"]]);
+  const Menu = /* @__PURE__ */ _export_sfc(_sfc_main$7, [["__scopeId", "data-v-594274fc"]]);
   const _hoisted_1$6 = {
     id: "voting-tool-app",
     class: "voting-tool-container"
@@ -16108,13 +16620,13 @@ Would you like to connect your wallet now?`,
         }
         return false;
       };
-      const getTeamMemberName = (address) => {
+      const getTeamMemberName2 = (address) => {
         if (!address) return null;
         const member = teamStore.findTeamMemberByAddress(address);
         return (member == null ? void 0 : member.team_member_name) || (member == null ? void 0 : member.name) || null;
       };
       const formatAssignmentDisplay = (address) => {
-        const name = getTeamMemberName(address);
+        const name = getTeamMemberName2(address);
         if (name) {
           if (name.length > 20) {
             return `${name.substring(0, 17)}...`;
@@ -16145,7 +16657,7 @@ Would you like to connect your wallet now?`,
           if (addressesMatch(props.assignedTo, currentUserAddress)) {
             return "Click to unassign yourself from this proposal";
           } else {
-            const name = getTeamMemberName(props.assignedTo);
+            const name = getTeamMemberName2(props.assignedTo);
             if (name) {
               return `Assigned to: ${name} (${formatAddress(props.assignedTo, { forceShorten: true })})`;
             } else {
