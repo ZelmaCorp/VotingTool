@@ -71,16 +71,29 @@ export const verifyMultisigMembership = async (
   }
   
   try {
+    logger.info({ multisigAddress, walletAddress, chain }, 'Verifying multisig membership');
+    
     const multisigInfo = await multisigService.getMultisigInfo(multisigAddress, chain);
+    
+    logger.info({ 
+      multisigAddress, 
+      chain, 
+      memberCount: multisigInfo?.members?.length || 0,
+      threshold: multisigInfo?.threshold
+    }, 'Multisig info retrieved from Subscan');
+    
     if (!multisigInfo || !multisigInfo.members || multisigInfo.members.length === 0) {
+      logger.warn({ multisigAddress, chain }, 'No members found for multisig');
       return { isVerified: false, error: `${chain} multisig address not found on-chain or has no members` };
     }
     
     const isMember = await multisigService.isTeamMember(walletAddress, multisigAddress, chain);
     if (!isMember) {
+      logger.warn({ walletAddress, multisigAddress, chain }, 'Wallet is not a member of multisig');
       return { isVerified: false, error: `Your wallet address is not a member of the ${chain} multisig` };
     }
     
+    logger.info({ walletAddress, multisigAddress, chain }, 'Multisig membership verified successfully');
     return { isVerified: true };
   } catch (error) {
     logger.error({ error: formatError(error), multisig: multisigAddress, chain }, 'Error verifying multisig');
@@ -96,10 +109,30 @@ export const performMultisigVerifications = async (
   kusamaMultisig: string | null,
   walletAddress: string
 ): Promise<{ success: boolean; chains?: Chain[]; errors?: string[] }> => {
-  const verificationResults = await Promise.all([
-    verifyMultisigMembership(polkadotMultisig, walletAddress, Chain.Polkadot),
-    verifyMultisigMembership(kusamaMultisig, walletAddress, Chain.Kusama)
-  ]);
+  // Verify sequentially with delay to avoid Subscan rate limits
+  const results: Array<{ isVerified: boolean; error?: string }> = [];
+  
+  // Verify Polkadot first if provided
+  if (polkadotMultisig) {
+    results.push(await verifyMultisigMembership(polkadotMultisig, walletAddress, Chain.Polkadot));
+    
+    // Add delay before Kusama verification if both are provided
+    if (kusamaMultisig) {
+      logger.info('Adding delay before Kusama verification to avoid rate limits');
+      await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+    }
+  } else {
+    results.push({ isVerified: false });
+  }
+  
+  // Verify Kusama if provided
+  if (kusamaMultisig) {
+    results.push(await verifyMultisigMembership(kusamaMultisig, walletAddress, Chain.Kusama));
+  } else {
+    results.push({ isVerified: false });
+  }
+  
+  const verificationResults = results;
   
   const errors = verificationResults.filter(r => r.error).map(r => r.error!);
   if (errors.length > 0) {

@@ -262,7 +262,7 @@ async function makeApiCall(endpoint: string, method: string, data?: any, headers
 /**
  * Handler for PING messages - health check
  */
-function handlePing(message: any, currentCount: number, sendResponse: Function): boolean {
+function handlePing(_message: any, currentCount: number, sendResponse: Function): boolean {
   sendResponse({ 
     success: true, 
     message: 'Background script is alive and responding!',
@@ -276,7 +276,7 @@ function handlePing(message: any, currentCount: number, sendResponse: Function):
 /**
  * Handler for TEST messages - basic connectivity test
  */
-function handleTest(message: any, currentCount: number, sendResponse: Function): boolean {
+function handleTest(_message: any, currentCount: number, sendResponse: Function): boolean {
   sendResponse({ 
     success: true, 
     message: 'Background script is working!',
@@ -290,7 +290,7 @@ function handleTest(message: any, currentCount: number, sendResponse: Function):
 /**
  * Handler for REQUEST_PERMISSION messages
  */
-function handleRequestPermission(message: any, currentCount: number, sendResponse: Function): boolean {
+function handleRequestPermission(message: any, _currentCount: number, sendResponse: Function): boolean {
   // Check if permissions API is available
   if (!chrome.permissions || !chrome.permissions.request) {
     console.warn('⚠️ Permissions API not available in this browser')
@@ -319,7 +319,7 @@ function handleRequestPermission(message: any, currentCount: number, sendRespons
 /**
  * Handler for CHECK_PERMISSION messages
  */
-function handleCheckPermission(message: any, currentCount: number, sendResponse: Function): boolean {
+function handleCheckPermission(message: any, _currentCount: number, sendResponse: Function): boolean {
   // Check if permissions API is available
   if (!chrome.permissions || !chrome.permissions.contains) {
     console.warn('⚠️ Permissions API not available in this browser')
@@ -408,7 +408,7 @@ const MESSAGE_HANDLERS: Record<string, MessageHandler> = {
 /**
  * Main message dispatcher with routing
  */
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   messageCounter++
   const currentCount = messageCounter
   

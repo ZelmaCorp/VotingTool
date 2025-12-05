@@ -502,7 +502,18 @@ router.post("/:postId/comments", addDaoContext, requireDaoMembership, requireTea
     const referendum = await findReferendum(postId, chain, res, req.daoId);
     if (!referendum) return;
 
-    const commentId = await createReferendumComment(referendum.id, req.user!.address!, content);
+    const commentId = await createReferendumComment(referendum.id!, req.user!.address!, content, req.daoId!);
+
+    // Get team members to enrich the comment with user name
+    const teamMembers = await DaoService.getMembers(req.daoId!, chain);
+    
+    // Find member using flexible address matching (handles different address formats)
+    const member = teamMembers.find(m => m.wallet_address === req.user!.address) ||
+                   await multisigService.getTeamMemberByAddress(
+                     req.user!.address!, 
+                     await DAO.getDecryptedMultisig(req.daoId!, chain) || '', 
+                     chain
+                   );
 
     return res.status(201).json({
       success: true,
@@ -511,6 +522,7 @@ router.post("/:postId/comments", addDaoContext, requireDaoMembership, requireTea
         id: commentId,
         content: content.trim(),
         user_address: req.user!.address,
+        user_name: member?.team_member_name || req.user!.name || 'Unknown',
         created_at: new Date().toISOString()
       }
     });

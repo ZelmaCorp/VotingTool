@@ -19,7 +19,7 @@ var __spreadValues = (a, b) => {
 var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 (function() {
   "use strict";
-  const version = "2.0.1";
+  const version = "2.1.0";
   const packageJson = {
     version
   };
@@ -192,7 +192,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
       };
     }
   }
-  function handlePing(message, currentCount, sendResponse) {
+  function handlePing(_message, currentCount, sendResponse) {
     sendResponse({
       success: true,
       message: "Background script is alive and responding!",
@@ -202,7 +202,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     });
     return false;
   }
-  function handleTest(message, currentCount, sendResponse) {
+  function handleTest(_message, currentCount, sendResponse) {
     sendResponse({
       success: true,
       message: "Background script is working!",
@@ -212,7 +212,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     });
     return false;
   }
-  function handleRequestPermission(message, currentCount, sendResponse) {
+  function handleRequestPermission(message, _currentCount, sendResponse) {
     if (!chrome.permissions || !chrome.permissions.request) {
       console.warn("⚠️ Permissions API not available in this browser");
       sendResponse({ success: true, granted: true });
@@ -229,7 +229,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     permissionRequest.then((granted) => sendResponse({ success: true, granted })).catch((error) => sendResponse({ success: false, error: error.message }));
     return true;
   }
-  function handleCheckPermission(message, currentCount, sendResponse) {
+  function handleCheckPermission(message, _currentCount, sendResponse) {
     if (!chrome.permissions || !chrome.permissions.contains) {
       console.warn("⚠️ Permissions API not available in this browser");
       sendResponse({ success: true, hasPermission: true });
@@ -292,7 +292,7 @@ var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
     "CHECK_PERMISSION": handleCheckPermission,
     "VOTING_TOOL_API_CALL": handleApiCall
   };
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     messageCounter++;
     const currentCount = messageCounter;
     try {

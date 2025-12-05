@@ -137,6 +137,9 @@
               <div class="form-group">
                 <label>Team Members</label>
                 <div class="readonly-field-header">
+                  <button @click="refreshTeamMembers" class="refresh-members-btn" :disabled="refreshing">
+                    {{ refreshing ? '⏳ Refreshing...' : '🔄 Refresh Members' }}
+                  </button>
                   <span class="multisig-badge">🔒 Controlled by Multisig</span>
                 </div>
                 <p class="form-note">Team members are automatically synced from the multisig configuration.</p>
@@ -489,6 +492,17 @@ const loadData = async () => {
     }
   } catch (error) {
     console.error('Failed to load settings:', error)
+  } finally {
+    refreshing.value = false
+  }
+}
+
+const refreshTeamMembers = async () => {
+  refreshing.value = true
+  try {
+    await teamStore.fetchTeamData()
+  } catch (error) {
+    console.error('Failed to refresh team members:', error)
   } finally {
     refreshing.value = false
   }
@@ -986,8 +1000,29 @@ const formatDate = (dateString: string) => {
 
 .readonly-field-header {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 8px;
+}
+
+.refresh-members-btn {
+  background: #007bff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.refresh-members-btn:hover:not(:disabled) {
+  background: #0056b3;
+}
+
+.refresh-members-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .multisig-badge {

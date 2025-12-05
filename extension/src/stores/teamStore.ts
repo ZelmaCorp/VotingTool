@@ -66,7 +66,12 @@ export const teamStore = {
           required_agreements: daoConfig.required_agreements || 4,
           multisig_address: daoConfig.multisig_address
         }
-        state.teamMembers = daoConfig.team_members || []
+        
+        // Map backend field names to frontend field names
+        state.teamMembers = (daoConfig.team_members || []).map((member: any) => ({
+          name: member.team_member_name || member.name || 'Unknown',
+          address: member.wallet_address || member.address || ''
+        }))
       }
     } catch (err) {
       state.error = err instanceof Error ? err.message : 'Failed to fetch team data'

@@ -61,7 +61,27 @@ router.post("/register", authenticateToken, async (req: Request, res: Response) 
     // Create DAO
     const daoId = await createDaoFromRegistration(name, description, polkadotMultisig, kusamaMultisig);
     
-    logger.info({ daoId, name: name.trim(), walletAddress, chains: verification.chains }, 'DAO registered');
+    // Fetch and cache team member data from blockchain
+    try {
+      if (polkadotMultisig) {
+        await DaoService.getMembers(daoId, Chain.Polkadot);
+        logger.info({ daoId, chain: Chain.Polkadot }, 'Fetched Polkadot multisig members');
+        
+        // Add delay before Kusama to avoid Subscan rate limits
+        if (kusamaMultisig) {
+          logger.info('Adding delay before Kusama member fetch to avoid rate limits');
+          await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+        }
+      }
+      if (kusamaMultisig) {
+        await DaoService.getMembers(daoId, Chain.Kusama);
+        logger.info({ daoId, chain: Chain.Kusama }, 'Fetched Kusama multisig members');
+      }
+    } catch (memberFetchError) {
+      logger.warn({ error: formatError(memberFetchError), daoId }, 'Failed to fetch team members after registration');
+    }
+    
+    logger.info({ daoId, name: name.trim(), walletAddress, chains: verification.chains }, 'DAO registered successfully');
     res.status(201).json({ 
       success: true, 
       message: 'DAO registered successfully', 

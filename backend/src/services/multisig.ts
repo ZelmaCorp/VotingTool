@@ -61,13 +61,22 @@ export class MultisigService {
     const now = Date.now();
     const expiry = this.cacheExpiry.get(cacheKey) || 0;
 
-    if (this.cache.has(cacheKey) && now < expiry) {                                             
-      return this.cache.get(cacheKey) || [];
+    if (this.cache.has(cacheKey) && now < expiry) {
+      const cachedMembers = this.cache.get(cacheKey) || [];
+      logger.debug({ network, multisigAddress, memberCount: cachedMembers.length }, 'Using cached team members');
+      return cachedMembers;
     }
 
+    logger.info({ network, multisigAddress }, 'Cache miss or expired, fetching fresh team members from Subscan');
     const members = await this.fetchMultisigMembers(multisigAddress, network);
-    this.cache.set(cacheKey, members);
-    this.cacheExpiry.set(cacheKey, now + this.CACHE_DURATION);
+    
+    if (members.length > 0) {
+      this.cache.set(cacheKey, members);
+      this.cacheExpiry.set(cacheKey, now + this.CACHE_DURATION);
+      logger.info({ network, multisigAddress, memberCount: members.length }, 'Team members cached successfully');
+    } else {
+      logger.warn({ network, multisigAddress }, 'No members returned from Subscan - cache not updated');
+    }
     
     return members;
   }
@@ -110,6 +119,73 @@ export class MultisigService {
   }
 
   /**
+   * Convert address to network-specific SS58 format
+   * Polkadot: prefix 0, Kusama: prefix 2
+   */
+  private convertAddressToNetworkFormat(address: string, network: "Polkadot" | "Kusama"): string {
+    try {
+      const publicKey = decodeAddress(address);
+      const ss58Prefix = network === "Kusama" ? 2 : 0;
+      return encodeAddress(publicKey, ss58Prefix);
+    } catch (error) {
+      logger.warn({ address, network, error: formatError(error) }, 'Failed to convert address to network format');
+      return address; // Return original if conversion fails
+    }
+  }
+
+  /**
+   * Get the correct Subscan endpoint for the network
+   * Polkadot uses AssetHub, Kusama uses relay chain
+   */
+  private getSubscanEndpoint(network: "Polkadot" | "Kusama"): string {
+    if (network === "Kusama") {
+      return `https://kusama.api.subscan.io`;
+    }
+    return `https://assethub-polkadot.api.subscan.io`;
+  }
+
+  /**
+   * Make a Subscan API request with retry logic for rate limiting
+   */
+  private async subscanRequestWithRetry<T = any>(
+    url: string, 
+    data: any, 
+    maxRetries: number = 3,
+    baseDelay: number = 1000
+  ): Promise<T> {
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const response = await axios.post(url, data, {
+          headers: {
+            'X-API-Key': this.subscanApiKey,
+            'Content-Type': 'application/json'
+          }
+        });
+        return response.data;
+      } catch (error: any) {
+        const isRateLimited = error.response?.status === 429;
+        const isLastAttempt = attempt === maxRetries - 1;
+        
+        if (isRateLimited && !isLastAttempt) {
+          const delay = baseDelay * Math.pow(2, attempt); // Exponential backoff
+          logger.warn({ 
+            attempt: attempt + 1, 
+            maxRetries, 
+            delay,
+            url 
+          }, 'Rate limited by Subscan, retrying after delay...');
+          
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+        
+        throw error;
+      }
+    }
+    throw new Error('Max retries exceeded');
+  }
+
+  /**
    * Check if a multisig address is a proxy/delegate and extract parent address
    * @param multisigAddress - The multisig address to check
    * @param network - The network (Polkadot or Kusama)
@@ -124,20 +200,36 @@ export class MultisigService {
     }
 
     try {
-      const response = await axios.post(
-        `https://assethub-${network.toLowerCase()}.api.subscan.io/api/v2/scan/search`,
-        { key: multisigAddress },
-        {
-          headers: {
-            'X-API-Key': this.subscanApiKey,
-            'Content-Type': 'application/json'
-          }
-        }
+      const endpoint = this.getSubscanEndpoint(network);
+      const responseData = await this.subscanRequestWithRetry(
+        `${endpoint}/api/v2/scan/search`,
+        { key: multisigAddress }
       );
 
-      if (response.data.code === 0 && response.data.data?.account) {
-        const accountData = response.data.data.account;
+      if (responseData.code === 0 && responseData.data?.account) {
+        const accountData = responseData.data.account;
         
+        // Check for proxy structure (proxy_account means this address delegates to others)
+        if (accountData.proxy?.proxy_account && accountData.proxy.proxy_account.length > 0) {
+          const proxyAccountAddress = accountData.proxy.proxy_account[0]?.account_display?.address;
+          if (proxyAccountAddress) {
+            logger.info({ 
+              network, 
+              currentAddress: multisigAddress,
+              parentAddress: proxyAccountAddress,
+              isProxy: true
+            }, 'Found proxy account with delegated address');
+            
+            return {
+              isProxy: true,
+              parentAddress: proxyAccountAddress,
+              currentAddress: multisigAddress,
+              network
+            };
+          }
+        }
+        
+        // Fallback: Check for delegate structure (conviction voting delegates)
         if (accountData.delegate?.conviction_delegated) {
           for (const entry of accountData.delegate.conviction_delegated) {
             if (entry.delegate_account?.people?.parent?.address) {
@@ -148,7 +240,7 @@ export class MultisigService {
                 currentAddress: multisigAddress,
                 parentAddress,
                 isProxy: true
-              }, 'Found proxy account with parent address');
+              }, 'Found delegate account with parent address');
               
               return {
                 isProxy: true,
@@ -204,27 +296,27 @@ export class MultisigService {
         targetAddress = parentInfo.parentAddress;
       }
 
-      const response = await axios.post(
-        `https://assethub-${network.toLowerCase()}.api.subscan.io/api/v2/scan/search`,
-        { key: targetAddress },
-        {
-          headers: {
-            'X-API-Key': this.subscanApiKey,
-            'Content-Type': 'application/json'
-          }
-        }
+      const endpoint = this.getSubscanEndpoint(network);
+      const responseData = await this.subscanRequestWithRetry(
+        `${endpoint}/api/v2/scan/search`,
+        { key: targetAddress }
       );
 
-      if (response.data.code === 0 && response.data.data?.account) {
-        const accountData = response.data.data.account;
+      if (responseData.code === 0 && responseData.data?.account) {
+        const accountData = responseData.data.account;
         const members: MultisigMember[] = [];
 
         if (accountData.delegate?.conviction_delegated) {
           for (const entry of accountData.delegate.conviction_delegated) {
             if (entry.account?.address) {
+              const displayName = entry.account.people?.display || entry.account.display_name || entry.account.name || null;
+              
+              // Convert address to network-specific format
+              const convertedAddress = this.convertAddressToNetworkFormat(entry.account.address, network);
+              
               members.push({
-                wallet_address: entry.account.address,
-                team_member_name: entry.account.people?.display || 'Unknown',
+                wallet_address: convertedAddress,
+                team_member_name: displayName || 'Unknown',
                 network: network
               });
             }
@@ -240,14 +332,18 @@ export class MultisigService {
           if (threshold) {
             const cacheKey = `threshold_${network}_${multisigAddress}`;
             this.thresholdCache.set(cacheKey, parseInt(threshold));
-            logger.info({ network, multisigAddress, threshold }, 'Extracted multisig threshold from API');
           }
           
           for (const entry of accountData.multisig.multi_account_member) {
             if (entry.address) {
+              const displayName = entry.people?.display || entry.display_name || entry.name || entry.display || null;
+              
+              // Convert address to network-specific format
+              const convertedAddress = this.convertAddressToNetworkFormat(entry.address, network);
+              
               members.push({
-                wallet_address: entry.address,
-                team_member_name: entry.people?.display || 'Unknown',
+                wallet_address: convertedAddress,
+                team_member_name: displayName || 'Unknown',
                 network: network
               });
             }
@@ -261,7 +357,7 @@ export class MultisigService {
         return [];
 
       } else {
-        logger.warn({ network, targetAddress, responseCode: response.data.code }, 'Subscan API returned error or no data');
+        logger.warn({ network, targetAddress, responseCode: responseData.code }, 'Subscan API returned error or no data');
         return [];
       }
 
@@ -282,22 +378,42 @@ export class MultisigService {
     
     // Try exact match first
     let isMember = members.some(member => member.wallet_address === walletAddress);
+    if (isMember) return true;
     
     // If no exact match, try the converted network-specific address
-    if (!isMember) {
-      const networkAddress = this.convertToNetworkAddress(walletAddress, network);
-      isMember = members.some(member => member.wallet_address === networkAddress);
-    }
+    const networkAddress = this.convertToNetworkAddress(walletAddress, network);
+    isMember = members.some(member => member.wallet_address === networkAddress);
+    if (isMember) return true;
     
     // If still no match, try case-insensitive and trimmed comparison
-    if (!isMember) {
-      const normalizedWalletAddress = walletAddress.trim().toLowerCase();
-      isMember = members.some(member => 
-        member.wallet_address.trim().toLowerCase() === normalizedWalletAddress
-      );
+    const normalizedWalletAddress = walletAddress.trim().toLowerCase();
+    isMember = members.some(member => 
+      member.wallet_address.trim().toLowerCase() === normalizedWalletAddress
+    );
+    if (isMember) return true;
+    
+    // Try comparing raw public keys (works across all address formats)
+    try {
+      const walletPublicKey = decodeAddress(walletAddress);
+      const walletPublicKeyHex = Buffer.from(walletPublicKey).toString('hex');
+      
+      for (const member of members) {
+        try {
+          const memberPublicKey = decodeAddress(member.wallet_address);
+          const memberPublicKeyHex = Buffer.from(memberPublicKey).toString('hex');
+          
+          if (walletPublicKeyHex === memberPublicKeyHex) {
+            return true;
+          }
+        } catch (memberDecodeError) {
+          continue;
+        }
+      }
+    } catch (walletDecodeError) {
+      logger.warn({ walletAddress }, 'Failed to decode wallet address for public key comparison');
     }
     
-    return isMember;
+    return false;
   }
 
   /**
