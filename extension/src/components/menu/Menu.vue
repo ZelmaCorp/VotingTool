@@ -124,6 +124,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { authStore } from '../../stores/authStore'
+import { teamStore } from '../../stores/teamStore'
 import { formatAddress } from '../../utils/teamUtils'
 import { ApiService } from '../../utils/apiService'
 import WalletConnect from '../WalletConnect.vue'
@@ -181,6 +182,9 @@ const handleDaoRegistered = async (daoName: string) => {
   // Re-check DAO membership
   await checkDaoMembership()
   
+  // Refresh user info to get actual name from DAO members
+  await authStore.refreshUserInfo()
+  
   // Dispatch event to notify other components
   window.dispatchEvent(new CustomEvent('daoRegistered', { 
     detail: { daoName } 
@@ -202,6 +206,9 @@ const checkDaoMembership = async () => {
     if (config && config.name) {
       isDaoMember.value = true
       console.log('✅ User is member of DAO:', config.name)
+      
+      // Refresh user info to ensure name is up-to-date
+      await authStore.refreshUserInfo()
     } else {
       isDaoMember.value = false
       console.log('ℹ️ User is not a member of any DAO - registration required')
@@ -223,8 +230,18 @@ const checkDaoMembership = async () => {
 }
 
 // Check DAO membership when component mounts
-onMounted(() => {
-  checkDaoMembership()
+onMounted(async () => {
+  await checkDaoMembership()
+  
+  // Pre-fetch team data to populate backend cache
+  if (authStore.state.isAuthenticated && isDaoMember.value) {
+    try {
+      await teamStore.fetchTeamData()
+      console.log('✅ Team data pre-fetched, backend cache should be warmed')
+    } catch (error) {
+      console.warn('Failed to pre-fetch team data:', error)
+    }
+  }
 })
 
 // Watch for authentication changes

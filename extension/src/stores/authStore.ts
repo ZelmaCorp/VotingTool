@@ -235,6 +235,50 @@ export const authStore = {
             console.error('Error setting up DAO context:', error)
             return undefined
         }
+    },
+
+    // Refresh user info from DAO members (after registration)
+    async refreshUserInfo(): Promise<void> {
+        if (!state.user || !state.isAuthenticated) {
+            console.warn('Cannot refresh user info: not authenticated')
+            return
+        }
+
+        try {
+            const apiService = ApiService.getInstance()
+            const config = await apiService.getDAOConfig()
+            
+            if (config && config.team_members) {
+                // Find the current user in the team members list
+                const userAddress = state.user.address
+                const member = config.team_members.find((m: any) => {
+                    const memberAddr = m.wallet_address || m.address
+                    return memberAddr && memberAddr.toLowerCase() === userAddress.toLowerCase()
+                })
+                
+                if (member) {
+                    // Update user info with actual name from DAO
+                    const updatedUser = {
+                        ...state.user,
+                        name: member.team_member_name || member.name || state.user.name
+                    }
+                    
+                    state.user = updatedUser
+                    
+                    // Update localStorage
+                    localStorage.setItem('opengov-auth-user', JSON.stringify(updatedUser))
+                    
+                    console.log('✅ User info refreshed:', updatedUser.name)
+                    
+                    // Dispatch event for UI updates
+                    window.dispatchEvent(new CustomEvent('authStateChanged', { 
+                        detail: { isAuthenticated: true, user: updatedUser } 
+                    }))
+                }
+            }
+        } catch (error) {
+            console.error('Error refreshing user info:', error)
+        }
     }
 }
 

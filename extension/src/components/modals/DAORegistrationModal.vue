@@ -208,6 +208,16 @@ const handleRegister = async () => {
       // Setup DAO context after successful registration
       await authStore.setupDaoContext(apiService)
       
+      // Pre-fetch team data to warm up backend cache
+      // This ensures subsequent API calls (like comments) will work immediately
+      try {
+        const { teamStore } = await import('../../stores/teamStore')
+        await teamStore.fetchTeamData()
+        console.log('✅ Team data pre-fetched after registration')
+      } catch (error) {
+        console.warn('Failed to pre-fetch team data after registration:', error)
+      }
+      
       // Emit event for parent component
       emit('registered', daoName.value.trim())
     } else {
