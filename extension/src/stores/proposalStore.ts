@@ -12,6 +12,26 @@ const state = reactive({
   error: null as string | null
 })
 
+// Auto-refresh state
+let refreshInterval: number | null = null
+const REFRESH_INTERVAL_MS = 15000 // 15 seconds
+
+// Helper function to check if a proposal should be filtered out (NotVoted or past proposals)
+const shouldFilterProposal = (proposal: ProposalData): boolean => {
+  // Filter out "Not Voted" proposals
+  if (proposal.internal_status === 'Not Voted') {
+    return true
+  }
+  
+  // Filter out past proposals based on referendum timeline status
+  const pastStatuses: string[] = ['Executed', 'Rejected', 'Cancelled', 'Canceled', 'TimedOut', 'Killed']
+  if (proposal.referendum_timeline && pastStatuses.includes(proposal.referendum_timeline)) {
+    return true
+  }
+  
+  return false
+}
+
 // Computed properties
   const filteredProposals = computed(() => {
   let filtered = state.proposals
@@ -49,7 +69,9 @@ const state = reactive({
   const myAssignments = computed(() => {
   const currentUser = authStore.state.user?.address
   if (!currentUser) return []
-  return state.proposals.filter((p: ProposalData) => p.assigned_to === currentUser)
+  return state.proposals.filter((p: ProposalData) => 
+    p.assigned_to === currentUser && !shouldFilterProposal(p)
+  )
 })
 
 const actionsNeeded = computed(() => {
@@ -57,6 +79,11 @@ const actionsNeeded = computed(() => {
   if (!currentUser) return []
   
   return state.proposals.filter(p => {
+    // Filter out NotVoted and past proposals
+    if (shouldFilterProposal(p)) {
+      return false
+    }
+    
     // Proposals where user needs to take action
     const hasNoTeamAction = !p.team_actions?.some(action => action.wallet_address === currentUser)
     const isAssignedToMe = p.assigned_to === currentUser
@@ -221,6 +248,64 @@ export const proposalStore = {
     if (authStore.state.isAuthenticated && state.proposals.length === 0) {
       await this.fetchProposals()
     }
+    // Start auto-refresh when initialized
+    this.startAutoRefresh()
+  },
+
+  // Auto-refresh functionality
+  startAutoRefresh(): void {
+    // Clear any existing interval
+    this.stopAutoRefresh()
+    
+    // Only start if authenticated
+    if (!authStore.state.isAuthenticated) {
+      return
+    }
+    
+    console.log('🔄 ProposalStore: Starting auto-refresh (15s interval)')
+    
+    // Initial fetch if we don't have data
+    if (state.proposals.length === 0) {
+      this.fetchProposals()
+    }
+    
+    // Set up interval
+    refreshInterval = window.setInterval(() => {
+      // Check if tab is visible (pause when hidden)
+      if (document.visibilityState === 'visible') {
+        console.log('🔄 ProposalStore: Auto-refreshing proposals...')
+        this.fetchProposals()
+      } else {
+        console.log('⏸️ ProposalStore: Tab hidden, skipping refresh')
+      }
+    }, REFRESH_INTERVAL_MS)
+    
+    // Also listen for visibility changes to refresh when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && authStore.state.isAuthenticated) {
+        console.log('👁️ ProposalStore: Tab visible, refreshing proposals...')
+        this.fetchProposals()
+      }
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    // Store cleanup function
+    ;(this as any)._visibilityHandler = handleVisibilityChange
+  },
+
+  stopAutoRefresh(): void {
+    if (refreshInterval !== null) {
+      console.log('⏹️ ProposalStore: Stopping auto-refresh')
+      clearInterval(refreshInterval)
+      refreshInterval = null
+    }
+    
+    // Remove visibility change listener
+    if ((this as any)._visibilityHandler) {
+      document.removeEventListener('visibilitychange', (this as any)._visibilityHandler)
+      ;(this as any)._visibilityHandler = null
+    }
   }
 }
 
@@ -230,6 +315,7 @@ window.addEventListener('authStateChanged', (event: any) => {
     proposalStore.initialize()
   } else {
     // Clear proposals when logged out
+    proposalStore.stopAutoRefresh()
     state.proposals = []
     state.currentProposal = null
     state.error = null
