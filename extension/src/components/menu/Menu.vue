@@ -142,6 +142,7 @@ const showUnifiedDashboard = ref(false)
 const showSettingsMore = ref(false)
 const isDaoMember = ref(false)
 const isCheckingDaoMembership = ref(false)
+let checkDaoMembershipInProgress = false
 
 const getUserInitials = () => {
   const name = authStore.state.user?.name
@@ -192,11 +193,18 @@ const handleDaoRegistered = async (daoName: string) => {
 }
 
 const checkDaoMembership = async () => {
+  // Prevent re-entrant calls to avoid infinite loops
+  if (checkDaoMembershipInProgress) {
+    console.log('⏸️ DAO membership check already in progress, skipping...')
+    return
+  }
+  
   if (!authStore.state.isAuthenticated) {
     isDaoMember.value = false
     return
   }
   
+  checkDaoMembershipInProgress = true
   isCheckingDaoMembership.value = true
   
   try {
@@ -207,8 +215,11 @@ const checkDaoMembership = async () => {
       isDaoMember.value = true
       console.log('✅ User is member of DAO:', config.name)
       
-      // Refresh user info to ensure name is up-to-date
-      await authStore.refreshUserInfo()
+      // Only refresh user info if we don't already have a name
+      // This prevents unnecessary API calls and circular loops
+      if (!authStore.state.user?.name || authStore.state.user.name === 'Unknown User') {
+        await authStore.refreshUserInfo()
+      }
     } else {
       isDaoMember.value = false
       console.log('ℹ️ User is not a member of any DAO - registration required')
@@ -226,6 +237,7 @@ const checkDaoMembership = async () => {
     isDaoMember.value = false
   } finally {
     isCheckingDaoMembership.value = false
+    checkDaoMembershipInProgress = false
   }
 }
 
@@ -254,8 +266,17 @@ watch(() => authStore.state.isAuthenticated, (newValue) => {
 })
 
 // Listen for auth state changes from wallet connection
+// Use debouncing to prevent rapid-fire calls
+let authStateChangeTimeout: number | null = null
 window.addEventListener('authStateChanged', () => {
-  checkDaoMembership()
+  // Debounce to prevent rapid-fire calls from circular loops
+  if (authStateChangeTimeout !== null) {
+    clearTimeout(authStateChangeTimeout)
+  }
+  authStateChangeTimeout = window.setTimeout(() => {
+    checkDaoMembership()
+    authStateChangeTimeout = null
+  }, 500) // Wait 500ms before checking
 })
 </script>
 
