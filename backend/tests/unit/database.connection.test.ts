@@ -269,4 +269,31 @@ describe('DatabaseConnection', () => {
       delete process.env.DATABASE_PATH;
     });
   });
+
+  describe('Closed Connection Handling', () => {
+    it('should handle SQLITE_MISUSE error when database handle is closed', async () => {
+      await dbConnection.initialize();
+      
+      // Simulate a closed connection error
+      const closedError = new Error('SQLITE_MISUSE: Database handle is closed');
+      (closedError as any).code = 'SQLITE_MISUSE';
+      (dbConnection as any).getMock().run.mockRejectedValue(closedError);
+
+      // Should throw the error (not crash)
+      await expect(dbConnection.run('SELECT 1')).rejects.toThrow('Database handle is closed');
+    });
+
+    it('should handle closed connection errors in get() operations', async () => {
+      await dbConnection.initialize();
+      
+      // Simulate connection closed during get operation
+      const closedError = new Error('SQLITE_MISUSE: Database handle is closed');
+      (closedError as any).code = 'SQLITE_MISUSE';
+      (dbConnection as any).getMock().get.mockRejectedValue(closedError);
+
+      // Should throw the error properly
+      await expect(dbConnection.get('SELECT * FROM test WHERE id = ?', [1]))
+        .rejects.toThrow('Database handle is closed');
+    });
+  });
 }); 
