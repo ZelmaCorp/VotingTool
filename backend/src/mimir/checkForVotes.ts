@@ -46,124 +46,165 @@ export async function checkForVotes(): Promise<void> {
   try {
     isCheckingVotes = true;
     
-    // Clean up stale transactions first (configurable timeout, default 7 days)
-    const staleCount = await MimirTransaction.getStaleTransactionCount(MIMIR_TRANSACTION_CLEANUP_DAYS);
-    if (staleCount > 0) {
-      const cleanedUp = await MimirTransaction.cleanupStaleTransactions(MIMIR_TRANSACTION_CLEANUP_DAYS);
-      logger.info({ 
-        cleanedUp, 
-        staleCount, 
-        cleanupDays: MIMIR_TRANSACTION_CLEANUP_DAYS 
-      }, "Cleaned up stale Mimir transactions (likely deleted from Mimir)");
-    }
+    await cleanupStaleTransactions();
     
     const pendingTransactions = await MimirTransaction.getPendingTransactions();
-
     if (pendingTransactions.length === 0) {
       logger.info("No pending Mimir transactions found.");
       return;
     }
-    logger.info({ transactionsCount: pendingTransactions.length, pendingTransactions }, "Pending Mimir transactions found");
+    logger.info({ transactionsCount: pendingTransactions.length }, "Pending Mimir transactions found");
 
-    // Get all active DAOs
     const daos = await DAO.getAll(true);
     if (daos.length === 0) {
       logger.warn("No active DAOs found");
       return;
     }
     
-    // Fetch votes for all DAOs
-    let allVotesWithData: Record<number, SuggestedVote> = {};
-    
-    for (const dao of daos) {
-      // Check Polkadot multisig
-      const polkadotMultisig = await DAO.getDecryptedMultisig(dao.id, Chain.Polkadot);
-      if (polkadotMultisig) {
-        logger.debug({ daoId: dao.id, daoName: dao.name, chain: 'Polkadot' }, "Fetching votes for DAO");
-        const votedPolkadot = await fetchActiveVotes(polkadotMultisig, Chain.Polkadot);
-        allVotesWithData = { ...allVotesWithData, ...votedPolkadot };
-      }
-      
-      // Check Kusama multisig
-      const kusamaMultisig = await DAO.getDecryptedMultisig(dao.id, Chain.Kusama);
-      if (kusamaMultisig) {
-        logger.debug({ daoId: dao.id, daoName: dao.name, chain: 'Kusama' }, "Fetching votes for DAO");
-        const votedKusama = await fetchActiveVotes(kusamaMultisig, Chain.Kusama);
-        allVotesWithData = { ...allVotesWithData, ...votedKusama };
-      }
-    }
-    
+    const allVotesWithData = await fetchAllDaoVotes(daos);
     const votedList = Object.keys(allVotesWithData).map(Number);
     logger.info({ votedCount: votedList.length }, "Total voted referendums found across all DAOs");
 
     const extrinsicVoteMap = await checkSubscan(votedList, daos);
 
-    // Process each pending transaction to check if it has been voted on
     for (const transaction of pendingTransactions) {
-      const refId = transaction.post_id;
-      const chain = transaction.chain;
-      const found = votedList.includes(refId);
-      
-      if (!found) continue;
-
-      logger.info({ referendumId: transaction.referendum_id, refId, chain }, `Referendum found for vote check`);
-
-      // Get actual vote from on-chain data (most reliable)
-      const chainVote = allVotesWithData[refId];
-      
-      // Get Subscan data for extrinsic hash
-      const subscanData = extrinsicVoteMap[refId];
-      const subscanLink = subscanData?.extrinsicHash ? buildSubscanLink(subscanData.extrinsicHash, chain) : undefined;
-      
-      // Use on-chain vote data as primary source, fallback to Subscan, then suggested vote
-      const actualVote = chainVote || subscanData?.actualVote || transaction.voted;
-
-      let votedStatus: InternalStatus;
-      
-      switch (actualVote) {
-        case SuggestedVote.Aye:
-          votedStatus = InternalStatus.VotedAye;
-          break;
-        case SuggestedVote.Nay:
-          votedStatus = InternalStatus.VotedNay;
-          break;
-        case SuggestedVote.Abstain:
-          votedStatus = InternalStatus.VotedAbstain;
-          break;
-        default:
-          votedStatus = InternalStatus.NotVoted;
-      }
-      
-      // Update the referendum status and add the subscan link
-      await Referendum.updateVotingStatus(refId, chain, transaction.dao_id, votedStatus, subscanLink);
-      
-      // Update the voting decision to mark as executed and store the actual vote
-      await VotingDecision.upsert(transaction.referendum_id, transaction.dao_id, {
-        final_vote: actualVote,
-        vote_executed: true,
-        vote_executed_date: new Date().toISOString()
-      });
-
-      // Update the Mimir transaction status
-      await MimirTransaction.updateStatus(
-        transaction.referendum_id, 
-        transaction.dao_id,
-        'executed', 
-        subscanData?.extrinsicHash
-      );
-
-      logger.info({ 
-        referendumId: transaction.referendum_id, 
-        suggestedVote: transaction.voted,
-        actualVote: actualVote,
-        extrinsicHash: subscanData?.extrinsicHash
-      }, `Database updated with actual vote status and Mimir transaction marked as executed`);
+      await processPendingTransaction(transaction, allVotesWithData, extrinsicVoteMap);
     }
   } catch (error) {
     logger.error({ error: formatError(error) }, "Error checking vote statuses (checkForVotes)");
   } finally {
     isCheckingVotes = false;
   }
+}
+
+/**
+ * Clean up stale Mimir transactions
+ */
+async function cleanupStaleTransactions(): Promise<void> {
+  const staleCount = await MimirTransaction.getStaleTransactionCount(MIMIR_TRANSACTION_CLEANUP_DAYS);
+  if (staleCount > 0) {
+    const cleanedUp = await MimirTransaction.cleanupStaleTransactions(MIMIR_TRANSACTION_CLEANUP_DAYS);
+    logger.info({ 
+      cleanedUp, 
+      staleCount, 
+      cleanupDays: MIMIR_TRANSACTION_CLEANUP_DAYS 
+    }, "Cleaned up stale Mimir transactions (likely deleted from Mimir)");
+  }
+}
+
+/**
+ * Fetch votes for all DAOs across both Polkadot and Kusama
+ */
+async function fetchAllDaoVotes(daos: Awaited<ReturnType<typeof DAO.getAll>>): Promise<Record<number, SuggestedVote>> {
+  let allVotesWithData: Record<number, SuggestedVote> = {};
+  
+  for (const dao of daos) {
+    const polkadotMultisig = await DAO.getDecryptedMultisig(dao.id, Chain.Polkadot);
+    if (polkadotMultisig) {
+      logger.debug({ daoId: dao.id, daoName: dao.name, chain: 'Polkadot' }, "Fetching votes for DAO");
+      const votedPolkadot = await fetchActiveVotes(polkadotMultisig, Chain.Polkadot);
+      allVotesWithData = { ...allVotesWithData, ...votedPolkadot };
+    }
+    
+    const kusamaMultisig = await DAO.getDecryptedMultisig(dao.id, Chain.Kusama);
+    if (kusamaMultisig) {
+      logger.debug({ daoId: dao.id, daoName: dao.name, chain: 'Kusama' }, "Fetching votes for DAO");
+      const votedKusama = await fetchActiveVotes(kusamaMultisig, Chain.Kusama);
+      allVotesWithData = { ...allVotesWithData, ...votedKusama };
+    }
+  }
+  
+  return allVotesWithData;
+}
+
+/**
+ * Process a single pending transaction and update database
+ */
+async function processPendingTransaction(
+  transaction: Awaited<ReturnType<typeof MimirTransaction.getPendingTransactions>>[0],
+  allVotesWithData: Record<number, SuggestedVote>,
+  extrinsicVoteMap: Record<number, ExtrinsicVoteData>
+): Promise<void> {
+  const refId = transaction.post_id;
+  const chain = transaction.chain;
+  const found = Object.keys(allVotesWithData).map(Number).includes(refId);
+  
+  if (!found) return;
+
+  logger.info({ referendumId: transaction.referendum_id, refId, chain }, `Referendum found for vote check`);
+
+  const chainVote = allVotesWithData[refId];
+  const subscanData = extrinsicVoteMap[refId];
+  const subscanLink = subscanData?.extrinsicHash ? buildSubscanLink(subscanData.extrinsicHash, chain) : undefined;
+  const actualVote = chainVote || subscanData?.actualVote || transaction.voted;
+  const votedStatus = getVotedStatus(actualVote);
+  
+  try {
+    await updateReferendumVoteStatus(transaction, votedStatus, actualVote, subscanLink, subscanData?.extrinsicHash);
+    
+    logger.info({ 
+      referendumId: transaction.referendum_id, 
+      suggestedVote: transaction.voted,
+      actualVote,
+      extrinsicHash: subscanData?.extrinsicHash
+    }, `Database updated with actual vote status and Mimir transaction marked as executed`);
+  } catch (error) {
+    logger.error({ 
+      error: formatError(error), 
+      referendumId: transaction.referendum_id,
+      refId,
+      chain,
+      transaction
+    }, "Failed to update transaction state, will retry on next run");
+  }
+}
+
+/**
+ * Get the internal status based on the actual vote
+ */
+function getVotedStatus(actualVote: SuggestedVote): InternalStatus {
+  switch (actualVote) {
+    case SuggestedVote.Aye:
+      return InternalStatus.VotedAye;
+    case SuggestedVote.Nay:
+      return InternalStatus.VotedNay;
+    case SuggestedVote.Abstain:
+      return InternalStatus.VotedAbstain;
+    default:
+      return InternalStatus.NotVoted;
+  }
+}
+
+/**
+ * Update all three database records atomically (idempotent operations)
+ */
+async function updateReferendumVoteStatus(
+  transaction: Awaited<ReturnType<typeof MimirTransaction.getPendingTransactions>>[0],
+  votedStatus: InternalStatus,
+  actualVote: SuggestedVote,
+  subscanLink?: string,
+  extrinsicHash?: string
+): Promise<void> {
+  await Referendum.updateVotingStatus(
+    transaction.post_id, 
+    transaction.chain, 
+    transaction.dao_id, 
+    votedStatus, 
+    subscanLink
+  );
+  
+  await VotingDecision.upsert(transaction.referendum_id, transaction.dao_id, {
+    final_vote: actualVote,
+    vote_executed: true,
+    vote_executed_date: new Date().toISOString()
+  });
+
+  await MimirTransaction.updateStatus(
+    transaction.referendum_id, 
+    transaction.dao_id,
+    'executed', 
+    extrinsicHash
+  );
 }
 
 
