@@ -100,11 +100,12 @@ const activeTab = ref<'assignments' | 'actions' | 'evaluations' | 'activity'>('a
 const loading = computed(() => proposalStore.state.loading)
 const error = computed(() => proposalStore.state.error)
 const myAssignments = computed(() => proposalStore.myAssignments)
+// Dashboard-specific actionsNeeded logic (more detailed than store's version)
 const actionsNeeded = computed(() => {
   const currentUser = authStore.state.user?.address
   if (!currentUser) return []
   
-  // Use store's proposals but apply our specific filtering logic
+  // Use store's proposals but apply dashboard-specific filtering logic
   return proposalStore.state.proposals.filter(p => {
     // Filter out NotVoted and past proposals
     if (p.internal_status === 'Not Voted') return false
@@ -124,7 +125,7 @@ const actionsNeeded = computed(() => {
       return false  // Not in a status that requires team action
     }
     
-    // Check if I've already taken a team action
+    // Check if I've already taken a team action (checking for specific action types)
     const hasTeamAction = p.team_actions?.some(action => {
       const actionType = action.action || action.role_type;
       return action.wallet_address === currentUser && 
