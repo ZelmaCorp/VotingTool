@@ -125,11 +125,27 @@ const workflowData = ref<{
   vetoed: []
 })
 
+// Helper function to check if a proposal should be filtered out (NotVoted or past proposals)
+const shouldFilterProposal = (proposal: ProposalData): boolean => {
+  // Filter out "Not Voted" proposals
+  if (proposal.internal_status === 'Not Voted') {
+    return true
+  }
+  
+  // Filter out past proposals based on referendum timeline status
+  const pastStatuses: string[] = ['Executed', 'Rejected', 'Cancelled', 'Canceled', 'TimedOut', 'Killed']
+  if (proposal.referendum_timeline && pastStatuses.includes(proposal.referendum_timeline)) {
+    return true
+  }
+  
+  return false
+}
+
 // Computed
 const requiredAgreements = computed(() => teamStore.daoConfig?.required_agreements || 4)
-const needsAgreement = computed(() => workflowData.value.needsAgreement)
-const readyToVote = computed(() => workflowData.value.readyToVote)
-const forDiscussion = computed(() => workflowData.value.forDiscussion)
+const needsAgreement = computed(() => workflowData.value.needsAgreement.filter(p => !shouldFilterProposal(p)))
+const readyToVote = computed(() => workflowData.value.readyToVote.filter(p => !shouldFilterProposal(p)))
+const forDiscussion = computed(() => workflowData.value.forDiscussion.filter(p => !shouldFilterProposal(p)))
 const vetoed = computed(() => workflowData.value.vetoed)
 
 // Methods

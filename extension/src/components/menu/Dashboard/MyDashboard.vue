@@ -101,11 +101,29 @@ const dashboardProposals = ref<ProposalData[]>([])  // My assignments
 const allProposals = ref<ProposalData[]>([])  // All proposals for checking actions needed
 const recentActivity = ref<any[]>([])
 
+// Helper function to check if a proposal should be filtered out (NotVoted or past proposals)
+const shouldFilterProposal = (proposal: ProposalData): boolean => {
+  // Filter out "Not Voted" proposals
+  if (proposal.internal_status === 'Not Voted') {
+    return true
+  }
+  
+  // Filter out past proposals based on referendum timeline status
+  const pastStatuses: string[] = ['Executed', 'Rejected', 'Cancelled', 'Canceled', 'TimedOut', 'Killed']
+  if (proposal.referendum_timeline && pastStatuses.includes(proposal.referendum_timeline)) {
+    return true
+  }
+  
+  return false
+}
+
 // Computed
 const myAssignments = computed(() => {
   const currentUser = authStore.state.user?.address
   if (!currentUser) return []
-  return dashboardProposals.value.filter(p => p.assigned_to === currentUser)
+  return dashboardProposals.value.filter(p => 
+    p.assigned_to === currentUser && !shouldFilterProposal(p)
+  )
 })
 
 const actionsNeeded = computed(() => {
@@ -114,6 +132,11 @@ const actionsNeeded = computed(() => {
   
   // Check all proposals (not just assignments) for actions needed
   return allProposals.value.filter(p => {
+    // Filter out NotVoted and past proposals
+    if (shouldFilterProposal(p)) {
+      return false
+    }
+    
     const isAssignedToMe = p.assigned_to === currentUser
     
     // If assigned to me, I need to provide an evaluation (suggested vote)
