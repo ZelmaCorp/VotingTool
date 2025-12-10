@@ -8,7 +8,6 @@ import {
 } from "../utils/constants";
 import {
   Chain,
-  ExtrinsicHashMap,
   ReferendumId,
   InternalStatus,
   SuggestedVote,
@@ -20,8 +19,8 @@ interface ExtrinsicVoteData {
   actualVote: SuggestedVote | null;
 }
 import axios from "axios";
-import { createSubsystemLogger, logError, formatError } from "../config/logger";
-import { Subsystem, ErrorType } from "../types/logging";
+import { createSubsystemLogger, formatError } from "../config/logger";
+import { Subsystem } from "../types/logging";
 import { Referendum } from "../database/models/referendum";
 import { VotingDecision } from "../database/models/votingDecision";
 import { MimirTransaction } from "../database/models/mimirTransaction";
@@ -219,56 +218,28 @@ function buildSubscanLink(extrinsicHash: string, chain: Chain): string {
   return `${baseUrl}/extrinsic/${extrinsicHash}`;
 }
 
-/**
- * Fetches active votes for a given account on a given network using @polkadot/api.
- * 
- * @param account - The account to fetch votes for
- * @param network - The network to fetch votes from
- * @returns A map of referendum IDs to their actual vote data from chain
- */
 async function fetchActiveVotes(
   account: string,
   network: Chain
 ): Promise<Record<number, SuggestedVote>> {
   try {
-    const wsProvider = new WsProvider(
-      network === Chain.Kusama ? KUSAMA_PROVIDER : POLKADOT_PROVIDER
-    );
-    const api = await ApiPromise.create({ provider: wsProvider });
+    const provider = new WsProvider(network === Chain.Kusama ? KUSAMA_PROVIDER : POLKADOT_PROVIDER);
+    const api = await ApiPromise.create({ provider });
+    const voteMap: Record<number, SuggestedVote> = {};
 
-    let voteMap: Record<number, SuggestedVote> = {};
     logger.info({ account, network }, `Fetching votes for account`);
+    
     for (const trackId of TRACKS) {
-      const votingResult = (await api.query.convictionVoting.votingFor(
-        account,
-        trackId
-      )) as any;
+      const votingResult = await api.query.convictionVoting.votingFor(account, trackId) as any;
+      const votes = votingResult.toHuman().Casting.votes || [];
 
-      votingResult.toHuman().Casting.votes.forEach((vote: any) => {
-        const refId = (vote[0] as string).split(",").join("");
-        if (Number.isNaN(Number(refId))) throw "Invalid referendum ID";
-        
-        // Parse the actual vote data from chain
-        const voteData = vote[1];
-        let actualVote: SuggestedVote = SuggestedVote.Aye; // Default fallback
-        
-        if (voteData && typeof voteData === 'object') {
-          if (voteData.Standard) {
-            // Standard vote: check the aye field
-            actualVote = voteData.Standard.vote?.aye === 'true' || voteData.Standard.vote?.aye === true 
-              ? SuggestedVote.Aye 
-              : SuggestedVote.Nay;
-          } else if (voteData.Split) {
-            // Split vote (Abstain): check if only abstain has value
-            const { aye, nay, abstain } = voteData.Split;
-            if (abstain && abstain !== '0' && (aye === '0' || !aye) && (nay === '0' || !nay)) {
-              actualVote = SuggestedVote.Abstain;
-            }
-          }
-        }
-        
-        voteMap[Number(refId)] = actualVote;
-      });
+      for (const [refIdStr, voteData] of votes) {
+        const refId = Number(refIdStr.split(",").join(""));
+        if (isNaN(refId)) continue;
+
+        const parsedVote = parseVoteFromChainData(voteData);
+        if (parsedVote) voteMap[refId] = parsedVote;
+      }
     }
 
     await api.disconnect();
@@ -277,6 +248,26 @@ async function fetchActiveVotes(
     logger.error({ error: formatError(error), account, network }, `Error checking vote for account`);
     throw error;
   }
+}
+
+function parseVoteFromChainData(voteData: any): SuggestedVote | null {
+  if (!voteData || typeof voteData !== 'object') return null;
+
+  if (voteData.Standard) {
+    const aye = voteData.Standard.vote?.aye;
+    if (aye === true || aye === 'true' || aye === 1 || aye === '1') return SuggestedVote.Aye;
+    if (aye === false || aye === 'false' || aye === 0 || aye === '0') return SuggestedVote.Nay;
+  }
+
+  if (voteData.Split) {
+    const { aye, nay, abstain } = voteData.Split;
+    const ayeNum = Number(aye);
+    const nayNum = Number(nay);
+    const abstainNum = Number(abstain);
+    if (abstainNum > 0 && ayeNum === 0 && nayNum === 0) return SuggestedVote.Abstain;
+  }
+
+  return null;
 }
 
 /**
