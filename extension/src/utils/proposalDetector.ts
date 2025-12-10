@@ -316,8 +316,10 @@ export class ProposalDetector {
      */
     watchForChanges(callback: (proposal: DetectedProposal | null) => void): () => void {
         let currentUrl = window.location.href;
+        let debounceTimeout: number | null = null;
         
         const checkForChanges = () => {
+            // Only check if URL actually changed
             if (window.location.href !== currentUrl) {
                 currentUrl = window.location.href;
                 // Wait a bit for the page to render
@@ -326,6 +328,17 @@ export class ProposalDetector {
                     callback(proposal);
                 }, 500);
             }
+        };
+
+        // Debounced version for MutationObserver to prevent excessive checks
+        const debouncedCheckForChanges = () => {
+            if (debounceTimeout !== null) {
+                clearTimeout(debounceTimeout);
+            }
+            debounceTimeout = window.setTimeout(() => {
+                checkForChanges();
+                debounceTimeout = null;
+            }, 1000); // Only check once per second max
         };
 
         // Listen for both popstate and pushstate/replacestate
@@ -345,14 +358,18 @@ export class ProposalDetector {
             setTimeout(checkForChanges, 100);
         };
 
-        // Also watch for DOM changes
+        // Watch for DOM changes with heavy debouncing to prevent feedback loops
+        // Only use this as a fallback for cases where pushState/popstate don't fire
         const observer = new MutationObserver(() => {
-            checkForChanges();
+            // Only check if URL might have changed (debounced)
+            debouncedCheckForChanges();
         });
         
+        // Only observe direct children of body, not the entire subtree
+        // This reduces the number of mutations we observe
         observer.observe(document.body, {
             childList: true,
-            subtree: true
+            subtree: false // Only watch direct children, not deep changes
         });
 
         // Return cleanup function
@@ -360,6 +377,9 @@ export class ProposalDetector {
             window.removeEventListener('popstate', checkForChanges);
             history.pushState = originalPushState;
             history.replaceState = originalReplaceState;
+            if (debounceTimeout !== null) {
+                clearTimeout(debounceTimeout);
+            }
             observer.disconnect();
         };
     }
