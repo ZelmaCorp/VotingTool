@@ -9,7 +9,7 @@ import { createSubsystemLogger, formatError } from '../config/logger';
 import { Subsystem } from '../types/logging';
 import { db } from '../database/connection';
 import { ReferendumAction } from '../types/auth';
-import { requireTeamMember, addDaoContext, requireDaoMembership } from '../middleware/auth';
+import { requireTeamMember, authenticateToken, addDaoContext, requireDaoMembership } from '../middleware/auth';
 import { multisigService } from '../services/multisig';
 import { ACTION_MAP, parseAction, upsertTeamAction, deleteTeamAction } from '../utils/teamActions';
 import { errorResponse, successResponse, validateUser, validateChain, findReferendum } from '../utils/routeHelpers';
@@ -104,7 +104,7 @@ const processMemberActionsForSummary = (
 };
 
 // Get all referendums from the database
-router.get("/", addDaoContext, async (req: Request, res: Response) => {
+router.get("/", authenticateToken, addDaoContext, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
       logger.error({ 
@@ -137,7 +137,7 @@ router.get("/", addDaoContext, async (req: Request, res: Response) => {
 });
 
 // Get a specific referendum by post_id and chain
-router.get("/:postId", addDaoContext, async (req: Request, res: Response) => {
+router.get("/:postId", authenticateToken, addDaoContext, async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.postId);
     const chain = req.query.chain as Chain;
@@ -199,7 +199,7 @@ router.get("/:postId", addDaoContext, async (req: Request, res: Response) => {
 });
 
 // Update a specific referendum by post_id and chain
-router.put("/:postId/:chain", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
+router.put("/:postId/:chain", authenticateToken, addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
       logger.error({ path: req.path, operation: 'PUT /referendums/:postId/:chain' }, "DAO context missing");
@@ -269,7 +269,7 @@ router.put("/:postId/:chain", addDaoContext, requireDaoMembership, async (req: R
  * GET /referendums/:postId/actions
  * Get team actions for a specific referendum
  */
-router.get("/:postId/actions", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
+router.get("/:postId/actions", authenticateToken, addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
       logger.error({ path: req.path, operation: 'GET /referendums/:postId/actions' }, "DAO context missing");
@@ -305,7 +305,7 @@ router.get("/:postId/actions", addDaoContext, requireDaoMembership, async (req: 
  * POST /referendums/:postId/actions
  * Add a team action to a referendum
  */
-router.post("/:postId/actions", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
+router.post("/:postId/actions", authenticateToken, addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
       logger.error({ path: req.path, operation: 'POST /referendums/:postId/actions' }, "DAO context missing");
@@ -340,7 +340,7 @@ router.post("/:postId/actions", addDaoContext, requireDaoMembership, requireTeam
  * DELETE /referendums/:postId/actions
  * Delete a team action from a referendum
  */
-router.delete("/:postId/actions", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
+router.delete("/:postId/actions", authenticateToken, addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
       logger.error({ path: req.path, operation: 'DELETE /referendums/:postId/actions' }, "DAO context missing");
@@ -379,7 +379,7 @@ router.delete("/:postId/actions", addDaoContext, requireDaoMembership, requireTe
  * POST /referendums/:postId/assign
  * Assign the current user as the responsible person for a referendum
  */
-router.post("/:postId/assign", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
+router.post("/:postId/assign", authenticateToken, addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
       logger.error({ path: req.path, operation: 'POST /referendums/:postId/assign' }, "DAO context missing");
@@ -420,7 +420,7 @@ router.post("/:postId/assign", addDaoContext, requireDaoMembership, requireTeamM
  * POST /referendums/:postId/unassign
  * Unassign the responsible person from a referendum and reset its state
  */
-router.post("/:postId/unassign", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
+router.post("/:postId/unassign", authenticateToken, addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
       logger.error({ path: req.path, operation: 'POST /referendums/:postId/unassign' }, "DAO context missing");
@@ -454,7 +454,7 @@ router.post("/:postId/unassign", addDaoContext, requireDaoMembership, requireTea
  * GET /referendums/:postId/comments
  * Get comments for a specific referendum
  */
-router.get("/:postId/comments", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
+router.get("/:postId/comments", authenticateToken, addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
       logger.error({ path: req.path, operation: 'GET /referendums/:postId/comments' }, "DAO context missing");
@@ -490,7 +490,7 @@ router.get("/:postId/comments", addDaoContext, requireDaoMembership, async (req:
  * POST /referendums/:postId/comments
  * Add a comment to a specific referendum
  */
-router.post("/:postId/comments", addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
+router.post("/:postId/comments", authenticateToken, addDaoContext, requireDaoMembership, requireTeamMember, async (req: Request, res: Response) => {
   try {
     const postId = parseInt(req.params.postId);
     const { chain, content } = req.body;
@@ -563,7 +563,7 @@ router.delete("/comments/:commentId", requireTeamMember, async (req: Request, re
  * GET /referendums/:postId/agreement-summary
  * Get agreement summary for a specific referendum during discussion period
  */
-router.get("/:postId/agreement-summary", addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
+router.get("/:postId/agreement-summary", authenticateToken, addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
     if (!req.daoId) {
       logger.error({ path: req.path, operation: 'GET /referendums/:postId/agreement-summary' }, "DAO context missing");
