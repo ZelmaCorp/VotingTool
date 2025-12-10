@@ -115,14 +115,74 @@ export class DatabaseConnection {
     }
 
     /**
+     * Check if database connection is valid and reopen if needed
+     * This handles cases where the connection was closed (e.g., during long-running operations)
+     */
+    private async ensureConnection(): Promise<void> {
+        if (!this.db) {
+            // Reconnect if connection was lost (without re-running schema setup)
+            await this.reconnect();
+            return;
+        }
+        
+        // Test if connection is still valid by running a simple query
+        try {
+            await new Promise<void>((resolve, reject) => {
+                this.db!.get('SELECT 1', (err) => {
+                    if (err) {
+                        // Connection is closed or invalid, reconnect
+                        logger.warn({ error: formatError(err) }, 'Database connection invalid, reconnecting...');
+                        this.db = null;
+                        this.reconnect().then(resolve).catch(reject);
+                    } else {
+                        resolve();
+                    }
+                });
+            });
+        } catch (error) {
+            // If test query fails, reconnect
+            logger.warn({ error: formatError(error) }, 'Database connection test failed, reconnecting...');
+            this.db = null;
+            await this.reconnect();
+        }
+    }
+
+    /**
+     * Reconnect to the database without re-running schema setup
+     */
+    private async reconnect(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.db = new sqlite.Database(this.dbPath, (err) => {
+                if (err) {
+                    logger.error({ error: formatError(err), dbPath: this.dbPath }, 'Error reconnecting to database');
+                    reject(err);
+                } else {
+                    logger.info({ dbPath: this.dbPath }, 'Reconnected to SQLite database');
+                    // Enable foreign keys
+                    this.db!.run('PRAGMA foreign_keys = ON', (err) => {
+                        if (err) {
+                            logger.warn({ error: formatError(err) }, 'Warning: Could not enable foreign keys');
+                        }
+                        resolve();
+                    });
+                }
+            });
+        });
+    }
+
+    /**
      * Execute a SQL query that doesn't return data (INSERT, UPDATE, DELETE)
      */
     public async run(sql: string, params: any[] = []): Promise<sqlite3.RunResult> {
-        if (!this.db) throw new Error('Database not initialized');
+        await this.ensureConnection();
 
         return new Promise((resolve, reject) => {
             this.db!.run(sql, params, function(err) {
                 if (err) {
+                    // Check if it's a closed connection error
+                    if (err.message && err.message.includes('closed')) {
+                        logger.error({ error: formatError(err), sql }, 'Database connection was closed during operation');
+                    }
                     logger.error({ error: formatError(err), sql, params }, 'SQL execution error');
                     reject(err);
                 } else {
@@ -136,11 +196,15 @@ export class DatabaseConnection {
      * Execute a SQL query that returns a single row
      */
     public async get(sql: string, params: any[] = []): Promise<any> {
-        if (!this.db) throw new Error('Database not initialized');
+        await this.ensureConnection();
 
         return new Promise((resolve, reject) => {
             this.db!.get(sql, params, (err, row) => {
                 if (err) {
+                    // Check if it's a closed connection error
+                    if (err.message && err.message.includes('closed')) {
+                        logger.error({ error: formatError(err), sql }, 'Database connection was closed during operation');
+                    }
                     logger.error({ error: formatError(err), sql, params }, 'SQL query error');
                     reject(err);
                 } else {
@@ -154,11 +218,15 @@ export class DatabaseConnection {
      * Execute a SQL query that returns multiple rows
      */
     public async all(sql: string, params: any[] = []): Promise<any[]> {
-        if (!this.db) throw new Error('Database not initialized');
+        await this.ensureConnection();
 
         return new Promise((resolve, reject) => {
             this.db!.all(sql, params, (err, rows) => {
                 if (err) {
+                    // Check if it's a closed connection error
+                    if (err.message && err.message.includes('closed')) {
+                        logger.error({ error: formatError(err), sql }, 'Database connection was closed during operation');
+                    }
                     logger.error({ error: formatError(err), sql, params }, 'SQL query error');
                     reject(err);
                 } else {
