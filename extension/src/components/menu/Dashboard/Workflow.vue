@@ -97,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { ApiService } from '../../../utils/apiService'
 import { teamStore } from '../../../stores/teamStore'
 import type { ProposalData } from '../../../types'
@@ -151,6 +151,9 @@ const vetoed = computed(() => workflowData.value.vetoed)
 // Methods
 const MAX_RETRIES = 3;
 const RETRY_DELAY = 1000; // 1 second
+const REFRESH_INTERVAL_MS = 15000; // 15 seconds
+
+let refreshInterval: number | null = null;
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -204,6 +207,51 @@ const loadData = async (retryCount = 0) => {
     loading.value = false;
   }
 }
+
+const startAutoRefresh = () => {
+  // Clear any existing interval
+  stopAutoRefresh();
+  
+  console.log('🔄 Workflow: Starting auto-refresh (15s interval)');
+  
+  // Set up interval
+  refreshInterval = window.setInterval(() => {
+    // Check if tab is visible (pause when hidden)
+    if (document.visibilityState === 'visible') {
+      console.log('🔄 Workflow: Auto-refreshing workflow data...');
+      loadData();
+    } else {
+      console.log('⏸️ Workflow: Tab hidden, skipping refresh');
+    }
+  }, REFRESH_INTERVAL_MS);
+  
+  // Also listen for visibility changes to refresh when tab becomes visible
+  const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible') {
+      console.log('👁️ Workflow: Tab visible, refreshing workflow data...');
+      loadData();
+    }
+  };
+  
+  document.addEventListener('visibilitychange', handleVisibilityChange);
+  
+  // Store cleanup function
+  (window as any)._workflowVisibilityHandler = handleVisibilityChange;
+};
+
+const stopAutoRefresh = () => {
+  if (refreshInterval !== null) {
+    console.log('⏹️ Workflow: Stopping auto-refresh');
+    clearInterval(refreshInterval);
+    refreshInterval = null;
+  }
+  
+  // Remove visibility change listener
+  if ((window as any)._workflowVisibilityHandler) {
+    document.removeEventListener('visibilitychange', (window as any)._workflowVisibilityHandler);
+    (window as any)._workflowVisibilityHandler = null;
+  }
+};
 
 const openProposal = async (proposal: ProposalData) => {
   try {
@@ -279,8 +327,16 @@ const sendToMimir = () => {
   })
 }
 
-// Initial load
-onMounted(loadData)
+// Initial load and auto-refresh
+onMounted(() => {
+  loadData();
+  startAutoRefresh();
+});
+
+// Cleanup on unmount
+onUnmounted(() => {
+  stopAutoRefresh();
+});
 </script>
 
 <style scoped>
