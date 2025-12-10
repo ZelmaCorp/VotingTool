@@ -25,8 +25,8 @@ export class ApiService {
     private multisigAddress: string | null = null; // DAO identification
 
     constructor() {
-        // Default to localhost, will be updated from storage
-        this.baseUrl = 'http://localhost:3000';
+        // Default to production API, will be updated from storage if user has configured a custom URL
+        this.baseUrl = 'https://api.votingtool.zelmacorp.io';
         this.loadToken();
         this.loadMultisigAddress();
         this.loadApiConfig();
@@ -38,6 +38,10 @@ export class ApiService {
             const result = await chrome.storage.sync.get(['backendUrl']);
             if (result.backendUrl) {
                 this.baseUrl = result.backendUrl;
+                console.log('🔧 Using custom backend URL from storage:', this.baseUrl);
+            } else {
+                // No custom URL configured, use default production URL
+                console.log('🔧 Using default production backend URL:', this.baseUrl);
             }
         } catch (error) {
             console.warn('ApiService: Failed to load API config, using default:', error);
