@@ -286,6 +286,7 @@ export async function refreshReferendas(limit: number = 30, daoId?: number) {
             `Refreshing for ${daosToRefresh.length} DAO(s)`);
 
         // Track which referendums we update from activity feed to avoid duplicate API calls
+        // This is used by updateAllActiveReferendums() to skip referendums already updated
         const updatedRefs = new Set<string>();
 
         // Fetch latest proposals from both networks and fetch exchange rates
@@ -319,6 +320,7 @@ export async function refreshReferendas(limit: number = 30, daoId?: number) {
                         `Referendum found, updating`);
                     try {
                         await updateReferendumFromPolkassembly(referenda, exchangeRate, referenda.network, dao.id);
+                        updatedRefs.add(makeRefKey(referenda.post_id, referenda.network));
                     } catch (error) {
                         logger.error({ postId: referenda.post_id, daoId: dao.id, error: formatError(error), network: referenda.network }, 
                             "Error updating referendum");
@@ -328,6 +330,7 @@ export async function refreshReferendas(limit: number = 30, daoId?: number) {
                         `Referendum not found, creating`);
                     try {
                         await createReferendumFromPolkassembly(referenda, exchangeRate, referenda.network, dao.id);
+                        updatedRefs.add(makeRefKey(referenda.post_id, referenda.network));
                     } catch (error) {
                         logger.error({ postId: referenda.post_id, daoId: dao.id, error: formatError(error), network: referenda.network }, 
                             "Error creating referendum");
@@ -339,12 +342,16 @@ export async function refreshReferendas(limit: number = 30, daoId?: number) {
         logger.info({ totalReferendas: referendas.length, daoCount: daosToRefresh.length }, 
             "RefreshReferendas completed successfully");
 
-        // After refreshing recent referendums, check ALL referendums in database for NotVoted transition
-        await checkAllReferendumsForNotVoted();
+        // Failsafe: Update all active referendums that weren't in the activity feed
+        // Pass updatedRefs to avoid duplicate API calls for referendums we just updated
+        await updateAllActiveReferendums(updatedRefs);        
         
     } catch (error) {
         logger.error({ error: formatError(error) }, "Error while refreshing Referendas");
     } finally {
+        // This will happen even if the refresh fails, so we still have a chance to transition NotVoted referendums.
+        await checkAllReferendumsForNotVoted();
+
         isRefreshing = false;
     }
 }
