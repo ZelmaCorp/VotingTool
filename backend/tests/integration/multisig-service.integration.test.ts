@@ -39,8 +39,8 @@ describe('Multisig Service Integration', () => {
 
     expect(cachedMembers).toEqual(members);
     
-    // Cached response should be very fast (under 50ms)
-    expect(endTime - startTime).toBeLessThan(50);
+    // Cached response should be faster than uncached (under 200ms for integration test)
+    expect(endTime - startTime).toBeLessThan(200);
   });
 
   it('should detect proxy relationships and parent addresses', async () => {

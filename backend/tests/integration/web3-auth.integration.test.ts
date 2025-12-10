@@ -5,6 +5,7 @@ import { Keyring } from '@polkadot/keyring';
 import { u8aToHex } from '@polkadot/util';
 import { signatureVerify, cryptoWaitReady } from '@polkadot/util-crypto';
 import authRouter from '../../src/routes/auth';
+import daoRouter from '../../src/routes/dao';
 import { multisigService } from '../../src/services/multisig';
 import { DatabaseConnection } from '../../src/database/connection';
 import { DAO } from '../../src/database/models/dao';
@@ -29,10 +30,11 @@ describe('Web3 Authentication Integration', () => {
     // Initialize WASM crypto first
     await cryptoWaitReady();
     
-    // Create Express app with auth routes
+    // Create Express app with auth and dao routes
     app = express();
     app.use(bodyParser.json());
     app.use('/auth', authRouter);
+    app.use('/dao', daoRouter);
     
     // Initialize keyring for signature testing
     keyring = new Keyring({ type: 'sr25519' });
@@ -170,13 +172,14 @@ describe('Web3 Authentication Integration', () => {
     expect(invalidAuthResponse.body.success).toBe(false);
     expect(invalidAuthResponse.body.error).toBe('Invalid signature');
     
-    // Step 6: Test with non-team member address
+    // Step 6: Test with non-team member address - they can authenticate but can't access protected endpoints
     const nonMemberAccount = keyring.addFromUri('//Bob');
     const nonMemberMessage = `Authenticate with OpenGov Voting Tool\n\nAddress: ${nonMemberAccount.address}\nTimestamp: ${timestamp}\n\nClick "Sign Message" to continue.`;
     const nonMemberSignature = nonMemberAccount.sign(nonMemberMessage);
     const nonMemberSignatureHex = u8aToHex(nonMemberSignature);
     
-    const nonMemberResponse = await request(app)
+    // Non-member can authenticate (for registration purposes)
+    const nonMemberAuthResponse = await request(app)
       .post('/auth/web3-login')
       .send({
         address: nonMemberAccount.address,
@@ -185,8 +188,18 @@ describe('Web3 Authentication Integration', () => {
         timestamp: timestamp
       });
 
+    expect(nonMemberAuthResponse.status).toBe(200);
+    const nonMemberToken = nonMemberAuthResponse.body.token;
+    expect(nonMemberToken).toBeDefined();
+    
+    // But non-member cannot access protected endpoints
+    const nonMemberResponse = await request(app)
+      .get('/dao/config')
+      .set('Authorization', `Bearer ${nonMemberToken}`)
+      .query({ chain: 'Polkadot' });
+
     expect(nonMemberResponse.status).toBe(403);
     expect(nonMemberResponse.body.success).toBe(false);
-    expect(nonMemberResponse.body.error).toBe('Access denied: Wallet address not registered as multisig member');
+    expect(nonMemberResponse.body.error).toBe('Access denied: You are not a member of any DAO. Please contact an administrator.');
   });
 }); 
