@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "OpenGov VotingTool Browser Extension",
-  "version": "2.1.1",
+  "version": "2.2.2",
   "description": "A browser extension that overlays on Polkassembly and Subsquare to help you vote on OpenGov proposals",
   "permissions": [
     "storage"
@@ -11,7 +11,8 @@
     "https://kusama.polkassembly.io/*",
     "https://polkadot.subsquare.io/*",
     "https://kusama.subsquare.io/*",
-    "http://localhost:3000/*"
+    "http://localhost:3000/*",
+    "https://api.votingtool.zelmacorp.io/*"
   ],
   "optional_host_permissions": [
     "https://*/*",
