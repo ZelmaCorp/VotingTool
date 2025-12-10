@@ -612,31 +612,8 @@ export class ApiService {
 
 
     // List methods for different views
-    async getMyAssignments(): Promise<ProposalData[]> {
-        try {
-            const result = await this.request<{ success: boolean; referendums: ProposalData[]; error?: string }>('/dao/my-assignments');
-            
-            if (!result.success) {
-                console.warn('API returned success: false', result.error);
-                return [];
-            }
-
-            return result.referendums || [];
-        } catch (error) {
-            console.error('Failed to fetch assignments:', error);
-            return [];
-        }
-    }
-
-    async getProposalsByStatus(status: InternalStatus): Promise<ProposalData[]> {
-        try {
-            const result = await this.request<{ success: boolean; referendums?: ProposalData[]; error?: string }>(`/referendums?status=${encodeURIComponent(status)}`);
-            return result.referendums || [];
-        } catch (error) {
-            console.error('Failed to fetch proposals by status:', error);
-            return [];
-        }
-    }
+    // Note: getMyAssignments() removed - now using proposalStore.myAssignments instead
+    // Note: getProposalsByStatus() removed - backend doesn't support status query parameter
 
     async getAllProposals(chain?: Chain): Promise<ProposalData[]> {
         try {
@@ -718,15 +695,8 @@ export class ApiService {
         return mapped;
     }
 
-    async getRecentActivity(): Promise<ProposalData[]> {
-        try {
-            const result = await this.request<{ success: boolean; referendums?: ProposalData[]; error?: string }>('/referendums?sort=updated_at&limit=50');
-            return result.referendums || [];
-        } catch (error) {
-            console.error('Failed to fetch recent activity:', error);
-            return [];
-        }
-    }
+    // Note: getRecentActivity() removed - backend doesn't support sort/limit query parameters
+    // Use proposalStore.state.proposals and filter/sort in frontend if needed
 
     // Team workflow data method
     async getTeamWorkflowData(chain?: Chain): Promise<{
