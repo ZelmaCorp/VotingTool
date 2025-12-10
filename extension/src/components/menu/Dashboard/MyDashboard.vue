@@ -11,7 +11,7 @@
       <div class="error-icon">⚠️</div>
       <h3>Error Loading Data</h3>
       <p>{{ error }}</p>
-      <button @click="loadData()" class="retry-btn">Try Again</button>
+      <button @click="proposalStore.fetchProposals()" class="retry-btn">Try Again</button>
     </div>
 
     <!-- Dashboard Content -->
@@ -84,9 +84,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { ApiService } from '../../../utils/apiService'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { authStore } from '../../../stores/authStore'
+import { proposalStore } from '../../../stores/proposalStore'
 import type { ProposalData } from '../../../types'
 import MyAssignmentsTab from './MyAssignmentsTab.vue'
 import ActionsNeededTab from './ActionsNeededTab.vue'
@@ -96,24 +96,22 @@ import MyActivityTab from './MyActivityTab.vue'
 // Tab state
 const activeTab = ref<'assignments' | 'actions' | 'evaluations' | 'activity'>('assignments')
 
-// Data
-const dashboardProposals = ref<ProposalData[]>([])  // My assignments
-const allProposals = ref<ProposalData[]>([])  // All proposals for checking actions needed
-const recentActivity = ref<any[]>([])
-
-// Computed
-const myAssignments = computed(() => {
-  const currentUser = authStore.state.user?.address
-  if (!currentUser) return []
-  return dashboardProposals.value.filter(p => p.assigned_to === currentUser)
-})
-
+// Use proposalStore for data
+const loading = computed(() => proposalStore.state.loading)
+const error = computed(() => proposalStore.state.error)
+const myAssignments = computed(() => proposalStore.myAssignments)
+// Dashboard-specific actionsNeeded logic (more detailed than store's version)
 const actionsNeeded = computed(() => {
   const currentUser = authStore.state.user?.address
   if (!currentUser) return []
   
-  // Check all proposals (not just assignments) for actions needed
-  return allProposals.value.filter(p => {
+  // Use store's proposals but apply dashboard-specific filtering logic
+  return proposalStore.state.proposals.filter(p => {
+    // Filter out NotVoted and past proposals
+    if (p.internal_status === 'Not Voted') return false
+    const pastStatuses: string[] = ['Executed', 'Rejected', 'Cancelled', 'Canceled', 'TimedOut', 'Killed']
+    if (p.referendum_timeline && pastStatuses.includes(p.referendum_timeline)) return false
+    
     const isAssignedToMe = p.assigned_to === currentUser
     
     // If assigned to me, I need to provide an evaluation (suggested vote)
@@ -127,7 +125,7 @@ const actionsNeeded = computed(() => {
       return false  // Not in a status that requires team action
     }
     
-    // Check if I've already taken a team action
+    // Check if I've already taken a team action (checking for specific action types)
     const hasTeamAction = p.team_actions?.some(action => {
       const actionType = action.action || action.role_type;
       return action.wallet_address === currentUser && 
@@ -137,83 +135,11 @@ const actionsNeeded = computed(() => {
     return !hasTeamAction  // Show if I haven't taken a team action yet
   })
 })
-
-const myEvaluations = computed(() => {
-  const currentUser = authStore.state.user?.address
-  if (!currentUser) return []
-  return dashboardProposals.value.filter(p => 
-    p.assigned_to === currentUser && 
-    p.suggested_vote
-  )
-})
-
-const activityCount = computed(() => recentActivity.value.length)
-
-// Methods
-const loading = ref(false)
-const error = ref<string | null>(null)
-
-const MAX_RETRIES = 3
-const RETRY_DELAY = 1000 // 1 second
-
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
-
-const loadData = async (retryCount = 0) => {
-  loading.value = true
-  error.value = null
-
-  try {
-    if (!authStore.state.isAuthenticated || !authStore.state.user?.address) {
-      return
-    }
-
-    const apiService = ApiService.getInstance()
-    
-    // Get my assignments
-    const assignments = await apiService.getMyAssignments()
-    if (!assignments) {
-      if (retryCount < MAX_RETRIES) {
-        console.log(`Retrying data load (attempt ${retryCount + 1}/${MAX_RETRIES})...`)
-        await sleep(RETRY_DELAY)
-        return loadData(retryCount + 1)
-      }
-      throw new Error('Could not load assignments after multiple attempts.')
-    }
-    
-    // Get all proposals to check for actions needed
-    const all = await apiService.getAllProposals()
-    if (!all) {
-      if (retryCount < MAX_RETRIES) {
-        console.log(`Retrying all proposals load (attempt ${retryCount + 1}/${MAX_RETRIES})...`)
-        await sleep(RETRY_DELAY)
-        return loadData(retryCount + 1)
-      }
-      throw new Error('Could not load all proposals after multiple attempts.')
-    }
-    
-    dashboardProposals.value = assignments
-    allProposals.value = all
-    
-  } catch (err) {
-    console.error('Failed to load dashboard data:', err)
-    error.value = err instanceof Error ? err.message : 'Failed to load data. Please try again.'
-    dashboardProposals.value = []
-    allProposals.value = []
-    recentActivity.value = []
-  } finally {
-    loading.value = false
-  }
-}
+const myEvaluations = computed(() => proposalStore.myEvaluations)
+const activityCount = computed(() => 0) // Placeholder for future activity tracking
 
 const openProposal = async (proposal: ProposalData) => {
   try {
-    const apiService = ApiService.getInstance()
-    
-    const existingProposal = await apiService.getProposal(proposal.post_id, proposal.chain)
-    if (!existingProposal) {
-      await apiService.refreshReferenda()
-    }
-    
     const url = `https://${proposal.chain.toLowerCase()}.polkassembly.io/referenda/${proposal.post_id}`
     window.open(url, '_blank')
   } catch (error) {
@@ -221,43 +147,37 @@ const openProposal = async (proposal: ProposalData) => {
   }
 }
 
-// Event handlers
+// Event handlers - trigger store refresh on changes
 const handleTeamActionChanged = () => {
-  console.log('Team action changed - refreshing dashboard data...')
-  loadData()
+  console.log('Team action changed - refreshing proposals...')
+  proposalStore.fetchProposals()
 }
 
 const handleProposalAssigned = () => {
-  console.log('Proposal assigned - refreshing dashboard data...')
-  loadData()
+  console.log('Proposal assigned - refreshing proposals...')
+  proposalStore.fetchProposals()
 }
 
 const handleProposalUnassigned = () => {
-  console.log('Proposal unassigned - refreshing dashboard data...')
-  loadData()
+  console.log('Proposal unassigned - refreshing proposals...')
+  proposalStore.fetchProposals()
 }
 
 const handleSuggestedVoteChanged = () => {
-  console.log('Suggested vote changed - refreshing dashboard data...')
-  loadData()
+  console.log('Suggested vote changed - refreshing proposals...')
+  proposalStore.fetchProposals()
 }
 
 const handleStatusChanged = () => {
-  console.log('Status changed - refreshing dashboard data...')
-  loadData()
+  console.log('Status changed - refreshing proposals...')
+  proposalStore.fetchProposals()
 }
-
-// Watch for auth state changes
-watch(() => authStore.state.isAuthenticated, (isAuthenticated) => {
-  if (isAuthenticated) {
-    loadData()
-  }
-})
 
 // Initial load and event listeners
 onMounted(() => {
+  // Ensure store is initialized and auto-refresh is running
   if (authStore.state.isAuthenticated) {
-    loadData()
+    proposalStore.initialize()
   }
   
   // Listen for events that should trigger a refresh

@@ -257,23 +257,32 @@ export const authStore = {
                 })
                 
                 if (member) {
-                    // Update user info with actual name from DAO
-                    const updatedUser = {
-                        ...state.user,
-                        name: member.team_member_name || member.name || state.user.name
+                    // Get the new name
+                    const newName = member.team_member_name || member.name || state.user.name
+                    
+                    // Only update and dispatch if the name actually changed
+                    if (newName !== state.user.name) {
+                        // Update user info with actual name from DAO
+                        const updatedUser = {
+                            ...state.user,
+                            name: newName
+                        }
+                        
+                        state.user = updatedUser
+                        
+                        // Update localStorage
+                        localStorage.setItem('opengov-auth-user', JSON.stringify(updatedUser))
+                        
+                        console.log('✅ User info refreshed:', updatedUser.name)
+                        
+                        // Dispatch event for UI updates only if something changed
+                        window.dispatchEvent(new CustomEvent('authStateChanged', { 
+                            detail: { isAuthenticated: true, user: updatedUser } 
+                        }))
+                    } else {
+                        // Name hasn't changed, no need to dispatch event (prevents circular loops)
+                        console.log('ℹ️ User info unchanged, skipping event dispatch')
                     }
-                    
-                    state.user = updatedUser
-                    
-                    // Update localStorage
-                    localStorage.setItem('opengov-auth-user', JSON.stringify(updatedUser))
-                    
-                    console.log('✅ User info refreshed:', updatedUser.name)
-                    
-                    // Dispatch event for UI updates
-                    window.dispatchEvent(new CustomEvent('authStateChanged', { 
-                        detail: { isAuthenticated: true, user: updatedUser } 
-                    }))
                 }
             }
         } catch (error) {
