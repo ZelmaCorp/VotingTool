@@ -186,12 +186,26 @@ describe('SendToMimir -> Vote Casted Flow Integration Test', () => {
       expect(transaction).toBeDefined();
       expect(transaction!.status).toBe('pending');
       expect(transaction!.calldata).toBeDefined();
+      expect(transaction!.calldata).toMatch(/^0x[0-9a-f]+$/i); // Should be valid hex
+      expect(transaction!.referendum_id).toBe(referendumId);
+      expect(transaction!.dao_id).toBe(testDaoId);
 
-      // Verify Mimir API was called
+      // Verify Mimir API was called with correct structure
       expect(global.fetch).toHaveBeenCalled();
       const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
       expect(fetchCall[0]).toContain('/transactions/batch');
       expect(fetchCall[1].method).toBe('POST');
+      expect(fetchCall[1].headers['Content-Type']).toBe('application/json');
+      
+      // Verify request body structure
+      const requestBody = JSON.parse(fetchCall[1].body);
+      expect(requestBody).toHaveProperty('calldata');
+      expect(requestBody).toHaveProperty('timestamp');
+      expect(requestBody).toHaveProperty('signature');
+      expect(requestBody).toHaveProperty('signer');
+      expect(requestBody).toHaveProperty('allowDuplicates', true);
+      expect(requestBody.calldata).toBe(transaction!.calldata);
+      expect(requestBody.signature).toMatch(/^0x[0-9a-f]+$/i); // Should be valid hex signature
     });
 
     it('should skip referendums that already have pending transactions', async () => {
@@ -339,9 +353,15 @@ describe('SendToMimir -> Vote Casted Flow Integration Test', () => {
       // But transaction should not be created due to error
       await sendReadyProposalsToMimir();
 
-      // Verify no transaction was created
+      // Verify no transaction was created (proposeVoteTransaction throws, so handleReferendaVote returns undefined)
       const transaction = await MimirTransaction.findByPostIdAndChain(postId, Chain.Polkadot, testDaoId);
       expect(transaction).toBeFalsy(); // Returns undefined when not found
+      
+      // Verify Mimir API was still called (proposeVoteTransaction attempts the call before throwing)
+      expect(global.fetch).toHaveBeenCalled();
+      
+      // Verify the error was handled gracefully - function completed without crashing
+      // (This is implicit - if we got here, the function didn't throw)
     });
   });
 
@@ -433,6 +453,8 @@ describe('SendToMimir -> Vote Casted Flow Integration Test', () => {
       expect(updatedRef!.internal_status).toBe(InternalStatus.VotedAye);
       expect(updatedRef!.voted_link).toBeDefined();
       expect(updatedRef!.voted_link).toContain('0xabcdef123456');
+      expect(updatedRef!.voted_link).toContain('subscan.io');
+      expect(updatedRef!.vote_executed_date).toBeDefined();
 
       // Verify VotingDecision was updated
       const decision = await VotingDecision.getByReferendumId(referendumId, testDaoId);
@@ -453,6 +475,8 @@ describe('SendToMimir -> Vote Casted Flow Integration Test', () => {
       expect(executedTransaction).toBeDefined();
       expect(executedTransaction.status).toBe('executed');
       expect(executedTransaction.extrinsic_hash).toBe('0xabcdef123456');
+      expect(executedTransaction.referendum_id).toBe(referendumId);
+      expect(executedTransaction.dao_id).toBe(testDaoId);
     });
 
     it('should handle Nay votes correctly', async () => {
@@ -774,17 +798,24 @@ describe('SendToMimir -> Vote Casted Flow Integration Test', () => {
       const updatedRef = await Referendum.findByPostIdAndChain(postId, Chain.Polkadot, testDaoId);
       expect(updatedRef!.internal_status).toBe(InternalStatus.VotedAye);
       expect(updatedRef!.voted_link).toBeDefined();
+      expect(updatedRef!.voted_link).toContain('0xabcdef123456');
+      expect(updatedRef!.vote_executed_date).toBeDefined();
 
       const decision = await VotingDecision.getByReferendumId(referendumId, testDaoId);
+      expect(decision).toBeDefined();
       expect(decision!.final_vote).toBe(SuggestedVote.Aye);
       expect(decision!.vote_executed).toBeTruthy(); // SQLite returns 1/0, so use toBeTruthy
+      expect(decision!.vote_executed_date).toBeDefined();
 
       const executedTransaction = await db.get(
         'SELECT * FROM mimir_transactions WHERE referendum_id = ? AND dao_id = ?',
         [referendumId, testDaoId]
       );
+      expect(executedTransaction).toBeDefined();
       expect(executedTransaction.status).toBe('executed');
       expect(executedTransaction.extrinsic_hash).toBe('0xabcdef123456');
+      expect(executedTransaction.referendum_id).toBe(referendumId);
+      expect(executedTransaction.dao_id).toBe(testDaoId);
     });
 
     it('should handle the endpoint integration', async () => {
