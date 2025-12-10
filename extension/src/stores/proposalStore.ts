@@ -245,10 +245,16 @@ export const proposalStore = {
 
   // Initialize proposals if authenticated
   async initialize(): Promise<void> {
-    if (authStore.state.isAuthenticated && state.proposals.length === 0) {
+    if (!authStore.state.isAuthenticated) {
+      return
+    }
+    
+    // Fetch initial data if we don't have any
+    if (state.proposals.length === 0) {
       await this.fetchProposals()
     }
-    // Start auto-refresh when initialized
+    
+    // Always start auto-refresh when initialized (it will handle cleanup if already running)
     this.startAutoRefresh()
   },
 
