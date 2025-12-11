@@ -44,22 +44,17 @@ let isCheckingVotes = false;
  * Removes the proposals that have been voted on from pending Mimir transactions.
  */
 export async function checkForVotes(): Promise<void> {
-  if (isCheckingVotes) {
-    logger.debug('Previous checkForVotes operation still running, skipping...');
-    return;
-  }
+  if (isCheckingVotes) return;
 
   try {
     isCheckingVotes = true;
-    
     await cleanupStaleTransactions();
     
     const pendingTransactions = await MimirTransaction.getPendingTransactions();
     if (pendingTransactions.length === 0) {
-      logger.info("No pending Mimir transactions found.");
+      logger.info("No pending Mimir transactions found");
       return;
     }
-    logger.info({ transactionsCount: pendingTransactions.length }, "Pending Mimir transactions found");
 
     const daos = await DAO.getAll(true);
     if (daos.length === 0) {
@@ -68,43 +63,27 @@ export async function checkForVotes(): Promise<void> {
     }
     
     const allVotesWithData = await fetchAllDaoVotes(daos);
-    // Extract post IDs for Subscan (without chain prefix)
-    const votedList = Array.from(new Set(
-      Object.keys(allVotesWithData).map(key => Number(key.split(':')[1]))
-    )).filter(id => !isNaN(id));
+    const votedList = extractPostIds(allVotesWithData);
     
-    logger.info({ 
-      votedCount: votedList.length, 
-      votedReferendums: votedList,
-      voteMapSize: Object.keys(allVotesWithData).length
-    }, "Total voted referendums found across all DAOs");
-    
-    // Log each vote found
-    for (const [key, data] of Object.entries(allVotesWithData)) {
-      const postId = key.split(':')[1];
-      logger.info({ postId: Number(postId), chain: data.chain, vote: data.vote }, "Vote found on chain");
-    }
+    logger.info({ votedCount: votedList.length, pendingCount: pendingTransactions.length }, 
+      "Processing votes");
 
     const extrinsicVoteMap = await checkSubscan(votedList, daos);
-
-    // Log pending transactions for debugging
-    logger.info({ pendingCount: pendingTransactions.length }, "Processing pending transactions");
-    for (const t of pendingTransactions) {
-      logger.info({ 
-        postId: t.post_id, 
-        chain: t.chain, 
-        referendumId: t.referendum_id 
-      }, "Pending transaction");
-    }
 
     for (const transaction of pendingTransactions) {
       await processPendingTransaction(transaction, allVotesWithData, extrinsicVoteMap);
     }
   } catch (error) {
-    logger.error({ error: formatError(error) }, "Error checking vote statuses (checkForVotes)");
+    logger.error({ error: formatError(error) }, "Error checking votes");
   } finally {
     isCheckingVotes = false;
   }
+}
+
+function extractPostIds(votesMap: Record<string, VoteWithChain>): number[] {
+  return Array.from(new Set(
+    Object.keys(votesMap).map(key => Number(key.split(':')[1]))
+  )).filter(id => !isNaN(id));
 }
 
 /**
@@ -122,80 +101,55 @@ async function cleanupStaleTransactions(): Promise<void> {
   }
 }
 
-/**
- * Fetch votes for all DAOs across both Polkadot and Kusama
- * Returns a map keyed by "chain:postId" to avoid collisions between chains
- */
 async function fetchAllDaoVotes(daos: Awaited<ReturnType<typeof DAO.getAll>>): Promise<Record<string, VoteWithChain>> {
-  let allVotesWithData: Record<string, VoteWithChain> = {};
+  const allVotes: Record<string, VoteWithChain> = {};
   
   for (const dao of daos) {
-    const polkadotMultisig = await DAO.getDecryptedMultisig(dao.id, Chain.Polkadot);
-    if (polkadotMultisig) {
-      logger.debug({ daoId: dao.id, daoName: dao.name, chain: 'Polkadot', multisig: polkadotMultisig }, "Fetching votes for DAO");
-      
-      // Try fetching votes from the multisig account
-      let votedPolkadot = await fetchActiveVotes(polkadotMultisig, Chain.Polkadot);
-      
-      // If no votes found, check if it's a proxy and try the proxy account
-      if (Object.keys(votedPolkadot).length === 0) {
-        logger.info({ daoId: dao.id, multisig: polkadotMultisig }, "No votes found on multisig, checking if it's a proxy");
-        try {
-          const proxyInfo = await multisigService.getParentAddress(polkadotMultisig, "Polkadot");
-          if (proxyInfo.isProxy && proxyInfo.parentAddress) {
-            logger.info({ 
-              daoId: dao.id, 
-              multisig: polkadotMultisig, 
-              proxyAccount: proxyInfo.parentAddress 
-            }, "Multisig is a proxy, fetching votes from proxy account");
-            votedPolkadot = await fetchActiveVotes(proxyInfo.parentAddress, Chain.Polkadot);
-          }
-        } catch (error) {
-          logger.warn({ error: formatError(error), daoId: dao.id }, "Error checking for proxy account");
-        }
-      }
-      
-      // Store with chain prefix to avoid collisions
-      for (const [postId, vote] of Object.entries(votedPolkadot)) {
-        const key = `${Chain.Polkadot}:${postId}`;
-        allVotesWithData[key] = { vote, chain: Chain.Polkadot };
-      }
-    }
+    const polkadotVotes = await fetchDaoVotesForChain(dao, Chain.Polkadot);
+    const kusamaVotes = await fetchDaoVotesForChain(dao, Chain.Kusama);
     
-    const kusamaMultisig = await DAO.getDecryptedMultisig(dao.id, Chain.Kusama);
-    if (kusamaMultisig) {
-      logger.debug({ daoId: dao.id, daoName: dao.name, chain: 'Kusama', multisig: kusamaMultisig }, "Fetching votes for DAO");
-      
-      // Try fetching votes from the multisig account
-      let votedKusama = await fetchActiveVotes(kusamaMultisig, Chain.Kusama);
-      
-      // If no votes found, check if it's a proxy and try the proxy account
-      if (Object.keys(votedKusama).length === 0) {
-        logger.info({ daoId: dao.id, multisig: kusamaMultisig }, "No votes found on multisig, checking if it's a proxy");
-        try {
-          const proxyInfo = await multisigService.getParentAddress(kusamaMultisig, "Kusama");
-          if (proxyInfo.isProxy && proxyInfo.parentAddress) {
-            logger.info({ 
-              daoId: dao.id, 
-              multisig: kusamaMultisig, 
-              proxyAccount: proxyInfo.parentAddress 
-            }, "Multisig is a proxy, fetching votes from proxy account");
-            votedKusama = await fetchActiveVotes(proxyInfo.parentAddress, Chain.Kusama);
-          }
-        } catch (error) {
-          logger.warn({ error: formatError(error), daoId: dao.id }, "Error checking for proxy account");
-        }
-      }
-      
-      // Store with chain prefix to avoid collisions
-      for (const [postId, vote] of Object.entries(votedKusama)) {
-        const key = `${Chain.Kusama}:${postId}`;
-        allVotesWithData[key] = { vote, chain: Chain.Kusama };
-      }
-    }
+    Object.assign(allVotes, polkadotVotes, kusamaVotes);
   }
   
-  return allVotesWithData;
+  return allVotes;
+}
+
+async function fetchDaoVotesForChain(dao: any, chain: Chain): Promise<Record<string, VoteWithChain>> {
+  const multisig = await DAO.getDecryptedMultisig(dao.id, chain);
+  if (!multisig) return {};
+  
+  let votes = await fetchActiveVotes(multisig, chain);
+  
+  // If no votes, try proxy account
+  if (Object.keys(votes).length === 0) {
+    votes = await tryFetchFromProxy(multisig, chain, dao.id);
+  }
+  
+  return convertToChainKeyedVotes(votes, chain);
+}
+
+async function tryFetchFromProxy(multisig: string, chain: Chain, daoId: number): Promise<Record<number, SuggestedVote>> {
+  try {
+    const network = chain === Chain.Polkadot ? "Polkadot" : "Kusama";
+    const proxyInfo = await multisigService.getParentAddress(multisig, network);
+    
+    if (proxyInfo.isProxy && proxyInfo.parentAddress) {
+      logger.info({ daoId, proxyAccount: proxyInfo.parentAddress }, 
+        "Fetching votes from proxy account");
+      return await fetchActiveVotes(proxyInfo.parentAddress, chain);
+    }
+  } catch (error) {
+    logger.warn({ error: formatError(error), daoId }, "Error checking proxy");
+  }
+  return {};
+}
+
+function convertToChainKeyedVotes(votes: Record<number, SuggestedVote>, chain: Chain): Record<string, VoteWithChain> {
+  const result: Record<string, VoteWithChain> = {};
+  for (const [postId, vote] of Object.entries(votes)) {
+    result[`${chain}:${postId}`] = { vote, chain };
+  }
+  return result;
 }
 
 /**
@@ -213,19 +167,13 @@ async function processPendingTransaction(
   const voteData = allVotesWithData[voteKey];
   
   if (!voteData) {
-    const availableKeys = Object.keys(allVotesWithData);
-    logger.warn({ 
-      refId, 
-      chain, 
-      referendumId: transaction.referendum_id,
-      voteKey,
-      availableVoteCount: availableKeys.length,
-      availableVoteKeys: availableKeys.slice(0, 10) // Log first 10 to avoid huge logs
-    }, "Referendum not found in voted list for this chain, skipping");
+    logger.warn({ refId, chain, referendumId: transaction.referendum_id }, 
+      "Vote not found for referendum");
     return;
   }
 
-  logger.info({ referendumId: transaction.referendum_id, refId, chain, vote: voteData.vote }, `Referendum found for vote check`);
+  logger.info({ referendumId: transaction.referendum_id, refId, vote: voteData.vote }, 
+    "Processing voted referendum");
 
   const chainVote = voteData.vote;
   const subscanData = extrinsicVoteMap[refId];
@@ -314,126 +262,83 @@ function buildSubscanLink(extrinsicHash: string, chain: Chain): string {
   return `${baseUrl}/extrinsic/${extrinsicHash}`;
 }
 
-async function fetchActiveVotes(
-  account: string,
-  network: Chain
-): Promise<Record<number, SuggestedVote>> {
+async function fetchActiveVotes(account: string, network: Chain): Promise<Record<number, SuggestedVote>> {
+  const provider = new WsProvider(network === Chain.Kusama ? KUSAMA_PROVIDER : POLKADOT_PROVIDER);
+  const api = await ApiPromise.create({ provider });
+  
   try {
-    const provider = new WsProvider(network === Chain.Kusama ? KUSAMA_PROVIDER : POLKADOT_PROVIDER);
-    const api = await ApiPromise.create({ provider });
     const voteMap: Record<number, SuggestedVote> = {};
 
-    logger.info({ account, network }, `Fetching votes for account`);
-    
     for (const trackId of TRACKS) {
-      try {
-        const votingResult = await api.query.convictionVoting.votingFor(account, trackId) as any;
-        const humanResult = votingResult.toHuman();
-        
-        if (!humanResult || !humanResult.Casting) {
-          continue;
-        }
-        
-        const votes = humanResult.Casting.votes || [];
-
-        for (const [refIdStr, voteData] of votes) {
-          const refId = Number(refIdStr.split(",").join(""));
-          if (isNaN(refId)) {
-            continue;
-          }
-
-          const parsedVote = parseVoteFromChainData(voteData, refId, network, trackId);
-          if (parsedVote) {
-            voteMap[refId] = parsedVote;
-            logger.info({ refId, vote: parsedVote, network, trackId }, "Found vote on chain");
-          } else {
-            logger.warn({ refId, network, trackId }, "Vote data could not be parsed");
-          }
-        }
-      } catch (error) {
-        logger.error({ error: formatError(error), trackId, network, account }, "Error querying track for votes");
-      }
+      const trackVotes = await fetchTrackVotes(api, account, trackId, network);
+      Object.assign(voteMap, trackVotes);
     }
 
-    await api.disconnect();
-    logger.info({ account, network, voteCount: Object.keys(voteMap).length, votedRefs: Object.keys(voteMap).map(Number) }, "Completed fetching votes for account");
+    logger.info({ account, network, voteCount: Object.keys(voteMap).length }, 
+      "Fetched votes");
     return voteMap;
-  } catch (error) {
-    logger.error({ error: formatError(error), account, network }, `Error checking vote for account`);
-    throw error;
+  } finally {
+    await api.disconnect();
   }
 }
 
-function parseVoteFromChainData(voteData: any, refId?: number, network?: Chain, trackId?: number): SuggestedVote | null {
-  if (!voteData || typeof voteData !== 'object') {
-    return null;
-  }
-
-  // Check for Standard vote structure
-  if (voteData.Standard) {
-    const standard = voteData.Standard;
+async function fetchTrackVotes(api: ApiPromise, account: string, trackId: number, network: Chain): Promise<Record<number, SuggestedVote>> {
+  try {
+    const votingResult = await api.query.convictionVoting.votingFor(account, trackId) as any;
+    const votes = votingResult.toHuman()?.Casting?.votes || [];
     
-    // AssetHub Polkadot structure: Standard.vote.vote = "Aye", "Nay", or "Abstain" (string)
-    if (standard.vote && typeof standard.vote === 'object' && standard.vote.vote) {
-      const voteValue = standard.vote.vote;
-      if (typeof voteValue === 'string') {
-        const voteUpper = voteValue.toUpperCase();
-        if (voteUpper === 'AYE' || voteUpper === 'YES') {
-          return SuggestedVote.Aye;
-        }
-        if (voteUpper === 'NAY' || voteUpper === 'NO') {
-          return SuggestedVote.Nay;
-        }
-        if (voteUpper === 'ABSTAIN' || voteUpper === 'ABSTAINED') {
-          return SuggestedVote.Abstain;
-        }
+    const trackVotes: Record<number, SuggestedVote> = {};
+    for (const [refIdStr, voteData] of votes) {
+      const refId = Number(refIdStr.replace(/,/g, ""));
+      if (isNaN(refId)) continue;
+
+      const parsedVote = parseVoteFromChainData(voteData);
+      if (parsedVote) {
+        trackVotes[refId] = parsedVote;
       }
     }
-    
-    // Legacy format: Standard.vote.aye = true/false (boolean)
-    let aye: any = null;
-    if (standard.vote) {
-      if (typeof standard.vote === 'object' && standard.vote.aye !== undefined) {
-        aye = standard.vote.aye;
-      } else if (typeof standard.vote === 'boolean') {
-        aye = standard.vote;
-      }
-    } else if (standard.aye !== undefined) {
-      aye = standard.aye;
-    }
-    
-    if (aye !== null) {
-      if (aye === true || aye === 'true' || aye === 1 || aye === '1') {
-        return SuggestedVote.Aye;
-      }
-      if (aye === false || aye === 'false' || aye === 0 || aye === '0') {
-        return SuggestedVote.Nay;
-      }
-    }
+    return trackVotes;
+  } catch (error) {
+    logger.error({ error: formatError(error), trackId, network }, "Error querying track");
+    return {};
   }
+}
 
-  // Check for Split vote structure (Abstain)
-  if (voteData.Split) {
-    const { aye, nay, abstain } = voteData.Split;
-    const ayeNum = Number(aye);
-    const nayNum = Number(nay);
-    const abstainNum = Number(abstain);
-    
-    if (abstainNum > 0 && ayeNum === 0 && nayNum === 0) {
-      return SuggestedVote.Abstain;
-    }
+function parseVoteFromChainData(voteData: any): SuggestedVote | null {
+  if (!voteData || typeof voteData !== 'object') return null;
+
+  if (voteData.Standard) return parseStandardVote(voteData.Standard);
+  if (voteData.Split) return parseSplitVote(voteData.Split);
+  
+  return null;
+}
+
+function parseStandardVote(standard: any): SuggestedVote | null {
+  // AssetHub format: Standard.vote.vote = "Aye"/"Nay"/"Abstain" (string)
+  if (standard.vote?.vote && typeof standard.vote.vote === 'string') {
+    const vote = standard.vote.vote.toUpperCase();
+    if (vote === 'AYE' || vote === 'YES') return SuggestedVote.Aye;
+    if (vote === 'NAY' || vote === 'NO') return SuggestedVote.Nay;
+    if (vote === 'ABSTAIN') return SuggestedVote.Abstain;
   }
-
-  // Check if it's a direct boolean or string
-  if (typeof voteData === 'boolean' || typeof voteData === 'string') {
-    if (voteData === true || voteData === 'true' || voteData === 'Yes' || voteData === 'Aye') {
-      return SuggestedVote.Aye;
-    }
-    if (voteData === false || voteData === 'false' || voteData === 'No' || voteData === 'Nay') {
-      return SuggestedVote.Nay;
-    }
+  
+  // Legacy format: Standard.vote.aye = true/false (boolean)
+  const aye = standard.vote?.aye ?? standard.aye;
+  if (aye === true || aye === 'true' || aye === 1 || aye === '1') {
+    return SuggestedVote.Aye;
   }
+  if (aye === false || aye === 'false' || aye === 0 || aye === '0') {
+    return SuggestedVote.Nay;
+  }
+  
+  return null;
+}
 
+function parseSplitVote(split: any): SuggestedVote | null {
+  const { aye, nay, abstain } = split;
+  if (Number(abstain) > 0 && Number(aye) === 0 && Number(nay) === 0) {
+    return SuggestedVote.Abstain;
+  }
   return null;
 }
 
@@ -446,128 +351,81 @@ function parseVoteFromChainData(voteData: any, refId?: number, network?: Chain, 
  */
 export async function checkSubscan(votedList: ReferendumId[], daos: Awaited<ReturnType<typeof DAO.getAll>>): Promise<Record<number, ExtrinsicVoteData>> {
   try {
-    let extrinsicVoteMap: Record<number, ExtrinsicVoteData> = {};
-
-    const polkadotSubscanUrl = `https://assethub-polkadot.api.subscan.io/api/scan/proxy/extrinsics`;
-    const kusamaSubscanUrl = `https://assethub-kusama.api.subscan.io/api/scan/proxy/extrinsics`;
-    
     const apiKey = process.env.SUBSCAN_API_KEY;
-    if (!apiKey) {
-      throw new Error('SUBSCAN_API_KEY is not set in environment variables');
-    }
+    if (!apiKey) throw new Error('SUBSCAN_API_KEY not set');
 
-    // Fetch all extrinsics in parallel (both Polkadot and Kusama for all DAOs)
-    const fetchPromises = daos.flatMap(async (dao) => {
-      const promises: Promise<{ chain: Chain; dao: typeof daos[0]; extrinsics: any[] }>[] = [];
-      
-      // Polkadot fetch
-      const polkadotMultisig = await DAO.getDecryptedMultisig(dao.id, Chain.Polkadot);
-      if (polkadotMultisig) {
-        promises.push(
-          axios.post(polkadotSubscanUrl, {
-            account: polkadotMultisig,
-            row: SUBSCAN_ROW_COUNT,
-            page: 0,
-            order: 'desc'
-          }, {
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': apiKey
-            }
-          })
-          .then(resp => {
-            if (resp.data && resp.data.data && Array.isArray(resp.data.data.extrinsics)) {
-              logger.debug({ daoId: dao.id, daoName: dao.name, extrinsicsCount: resp.data.data.extrinsics.length }, 
-                "Fetched Polkadot extrinsics for DAO");
-              return { chain: Chain.Polkadot, dao, extrinsics: resp.data.data.extrinsics };
-            }
-            logger.warn({ daoId: dao.id, responseData: resp.data }, "Invalid Polkadot Subscan response structure");
-            return { chain: Chain.Polkadot, dao, extrinsics: [] };
-          })
-          .catch((error: any) => {
-            if (error.response?.status === 429) {
-              logger.warn({ daoId: dao.id }, "Polkadot Subscan API rate limit exceeded for DAO");
-            } else {
-              logger.error({ error: formatError(error), daoId: dao.id }, "Error fetching Polkadot extrinsics from Subscan");
-            }
-            return { chain: Chain.Polkadot, dao, extrinsics: [] };
-          })
-        );
-      }
-      
-      // Kusama fetch
-      const kusamaMultisig = await DAO.getDecryptedMultisig(dao.id, Chain.Kusama);
-      if (kusamaMultisig) {
-        promises.push(
-          axios.post(kusamaSubscanUrl, {
-            account: kusamaMultisig,
-            row: SUBSCAN_ROW_COUNT,
-            page: 0,
-            order: 'desc'
-          }, {
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': apiKey
-            }
-          })
-          .then(resp => {
-            if (resp.data && resp.data.data && Array.isArray(resp.data.data.extrinsics)) {
-              logger.debug({ daoId: dao.id, daoName: dao.name, extrinsicsCount: resp.data.data.extrinsics.length }, 
-                "Fetched Kusama extrinsics for DAO");
-              return { chain: Chain.Kusama, dao, extrinsics: resp.data.data.extrinsics };
-            }
-            logger.warn({ daoId: dao.id, responseData: resp.data }, "Invalid Kusama Subscan response structure");
-            return { chain: Chain.Kusama, dao, extrinsics: [] };
-          })
-          .catch((error: any) => {
-            if (error.response?.status === 429) {
-              logger.warn({ daoId: dao.id }, "Kusama Subscan API rate limit exceeded for DAO");
-            } else {
-              logger.error({ error: formatError(error), daoId: dao.id }, "Error fetching Kusama extrinsics from Subscan");
-            }
-            // Return empty array - don't block processing
-            return { chain: Chain.Kusama, dao, extrinsics: [] };
-          })
-        );
-      }
-      
-      return Promise.all(promises);
-    });
-
-    // Wait for all fetches to complete in parallel
-    const results = await Promise.all(fetchPromises);
+    const allExtrinsics = await fetchAllExtrinsics(daos, apiKey);
+    const extrinsicVoteMap = processExtrinsics(allExtrinsics, votedList);
     
-    // Flatten results and combine all extrinsics
-    const allExtrinsics = results.flat().flatMap(result => result.extrinsics);
-
-    // Process each extrinsic to find referendum votes
-    for (const extrinsic of allExtrinsics) {
-      try {
-        if (extrinsic.call_module === 'ConvictionVoting' && extrinsic.call_module_function === 'vote') {
-          const refId = parseReferendumIdFromExtrinsic(extrinsic);
-          
-          if (refId && votedList.includes(refId)) {
-            const actualVote = parseVoteFromExtrinsic(extrinsic);
-            
-            extrinsicVoteMap[refId] = {
-              extrinsicHash: extrinsic.extrinsic_hash,
-              actualVote: actualVote
-            };
-          }
-        }
-      } catch (error) {
-        logger.warn({ error: (error as Error).message, extrinsic: extrinsic.extrinsic_hash }, 
-          "Error processing extrinsic");
-      }
-    }
-
-    logger.info({ mappedCount: Object.keys(extrinsicVoteMap).length }, "Completed extrinsic hash and vote mapping");
+    logger.info({ mappedCount: Object.keys(extrinsicVoteMap).length }, 
+      "Mapped extrinsic hashes");
     return extrinsicVoteMap;
-    
   } catch (error) {
     logger.error({ error: formatError(error) }, "Error in checkSubscan");
     return {};
   }
+}
+
+async function fetchAllExtrinsics(daos: any[], apiKey: string): Promise<any[]> {
+  const fetchPromises = daos.flatMap(dao => [
+    fetchDaoExtrinsics(dao, Chain.Polkadot, apiKey),
+    fetchDaoExtrinsics(dao, Chain.Kusama, apiKey)
+  ]);
+
+  const results = await Promise.all(fetchPromises);
+  return results.flat().flatMap(r => r.extrinsics);
+}
+
+async function fetchDaoExtrinsics(dao: any, chain: Chain, apiKey: string): Promise<{ chain: Chain; dao: any; extrinsics: any[] }> {
+  const multisig = await DAO.getDecryptedMultisig(dao.id, chain);
+  if (!multisig) return { chain, dao, extrinsics: [] };
+
+  const url = chain === Chain.Polkadot
+    ? 'https://assethub-polkadot.api.subscan.io/api/scan/proxy/extrinsics'
+    : 'https://assethub-kusama.api.subscan.io/api/scan/proxy/extrinsics';
+
+  try {
+    const resp = await axios.post(url, {
+      account: multisig,
+      row: SUBSCAN_ROW_COUNT,
+      page: 0,
+      order: 'desc'
+    }, {
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey }
+    });
+
+    if (resp.data?.data?.extrinsics && Array.isArray(resp.data.data.extrinsics)) {
+      return { chain, dao, extrinsics: resp.data.data.extrinsics };
+    }
+    logger.warn({ daoId: dao.id, chain }, "Invalid Subscan response");
+    return { chain, dao, extrinsics: [] };
+  } catch (error: any) {
+    if (error.response?.status !== 429) {
+      logger.error({ error: formatError(error), daoId: dao.id, chain }, 
+        "Error fetching extrinsics");
+    }
+    return { chain, dao, extrinsics: [] };
+  }
+}
+
+function processExtrinsics(extrinsics: any[], votedList: ReferendumId[]): Record<number, ExtrinsicVoteData> {
+  const voteMap: Record<number, ExtrinsicVoteData> = {};
+  
+  for (const extrinsic of extrinsics) {
+    if (extrinsic.call_module !== 'ConvictionVoting' || extrinsic.call_module_function !== 'vote') {
+      continue;
+    }
+    
+    const refId = parseReferendumIdFromExtrinsic(extrinsic);
+    if (refId && votedList.includes(refId)) {
+      voteMap[refId] = {
+        extrinsicHash: extrinsic.extrinsic_hash,
+        actualVote: parseVoteFromExtrinsic(extrinsic)
+      };
+    }
+  }
+  
+  return voteMap;
 }
 
 /**
@@ -597,43 +455,25 @@ function parseReferendumIdFromExtrinsic(extrinsic: any): number | null {
  * Parse the actual vote direction from extrinsic parameters
  */
 function parseVoteFromExtrinsic(extrinsic: any): SuggestedVote | null {
-  try {
-    if (extrinsic.params && Array.isArray(extrinsic.params)) {
-      // Look for the vote parameter
-      for (const param of extrinsic.params) {
-        if (param.name === 'vote') {
-          const voteData = param.value;
-          
-          // Handle different vote structures
-          if (typeof voteData === 'object') {
-            // Standard vote: { Standard: { vote: { aye: true/false, conviction: number }, balance: number } }
-            if (voteData.Standard) {
-              const aye = voteData.Standard.vote?.aye;
-              if (aye === true) return SuggestedVote.Aye;
-              if (aye === false) return SuggestedVote.Nay;
-            }
-            // Split vote (Abstain): { Split: { aye: 0, nay: 0, abstain: balance } }
-            else if (voteData.Split) {
-              const { aye, nay, abstain } = voteData.Split;
-              if (abstain > 0 && aye === 0 && nay === 0) {
-                return SuggestedVote.Abstain;
-              }
-            }
-          }
-          
-          // Try parsing as string (sometimes Subscan returns string representations)
-          if (typeof voteData === 'string') {
-            const lowerVote = voteData.toLowerCase();
-            if (lowerVote.includes('aye') || lowerVote.includes('true')) return SuggestedVote.Aye;
-            if (lowerVote.includes('nay') || lowerVote.includes('false')) return SuggestedVote.Nay;
-            if (lowerVote.includes('abstain') || lowerVote.includes('split')) return SuggestedVote.Abstain;
-          }
-        }
-      }
+  const voteParam = extrinsic.params?.find((p: any) => p.name === 'vote');
+  if (!voteParam) return null;
+
+  const voteData = voteParam.value;
+  if (typeof voteData === 'object') {
+    if (voteData.Standard?.vote?.aye === true) return SuggestedVote.Aye;
+    if (voteData.Standard?.vote?.aye === false) return SuggestedVote.Nay;
+    if (voteData.Split) {
+      const { aye, nay, abstain } = voteData.Split;
+      if (abstain > 0 && aye === 0 && nay === 0) return SuggestedVote.Abstain;
     }
-    return null;
-  } catch (error) {
-    logger.warn({ error: (error as Error).message }, "Error parsing vote from extrinsic");
-    return null;
   }
+  
+  if (typeof voteData === 'string') {
+    const vote = voteData.toLowerCase();
+    if (vote.includes('aye')) return SuggestedVote.Aye;
+    if (vote.includes('nay')) return SuggestedVote.Nay;
+    if (vote.includes('abstain')) return SuggestedVote.Abstain;
+  }
+  
+  return null;
 }
