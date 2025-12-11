@@ -365,12 +365,28 @@ async function fetchActiveVotes(
             continue;
           }
 
+          // Log the raw vote data structure for debugging
+          logger.debug({ 
+            refId, 
+            network, 
+            trackId,
+            voteDataType: typeof voteData,
+            voteDataKeys: voteData && typeof voteData === 'object' ? Object.keys(voteData) : [],
+            voteDataString: JSON.stringify(voteData).substring(0, 200) // First 200 chars
+          }, "Raw vote data from chain");
+          
           const parsedVote = parseVoteFromChainData(voteData);
           if (parsedVote) {
             voteMap[refId] = parsedVote;
             logger.info({ refId, vote: parsedVote, network, trackId }, "Found vote on chain");
           } else {
-            logger.warn({ refId, voteData, network, trackId }, "Vote data could not be parsed");
+            logger.warn({ 
+              refId, 
+              network, 
+              trackId,
+              voteDataStructure: voteData,
+              voteDataString: JSON.stringify(voteData)
+            }, "Vote data could not be parsed - need to check structure");
           }
         }
       } catch (error) {
@@ -393,24 +409,57 @@ function parseVoteFromChainData(voteData: any): SuggestedVote | null {
     return null;
   }
 
+  // Log the structure for debugging
+  const dataKeys = Object.keys(voteData);
+  logger.debug({ dataKeys, voteData }, "Parsing vote data structure");
+
+  // Check for Standard vote structure
   if (voteData.Standard) {
-    const aye = voteData.Standard.vote?.aye;
-    if (aye === true || aye === 'true' || aye === 1 || aye === '1') {
+    const standard = voteData.Standard;
+    logger.debug({ standard, standardKeys: Object.keys(standard) }, "Found Standard vote structure");
+    
+    // The vote might be nested differently
+    let aye: any = null;
+    if (standard.vote) {
+      if (typeof standard.vote === 'object') {
+        aye = standard.vote.aye;
+      } else {
+        // Sometimes vote is just a boolean directly
+        aye = standard.vote;
+      }
+    } else if (standard.aye !== undefined) {
+      // Sometimes aye is directly on Standard
+      aye = standard.aye;
+    }
+    
+    logger.debug({ aye, ayeType: typeof aye, ayeValue: aye }, "Extracted aye value from Standard");
+    
+    if (aye === true || aye === 'true' || aye === 1 || aye === '1' || aye === 'Yes') {
       logger.debug({ aye, voteType: 'Aye' }, "Parsed Standard Aye vote");
       return SuggestedVote.Aye;
     }
-    if (aye === false || aye === 'false' || aye === 0 || aye === '0') {
+    if (aye === false || aye === 'false' || aye === 0 || aye === '0' || aye === 'No') {
       logger.debug({ aye, voteType: 'Nay' }, "Parsed Standard Nay vote");
       return SuggestedVote.Nay;
     }
-    logger.debug({ aye, voteData }, "Standard vote with unrecognized aye value");
+    logger.debug({ aye, standard }, "Standard vote with unrecognized aye value");
   }
 
+  // Check for Split vote structure
   if (voteData.Split) {
-    const { aye, nay, abstain } = voteData.Split;
+    const split = voteData.Split;
+    logger.debug({ split, splitKeys: Object.keys(split) }, "Found Split vote structure");
+    
+    const aye = split.aye;
+    const nay = split.nay;
+    const abstain = split.abstain;
+    
     const ayeNum = Number(aye);
     const nayNum = Number(nay);
     const abstainNum = Number(abstain);
+    
+    logger.debug({ aye, nay, abstain, ayeNum, nayNum, abstainNum }, "Split vote values");
+    
     if (abstainNum > 0 && ayeNum === 0 && nayNum === 0) {
       logger.debug({ aye, nay, abstain, voteType: 'Abstain' }, "Parsed Split Abstain vote");
       return SuggestedVote.Abstain;
@@ -418,7 +467,24 @@ function parseVoteFromChainData(voteData: any): SuggestedVote | null {
     logger.debug({ aye, nay, abstain }, "Split vote does not match abstain pattern");
   }
 
-  logger.debug({ voteData, hasStandard: !!voteData.Standard, hasSplit: !!voteData.Split }, "Vote data structure not recognized");
+  // Check if it's a direct boolean or string
+  if (typeof voteData === 'boolean' || typeof voteData === 'string') {
+    logger.debug({ voteData }, "Vote data is direct boolean/string");
+    if (voteData === true || voteData === 'true' || voteData === 'Yes' || voteData === 'Aye') {
+      return SuggestedVote.Aye;
+    }
+    if (voteData === false || voteData === 'false' || voteData === 'No' || voteData === 'Nay') {
+      return SuggestedVote.Nay;
+    }
+  }
+
+  logger.debug({ 
+    voteData, 
+    voteDataKeys: dataKeys,
+    hasStandard: !!voteData.Standard, 
+    hasSplit: !!voteData.Split,
+    voteDataString: JSON.stringify(voteData).substring(0, 500)
+  }, "Vote data structure not recognized");
   return null;
 }
 
