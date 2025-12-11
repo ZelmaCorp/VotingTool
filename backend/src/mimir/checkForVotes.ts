@@ -373,7 +373,7 @@ function parseVoteFromChainData(voteData: any, refId?: number, network?: Chain, 
   if (voteData.Standard) {
     const standard = voteData.Standard;
     
-    // AssetHub Polkadot structure: Standard.vote.vote = "Aye" or "Nay" (string)
+    // AssetHub Polkadot structure: Standard.vote.vote = "Aye", "Nay", or "Abstain" (string)
     if (standard.vote && typeof standard.vote === 'object' && standard.vote.vote) {
       const voteValue = standard.vote.vote;
       if (typeof voteValue === 'string') {
@@ -383,6 +383,9 @@ function parseVoteFromChainData(voteData: any, refId?: number, network?: Chain, 
         }
         if (voteUpper === 'NAY' || voteUpper === 'NO') {
           return SuggestedVote.Nay;
+        }
+        if (voteUpper === 'ABSTAIN' || voteUpper === 'ABSTAINED') {
+          return SuggestedVote.Abstain;
         }
       }
     }
