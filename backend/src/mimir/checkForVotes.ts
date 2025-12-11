@@ -71,13 +71,30 @@ export async function checkForVotes(): Promise<void> {
     const votedList = Array.from(new Set(
       Object.keys(allVotesWithData).map(key => Number(key.split(':')[1]))
     )).filter(id => !isNaN(id));
-    logger.info({ votedCount: votedList.length, votedReferendums: votedList, voteMapKeys: Object.keys(allVotesWithData) }, "Total voted referendums found across all DAOs");
+    
+    logger.info({ 
+      votedCount: votedList.length, 
+      votedReferendums: votedList,
+      voteMapSize: Object.keys(allVotesWithData).length
+    }, "Total voted referendums found across all DAOs");
+    
+    // Log each vote found
+    for (const [key, data] of Object.entries(allVotesWithData)) {
+      const postId = key.split(':')[1];
+      logger.info({ postId: Number(postId), chain: data.chain, vote: data.vote }, "Vote found on chain");
+    }
 
     const extrinsicVoteMap = await checkSubscan(votedList, daos);
 
     // Log pending transactions for debugging
-    const pendingRefIds = pendingTransactions.map(t => ({ postId: t.post_id, chain: t.chain, referendumId: t.referendum_id }));
-    logger.info({ pendingTransactions: pendingRefIds }, "Processing pending transactions");
+    logger.info({ pendingCount: pendingTransactions.length }, "Processing pending transactions");
+    for (const t of pendingTransactions) {
+      logger.info({ 
+        postId: t.post_id, 
+        chain: t.chain, 
+        referendumId: t.referendum_id 
+      }, "Pending transaction");
+    }
 
     for (const transaction of pendingTransactions) {
       await processPendingTransaction(transaction, allVotesWithData, extrinsicVoteMap);
@@ -153,12 +170,14 @@ async function processPendingTransaction(
   const voteData = allVotesWithData[voteKey];
   
   if (!voteData) {
-    logger.debug({ 
+    const availableKeys = Object.keys(allVotesWithData);
+    logger.warn({ 
       refId, 
       chain, 
       referendumId: transaction.referendum_id,
       voteKey,
-      availableVoteKeys: Object.keys(allVotesWithData)
+      availableVoteCount: availableKeys.length,
+      availableVoteKeys: availableKeys.slice(0, 10) // Log first 10 to avoid huge logs
     }, "Referendum not found in voted list for this chain, skipping");
     return;
   }
