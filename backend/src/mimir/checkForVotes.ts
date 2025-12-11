@@ -31,6 +31,7 @@ import { Referendum } from "../database/models/referendum";
 import { VotingDecision } from "../database/models/votingDecision";
 import { MimirTransaction } from "../database/models/mimirTransaction";
 import { DAO } from "../database/models/dao";
+import { multisigService } from "../services/multisig";
 
 const logger = createSubsystemLogger(Subsystem.MIMIR);
 
@@ -131,8 +132,29 @@ async function fetchAllDaoVotes(daos: Awaited<ReturnType<typeof DAO.getAll>>): P
   for (const dao of daos) {
     const polkadotMultisig = await DAO.getDecryptedMultisig(dao.id, Chain.Polkadot);
     if (polkadotMultisig) {
-      logger.debug({ daoId: dao.id, daoName: dao.name, chain: 'Polkadot' }, "Fetching votes for DAO");
-      const votedPolkadot = await fetchActiveVotes(polkadotMultisig, Chain.Polkadot);
+      logger.debug({ daoId: dao.id, daoName: dao.name, chain: 'Polkadot', multisig: polkadotMultisig }, "Fetching votes for DAO");
+      
+      // Try fetching votes from the multisig account
+      let votedPolkadot = await fetchActiveVotes(polkadotMultisig, Chain.Polkadot);
+      
+      // If no votes found, check if it's a proxy and try the proxy account
+      if (Object.keys(votedPolkadot).length === 0) {
+        logger.info({ daoId: dao.id, multisig: polkadotMultisig }, "No votes found on multisig, checking if it's a proxy");
+        try {
+          const proxyInfo = await multisigService.getParentAddress(polkadotMultisig, "Polkadot");
+          if (proxyInfo.isProxy && proxyInfo.parentAddress) {
+            logger.info({ 
+              daoId: dao.id, 
+              multisig: polkadotMultisig, 
+              proxyAccount: proxyInfo.parentAddress 
+            }, "Multisig is a proxy, fetching votes from proxy account");
+            votedPolkadot = await fetchActiveVotes(proxyInfo.parentAddress, Chain.Polkadot);
+          }
+        } catch (error) {
+          logger.warn({ error: formatError(error), daoId: dao.id }, "Error checking for proxy account");
+        }
+      }
+      
       // Store with chain prefix to avoid collisions
       for (const [postId, vote] of Object.entries(votedPolkadot)) {
         const key = `${Chain.Polkadot}:${postId}`;
@@ -142,8 +164,29 @@ async function fetchAllDaoVotes(daos: Awaited<ReturnType<typeof DAO.getAll>>): P
     
     const kusamaMultisig = await DAO.getDecryptedMultisig(dao.id, Chain.Kusama);
     if (kusamaMultisig) {
-      logger.debug({ daoId: dao.id, daoName: dao.name, chain: 'Kusama' }, "Fetching votes for DAO");
-      const votedKusama = await fetchActiveVotes(kusamaMultisig, Chain.Kusama);
+      logger.debug({ daoId: dao.id, daoName: dao.name, chain: 'Kusama', multisig: kusamaMultisig }, "Fetching votes for DAO");
+      
+      // Try fetching votes from the multisig account
+      let votedKusama = await fetchActiveVotes(kusamaMultisig, Chain.Kusama);
+      
+      // If no votes found, check if it's a proxy and try the proxy account
+      if (Object.keys(votedKusama).length === 0) {
+        logger.info({ daoId: dao.id, multisig: kusamaMultisig }, "No votes found on multisig, checking if it's a proxy");
+        try {
+          const proxyInfo = await multisigService.getParentAddress(kusamaMultisig, "Kusama");
+          if (proxyInfo.isProxy && proxyInfo.parentAddress) {
+            logger.info({ 
+              daoId: dao.id, 
+              multisig: kusamaMultisig, 
+              proxyAccount: proxyInfo.parentAddress 
+            }, "Multisig is a proxy, fetching votes from proxy account");
+            votedKusama = await fetchActiveVotes(proxyInfo.parentAddress, Chain.Kusama);
+          }
+        } catch (error) {
+          logger.warn({ error: formatError(error), daoId: dao.id }, "Error checking for proxy account");
+        }
+      }
+      
       // Store with chain prefix to avoid collisions
       for (const [postId, vote] of Object.entries(votedKusama)) {
         const key = `${Chain.Kusama}:${postId}`;
@@ -282,24 +325,56 @@ async function fetchActiveVotes(
 
     logger.info({ account, network }, `Fetching votes for account`);
     
+    // Log the raw query result for debugging
+    try {
+      const testResult = await api.query.convictionVoting.votingFor(account, 0) as any;
+      const testHuman = testResult.toHuman();
+      logger.debug({ account, network, testResultType: typeof testResult, hasTestResult: !!testResult, testHumanKeys: testHuman ? Object.keys(testHuman) : [] }, "Test query result structure");
+    } catch (testError) {
+      logger.warn({ error: formatError(testError), account, network }, "Error in test query");
+    }
+    
     for (const trackId of TRACKS) {
-      const votingResult = await api.query.convictionVoting.votingFor(account, trackId) as any;
-      const votes = votingResult.toHuman().Casting.votes || [];
-
-      for (const [refIdStr, voteData] of votes) {
-        const refId = Number(refIdStr.split(",").join(""));
-        if (isNaN(refId)) {
-          logger.debug({ refIdStr, network }, "Skipping invalid referendum ID");
+      try {
+        const votingResult = await api.query.convictionVoting.votingFor(account, trackId) as any;
+        const humanResult = votingResult.toHuman();
+        
+        // Log the structure for debugging
+        logger.debug({ trackId, network, account, hasResult: !!humanResult, resultKeys: humanResult ? Object.keys(humanResult) : [] }, "Query result for track");
+        
+        // Check if there's any voting data at all
+        if (!humanResult) {
+          logger.debug({ trackId, network }, "No result from query");
           continue;
         }
-
-        const parsedVote = parseVoteFromChainData(voteData);
-        if (parsedVote) {
-          voteMap[refId] = parsedVote;
-          logger.debug({ refId, vote: parsedVote, network }, "Found vote on chain");
-        } else {
-          logger.debug({ refId, voteData, network }, "Vote data could not be parsed");
+        
+        // Check for different vote storage structures
+        if (!humanResult.Casting) {
+          // Maybe it's Delegating or something else?
+          logger.debug({ trackId, network, resultKeys: Object.keys(humanResult), resultStructure: humanResult }, "No Casting votes found, checking structure");
+          continue;
         }
+        
+        const votes = humanResult.Casting.votes || [];
+        logger.debug({ trackId, network, voteCount: votes.length, votesStructure: Array.isArray(votes) ? 'array' : typeof votes }, "Checking track for votes");
+
+        for (const [refIdStr, voteData] of votes) {
+          const refId = Number(refIdStr.split(",").join(""));
+          if (isNaN(refId)) {
+            logger.debug({ refIdStr, network, trackId }, "Skipping invalid referendum ID");
+            continue;
+          }
+
+          const parsedVote = parseVoteFromChainData(voteData);
+          if (parsedVote) {
+            voteMap[refId] = parsedVote;
+            logger.info({ refId, vote: parsedVote, network, trackId }, "Found vote on chain");
+          } else {
+            logger.warn({ refId, voteData, network, trackId }, "Vote data could not be parsed");
+          }
+        }
+      } catch (error) {
+        logger.error({ error: formatError(error), trackId, network, account }, "Error querying track for votes");
       }
     }
 
@@ -313,12 +388,22 @@ async function fetchActiveVotes(
 }
 
 function parseVoteFromChainData(voteData: any): SuggestedVote | null {
-  if (!voteData || typeof voteData !== 'object') return null;
+  if (!voteData || typeof voteData !== 'object') {
+    logger.debug({ voteData, voteDataType: typeof voteData }, "Vote data is not an object");
+    return null;
+  }
 
   if (voteData.Standard) {
     const aye = voteData.Standard.vote?.aye;
-    if (aye === true || aye === 'true' || aye === 1 || aye === '1') return SuggestedVote.Aye;
-    if (aye === false || aye === 'false' || aye === 0 || aye === '0') return SuggestedVote.Nay;
+    if (aye === true || aye === 'true' || aye === 1 || aye === '1') {
+      logger.debug({ aye, voteType: 'Aye' }, "Parsed Standard Aye vote");
+      return SuggestedVote.Aye;
+    }
+    if (aye === false || aye === 'false' || aye === 0 || aye === '0') {
+      logger.debug({ aye, voteType: 'Nay' }, "Parsed Standard Nay vote");
+      return SuggestedVote.Nay;
+    }
+    logger.debug({ aye, voteData }, "Standard vote with unrecognized aye value");
   }
 
   if (voteData.Split) {
@@ -326,9 +411,14 @@ function parseVoteFromChainData(voteData: any): SuggestedVote | null {
     const ayeNum = Number(aye);
     const nayNum = Number(nay);
     const abstainNum = Number(abstain);
-    if (abstainNum > 0 && ayeNum === 0 && nayNum === 0) return SuggestedVote.Abstain;
+    if (abstainNum > 0 && ayeNum === 0 && nayNum === 0) {
+      logger.debug({ aye, nay, abstain, voteType: 'Abstain' }, "Parsed Split Abstain vote");
+      return SuggestedVote.Abstain;
+    }
+    logger.debug({ aye, nay, abstain }, "Split vote does not match abstain pattern");
   }
 
+  logger.debug({ voteData, hasStandard: !!voteData.Standard, hasSplit: !!voteData.Split }, "Vote data structure not recognized");
   return null;
 }
 
