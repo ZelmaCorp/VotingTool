@@ -130,7 +130,7 @@ describe('Vote Parsing Correctness', () => {
   }
 
   describe('Standard Aye Votes', () => {
-    it('should correctly parse aye: true as Aye', async () => {
+    it('should correctly parse aye: true as Aye (legacy format)', async () => {
       const postId = basePostId + 1;
       await createTestReferendum(postId);
 
@@ -161,6 +161,31 @@ describe('Vote Parsing Correctness', () => {
             }]
           }
         }
+      });
+
+      await checkForVotes();
+      await verifyVoteStatus(postId, InternalStatus.VotedAye, SuggestedVote.Aye);
+    });
+
+    it('should correctly parse vote: "Aye" as Aye (AssetHub format)', async () => {
+      const postId = basePostId + 1001;
+      await createTestReferendum(postId);
+
+      mockApi.query.convictionVoting.votingFor.mockResolvedValue({
+        toHuman: () => ({
+          Casting: {
+            votes: [[postId.toString(), {
+              Standard: {
+                vote: { vote: 'Aye', conviction: 'Locked1x' },
+                balance: '1,000,000,000'
+              }
+            }]]
+          }
+        })
+      });
+
+      mockedAxios.post.mockResolvedValue({
+        data: { data: { extrinsics: [] } }
       });
 
       await checkForVotes();
@@ -219,7 +244,7 @@ describe('Vote Parsing Correctness', () => {
   });
 
   describe('Standard Nay Votes', () => {
-    it('should correctly parse aye: false as Nay', async () => {
+    it('should correctly parse aye: false as Nay (legacy format)', async () => {
       const postId = basePostId + 10;
       await createTestReferendum(postId);
 
@@ -250,6 +275,31 @@ describe('Vote Parsing Correctness', () => {
             }]
           }
         }
+      });
+
+      await checkForVotes();
+      await verifyVoteStatus(postId, InternalStatus.VotedNay, SuggestedVote.Nay);
+    });
+
+    it('should correctly parse vote: "Nay" as Nay (AssetHub format)', async () => {
+      const postId = basePostId + 1010;
+      await createTestReferendum(postId);
+
+      mockApi.query.convictionVoting.votingFor.mockResolvedValue({
+        toHuman: () => ({
+          Casting: {
+            votes: [[postId.toString(), {
+              Standard: {
+                vote: { vote: 'Nay', conviction: 'Locked1x' },
+                balance: '100,000,000,000'
+              }
+            }]]
+          }
+        })
+      });
+
+      mockedAxios.post.mockResolvedValue({
+        data: { data: { extrinsics: [] } }
       });
 
       await checkForVotes();
@@ -340,6 +390,31 @@ describe('Vote Parsing Correctness', () => {
             }]
           }
         }
+      });
+
+      await checkForVotes();
+      await verifyVoteStatus(postId, InternalStatus.VotedAbstain, SuggestedVote.Abstain);
+    });
+
+    it('should correctly parse vote: "Abstain" as Abstain (AssetHub format)', async () => {
+      const postId = basePostId + 1020;
+      await createTestReferendum(postId);
+
+      mockApi.query.convictionVoting.votingFor.mockResolvedValue({
+        toHuman: () => ({
+          Casting: {
+            votes: [[postId.toString(), {
+              Standard: {
+                vote: { vote: 'Abstain', conviction: 'Locked1x' },
+                balance: '1,000,000,000'
+              }
+            }]]
+          }
+        })
+      });
+
+      mockedAxios.post.mockResolvedValue({
+        data: { data: { extrinsics: [] } }
       });
 
       await checkForVotes();
@@ -786,6 +861,171 @@ describe('Vote Parsing Correctness', () => {
       
       const updatedRef = await Referendum.findByPostIdAndChain(postId, Chain.Polkadot, testDaoId);
       expect(updatedRef!.internal_status).toBe(InternalStatus.ReadyToVote);
+    });
+  });
+
+  describe('AssetHub Vote Format', () => {
+    it('should parse AssetHub "Aye" string vote correctly', async () => {
+      const postId = basePostId + 60;
+      await createTestReferendum(postId);
+
+      mockApi.query.convictionVoting.votingFor.mockResolvedValue({
+        toHuman: () => ({
+          Casting: {
+            votes: [[postId.toString(), {
+              Standard: {
+                vote: { vote: 'Aye', conviction: 'Locked1x' },
+                balance: '1,000,000,000'
+              }
+            }]]
+          }
+        })
+      });
+
+      mockedAxios.post.mockResolvedValue({
+        data: { data: { extrinsics: [] } }
+      });
+
+      await checkForVotes();
+      await verifyVoteStatus(postId, InternalStatus.VotedAye, SuggestedVote.Aye);
+    });
+
+    it('should parse AssetHub "Nay" string vote correctly', async () => {
+      const postId = basePostId + 61;
+      await createTestReferendum(postId);
+
+      mockApi.query.convictionVoting.votingFor.mockResolvedValue({
+        toHuman: () => ({
+          Casting: {
+            votes: [[postId.toString(), {
+              Standard: {
+                vote: { vote: 'Nay', conviction: 'Locked2x' },
+                balance: '50,000,000,000'
+              }
+            }]]
+          }
+        })
+      });
+
+      mockedAxios.post.mockResolvedValue({
+        data: { data: { extrinsics: [] } }
+      });
+
+      await checkForVotes();
+      await verifyVoteStatus(postId, InternalStatus.VotedNay, SuggestedVote.Nay);
+    });
+
+    it('should parse AssetHub "Abstain" string vote correctly', async () => {
+      const postId = basePostId + 62;
+      await createTestReferendum(postId);
+
+      mockApi.query.convictionVoting.votingFor.mockResolvedValue({
+        toHuman: () => ({
+          Casting: {
+            votes: [[postId.toString(), {
+              Standard: {
+                vote: { vote: 'Abstain', conviction: 'None' },
+                balance: '10,000,000,000'
+              }
+            }]]
+          }
+        })
+      });
+
+      mockedAxios.post.mockResolvedValue({
+        data: { data: { extrinsics: [] } }
+      });
+
+      await checkForVotes();
+      await verifyVoteStatus(postId, InternalStatus.VotedAbstain, SuggestedVote.Abstain);
+    });
+
+    it('should handle case-insensitive AssetHub vote strings', async () => {
+      const postId = basePostId + 63;
+      await createTestReferendum(postId);
+
+      mockApi.query.convictionVoting.votingFor.mockResolvedValue({
+        toHuman: () => ({
+          Casting: {
+            votes: [[postId.toString(), {
+              Standard: {
+                vote: { vote: 'AYE', conviction: 'Locked1x' },
+                balance: '1,000,000,000'
+              }
+            }]]
+          }
+        })
+      });
+
+      mockedAxios.post.mockResolvedValue({
+        data: { data: { extrinsics: [] } }
+      });
+
+      await checkForVotes();
+      await verifyVoteStatus(postId, InternalStatus.VotedAye, SuggestedVote.Aye);
+    });
+  });
+
+  describe('Chain-Specific Vote Matching', () => {
+    it('should not match Kusama vote to Polkadot referendum', async () => {
+      const postId = basePostId + 70;
+      const polkadotRefId = await createTestReferendum(postId);
+
+      // Create a Kusama referendum with the same post_id
+      const kusamaRefId = await Referendum.create({
+        post_id: postId,
+        chain: Chain.Kusama,
+        dao_id: testDaoId,
+        title: `Test Kusama Referendum ${postId}`,
+        description: 'Test',
+        requested_amount_usd: 10000,
+        origin: Origin.Root,
+        referendum_timeline: 'Voting',
+        internal_status: InternalStatus.ReadyToVote,
+        link: `https://kusama.polkassembly.io/referenda/${postId}`,
+        voting_start_date: new Date().toISOString(),
+        created_at: new Date().toISOString()
+      });
+
+      await VotingDecision.upsert(kusamaRefId, testDaoId, {
+        suggested_vote: SuggestedVote.Nay
+      });
+
+      await MimirTransaction.create(
+        kusamaRefId,
+        testDaoId,
+        '0x123456',
+        Date.now(),
+        'pending'
+      );
+
+      // Mock vote on Polkadot chain (not Kusama)
+      mockApi.query.convictionVoting.votingFor.mockResolvedValue({
+        toHuman: () => ({
+          Casting: {
+            votes: [[postId.toString(), {
+              Standard: {
+                vote: { vote: 'Aye', conviction: 'Locked1x' },
+                balance: '1,000,000,000'
+              }
+            }]]
+          }
+        })
+      });
+
+      mockedAxios.post.mockResolvedValue({
+        data: { data: { extrinsics: [] } }
+      });
+
+      await checkForVotes();
+
+      // Polkadot referendum should be updated
+      const polkadotRef = await Referendum.findByPostIdAndChain(postId, Chain.Polkadot, testDaoId);
+      expect(polkadotRef!.internal_status).toBe(InternalStatus.VotedAye);
+
+      // Kusama referendum should NOT be updated (still ReadyToVote)
+      const kusamaRef = await Referendum.findByPostIdAndChain(postId, Chain.Kusama, testDaoId);
+      expect(kusamaRef!.internal_status).toBe(InternalStatus.ReadyToVote);
     });
   });
 });
