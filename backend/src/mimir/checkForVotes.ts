@@ -18,6 +18,12 @@ interface ExtrinsicVoteData {
   extrinsicHash: string;
   actualVote: SuggestedVote | null;
 }
+
+// Vote data with chain information
+interface VoteWithChain {
+  vote: SuggestedVote;
+  chain: Chain;
+}
 import axios from "axios";
 import { createSubsystemLogger, formatError } from "../config/logger";
 import { Subsystem } from "../types/logging";
@@ -61,10 +67,17 @@ export async function checkForVotes(): Promise<void> {
     }
     
     const allVotesWithData = await fetchAllDaoVotes(daos);
-    const votedList = Object.keys(allVotesWithData).map(Number);
-    logger.info({ votedCount: votedList.length }, "Total voted referendums found across all DAOs");
+    // Extract post IDs for Subscan (without chain prefix)
+    const votedList = Array.from(new Set(
+      Object.keys(allVotesWithData).map(key => Number(key.split(':')[1]))
+    )).filter(id => !isNaN(id));
+    logger.info({ votedCount: votedList.length, votedReferendums: votedList, voteMapKeys: Object.keys(allVotesWithData) }, "Total voted referendums found across all DAOs");
 
     const extrinsicVoteMap = await checkSubscan(votedList, daos);
+
+    // Log pending transactions for debugging
+    const pendingRefIds = pendingTransactions.map(t => ({ postId: t.post_id, chain: t.chain, referendumId: t.referendum_id }));
+    logger.info({ pendingTransactions: pendingRefIds }, "Processing pending transactions");
 
     for (const transaction of pendingTransactions) {
       await processPendingTransaction(transaction, allVotesWithData, extrinsicVoteMap);
@@ -93,23 +106,32 @@ async function cleanupStaleTransactions(): Promise<void> {
 
 /**
  * Fetch votes for all DAOs across both Polkadot and Kusama
+ * Returns a map keyed by "chain:postId" to avoid collisions between chains
  */
-async function fetchAllDaoVotes(daos: Awaited<ReturnType<typeof DAO.getAll>>): Promise<Record<number, SuggestedVote>> {
-  let allVotesWithData: Record<number, SuggestedVote> = {};
+async function fetchAllDaoVotes(daos: Awaited<ReturnType<typeof DAO.getAll>>): Promise<Record<string, VoteWithChain>> {
+  let allVotesWithData: Record<string, VoteWithChain> = {};
   
   for (const dao of daos) {
     const polkadotMultisig = await DAO.getDecryptedMultisig(dao.id, Chain.Polkadot);
     if (polkadotMultisig) {
       logger.debug({ daoId: dao.id, daoName: dao.name, chain: 'Polkadot' }, "Fetching votes for DAO");
       const votedPolkadot = await fetchActiveVotes(polkadotMultisig, Chain.Polkadot);
-      allVotesWithData = { ...allVotesWithData, ...votedPolkadot };
+      // Store with chain prefix to avoid collisions
+      for (const [postId, vote] of Object.entries(votedPolkadot)) {
+        const key = `${Chain.Polkadot}:${postId}`;
+        allVotesWithData[key] = { vote, chain: Chain.Polkadot };
+      }
     }
     
     const kusamaMultisig = await DAO.getDecryptedMultisig(dao.id, Chain.Kusama);
     if (kusamaMultisig) {
       logger.debug({ daoId: dao.id, daoName: dao.name, chain: 'Kusama' }, "Fetching votes for DAO");
       const votedKusama = await fetchActiveVotes(kusamaMultisig, Chain.Kusama);
-      allVotesWithData = { ...allVotesWithData, ...votedKusama };
+      // Store with chain prefix to avoid collisions
+      for (const [postId, vote] of Object.entries(votedKusama)) {
+        const key = `${Chain.Kusama}:${postId}`;
+        allVotesWithData[key] = { vote, chain: Chain.Kusama };
+      }
     }
   }
   
@@ -121,20 +143,32 @@ async function fetchAllDaoVotes(daos: Awaited<ReturnType<typeof DAO.getAll>>): P
  */
 async function processPendingTransaction(
   transaction: Awaited<ReturnType<typeof MimirTransaction.getPendingTransactions>>[0],
-  allVotesWithData: Record<number, SuggestedVote>,
+  allVotesWithData: Record<string, VoteWithChain>,
   extrinsicVoteMap: Record<number, ExtrinsicVoteData>
 ): Promise<void> {
   const refId = transaction.post_id;
   const chain = transaction.chain;
-  const found = Object.keys(allVotesWithData).map(Number).includes(refId);
+  // Check for vote with chain prefix to ensure we match the correct chain
+  const voteKey = `${chain}:${refId}`;
+  const voteData = allVotesWithData[voteKey];
   
-  if (!found) return;
+  if (!voteData) {
+    logger.debug({ 
+      refId, 
+      chain, 
+      referendumId: transaction.referendum_id,
+      voteKey,
+      availableVoteKeys: Object.keys(allVotesWithData)
+    }, "Referendum not found in voted list for this chain, skipping");
+    return;
+  }
 
-  logger.info({ referendumId: transaction.referendum_id, refId, chain }, `Referendum found for vote check`);
+  logger.info({ referendumId: transaction.referendum_id, refId, chain, vote: voteData.vote }, `Referendum found for vote check`);
 
-  const chainVote = allVotesWithData[refId];
+  const chainVote = voteData.vote;
   const subscanData = extrinsicVoteMap[refId];
   const subscanLink = subscanData?.extrinsicHash ? buildSubscanLink(subscanData.extrinsicHash, chain) : undefined;
+  // Prioritize chain vote over Subscan data (chain is source of truth)
   const actualVote = chainVote || subscanData?.actualVote || transaction.voted;
   const votedStatus = getVotedStatus(actualVote);
   
@@ -235,14 +269,23 @@ async function fetchActiveVotes(
 
       for (const [refIdStr, voteData] of votes) {
         const refId = Number(refIdStr.split(",").join(""));
-        if (isNaN(refId)) continue;
+        if (isNaN(refId)) {
+          logger.debug({ refIdStr, network }, "Skipping invalid referendum ID");
+          continue;
+        }
 
         const parsedVote = parseVoteFromChainData(voteData);
-        if (parsedVote) voteMap[refId] = parsedVote;
+        if (parsedVote) {
+          voteMap[refId] = parsedVote;
+          logger.debug({ refId, vote: parsedVote, network }, "Found vote on chain");
+        } else {
+          logger.debug({ refId, voteData, network }, "Vote data could not be parsed");
+        }
       }
     }
 
     await api.disconnect();
+    logger.info({ account, network, voteCount: Object.keys(voteMap).length, votedRefs: Object.keys(voteMap).map(Number) }, "Completed fetching votes for account");
     return voteMap;
   } catch (error) {
     logger.error({ error: formatError(error), account, network }, `Error checking vote for account`);
@@ -358,6 +401,7 @@ export async function checkSubscan(votedList: ReferendumId[], daos: Awaited<Retu
             } else {
               logger.error({ error: formatError(error), daoId: dao.id }, "Error fetching Kusama extrinsics from Subscan");
             }
+            // Return empty array - don't block processing
             return { chain: Chain.Kusama, dao, extrinsics: [] };
           })
         );
