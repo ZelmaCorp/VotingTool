@@ -419,14 +419,32 @@ function parseVoteFromChainData(voteData: any, refId?: number, network?: Chain, 
   // Check for Standard vote structure
   if (voteData.Standard) {
     const standard = voteData.Standard;
-    logger.debug({ standard, standardKeys: Object.keys(standard) }, "Found Standard vote structure");
     
-    // The vote might be nested differently
+    // AssetHub Polkadot structure: Standard.vote.vote = "Aye" or "Nay" (string)
+    if (standard.vote && typeof standard.vote === 'object' && standard.vote.vote) {
+      const voteValue = standard.vote.vote;
+      if (typeof voteValue === 'string') {
+        const voteUpper = voteValue.toUpperCase();
+        if (voteUpper === 'AYE' || voteUpper === 'YES') {
+          logger.info({ refId, network, trackId, voteValue }, "Parsed Standard Aye vote (AssetHub format)");
+          return SuggestedVote.Aye;
+        }
+        if (voteUpper === 'NAY' || voteUpper === 'NO') {
+          logger.info({ refId, network, trackId, voteValue }, "Parsed Standard Nay vote (AssetHub format)");
+          return SuggestedVote.Nay;
+        }
+      }
+    }
+    
+    // Legacy format: Standard.vote.aye = true/false (boolean)
     let aye: any = null;
     if (standard.vote) {
       if (typeof standard.vote === 'object') {
-        aye = standard.vote.aye;
-      } else {
+        // Check for boolean aye field
+        if (standard.vote.aye !== undefined) {
+          aye = standard.vote.aye;
+        }
+      } else if (typeof standard.vote === 'boolean') {
         // Sometimes vote is just a boolean directly
         aye = standard.vote;
       }
@@ -435,17 +453,18 @@ function parseVoteFromChainData(voteData: any, refId?: number, network?: Chain, 
       aye = standard.aye;
     }
     
-    logger.debug({ aye, ayeType: typeof aye, ayeValue: aye }, "Extracted aye value from Standard");
+    if (aye !== null) {
+      if (aye === true || aye === 'true' || aye === 1 || aye === '1') {
+        logger.info({ refId, network, trackId, aye }, "Parsed Standard Aye vote (legacy format)");
+        return SuggestedVote.Aye;
+      }
+      if (aye === false || aye === 'false' || aye === 0 || aye === '0') {
+        logger.info({ refId, network, trackId, aye }, "Parsed Standard Nay vote (legacy format)");
+        return SuggestedVote.Nay;
+      }
+    }
     
-    if (aye === true || aye === 'true' || aye === 1 || aye === '1' || aye === 'Yes') {
-      logger.debug({ aye, voteType: 'Aye' }, "Parsed Standard Aye vote");
-      return SuggestedVote.Aye;
-    }
-    if (aye === false || aye === 'false' || aye === 0 || aye === '0' || aye === 'No') {
-      logger.debug({ aye, voteType: 'Nay' }, "Parsed Standard Nay vote");
-      return SuggestedVote.Nay;
-    }
-    logger.debug({ aye, standard }, "Standard vote with unrecognized aye value");
+    logger.warn({ refId, network, trackId, standard }, "Standard vote with unrecognized structure");
   }
 
   // Check for Split vote structure
