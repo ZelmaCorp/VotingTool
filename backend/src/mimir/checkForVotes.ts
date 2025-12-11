@@ -375,18 +375,21 @@ async function fetchActiveVotes(
             voteDataString: JSON.stringify(voteData).substring(0, 200) // First 200 chars
           }, "Raw vote data from chain");
           
-          const parsedVote = parseVoteFromChainData(voteData);
+          const parsedVote = parseVoteFromChainData(voteData, refId, network, trackId);
           if (parsedVote) {
             voteMap[refId] = parsedVote;
             logger.info({ refId, vote: parsedVote, network, trackId }, "Found vote on chain");
           } else {
-            logger.warn({ 
+            // Log the full vote data structure so we can see what we're dealing with
+            const voteDataStr = JSON.stringify(voteData, null, 2);
+            logger.error({ 
               refId, 
               network, 
               trackId,
-              voteDataStructure: voteData,
-              voteDataString: JSON.stringify(voteData)
-            }, "Vote data could not be parsed - need to check structure");
+              voteDataFull: voteDataStr.substring(0, 1000), // First 1000 chars
+              voteDataKeys: voteData && typeof voteData === 'object' ? Object.keys(voteData) : 'not an object',
+              voteDataType: typeof voteData
+            }, "Vote data could not be parsed - FULL STRUCTURE LOGGED");
           }
         }
       } catch (error) {
@@ -403,15 +406,15 @@ async function fetchActiveVotes(
   }
 }
 
-function parseVoteFromChainData(voteData: any): SuggestedVote | null {
+function parseVoteFromChainData(voteData: any, refId?: number, network?: Chain, trackId?: number): SuggestedVote | null {
   if (!voteData || typeof voteData !== 'object') {
-    logger.debug({ voteData, voteDataType: typeof voteData }, "Vote data is not an object");
+    logger.warn({ refId, network, trackId, voteData, voteDataType: typeof voteData }, "Vote data is not an object");
     return null;
   }
 
-  // Log the structure for debugging
+  // Log the structure for debugging - use error level so it shows up
   const dataKeys = Object.keys(voteData);
-  logger.debug({ dataKeys, voteData }, "Parsing vote data structure");
+  logger.error({ refId, network, trackId, dataKeys, voteDataFull: JSON.stringify(voteData, null, 2).substring(0, 500) }, "Parsing vote data structure - FULL DATA");
 
   // Check for Standard vote structure
   if (voteData.Standard) {
