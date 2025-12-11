@@ -325,71 +325,29 @@ async function fetchActiveVotes(
 
     logger.info({ account, network }, `Fetching votes for account`);
     
-    // Log the raw query result for debugging
-    try {
-      const testResult = await api.query.convictionVoting.votingFor(account, 0) as any;
-      const testHuman = testResult.toHuman();
-      logger.debug({ account, network, testResultType: typeof testResult, hasTestResult: !!testResult, testHumanKeys: testHuman ? Object.keys(testHuman) : [] }, "Test query result structure");
-    } catch (testError) {
-      logger.warn({ error: formatError(testError), account, network }, "Error in test query");
-    }
-    
     for (const trackId of TRACKS) {
       try {
         const votingResult = await api.query.convictionVoting.votingFor(account, trackId) as any;
         const humanResult = votingResult.toHuman();
         
-        // Log the structure for debugging
-        logger.debug({ trackId, network, account, hasResult: !!humanResult, resultKeys: humanResult ? Object.keys(humanResult) : [] }, "Query result for track");
-        
-        // Check if there's any voting data at all
-        if (!humanResult) {
-          logger.debug({ trackId, network }, "No result from query");
-          continue;
-        }
-        
-        // Check for different vote storage structures
-        if (!humanResult.Casting) {
-          // Maybe it's Delegating or something else?
-          logger.debug({ trackId, network, resultKeys: Object.keys(humanResult), resultStructure: humanResult }, "No Casting votes found, checking structure");
+        if (!humanResult || !humanResult.Casting) {
           continue;
         }
         
         const votes = humanResult.Casting.votes || [];
-        logger.debug({ trackId, network, voteCount: votes.length, votesStructure: Array.isArray(votes) ? 'array' : typeof votes }, "Checking track for votes");
 
         for (const [refIdStr, voteData] of votes) {
           const refId = Number(refIdStr.split(",").join(""));
           if (isNaN(refId)) {
-            logger.debug({ refIdStr, network, trackId }, "Skipping invalid referendum ID");
             continue;
           }
 
-          // Log the raw vote data structure for debugging
-          logger.debug({ 
-            refId, 
-            network, 
-            trackId,
-            voteDataType: typeof voteData,
-            voteDataKeys: voteData && typeof voteData === 'object' ? Object.keys(voteData) : [],
-            voteDataString: JSON.stringify(voteData).substring(0, 200) // First 200 chars
-          }, "Raw vote data from chain");
-          
           const parsedVote = parseVoteFromChainData(voteData, refId, network, trackId);
           if (parsedVote) {
             voteMap[refId] = parsedVote;
             logger.info({ refId, vote: parsedVote, network, trackId }, "Found vote on chain");
           } else {
-            // Log the full vote data structure so we can see what we're dealing with
-            const voteDataStr = JSON.stringify(voteData, null, 2);
-            logger.error({ 
-              refId, 
-              network, 
-              trackId,
-              voteDataFull: voteDataStr.substring(0, 1000), // First 1000 chars
-              voteDataKeys: voteData && typeof voteData === 'object' ? Object.keys(voteData) : 'not an object',
-              voteDataType: typeof voteData
-            }, "Vote data could not be parsed - FULL STRUCTURE LOGGED");
+            logger.warn({ refId, network, trackId }, "Vote data could not be parsed");
           }
         }
       } catch (error) {
@@ -408,13 +366,8 @@ async function fetchActiveVotes(
 
 function parseVoteFromChainData(voteData: any, refId?: number, network?: Chain, trackId?: number): SuggestedVote | null {
   if (!voteData || typeof voteData !== 'object') {
-    logger.warn({ refId, network, trackId, voteData, voteDataType: typeof voteData }, "Vote data is not an object");
     return null;
   }
-
-  // Log the structure for debugging - use error level so it shows up
-  const dataKeys = Object.keys(voteData);
-  logger.error({ refId, network, trackId, dataKeys, voteDataFull: JSON.stringify(voteData, null, 2).substring(0, 500) }, "Parsing vote data structure - FULL DATA");
 
   // Check for Standard vote structure
   if (voteData.Standard) {
@@ -426,11 +379,9 @@ function parseVoteFromChainData(voteData: any, refId?: number, network?: Chain, 
       if (typeof voteValue === 'string') {
         const voteUpper = voteValue.toUpperCase();
         if (voteUpper === 'AYE' || voteUpper === 'YES') {
-          logger.info({ refId, network, trackId, voteValue }, "Parsed Standard Aye vote (AssetHub format)");
           return SuggestedVote.Aye;
         }
         if (voteUpper === 'NAY' || voteUpper === 'NO') {
-          logger.info({ refId, network, trackId, voteValue }, "Parsed Standard Nay vote (AssetHub format)");
           return SuggestedVote.Nay;
         }
       }
@@ -439,59 +390,39 @@ function parseVoteFromChainData(voteData: any, refId?: number, network?: Chain, 
     // Legacy format: Standard.vote.aye = true/false (boolean)
     let aye: any = null;
     if (standard.vote) {
-      if (typeof standard.vote === 'object') {
-        // Check for boolean aye field
-        if (standard.vote.aye !== undefined) {
-          aye = standard.vote.aye;
-        }
+      if (typeof standard.vote === 'object' && standard.vote.aye !== undefined) {
+        aye = standard.vote.aye;
       } else if (typeof standard.vote === 'boolean') {
-        // Sometimes vote is just a boolean directly
         aye = standard.vote;
       }
     } else if (standard.aye !== undefined) {
-      // Sometimes aye is directly on Standard
       aye = standard.aye;
     }
     
     if (aye !== null) {
       if (aye === true || aye === 'true' || aye === 1 || aye === '1') {
-        logger.info({ refId, network, trackId, aye }, "Parsed Standard Aye vote (legacy format)");
         return SuggestedVote.Aye;
       }
       if (aye === false || aye === 'false' || aye === 0 || aye === '0') {
-        logger.info({ refId, network, trackId, aye }, "Parsed Standard Nay vote (legacy format)");
         return SuggestedVote.Nay;
       }
     }
-    
-    logger.warn({ refId, network, trackId, standard }, "Standard vote with unrecognized structure");
   }
 
-  // Check for Split vote structure
+  // Check for Split vote structure (Abstain)
   if (voteData.Split) {
-    const split = voteData.Split;
-    logger.debug({ split, splitKeys: Object.keys(split) }, "Found Split vote structure");
-    
-    const aye = split.aye;
-    const nay = split.nay;
-    const abstain = split.abstain;
-    
+    const { aye, nay, abstain } = voteData.Split;
     const ayeNum = Number(aye);
     const nayNum = Number(nay);
     const abstainNum = Number(abstain);
     
-    logger.debug({ aye, nay, abstain, ayeNum, nayNum, abstainNum }, "Split vote values");
-    
     if (abstainNum > 0 && ayeNum === 0 && nayNum === 0) {
-      logger.debug({ aye, nay, abstain, voteType: 'Abstain' }, "Parsed Split Abstain vote");
       return SuggestedVote.Abstain;
     }
-    logger.debug({ aye, nay, abstain }, "Split vote does not match abstain pattern");
   }
 
   // Check if it's a direct boolean or string
   if (typeof voteData === 'boolean' || typeof voteData === 'string') {
-    logger.debug({ voteData }, "Vote data is direct boolean/string");
     if (voteData === true || voteData === 'true' || voteData === 'Yes' || voteData === 'Aye') {
       return SuggestedVote.Aye;
     }
@@ -500,13 +431,6 @@ function parseVoteFromChainData(voteData: any, refId?: number, network?: Chain, 
     }
   }
 
-  logger.debug({ 
-    voteData, 
-    voteDataKeys: dataKeys,
-    hasStandard: !!voteData.Standard, 
-    hasSplit: !!voteData.Split,
-    voteDataString: JSON.stringify(voteData).substring(0, 500)
-  }, "Vote data structure not recognized");
   return null;
 }
 
