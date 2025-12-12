@@ -134,11 +134,46 @@ export const proposalStore = {
     return myEvaluations.value
   },
 
+  // Helper function to check if proposals data has changed
+  hasProposalsChanged(newProposals: ProposalData[], oldProposals: ProposalData[]): boolean {
+    if (newProposals.length !== oldProposals.length) {
+      return true
+    }
+    
+    // Create a quick comparison based on key fields
+    const newHash = JSON.stringify(newProposals.map(p => ({
+      post_id: p.post_id,
+      chain: p.chain,
+      internal_status: p.internal_status,
+      suggested_vote: p.suggested_vote,
+      assigned_to: p.assigned_to,
+      updated_at: p.updated_at,
+      team_actions: p.team_actions
+    })))
+    
+    const oldHash = JSON.stringify(oldProposals.map(p => ({
+      post_id: p.post_id,
+      chain: p.chain,
+      internal_status: p.internal_status,
+      suggested_vote: p.suggested_vote,
+      assigned_to: p.assigned_to,
+      updated_at: p.updated_at,
+      team_actions: p.team_actions
+    })))
+    
+    return newHash !== oldHash
+  },
+
   // Actions
-  async fetchProposals(): Promise<void> {
-    state.loading = true
+  async fetchProposals(isBackgroundRefresh: boolean = false): Promise<void> {
+    // Only show loading indicator for initial loads, not background refreshes
+    if (!isBackgroundRefresh) {
+      state.loading = true
+    }
     state.error = null
-    console.log('🔄 ProposalStore: Starting fetchProposals...')
+    
+    const logPrefix = isBackgroundRefresh ? '🔄 [Background]' : '📥 [Initial]'
+    console.log(`${logPrefix} ProposalStore: Starting fetchProposals...`)
     
     try {
       if (!authStore.state.isAuthenticated) {
@@ -146,11 +181,11 @@ export const proposalStore = {
         return
       }
 
-      console.log('📡 ProposalStore: Calling ApiService.getAllProposals()...')
+      console.log(`${logPrefix} ProposalStore: Calling ApiService.getAllProposals()...`)
       const apiService = ApiService.getInstance()
       const allProposals = await apiService.getAllProposals()
       
-      console.log('📦 ProposalStore: Received proposals from API:', {
+      console.log(`${logPrefix} ProposalStore: Received proposals from API:`, {
         count: allProposals.length,
         proposalIds: allProposals.map(p => p.post_id).slice(0, 10), // First 10 IDs
         sampleProposal: allProposals[0] ? {
@@ -160,15 +195,23 @@ export const proposalStore = {
         } : null
       })
       
-      state.proposals = allProposals
-      state.error = null
+      // Only update state if data has actually changed
+      if (this.hasProposalsChanged(allProposals, state.proposals)) {
+        console.log(`${logPrefix} ProposalStore: Data changed, updating state`)
+        state.proposals = allProposals
+        state.error = null
+      } else {
+        console.log(`${logPrefix} ProposalStore: No changes detected, skipping update`)
+      }
       
-      console.log('✅ ProposalStore: State updated with', state.proposals.length, 'proposals')
+      console.log('✅ ProposalStore: Fetch complete,', state.proposals.length, 'proposals in state')
     } catch (err) {
       state.error = err instanceof Error ? err.message : 'Failed to fetch proposals'
       console.error('❌ ProposalStore: Failed to fetch proposals:', err)
     } finally {
-      state.loading = false
+      if (!isBackgroundRefresh) {
+        state.loading = false
+      }
     }
   },
 
@@ -251,7 +294,7 @@ export const proposalStore = {
     
     // Fetch initial data if we don't have any
     if (state.proposals.length === 0) {
-      await this.fetchProposals()
+      await this.fetchProposals(false) // Initial load
     }
     
     // Always start auto-refresh when initialized (it will handle cleanup if already running)
@@ -272,7 +315,7 @@ export const proposalStore = {
     
     // Initial fetch if we don't have data
     if (state.proposals.length === 0) {
-      this.fetchProposals()
+      this.fetchProposals(false) // Initial load
     }
     
     // Set up interval
@@ -280,7 +323,7 @@ export const proposalStore = {
       // Check if tab is visible (pause when hidden)
       if (document.visibilityState === 'visible') {
         console.log('🔄 ProposalStore: Auto-refreshing proposals...')
-        this.fetchProposals()
+        this.fetchProposals(true) // Background refresh
       } else {
         console.log('⏸️ ProposalStore: Tab hidden, skipping refresh')
       }
@@ -290,7 +333,7 @@ export const proposalStore = {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && authStore.state.isAuthenticated) {
         console.log('👁️ ProposalStore: Tab visible, refreshing proposals...')
-        this.fetchProposals()
+        this.fetchProposals(true) // Background refresh
       }
     }
     

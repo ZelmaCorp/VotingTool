@@ -12331,20 +12331,48 @@ Timestamp: ${Date.now()}`;
     get myEvaluations() {
       return myEvaluations.value;
     },
+    // Helper function to check if proposals data has changed
+    hasProposalsChanged(newProposals, oldProposals) {
+      if (newProposals.length !== oldProposals.length) {
+        return true;
+      }
+      const newHash = JSON.stringify(newProposals.map((p2) => ({
+        post_id: p2.post_id,
+        chain: p2.chain,
+        internal_status: p2.internal_status,
+        suggested_vote: p2.suggested_vote,
+        assigned_to: p2.assigned_to,
+        updated_at: p2.updated_at,
+        team_actions: p2.team_actions
+      })));
+      const oldHash = JSON.stringify(oldProposals.map((p2) => ({
+        post_id: p2.post_id,
+        chain: p2.chain,
+        internal_status: p2.internal_status,
+        suggested_vote: p2.suggested_vote,
+        assigned_to: p2.assigned_to,
+        updated_at: p2.updated_at,
+        team_actions: p2.team_actions
+      })));
+      return newHash !== oldHash;
+    },
     // Actions
-    async fetchProposals() {
-      state.loading = true;
+    async fetchProposals(isBackgroundRefresh = false) {
+      if (!isBackgroundRefresh) {
+        state.loading = true;
+      }
       state.error = null;
-      console.log("🔄 ProposalStore: Starting fetchProposals...");
+      const logPrefix = isBackgroundRefresh ? "🔄 [Background]" : "📥 [Initial]";
+      console.log(`${logPrefix} ProposalStore: Starting fetchProposals...`);
       try {
         if (!authStore.state.isAuthenticated) {
           console.warn("⚠️ ProposalStore: Not authenticated, cannot fetch proposals");
           return;
         }
-        console.log("📡 ProposalStore: Calling ApiService.getAllProposals()...");
+        console.log(`${logPrefix} ProposalStore: Calling ApiService.getAllProposals()...`);
         const apiService = ApiService.getInstance();
         const allProposals = await apiService.getAllProposals();
-        console.log("📦 ProposalStore: Received proposals from API:", {
+        console.log(`${logPrefix} ProposalStore: Received proposals from API:`, {
           count: allProposals.length,
           proposalIds: allProposals.map((p2) => p2.post_id).slice(0, 10),
           // First 10 IDs
@@ -12354,14 +12382,21 @@ Timestamp: ${Date.now()}`;
             status: allProposals[0].internal_status
           } : null
         });
-        state.proposals = allProposals;
-        state.error = null;
-        console.log("✅ ProposalStore: State updated with", state.proposals.length, "proposals");
+        if (this.hasProposalsChanged(allProposals, state.proposals)) {
+          console.log(`${logPrefix} ProposalStore: Data changed, updating state`);
+          state.proposals = allProposals;
+          state.error = null;
+        } else {
+          console.log(`${logPrefix} ProposalStore: No changes detected, skipping update`);
+        }
+        console.log("✅ ProposalStore: Fetch complete,", state.proposals.length, "proposals in state");
       } catch (err) {
         state.error = err instanceof Error ? err.message : "Failed to fetch proposals";
         console.error("❌ ProposalStore: Failed to fetch proposals:", err);
       } finally {
-        state.loading = false;
+        if (!isBackgroundRefresh) {
+          state.loading = false;
+        }
       }
     },
     setProposals(proposals) {
@@ -12421,7 +12456,7 @@ Timestamp: ${Date.now()}`;
         return;
       }
       if (state.proposals.length === 0) {
-        await this.fetchProposals();
+        await this.fetchProposals(false);
       }
       this.startAutoRefresh();
     },
@@ -12433,12 +12468,12 @@ Timestamp: ${Date.now()}`;
       }
       console.log("🔄 ProposalStore: Starting auto-refresh (15s interval)");
       if (state.proposals.length === 0) {
-        this.fetchProposals();
+        this.fetchProposals(false);
       }
       refreshInterval = window.setInterval(() => {
         if (document.visibilityState === "visible") {
           console.log("🔄 ProposalStore: Auto-refreshing proposals...");
-          this.fetchProposals();
+          this.fetchProposals(true);
         } else {
           console.log("⏸️ ProposalStore: Tab hidden, skipping refresh");
         }
@@ -12446,7 +12481,7 @@ Timestamp: ${Date.now()}`;
       const handleVisibilityChange = () => {
         if (document.visibilityState === "visible" && authStore.state.isAuthenticated) {
           console.log("👁️ ProposalStore: Tab visible, refreshing proposals...");
-          this.fetchProposals();
+          this.fetchProposals(true);
         }
       };
       document.addEventListener("visibilitychange", handleVisibilityChange);
