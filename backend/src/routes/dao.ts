@@ -145,6 +145,7 @@ router.get("/parent", authenticateToken, addDaoContext, requireDaoMembership, as
 /**
  * GET /dao/config
  * Get DAO configuration including multisig addresses and team info
+ * Also updates DAO name from Subscan if available (in background)
  */
 router.get("/config", authenticateToken, addDaoContext, requireDaoMembership, async (req: Request, res: Response) => {
   try {
@@ -162,10 +163,19 @@ router.get("/config", authenticateToken, addDaoContext, requireDaoMembership, as
     const polkadotMultisig = await DAO.getDecryptedMultisig(daoId, Chain.Polkadot);
     const kusamaMultisig = await DAO.getDecryptedMultisig(daoId, Chain.Kusama);
     
+    // Update DAO name from Subscan in background (non-blocking)
+    // This ensures the name stays in sync with on-chain identity
+    DaoService.updateNameFromSubscan(daoId, chain).catch(error => {
+      logger.warn({ error: formatError(error), daoId }, 'Failed to update DAO name from Subscan (non-critical)');
+    });
+    
+    // Get fresh DAO data in case name was updated (but don't wait for Subscan update)
+    const currentDao = await DAO.getById(daoId);
+    
     res.json({
       success: true,
       config: {
-        name: dao.name,
+        name: currentDao?.name || dao.name,
         team_members: teamMembers,
         required_agreements: info?.threshold || 4,
         multisig_address: polkadotMultisig || kusamaMultisig,
