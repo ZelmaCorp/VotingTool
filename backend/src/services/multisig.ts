@@ -446,6 +446,61 @@ export class MultisigService {
   }
 
   /**
+   * Get account display name from Subscan API
+   * Fetches the identity/display name for a multisig address
+   * @param multisigAddress - The multisig address to fetch display name for
+   * @param network - The network (Polkadot or Kusama)
+   * @returns The display name if available, null otherwise
+   */
+  async getAccountDisplayName(multisigAddress: string, network: "Polkadot" | "Kusama" = "Polkadot"): Promise<string | null> {
+    if (!multisigAddress || !this.subscanApiKey) {
+      logger.warn({ network, hasAddress: !!multisigAddress, hasApiKey: !!this.subscanApiKey }, 
+        'Cannot fetch account display name - missing configuration');
+      return null;
+    }
+
+    try {
+      const parentInfo = await this.getParentAddress(multisigAddress, network);
+      
+      let targetAddress = multisigAddress;
+      if (parentInfo.isProxy && parentInfo.parentAddress) {
+        targetAddress = parentInfo.parentAddress;
+      }
+
+      const endpoint = this.getSubscanEndpoint(network);
+      const responseData = await this.subscanRequestWithRetry(
+        `${endpoint}/api/v2/scan/search`,
+        { key: targetAddress }
+      );
+
+      if (responseData.code === 0 && responseData.data?.account) {
+        const accountData = responseData.data.account;
+        
+        // Try to get display name from account_display.people.display first
+        const displayName = accountData.account_display?.people?.display 
+          || accountData.display 
+          || accountData.account_display?.display
+          || null;
+        
+        if (displayName) {
+          logger.info({ network, multisigAddress, displayName }, 'Successfully fetched account display name');
+          return displayName.trim();
+        }
+        
+        logger.debug({ network, multisigAddress }, 'No display name found in account data');
+        return null;
+      }
+      
+      logger.warn({ network, targetAddress, responseCode: responseData.code }, 'Subscan API returned error or no data');
+      return null;
+
+    } catch (error) {
+      logger.error({ error: formatError(error), network, multisigAddress }, 'Error fetching account display name');
+      return null;
+    }
+  }
+
+  /**
    * Find team member with flexible address matching
    * Used for matching addresses that might be in different formats
    */

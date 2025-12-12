@@ -88,6 +88,62 @@ export class DaoService {
     }
 
     /**
+     * Update DAO name from Subscan if display name is available
+     * Fetches the account display name and updates the DAO if different
+     * @param id - The DAO ID
+     * @param chain - The chain to check (prefers Polkadot, falls back to Kusama)
+     * @returns The updated name if changed, or current name if unchanged
+     */
+    public static async updateNameFromSubscan(id: number, chain?: Chain): Promise<string | null> {
+        try {
+            const dao = await DAO.getById(id);
+            if (!dao) {
+                logger.warn({ daoId: id }, 'DAO not found for name update');
+                return null;
+            }
+
+            // Determine which chain to use (prefer provided chain, then Polkadot, then Kusama)
+            let targetChain = chain;
+            if (!targetChain) {
+                const polkadotMultisig = await DAO.getDecryptedMultisig(id, Chain.Polkadot);
+                targetChain = polkadotMultisig ? Chain.Polkadot : Chain.Kusama;
+            }
+
+            const multisigAddress = await DAO.getDecryptedMultisig(id, targetChain);
+            if (!multisigAddress) {
+                logger.debug({ daoId: id, targetChain }, 'No multisig address for name update');
+                return null;
+            }
+
+            const network = targetChain === Chain.Polkadot ? 'Polkadot' : 'Kusama';
+            const displayName = await this.multisigService.getAccountDisplayName(multisigAddress, network);
+
+            if (!displayName) {
+                logger.debug({ daoId: id, multisigAddress, network }, 'No display name found on Subscan');
+                return null;
+            }
+
+            // Only update if the name is different
+            if (displayName.trim() !== dao.name.trim()) {
+                await DAO.update(id, { name: displayName.trim() });
+                logger.info({ 
+                    daoId: id, 
+                    oldName: dao.name, 
+                    newName: displayName.trim(),
+                    chain: targetChain 
+                }, 'Updated DAO name from Subscan');
+                return displayName.trim();
+            }
+
+            logger.debug({ daoId: id, name: dao.name }, 'DAO name unchanged, matches Subscan display name');
+            return dao.name;
+        } catch (error) {
+            logger.error({ error, daoId: id }, 'Error updating DAO name from Subscan');
+            return null;
+        }
+    }
+
+    /**
      * Find DAO by multisig address
      * @param multisigAddress - The multisig address to search for
      * @param chain - The chain (Polkadot or Kusama)

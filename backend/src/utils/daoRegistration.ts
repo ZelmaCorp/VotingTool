@@ -103,12 +103,13 @@ export const verifyMultisigMembership = async (
 
 /**
  * Verify all multisigs and return verified chains
+ * Also fetches account display name from Subscan if available
  */
 export const performMultisigVerifications = async (
   polkadotMultisig: string | null,
   kusamaMultisig: string | null,
   walletAddress: string
-): Promise<{ success: boolean; chains?: Chain[]; errors?: string[] }> => {
+): Promise<{ success: boolean; chains?: Chain[]; errors?: string[]; displayName?: string | null }> => {
   // Verify sequentially with delay to avoid Subscan rate limits
   const results: Array<{ isVerified: boolean; error?: string }> = [];
   
@@ -147,7 +148,23 @@ export const performMultisigVerifications = async (
     return { success: false, errors: ['You must be a member of at least one of the provided multisigs'] };
   }
   
-  return { success: true, chains };
+  // Fetch display name from the first verified multisig
+  let displayName: string | null = null;
+  try {
+    const primaryMultisig = polkadotMultisig || kusamaMultisig;
+    const primaryChain = polkadotMultisig ? Chain.Polkadot : Chain.Kusama;
+    
+    if (primaryMultisig) {
+      displayName = await multisigService.getAccountDisplayName(primaryMultisig, primaryChain);
+      if (displayName) {
+        logger.info({ displayName, multisig: primaryMultisig, chain: primaryChain }, 'Fetched account display name from Subscan');
+      }
+    }
+  } catch (error) {
+    logger.warn({ error: formatError(error) }, 'Failed to fetch account display name, will use user-provided name');
+  }
+  
+  return { success: true, chains, displayName };
 };
 
 /**
