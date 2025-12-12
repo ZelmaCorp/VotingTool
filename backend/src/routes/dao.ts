@@ -50,16 +50,28 @@ router.post("/register", authenticateToken, async (req: Request, res: Response) 
       return res.status(403).json({ success: false, error: 'Invalid signature. Please sign the message with your wallet.' });
     }
     
-    // Verify message content and DAO name availability
+    // Verify message content (check against user-provided name)
     if (!message.includes(name)) return res.status(400).json({ success: false, error: 'Message must include the DAO name for verification' });
-    if (await DAO.getByName(name.trim())) return res.status(409).json({ success: false, error: 'DAO with this name already exists' });
     
     // Verify multisigs on-chain
     const verification = await performMultisigVerifications(polkadotMultisig, kusamaMultisig, walletAddress);
     if (!verification.success) return res.status(verification.errors![0].includes('member') ? 403 : 400).json({ success: false, errors: verification.errors });
     
+    // Use display name from Subscan if available, otherwise use user-provided name
+    const finalName = verification.displayName || name.trim();
+    logger.info({ 
+      userProvidedName: name.trim(), 
+      subscanDisplayName: verification.displayName,
+      finalName 
+    }, 'Determining DAO name');
+    
+    // Check if final name is already taken (in case display name conflicts)
+    if (await DAO.getByName(finalName)) {
+      return res.status(409).json({ success: false, error: `DAO with name "${finalName}" already exists` });
+    }
+    
     // Create DAO
-    const daoId = await createDaoFromRegistration(name, description, polkadotMultisig, kusamaMultisig);
+    const daoId = await createDaoFromRegistration(finalName, description, polkadotMultisig, kusamaMultisig);
     
     // Fetch and cache team member data from blockchain
     try {
@@ -81,11 +93,11 @@ router.post("/register", authenticateToken, async (req: Request, res: Response) 
       logger.warn({ error: formatError(memberFetchError), daoId }, 'Failed to fetch team members after registration');
     }
     
-    logger.info({ daoId, name: name.trim(), walletAddress, chains: verification.chains }, 'DAO registered successfully');
+    logger.info({ daoId, name: finalName, walletAddress, chains: verification.chains }, 'DAO registered successfully');
     res.status(201).json({ 
       success: true, 
       message: 'DAO registered successfully', 
-      dao: { id: daoId, name: name.trim(), description: description?.trim() || null, chains: verification.chains, status: 'active' } 
+      dao: { id: daoId, name: finalName, description: description?.trim() || null, chains: verification.chains, status: 'active' } 
     });
   } catch (error) {
     logger.error({ error: formatError(error) }, 'Error registering DAO');
