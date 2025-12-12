@@ -1,5 +1,21 @@
 <template>
-  <div class="voting-tool-controls" id="voting-tool-controls">
+  <div 
+    class="voting-tool-controls" 
+    :class="{ 'controls-disabled': !authStore.state.isAuthenticated }"
+    id="voting-tool-controls"
+  >
+    <!-- Disabled overlay when not authenticated -->
+    <div 
+      v-if="!authStore.state.isAuthenticated" 
+      class="disabled-overlay"
+      @click="connectTalismanDirectly"
+    >
+      <div class="disabled-message">
+        <span class="disabled-icon">🔒</span>
+        <span class="disabled-text">Connect wallet to enable</span>
+      </div>
+    </div>
+
     <div class="controls-header">
       <h3 class="controls-title">OpenGov Voting Tool</h3>
       <div class="status-badge-wrapper">
@@ -20,6 +36,7 @@
         id="voting-tool-assign"
         class="control-btn assign-btn"
         @click="handleAssignToMe"
+        :disabled="!authStore.state.isAuthenticated"
         :title="assignButtonTooltip"
       >
         <span class="btn-text">{{ assignButtonText }}</span>
@@ -337,7 +354,7 @@ const statusConfig = {
 
 const statusClass = computed(() => {
   return {
-    'status-clickable': canChangeStatus.value,
+    'status-clickable': canChangeStatus.value && authStore.state.isAuthenticated,
     [`status-${props.status.toLowerCase().replace(/[^a-z0-9]/g, '-')}`]: true
   }
 })
@@ -368,6 +385,10 @@ const canChangeStatus = computed(() => {
 });
 
 const handleStatusClick = () => {
+  if (!authStore.state.isAuthenticated) {
+    showLoginPrompt('Please connect your wallet to change proposal status.')
+    return
+  }
   if (canChangeStatus.value) {
     showStatusModal.value = true;
   }
@@ -575,14 +596,47 @@ const handleTeamUpdate = () => {
   window.dispatchEvent(new CustomEvent('teamDataUpdated', { detail: { proposalId: props.proposalId } }))
 }
 
-// Show login prompt with custom message
+// Directly connect to Talisman if available, otherwise open wallet menu
+const connectTalismanDirectly = async () => {
+  try {
+    // Check if Talisman is available
+    const injectedWeb3 = (window as any).injectedWeb3
+    if (injectedWeb3?.talisman) {
+      console.log('🔗 Attempting to connect to Talisman directly...')
+      
+      // First, open the wallet connection menu so WalletConnect component is ready
+      window.dispatchEvent(new CustomEvent('requestWalletConnection'))
+      
+      // Small delay to ensure WalletConnect component is mounted and listening
+      setTimeout(() => {
+        // Send connect request directly to Talisman
+        // This will cause Talisman to pop up
+        window.postMessage({
+          type: 'CONNECT_WALLET',
+          walletKey: 'talisman'
+        }, '*')
+      }, 100)
+      
+      return
+    }
+    
+    // Fallback: if Talisman is not available, open the wallet connection menu
+    console.log('⚠️ Talisman not found, opening wallet connection menu...')
+    window.dispatchEvent(new CustomEvent('requestWalletConnection'))
+  } catch (error) {
+    console.error('Failed to connect to Talisman:', error)
+    // Fallback to opening wallet menu
+    window.dispatchEvent(new CustomEvent('requestWalletConnection'))
+  }
+}
+
+// Show login prompt with custom message (kept for other uses)
 const showLoginPrompt = (message: string) => {
   confirmModalData.value = {
     title: 'Connect Wallet',
     message: `${message}\n\nWould you like to connect your wallet now?`,
     onConfirm: () => {
-      // Trigger menu opening which will show wallet connect modal
-      window.dispatchEvent(new CustomEvent('requestWalletConnection'))
+      connectTalismanDirectly()
     }
   }
   showConfirmModal.value = true
@@ -598,6 +652,57 @@ const showLoginPrompt = (message: string) => {
   margin-bottom: 16px;
   box-shadow: 0 4px 12px rgba(230, 0, 122, 0.15);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  position: relative;
+}
+
+.voting-tool-controls.controls-disabled {
+  opacity: 0.6;
+  filter: grayscale(0.3);
+  pointer-events: none;
+}
+
+.voting-tool-controls.controls-disabled .disabled-overlay {
+  pointer-events: all;
+}
+
+.disabled-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.disabled-overlay:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.disabled-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #6c757d;
+  font-weight: 600;
+}
+
+.disabled-icon {
+  font-size: 2rem;
+  opacity: 0.7;
+}
+
+.disabled-text {
+  font-size: 0.9rem;
+  text-align: center;
 }
 
 .controls-header {
@@ -635,10 +740,12 @@ const showLoginPrompt = (message: string) => {
   white-space: nowrap;
   min-width: 100px;
   justify-content: center;
+  cursor: default;
 }
 
 .status-clickable {
   cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, 0.8);
 }
 
 .status-clickable:hover {
@@ -723,8 +830,10 @@ const showLoginPrompt = (message: string) => {
 }
 
 .control-btn:disabled {
-  opacity: 0.6;
+  opacity: 0.5;
   cursor: not-allowed;
+  filter: grayscale(0.4);
+  pointer-events: none;
 }
 
 .assign-btn {
