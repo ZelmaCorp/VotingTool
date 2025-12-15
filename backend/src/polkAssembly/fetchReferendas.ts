@@ -19,6 +19,7 @@ export async function fetchDataFromAPI(limit: number = 200, network: Chain): Pro
     let discussions = [];
 
     // Fetch data from Polkassembly  
+    // WARNING: this should include 'Submitted'
     const url = `https://api.polkassembly.io/api/v1/latest-activity/all-posts?govType=open_gov&listingLimit=${limit}`;
     const response = await axios.get(url, {
       headers: {
